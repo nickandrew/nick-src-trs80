@@ -6,7 +6,7 @@
 ;Next Update	23-Mar-86	by Nick Andrew.
 ;
 ;Changed by Nick Andrew 29-Nov-85/23-Mar-86 for:
-;   - Different RS232 interfaces
+;  - Different RS232 interfaces
 ;
 ;Version for:	  YES   1) Trs-80 Model I
 ;		  YES   2) System-80
@@ -84,7 +84,7 @@ CTS	EQU	7
 ;
 	ORG	7000H	;GET OUT OF WAY OF DOS OVERLAYS
 ;
-; Symbolic Definitions for some ASCII characters
+;Symbolic Definitions for some ASCII characters
 ;
 BELL	EQU	07O	;ASCII BEL (Control-G)
 CTRLC	EQU	03O	;ASCII ETX (Control-C)
@@ -100,38 +100,38 @@ DEL	EQU	177O	;ASCII DELete (rubout)
 ;
 DEFESC	EQU	31		;<CLEAR> key on key board
 DBAUD	EQU	55H		;Default baud rate (300)
-MAXPKT  EQU	'~'-' '+2O	; Maximum size of a packet.
-MAXTRY	EQU	05O		; Default number of retries on a packet.
-IMXTRY	EQU	20O		; Default number of retries send initiate.
-DRPSIZ	EQU	5EH		; Default receive packet size.
-DSPSIZ	EQU	20H		; Default send packet size.
-DSTIME	EQU	08H		; Default send time out interval.
-DRTIME	EQU	05H		; Default receive time out interval.
-DSPAD	EQU	00H		; Default send padding.
-DRPAD	EQU	00H		; Default receive padding.
-DSPADC	EQU	00H		; Default send padding char.
-DRPADC	EQU	00H		; Default receive padding char.
-DSEOL	EQU	CR		; Default send EOL char.
-DREOL	EQU	CR		; Default receive EOL char.
-DSQUOT	EQU	'#'		; Default send quote char.
-DRQUOT	EQU	'#'		; Default receive quote char.
-DSCHKT	EQU	'1'		; Default checksum type
-PAREVN	EQU	00H		; Even parity.
-PARMRK	EQU	03H		; Mark parity.
-PARNON	EQU	06H		; No parity.
-PARODD	EQU	09H		; Odd parity.
-PARSPC	EQU	0CH		; Space parity.
-DEFPAR	EQU	PARNON		; Default parity.
-IBMPAR	EQU	PARMRK		; IBM COMTEN's parity.
-SOH	EQU	01H		; Start of header char.
+MAXPKT  EQU	'~'-' '+2O	;Maximum size of a packet.
+MAXTRY	EQU	05O		;Default number of retries on a packet.
+IMXTRY	EQU	20O		;Default number of retries send initiate.
+DRPSIZ	EQU	5EH		;Default receive packet size.
+DSPSIZ	EQU	20H		;Default send packet size.
+DSTIME	EQU	08H		;Default send time out interval.
+DRTIME	EQU	05H		;Default receive time out interval.
+DSPAD	EQU	00H		;Default send padding.
+DRPAD	EQU	00H		;Default receive padding.
+DSPADC	EQU	00H		;Default send padding char.
+DRPADC	EQU	00H		;Default receive padding char.
+DSEOL	EQU	CR		;Default send EOL char.
+DREOL	EQU	CR		;Default receive EOL char.
+DSQUOT	EQU	'#'		;Default send quote char.
+DRQUOT	EQU	'#'		;Default receive quote char.
+DSCHKT	EQU	'1'		;Default checksum type
+PAREVN	EQU	00H		;Even parity.
+PARMRK	EQU	03H		;Mark parity.
+PARNON	EQU	06H		;No parity.
+PARODD	EQU	09H		;Odd parity.
+PARSPC	EQU	0CH		;Space parity.
+DEFPAR	EQU	PARNON		;Default parity.
+IBMPAR	EQU	PARMRK		;IBM COMTEN's parity.
+SOH	EQU	01H		;Start of header char.
 BUFSIZ	EQU	0
-DIASW	EQU	01H		; Default is diagnostics on.
-CMKEY	EQU	01H		; Parse a keyword.
-CMIFI	EQU	02H		; Parse an input file spec (can be wild).
-CMOFI	EQU	03H		; Parse an output file spec.
-CMCFM	EQU	04H		; Parse a confirm.
-CMTXT	EQU	05H		; Parse text.
-CMIFIN	EQU	10H		; Parse an input file spec (but no
+DIASW	EQU	01H		;Default is diagnostics on.
+CMKEY	EQU	01H		;Parse a keyword.
+CMIFI	EQU	02H		;Parse an input file spec (can be wild).
+CMOFI	EQU	03H		;Parse an output file spec.
+CMCFM	EQU	04H		;Parse a confirm.
+CMTXT	EQU	05H		;Parse text.
+CMIFIN	EQU	10H		;Parse an input file spec (but no
 ;dos calls (all preceeded by @)
 @GET	EQU	13H	;get a byte from a file
 @PUT	EQU	1BH	;put a byte in a file
