@@ -1,4 +1,4 @@
-;ex/asm: Extended xmodem protocol file transfer.
+;ex300/asm: Extended xmodem protocol file transfer.
 ; Newdos-80 copy.
 ;
 *GET	DOSCALLS
@@ -23,12 +23,13 @@ ACK	EQU	06H
 NAK	EQU	15H
 CAN	EQU	18H
 CRCNAK	EQU	'C'	;Initial NAK ala CRC mode
+SUB	EQU	1AH	;Control char for modem7
 ;
 ;Constants
 MAX_NAKS	EQU	0AH
 MAX_BLOCKS	EQU	18H	;Was 14H.
 ;
-	COM	'<Ex 1.9f 20-Sep-86>'
+	COM	'<Ex 1.10a 24-Dec-86>'
 	ORG	BASE+100H
 START	LD	SP,START
 ;
@@ -70,6 +71,8 @@ XL_02	LD	A,(HL)		;check value of flag
 	JR	Z,SET_CRC
 	CP	'O'
 	JR	Z,SET_OVERWRITE
+	CP	'T'		;Telink mode
+	JR	Z,SET_TELINK
 ;flag unknown. bypass rest of flags
 	CALL	BYP_WORD
 	JR	XL_01
@@ -97,7 +100,22 @@ SET_OVERWRITE
 	INC	HL
 	JR	XL_02
 ;
+SET_TELINK
+	LD	A,1
+	LD	(TELINK),A
+	LD	(CRCMODE),A
+	INC	HL
+	JR	XL_02
+;
+;Jump to XFER_FINI when no more args to process.
 XFER_FINI
+	LD	A,(TELINK)
+	OR	A
+	JR	Z,XE_1
+	LD	A,(B_TYPE)
+	CP	'R'
+	JP	Z,TELINK_RECV
+XE_1
 	XOR	A
 	JP	EXIT_EXMF
 ;
@@ -107,6 +125,17 @@ XFER_FILE
 	LD	(NEWARG),HL
 	POP	HL
 ;
+	CALL	SET_FILENAME
+;
+	CALL	XFER_INIT	;Initialise.
+	CALL	START2		;Do the transfer.
+;Next argument please
+NEW_ARG
+	LD	HL,(NEWARG)
+	LD	(ARG),HL
+	JP	XFER_LOOP
+;
+SET_FILENAME
 	LD	DE,B_FILE
 	LD	B,22
 XF_01	LD	A,(HL)
@@ -122,13 +151,7 @@ XF_01	LD	A,(HL)
 	DJNZ	XF_01
 XF_02	XOR	A
 	LD	(DE),A
-;Do the transfer.
-	CALL	XFER_INIT
-	CALL	START2
-;Next argument please
-	LD	HL,(NEWARG)
-	LD	(ARG),HL
-	JP	XFER_LOOP
+	RET
 ;
 XFER_INIT
 	CALL	CONFIG
@@ -246,6 +269,8 @@ CU_02A	LD	A,(HL)
 	JR	Z,CU_03
 	CP	'O'
 	JR	Z,CU_03
+	CP	'T'		;Telink mode
+	JR	Z,CU_03
 	JP	USAGE
 CU_03	INC	HL
 	LD	A,(HL)
@@ -283,11 +308,20 @@ VP_01
 	INC	HL
 	JR	VP_01
 ;
+TELINK_RECV
+	XOR	A
+	LD	(M7_TRY),A
+	CALL	M7R_FILE
+	JP	NC,EXIT_EXMF
+	CP	EOT
+	JP	Z,EXIT_EXMF
+;
+;
+	CALL	XFER_INIT
+	CALL	START2
+	JR	TELINK_RECV
 ;
 START2
-;
-;
-;
 	LD	A,(B_TYPE)
 	CP	'R'
 	JP	NZ,SEND		;send if not 'R'
@@ -460,6 +494,115 @@ LOAD_NAK
 	RET
 	LD	A,CRCNAK
 	RET
+;
+;Modem-7 receive filename gathering.
+M7R_FILE
+M7R_MR0
+	LD	A,(M7_TRY)
+	INC	A
+	LD	(M7_TRY),A
+	CP	20
+	JR	Z,M7R_FAILED
+	IN	A,(RDDATA)
+	IN	A,(RDDATA)
+	LD	A,NAK
+	CALL	PUT_BYTE
+M7R_MR1
+	LD	B,5
+	CALL	GET_BYTE
+	JR	C,M7R_MR0
+	CP	ACK
+	JR	Z,M7R_MR2
+	CP	EOT
+	JR	Z,M7R_NOFILES
+	JR	M7R_MR0
+;
+M7R_NOFILES
+	LD	A,EOT
+	SCF
+	RET
+;
+M7R_FAILED
+	XOR	A
+	SCF
+	CCF
+	RET
+;
+M7R_MR2
+	LD	HL,M7_FIELD
+	LD	C,0
+	LD	(HL),C
+	LD	(M7_POSN),HL
+M7R_1
+	LD	B,1
+	CALL	GET_BYTE
+	JP	C,M7R_MR0
+	CP	EOT
+	JR	Z,M7R_NOFILES
+	CP	SUB
+	JR	Z,M7R_MR3
+	CP	'u'
+	JP	Z,M7R_MR0
+	LD	HL,(M7_POSN)
+	LD	(HL),A
+	INC	HL
+	LD	(M7_POSN),HL
+	LD	(HL),0
+	ADD	A,C
+	LD	C,A
+;
+	LD	A,ACK
+	CALL	PUT_BYTE
+;
+	JR	M7R_1
+;
+M7R_MR3
+	ADD	A,C
+	CALL	PUT_BYTE
+;
+	LD	B,1
+	CALL	GET_BYTE
+	JP	C,M7R_MR0
+	CP	ACK
+	JR	Z,M7R_2
+	JP	M7R_MR0
+;
+;Fix the filename so its standard.
+M7R_2
+	LD	HL,M7_FIELD
+	LD	DE,B_FILE
+	LD	B,8
+M7R_2A	LD	A,(HL)
+	CP	' '
+	JR	Z,M7R_2B
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	DJNZ	M7R_2A
+M7R_2B
+	LD	HL,M7_FIELD+8
+	LD	A,(HL)
+	CP	' '
+	JR	Z,M7R_2D
+	LD	A,'/'
+	LD	(DE),A
+	INC	DE
+	LD	B,3
+M7R_2C	LD	A,(HL)
+	CP	' '
+	JR	Z,M7R_2D
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	DJNZ	M7R_2C
+M7R_2D
+	XOR	A
+	LD	(DE),A
+	SCF
+	RET
+;
+;
+;
 ;
 SEND	LD	HL,M_SENDING
 	CALL	QUIET_0
@@ -675,9 +818,17 @@ AFQ	PUSH	BC
 	LD	(HL),A
 	INC	HL
 	DJNZ	AFQ
-	LD	D,C
+;Calculate the checksum
+	LD	HL,DATABUF
+	LD	B,128
+	XOR	A
+AFQ_1	ADD	A,(HL)
+	INC	HL
+	DJNZ	AFQ_1
+;;	LD	D,A
+;;	LD	D,C
 ;
-	LD	A,C		;a is checksum
+;;	LD	A,C		;a is checksum
 	LD	(CHECKSUM),A
 ;
 	LD	A,(CRCMODE)
@@ -753,7 +904,12 @@ SEND_CHECK
 	LD	A,(CRCMODE)
 	OR	A
 	JR	NZ,SEND_CRC
-	LD	A,C
+	XOR	A
+	LD	HL,DATABUF
+	LD	B,80H
+SC_01	ADD	A,(HL)
+	INC	HL
+	DJNZ	SC_01
 	CALL	PUT_BYTE
 	CALL	POSS_ABRT	;check if abort desired.
 	RET	
@@ -951,6 +1107,7 @@ AGU	INC	DE
 	LD	(AID),HL
 	RET	
 ;
+;Carry flag is set if there is a timeout.
 GET_BYTE
 	PUSH	DE
 GB_1	LD	D,40		;=1 sec
@@ -974,8 +1131,8 @@ GB_3	POP	DE
 ;
 GB_4	IN	A,(RDDATA)
 	PUSH	AF
-	ADD	A,C
-	LD	C,A
+;;	ADD	A,C
+;;	LD	C,A
 	POP	AF
 	POP	DE
 	OR	A
@@ -1122,7 +1279,7 @@ CONFIG
 	OUT	(WRSTAT),A
 	LD	A,40H
 	OUT	(WRSTAT),A
-	LD	A,0EH		;1 stop.
+	LD	A,0FH		;1 stop, 300 baud.
 	OUT	(WRSTAT),A
 	LD	A,05H
 	OUT	(WRSTAT),A
@@ -1191,8 +1348,8 @@ MIN_2
 PUT_BYTE
 	PUSH	AF
 	CALL	KEY_ABRT	;check if abort reqd.
-	ADD	A,C
-	LD	C,A
+;;	ADD	A,C
+;;	LD	C,A
 BS_1
 	IN	A,(RDSTAT)
 	BIT	CTS,A
@@ -1355,6 +1512,7 @@ S1_2	LD	A,(TICKER)
 QUIET	DEFB	0		;Quiet flag
 OVERWRITE DEFB	0		;O/write existing file
 CRCMODE	DEFB	0		;1=In CRC mode
+TELINK	DEFB	0		;1=In Telink mode
 CRC_LOW	DEFW	0		;CRC as received
 OLD_CRC	DEFW	0		;CRC calculated.
 CHECKSUM DEFB	0		;Checksum calculated
@@ -1379,6 +1537,9 @@ M_10_NAKS
 ;
 ARG	DEFW	0
 NEWARG	DEFW	0
+M7_TRY	DEFB	0
+M7_POSN	DEFW	0
+M7_FIELD DEFS	11	;FFFFFFFFeee
 ;
 M_RECVNG
 	DEFM	'xmf: receiving file ',0
