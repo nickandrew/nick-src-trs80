@@ -1,18 +1,26 @@
-/*
- * Direct.c:
- * Concatenate files to a 'dir' type file,
- *   and remove files from a 'dir' type file.
- *
- * (C) Nick Andrew, 10-Oct-85.
- * DIRECT Version 2.0 for Unix systems.
- *
- */
+/*  Direct.c: Add, List and Unpack 'directory files'.
+ ************************************************************
+ * Direct.c:    Source code for DIRECT.                     *
+ * Environment: Unix System V                               *
+ * Other files required:                                    *
+ *       DIRECT.DOC       Documentation for this version    *
+ *       STDIO.H          On your own system                *
+ *                                                          *
+ * Language:    C                                           *
+ * Version:     1.0  10-Oct-85                              *
+ * Program:     (C) 1986 by Zeta Microcomputer Software     *
+ *              Released to Public Domain 11-Mar-86         *
+ *                                                          *
+ *   If you like this program and you are an honest person  *
+ * then you may consider sending a donation to the author   *
+ * at P.O Box 177, Riverstone NSW 2765.                     *
+ * Recommended amount: $5                                   *
+ *                                                          *
+ * This program is compatible with DIRECT/ASM for Trs-80.   *
+ ***********************************************************/
 
-#include <stdio.h>               /* Standard IO file */
-#include "bufio/h"               /* Unix-like fns    */
 
-#define DATFILE "/dat"           /* Slash for TRS-80 */
-#define DIRFILE "/dir"
+#include <stdio.h>
 
 int  is_open;
 FILE *fpdir,*fpdat;
@@ -64,7 +72,7 @@ main()
 
          case 0:   continue;
 
-         default:  printf("Use one of S,A,X,E,L,F\n");
+         default:  printf("Use one of S(et), A(dd), X(it), E(xtract), L(list), F(ilename), !\n");
          }
       }
 }
@@ -72,7 +80,7 @@ main()
 
 prompt()
 {
-   printf("Direct 2.0u> ");
+   printf("Direct 1.0u> ");
    if (gets(cmd)==NULL)
       doexit();
 }
@@ -89,7 +97,7 @@ set()
    /* Extract filename from cmd line */
    if (!*cp)
       {
-      printf("S: usage is 's filename'\n");
+      printf("Set: usage is 's filename'\n");
       return;
       }
    fcp=fnm;
@@ -97,7 +105,7 @@ set()
    *fcp=0;
    strcpy(fn1,fnm);
    strcpy(fname,fnm);
-   strcat(fn1,DIRFILE);
+   strcat(fn1,".dir");
    if ((fpdir=fopen(fn1,"r+"))==NULL)
       {
       char answer[4];
@@ -113,7 +121,7 @@ set()
       if ((fpdir=openup(fn1,"r+"))==NULL) return;
       }
    strcpy(fn1,fnm);
-   strcat(fn1,DATFILE);
+   strcat(fn1,".dat");
    if ((fpdat=fopen(fn1,"r+"))==NULL)
       {
       if (!created)
@@ -142,7 +150,7 @@ dclose()
 }
 
 white(c)
-int  c;
+char c;
 {
    return ((c==' ') || (c=='\t') || (c=='\n'));
 }
@@ -192,7 +200,7 @@ addfile()
    /* Extract filename 1 from cmd line */
    if (!*cp)
       {
-      printf("A: usage is 'a system-filename [dir-filename]'\n");
+      printf("Add: usage is 'a system-filename [dir-filename]' \n");
       return;
       }
    fcp=sysfn;   /* get system filename */
@@ -296,8 +304,8 @@ doexit()
 
 extract()
 {
-   char dirfn[FILELEN],filestr[FILELEN];
-   char deststr[DESCLEN],dest[DESCLEN];
+   char dirfn[FILELEN],   filestr[FILELEN],
+        deststr[DESCLEN], dest[DESCLEN];
    char buffer[BUFSIZ];
    int  i,nitems,nit;
    long datposn,datlen;
@@ -308,7 +316,7 @@ extract()
    /* Extract filename 1 from cmd line */
    if (!*cp)
       {
-      printf("E: usage is 'e dir-filename'\n");
+      printf("Extract: usage is 'e dir-filename'\n");
       return;
       }
 
@@ -352,7 +360,7 @@ extract()
 
             if (fread(buffer,1,nitems,fpdat)!=nitems)
                {
-               printf("Bad read from DAT file!\n");
+               printf("Bad read from .dat file!\n");
                return;
                }
 
