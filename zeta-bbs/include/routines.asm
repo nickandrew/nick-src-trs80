@@ -991,7 +991,7 @@ _LN_NEOF
 	JR	_LN_LOOP
 ;
 _LN_FCB	DEFS	32
-_LN_BUFF DEFS	256
+_LN_BUFF	DEFS	256
 ;
 	ENDIF		;ifref list_nostop
 ;
