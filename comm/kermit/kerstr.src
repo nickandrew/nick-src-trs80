@@ -1,49 +1,49 @@
 ;kerstr/src.
 ; Pure storage.
-OUTLN2:	DB	CR,'Number of packets:'
+OUTLN2	DB	CR,'Number of packets:'
 	DB	CR,'Number of retries:'
 	DB	CR,'File name:$'
-KERM:	DB	'Kermit-TRS80'
-KERM1:	DB	'>$'		
+KERM	DB	'Kermit-TRS80'
+KERM1	DB	'>$'		
 ;DELPR:	DB	'Delete it? $'
-CRLF:	DB	CR,'$'
-ERMES1:	DB	CR,'?Unrecognized command$'
-ERMES2:	DB	CR,'?Illegal character$'
-ERMES3:	DB	CR,'?Not confirmed$'
-ERMES4:	DB	'?Unable to receive initiate',CR,'$'
-ERMES5:	DB	'?Unable to receive file name',CR,'$'
-ERMES6:	DB	'?Unable to receive end of file',CR,'$'
-ERMS10:	DB	'?Unable to receive data',CR,'$'
-ERMS11: DB	'?System DOS error',CR,'$'
-ERMS14:	DB	'?Unable to receive an acknowledgement from the host',CR,'$'
-ERMS15:	DB	CR,'?Unable to find file',CR,'$'
-ERMS16:	DB	'?Unable to rename file$'
-ERMS17: DB	CR,'?System DOS error$'
-ERMS18: DB	CR,'?Unable to tell host that the session is finished$'
-ERMS19: DB	CR,'?Unable to tell host to logout$'
-INFMS3:	DB	BELL,'Completed$'
-INFMS4:	DB	BELL,'Failed$'
-INFMS5:	DB	'%Renaming file to $'
-INFMS6:	DB	CR,'<Closing the log file>$'
-INFMS7:	DB	CR,'<Connected to remote host, type $'
-INFMS8:	DB	'C to return>',CR
+CRLF	DB	CR,'$'
+ERMES1	DB	CR,'?Unrecognized command$'
+ERMES2	DB	CR,'?Illegal character$'
+ERMES3	DB	CR,'?Not confirmed$'
+ERMES4	DB	'?Unable to receive initiate',CR,'$'
+ERMES5	DB	'?Unable to receive file name',CR,'$'
+ERMES6	DB	'?Unable to receive end of file',CR,'$'
+ERMS10	DB	'?Unable to receive data',CR,'$'
+ERMS11 DB	'?System DOS error',CR,'$'
+ERMS14	DB	'?Unable to receive an acknowledgement from the host',CR,'$'
+ERMS15	DB	CR,'?Unable to find file',CR,'$'
+ERMS16	DB	'?Unable to rename file$'
+ERMS17 DB	CR,'?System DOS error$'
+ERMS18 DB	CR,'?Unable to tell host that the session is finished$'
+ERMS19 DB	CR,'?Unable to tell host to logout$'
+INFMS3	DB	BELL,'Completed$'
+INFMS4	DB	BELL,'Failed$'
+INFMS5	DB	'%Renaming file to $'
+INFMS6	DB	CR,'<Closing the log file>$'
+INFMS7	DB	CR,'<Connected to remote host, type $'
+INFMS8	DB	'C to return>',CR
 	DB	'<CLEAR> is Control-',95,CR,'$'
-INFMS9:	DB	CR,'<Connection closed, back at micro>$'
-INMS10:	DB	' Control-$'
-INMS11:	DB	' (Type Left Arrow to send CTRL-S)',CR,'$'
-INMS12:	DB	' (Not implemented)',CR,'$'
-INMS13:	DB	BELL,'Interrupted$'
-DNAM14:	DB	'DIR  :'
+INFMS9	DB	CR,'<Connection closed, back at micro>$'
+INMS10	DB	' Control-$'
+INMS11	DB	' (Type Left Arrow to send CTRL-S)',CR,'$'
+INMS12	DB	' (Not implemented)',CR,'$'
+INMS13	DB	BELL,'Interrupted$'
+DNAM14	DB	'DIR  :'
 DIRSPEC	DB	'0',CR
 ;INMS15:	DB	CR,TAB,TAB,'Drive $'
 ;INMS16:	DB	'  has $';filled in by summary code with drive letter
 ;INMS17:	DB	'K bytes free',CR,'$'
-INMS18:	DB	CR,'File KILLED$',CR
-BADDRV:	DB	CR,'++ Bad drive name$',CR
-CFRMES:	DB	' Confirm with <ENTER>, cancel with <BREAK> $'
+INMS18	DB	CR,'File KILLED$',CR
+BADDRV	DB	CR,'++ Bad drive name$',CR
+CFRMES	DB	' Confirm with <ENTER>, cancel with <BREAK> $'
 ;FILHLP:	DB	' Input file spec $'
-ESCMES:	DB	CR,'Type the new escape character:  $'
-TOPHLP:	DB	CR,'BYE to host (LOGOUT) and exit to DOS'
+ESCMES	DB	CR,'Type the new escape character:  $'
+TOPHLP	DB	CR,'BYE to host (LOGOUT) and exit to DOS'
 	DB	CR,'CONNECT to host on selected port'
 	DB	CR,'DIR of local disk'
 	DB	CR,'EXIT to DOS'
@@ -57,7 +57,7 @@ TOPHLP:	DB	CR,'BYE to host (LOGOUT) and exit to DOS'
 	DB	CR,'SET a parameter'
 	DB	CR,'SHOW the parameters'
 	DB	CR,'STATUS of Kermit$'
-SETHLP:	DB	CR,'BAud (rate)'
+SETHLP	DB	CR,'BAud (rate)'
 	DB	CR,'BLock-check-type (for error detection'
 	DB	CR,'DEBugging mode (to display packets)'
 ;	DB	CR,'DEFault-disk (to receive data)'
@@ -73,45 +73,45 @@ SETHLP:	DB	CR,'BAud (rate)'
 	DB	CR,'Vt52-emulation'
 	DB	CR,'Warning (for filename conflicts)'
 	DB	'$'
-STSHLP:	DB	CR,'PAD-CHAR'
+STSHLP	DB	CR,'PAD-CHAR'
 	DB	CR,'PADDING$'
-BLKHLP:	DB	CR,'1-CHARACTER-CHECKSUM'
+BLKHLP	DB	CR,'1-CHARACTER-CHECKSUM'
 	DB	CR,'2-CHARACTER-CHECKSUM'
 	DB	CR,'3-CHARACTER-CRC-CCITT$'
-PARHLP:	DB	CR,'EVEN   MARK  NONE   ODD   SPACE$'
-ONHLP:	DB	CR,'OFF  ON$'
-YESHLP:	DB	CR,'NO   YES$'
+PARHLP	DB	CR,'EVEN   MARK  NONE   ODD   SPACE$'
+ONHLP	DB	CR,'OFF  ON$'
+YESHLP	DB	CR,'NO   YES$'
 PRTHLP	DB	CR,'STANDARD RS232 port$'
-INTHLP:	DB	CR,'?  This message'
+INTHLP	DB	CR,'?  This message'
 	DB	CR,'C  Close the connection'
 	DB	CR,'0  (zero) Transmit a NULL'
 	DB	CR,'S  Status of the connection'
 	DB	CR,'Type the escape character again to send it to the host'
 	DB	CR,CR,'Command>$'
-ONSTR:	DB	' on$'
-OFFSTR:	DB	' off$'
-LOCST:	DB	CR,'Local echo$'
-DEFSTR: DB	' default$'
-ASCSTR: DB	' ASCII$'
-BINSTR:	DB	' binary$'
-TYPHLP: DB	CR,'ASCII     BINARY     DEFAULT$'
+ONSTR	DB	' on$'
+OFFSTR	DB	' off$'
+LOCST	DB	CR,'Local echo$'
+DEFSTR DB	' default$'
+ASCSTR DB	' ASCII$'
+BINSTR	DB	' binary$'
+TYPHLP DB	CR,'ASCII     BINARY     DEFAULT$'
 SPDHLP	DB	CR,'     50     75     110   134.5    150   300   600    1200'
 	DB	CR,'   1800   2000    2400    3600   4800  7200  9600   19200$'
-VTEMST:	DB	CR,'VT52 emulation$'
-CPMST:	DB	CR,'File Mode$'
-IBMST:	DB	CR,'IBM flag$'
-FILST:	DB	CR,'File warning$'
-PNTSTR:	DB	CR,'Printer$'
-ESCST:	DB	CR,'Escape char: $'
-BUGST:	DB	CR,'Debugging mode$'
-PARST:	DB	CR,'Parity: $'
-BCKST:	DB	CR,'Block check type: $'
-BCKST1:	DB	'-character$'
-PNONST:	DB	'none$'
-PMRKST:	DB	'mark$' 
-PSPCST:	DB	'space$'
-PODDST:	DB	'odd$'
-PEVNST:	DB	'even$'
+VTEMST	DB	CR,'VT52 emulation$'
+CPMST	DB	CR,'File Mode$'
+IBMST	DB	CR,'IBM flag$'
+FILST	DB	CR,'File warning$'
+PNTSTR	DB	CR,'Printer$'
+ESCST	DB	CR,'Escape char: $'
+BUGST	DB	CR,'Debugging mode$'
+PARST	DB	CR,'Parity: $'
+BCKST	DB	CR,'Block check type: $'
+BCKST1	DB	'-character$'
+PNONST	DB	'none$'
+PMRKST	DB	'mark$' 
+PSPCST	DB	'space$'
+PODDST	DB	'odd$'
+PEVNST	DB	'even$'
 SPEDST	DB	'Line Speed: $'
 BAUST	DB	' Baud',CR,'$'
 OUTLIN	DB	28,31,CR,'$'
@@ -125,8 +125,8 @@ SCRST	DB	28,'$'	;place for complete
 SCRFLN	DB	28,26,26,26,26,25,25,25,25,25,25,25,25,25,25,25,'$'	;place for filename
 SCRERR	DB	28,26,26,26,26,26,26,'$'		;location for errors
 SCREND	DB	28,26,26,26,26,26,26,26,26,26,26,26,26,'$'	;location of last line
-RPPOS:	DB	28,26,26,26,26,26,26,26,31,'RPack: $'
-SPPOS:	DB	28,26,26,26,26,26,26,26,26,26,26,31,'SPack: $'
+RPPOS	DB	28,26,26,26,26,26,26,26,31,'RPack: $'
+SPPOS	DB	28,26,26,26,26,26,26,26,26,26,26,31,'SPack: $'
 TA	DB	1BH,'$',0,0		;cursor up
 TB	DB	1AH,'$',0,0		;cursor down
 TC	DB	19H,'$',0,0		;cursor right
@@ -152,7 +152,7 @@ TK	DB	1EH,'$'			;clear  to end of line
 ;
 ;	---> Note this command table is in alphabetic order.
 ;
-COMTAB:	DB	10H			;Number of entries (currently 16.)
+COMTAB	DB	10H			;Number of entries (currently 16.)
 	DB	03H,'BYE$',21H,21H
 	DB	07H,'CONNECT$',00H,00H
 	DB	03H,'DIR$',24H,24H
@@ -169,7 +169,7 @@ COMTAB:	DB	10H			;Number of entries (currently 16.)
 	DB	03H,'SET$',12H,12H
 	DB	04H,'SHOW$',15H,15H
 	DB	06H,'STATUS$',18H,18H
-SETTAB:	DB	0CH		;Number of entries (currently 12.)
+SETTAB	DB	0CH		;Number of entries (currently 12.)
 	DB	04H,'BAUD$',21H,21H	;Data keys to SETJTB positions.
 	DB	10H,'BLOCK-CHECK-TYPE$',18H,18H
 	DB	09H,'DEBUGGING$',27H,27H
@@ -185,40 +185,40 @@ SETTAB:	DB	0CH		;Number of entries (currently 12.)
 ;*	DB	04H,'SEND$',0CH,0CH	;Ditto
 	DB	0EH,'VT52-EMULATION$',1BH,1BH
 	DB	07H,'WARNING$',0FH,0FH
-STSNTB:	DB	02H
+STSNTB	DB	02H
 	DB	08H,'PAD-CHAR$',00H,00H
 	DB	07H,'PADDING$',03H,03H
-BLKTAB:	DB	03H
+BLKTAB	DB	03H
 	DB	14H,'1-CHARACTER-CHECKSUM$','1','1'
 	DB	14H,'2-CHARACTER-CHECKSUM$','2','2'
 	DB	15H,'3-CHARACTER-CRC-CCITT$','3','3'
-PARTAB:	DB	05H		;Five entries.
+PARTAB	DB	05H		;Five entries.
 	DB	04H,'EVEN$',PAREVN,PAREVN
 	DB	04H,'MARK$',PARMRK,PARMRK
 	DB	04H,'NONE$',PARNON,PARNON
 	DB	03H,'ODD$',PARODD,PARODD
 	DB	05H,'SPACE$',PARSPC,PARSPC
-ONTAB:	DB	02H		;Two entries.
+ONTAB	DB	02H		;Two entries.
 	DB	02H,'ON$',01H,01H
 	DB	03H,'OFF$',00H,00H
-TYPTAB:	DB	03H		;Three entries
+TYPTAB	DB	03H		;Three entries
 	DB	05H,'ASCII$',01H,01H
 	DB	06H,'BINARY$',02H,02H
 	DB	07H,'DEFAULT$',00H,00H
-PRTTAB:	DB	01H		;Only one port known at this point
+PRTTAB	DB	01H		;Only one port known at this point
 	DB	08H,'STANDARD$'
 ;;;	DW	MNPORT,MNPORT			;********
 	DEFW	RDDATA,RDDATA			;********
 				;what the hell for??
-YESTAB:	DB	02H		;Two entries.
+YESTAB	DB	02H		;Two entries.
 	DB	02H,'NO$',00H,00H
 	DB	03H,'YES$',01H,01H
-CMER00:	DB	CR,'?Program error:  Invalid COMND call$'
-CMER01:	DB	CR,'?Ambiguous$'
-CMER02:	DB	CR,'?Illegal input file spec$'
-CMIN00:	DB	' Confirm with <ENTER>, Cancel with <BREAK>$'
-CMCRLF:	DB	CR,'$'
-SPDTAB:	DB	10H			;16 entries
+CMER00	DB	CR,'?Program error:  Invalid COMND call$'
+CMER01	DB	CR,'?Ambiguous$'
+CMER02	DB	CR,'?Illegal input file spec$'
+CMIN00	DB	' Confirm with <ENTER>, Cancel with <BREAK>$'
+CMCRLF	DB	CR,'$'
+SPDTAB	DB	10H			;16 entries
 	DB	2,'50$',0,0
 	DB	02H,'75$',11H,11H
 	DB	03H,'110$',22H,22H
@@ -237,87 +237,87 @@ SPDTAB:	DB	10H			;16 entries
 	DB	05H,'19200$',0FFH,0FFH
 	;Impure data
 ;COMND storage
-CMSTAT:	DS	1		;What is presently being parsed.
-CMAFLG:	DS	1		;Non-zero when an action char has been found.
-CMCCNT:	DS	1		;Non-zero if a significant char is found.
-CMSFLG:	DS	1		;Non-zero when the last char was a space.
-CMOSTP:	DS	2		;Old stack pointer for reparse.
-CMRPRS:	DS	2		;Address to go to on reparse.
-CMPRMP:	DS	2		;Address of prompt.
-CMPTAB:	DS	2		;Address of present keyword table.
-CMHLP:	DS	2		;Address of present help.
-CMDBUF:	DS	80H		;Buffer for command parsing.
-CMFCB:	DS	2		;Pointer to FCB.
+CMSTAT	DS	1		;What is presently being parsed.
+CMAFLG	DS	1		;Non-zero when an action char has been found.
+CMCCNT	DS	1		;Non-zero if a significant char is found.
+CMSFLG	DS	1		;Non-zero when the last char was a space.
+CMOSTP	DS	2		;Old stack pointer for reparse.
+CMRPRS	DS	2		;Address to go to on reparse.
+CMPRMP	DS	2		;Address of prompt.
+CMPTAB	DS	2		;Address of present keyword table.
+CMHLP	DS	2		;Address of present help.
+CMDBUF	DS	80H		;Buffer for command parsing.
+CMFCB	DS	2		;Pointer to FCB.
 ;CMFCB2:	DS	2		;Pointer to position in FCB.
-CMCPTR:	DS	2		;Pointer for next char input.
-CMDPTR:	DS	2		;Pointer into the command buffer.
-CMKPTR:	DS	2		;Pointer to keyword.
-CMSPTR:	DS	2		;Place to save a pointer.
-OLDSP:	DS	2		;Room for old system stack.
+CMCPTR	DS	2		;Pointer for next char input.
+CMDPTR	DS	2		;Pointer into the command buffer.
+CMKPTR	DS	2		;Pointer to keyword.
+CMSPTR	DS	2		;Place to save a pointer.
+OLDSP	DS	2		;Room for old system stack.
 	DS	100H		;Room for lots of calls
-STACK:	DS	2
-EOFLAG:	DS	1		;EOF flag; non-zero on EOF.
-FILFLG:	DS	1		;NON-ZERO WHEN FILE NOT OPEN
-LSTCHR:	DB	0		;Last character in disk i/o
+STACK	DS	2
+EOFLAG	DS	1		;EOF flag; non-zero on EOF.
+FILFLG	DS	1		;NON-ZERO WHEN FILE NOT OPEN
+LSTCHR	DB	0		;Last character in disk i/o
 ;CURDSK:	DB	0		;holds "logged" disk
-LOGFLG:	DB	0		;Flag for a log file.
-ECOFLG:	DB	0		;Local echo flag (default off).
-ESCFLG:	DB	0		;Escape flag (start off).
-VTFLG:	DB	1		;VT52 emulation flag (default on).
-FLWFLG:	DB	1		;file warning flag (default on)
-IBMFLG:	DB	0		;IBM flag (default off).
-CPMFLG:	DB	0		;File was created by DOS
-DBFLG:	DB	0		;debugging flag (default off)
-PRTFLG:	DB	0		;printer flag (default off)
-PARITY:	DB	DEFPAR		;Parity.
-ESCCHR:	DB	DEFESC		;Storage for the escape character.
-CHRCNT:	DS	1		;Number of chars in the file buffer.
-FILCNT:	DS	1		;Number of chars left to fill.
+LOGFLG	DB	0		;Flag for a log file.
+ECOFLG	DB	0		;Local echo flag (default off).
+ESCFLG	DB	0		;Escape flag (start off).
+VTFLG	DB	1		;VT52 emulation flag (default on).
+FLWFLG	DB	1		;file warning flag (default on)
+IBMFLG	DB	0		;IBM flag (default off).
+CPMFLG	DB	0		;File was created by DOS
+DBFLG	DB	0		;debugging flag (default off)
+PRTFLG	DB	0		;printer flag (default off)
+PARITY	DB	DEFPAR		;Parity.
+ESCCHR	DB	DEFESC		;Storage for the escape character.
+CHRCNT	DS	1		;Number of chars in the file buffer.
+FILCNT	DS	1		;Number of chars left to fill.
 PORT	DS	1		;port for commuications
-OUTPNT:	DS	2		;Position in packet.
-BUFPNT:	DS	2		;Position in file buffer.
-FCBPTR:	DS	2		;Position in FCB.
+OUTPNT	DS	2		;Position in packet.
+BUFPNT	DS	2		;Position in file buffer.
+FCBPTR	DS	2		;Position in FCB.
 ;FCBEXT	DS	2
-DATPTR:	DS	2		;Position in packet data buffer.
-LOGPTR:	DW	LBUFF		;pointer into log file buffer
-CBFPTR:	DS	2		;Position in character buffer.
-PKTPTR:	DS	2		;Poistion in receive packet.
-SIZE:	DS	1		;Size of data from gtchr.
-SPEED:	DB	DBAUD		;baud rate
-SPSIZ:	DB	DSPSIZ		;Send packet size.
-RPSIZ:	DB	DRPSIZ		;Receive packet size.
-STIME:	DB	DSTIME		;Send time out.
-RTIME:	DB	DRTIME		;Receive time out.
-SPAD:	DB	DSPAD		;Send padding.
-RPAD:	DB	DRPAD		;Receive padding.
-SPADCH:	DB	DSPADC		;Send padding char.
-RPADCH:	DB	DRPADC		;Receive padding char.
-SEOL:	DB	DSEOL		;Send EOL char.
-REOL:	DB	DREOL		;Receive EOL char.
-SQUOTE:	DB	DSQUOT		;Send quote char.
-RQUOTE:	DB	DRQUOT		;Receive quote char.
-CHKTYP:	DB	DSCHKT		;Checksum type desired
-CURCHK:	DB	DSCHKT		;Current checksum type
-INICHK:	DB	DSCHKT		;Agreed upon checksum type
-CZSEEN:	DS	1		;Flag that control-Z was typed
-MFNPTR:	DW	MFNBUF		;multiple file processing buffer
-PKTNUM:	DS	1		;Packet number.
-NUMPKT:	DS	2		;Total number of packets sent.
-NUMRTR:	DS	2		;Total number of retries.
-NUMTRY:	DS	1		;Number of tries on this packet.
-OLDTRY:	DS	1		;Number of tries on previous packet.
-STATE:	DS	1		;Present state of the automaton.
-PACKET:	DS	4		;Packet (data is part of it).
-DATA:	DS	5AH		;Data and checksum field of packet.
-RECPKT:	DS	60H		;Receive packet storage (use the following).
-FILBUF:	DS	60H		;Character buffer.
+DATPTR	DS	2		;Position in packet data buffer.
+LOGPTR	DW	LBUFF		;pointer into log file buffer
+CBFPTR	DS	2		;Position in character buffer.
+PKTPTR	DS	2		;Poistion in receive packet.
+SIZE	DS	1		;Size of data from gtchr.
+SPEED	DB	DBAUD		;baud rate
+SPSIZ	DB	DSPSIZ		;Send packet size.
+RPSIZ	DB	DRPSIZ		;Receive packet size.
+STIME	DB	DSTIME		;Send time out.
+RTIME	DB	DRTIME		;Receive time out.
+SPAD	DB	DSPAD		;Send padding.
+RPAD	DB	DRPAD		;Receive padding.
+SPADCH	DB	DSPADC		;Send padding char.
+RPADCH	DB	DRPADC		;Receive padding char.
+SEOL	DB	DSEOL		;Send EOL char.
+REOL	DB	DREOL		;Receive EOL char.
+SQUOTE	DB	DSQUOT		;Send quote char.
+RQUOTE	DB	DRQUOT		;Receive quote char.
+CHKTYP	DB	DSCHKT		;Checksum type desired
+CURCHK	DB	DSCHKT		;Current checksum type
+INICHK	DB	DSCHKT		;Agreed upon checksum type
+CZSEEN	DS	1		;Flag that control-Z was typed
+MFNPTR	DW	MFNBUF		;multiple file processing buffer
+PKTNUM	DS	1		;Packet number.
+NUMPKT	DS	2		;Total number of packets sent.
+NUMRTR	DS	2		;Total number of retries.
+NUMTRY	DS	1		;Number of tries on this packet.
+OLDTRY	DS	1		;Number of tries on previous packet.
+STATE	DS	1		;Present state of the automaton.
+PACKET	DS	4		;Packet (data is part of it).
+DATA	DS	5AH		;Data and checksum field of packet.
+RECPKT	DS	60H		;Receive packet storage (use the following).
+FILBUF	DS	60H		;Character buffer.
 ;** Temp 1 & 2 must be in order
-TEMP1:	DS	1		;Temporary storage.
-TEMP2:	DS	1
-TEMP3:	DS	1
-TEMP4:	DS	1
+TEMP1	DS	1		;Temporary storage.
+TEMP2	DS	1
+TEMP3	DS	1
+TEMP4	DS	1
 ;	Data storage for MFNAME (multi-file access)
-MFREQ:	DS	32		;Requested name
+MFREQ	DS	32		;Requested name
 MFNBUF	DS	7AH		;filename buffer
 ;
 FCB	DS	50		;file control block
@@ -325,4 +325,4 @@ LFCB	DS	50		;log file fcb
 KFCB	DS	50		;kill file fcb
 BUFF	DS	256		;file buffer
 LBUFF	DS	256		;log file buffer
-ARGBLK:	DS	20H		;Used for subroutine arguments.
+ARGBLK	DS	20H		;Used for subroutine arguments.
