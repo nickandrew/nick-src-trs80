@@ -1,33 +1,61 @@
 ;DIRECT: Add, List, and Unpack directories.
-;Ver 1.0 on 08-Sep-85.
+;********************************************************
+;* Direct/asm:  Source code for DIRECT.                 *
+;* Environment: Trs-80 Model I Newdos-80, 48K ram.      *
+;* Other files required:                                *
+;*       DIRECT/DOC       Documentation for DIRECT      *
+;*       DOSCALLS/ASM     Dos routines definition.      *
+;*                                                      *
+;* Assembler:   Nedas.                                  *
+;* Program:     (C) 1986 by Zeta Microcomputer Software *
+;*              Released into public domain 11-Mar-86   *
+;*  If you like this program and you are an honest      *
+;* person then you may consider sending a donation to   *
+;* the author at P.O Box 177, Riverstone NSW 2765.      *
+;* Recommended amount: $5                               *
+;*                                                      *
+;* This program is compatible with DIRECT.C for Unix.   *
+;********************************************************
 ;
-*GET	DOSCALLS
+*GET	DOSCALLS		;Include DOSCALLS/ASM
+;
 CR	EQU	0DH
 ETX	EQU	03H
 ;
+	COM	'<Direct - directory file processor>'
+	COM	'<Version 1.0 of 11-Mar-86>'
+	COM	'<Env: Model I Newdos-80 48K>'
+;
 	ORG	5300H
 START	LD	SP,START
-MAIN	CALL	CMD
+MAIN	CALL	PROMPT
 	LD	HL,IN_BUFF
 	LD	A,(HL)
 	CALL	TO_UPPER
-	CP	'S'	;Set directory name
+	CP	'S'		;Set directory name
 	JP	Z,SET_DIR
-	CP	'X'	;Exit
+	CP	'X'		;Exit
 	JP	Z,EXIT
-	CP	'L'	;List contents
+	CP	'L'		;List contents
 	JP	Z,LIST_DIR
-	CP	'A'	;Add file
+	CP	'A'		;Add file
 	JP	Z,ADD_DIR
-	CP	'E'	;Extract file
+	CP	'E'		;Extract file
 	JP	Z,EXT_DIR
-	CP	':'
+	CP	':'		;Doscall escape.
+	JP	Z,CALL_DOS
+	CP	'!'		;Doscall escape.
 	JP	Z,CALL_DOS
 ;Unknown command.
 BAD_CMD
 	LD	HL,M_BADCMD
 	CALL	MESS
 	JR	MAIN
+;
+USAGE	LD	HL,M_USAGE
+	CALL	MESS
+	JR	MAIN
+;
 BAD_ERROR
 	OR	80H
 	CALL	DOS_ERROR
@@ -48,7 +76,7 @@ NEXT_SPACE
 	RET
 ;
 MESS	LD	A,(HL)
-	CP	03H
+	OR	A
 	RET	Z
 	CALL	0033H
 	INC	HL
@@ -60,7 +88,7 @@ TO_UPPER
 	AND	5FH
 	RET
 ;
-CMD	LD	HL,M_CMD
+PROMPT	LD	HL,M_PROMPT
 	CALL	MESS
 	LD	HL,IN_BUFF
 	LD	B,60
@@ -80,10 +108,10 @@ SC_1	LD	A,(HL)
 	JR	Z,SC_1
 	LD	(DE),A
 	INC	DE
-	CP	0DH
+	CP	CR
 	JR	Z,SC_4
 SC_2	LD	A,(HL)
-	CP	0DH
+	CP	CR
 	JR	Z,SC_4
 	CP	' '
 	JR	Z,SC_3
@@ -107,7 +135,7 @@ SC_4	LD	(DE),A
 ;
 SET_DIR
 	CALL	NEXT_SPACE
-	JP	NZ,BAD_CMD
+	JP	NZ,USAGE
 	PUSH	HL
 	LD	A,(IS_OPEN)
 	OR	A
@@ -121,7 +149,7 @@ SET_DIR
 	JP	MAIN
 ;
 NEW_DIR
-	CP	DE_FNID
+	CP	18H		;File not in directory.
 	JP	NZ,BAD_ERROR
 	LD	HL,M_NONEX
 	CALL	ASK
@@ -186,13 +214,22 @@ D_DESCR	DC	42,0
 IN_BUFF
 	DEFS	64
 M_BADCMD
-	DEFM	'Bad command. Use S,A,X,E',CR,ETX
-M_CMD
-	DEFM	'Direct 1.0 >',ETX
+	DEFM	'Bad command. Use S,A,X,E,L,!',CR,0
+;
+M_USAGE	DEFM	CR,'Command usage is:',CR
+	DEFM	'<Set>:     S  filename',CR
+	DEFM	'<Add>:     A  mach-file dir-file',CR
+	DEFM	'<Extract>: E  dir-file',CR
+	DEFM	'<Exit>:    X',CR
+	DEFM	'<List>:    L',CR
+	DEFM	'<Escape>:  !command',CR,CR,0
+;
+M_PROMPT
+	DEFM	'Direct 1.0 >',0
 M_NONEX
 	DEFM	'DIRECTory file non-existant!',CR
-	DEFM	'Create it? ',ETX
-M_WHERE	DEFM	'Write to which file? ',ETX
+	DEFM	'Create it? ',0
+M_WHERE	DEFM	'Write to which file? ',0
 ;
 TXT_DIR	DEFM	'DIR'
 TXT_DAT	DEFM	'DAT'
@@ -278,7 +315,7 @@ DUMMY_NAME
 	DEFM	'this_dir        '
 ;
 IS_OPEN	DEFB	0
-M_DESC	DEFM	'Description? ',ETX
+M_DESC	DEFM	'Description? ',0
 ;
 LIST_DIR
 	LD	A,(IS_OPEN)
@@ -309,12 +346,12 @@ LD_2
 	LDIR
 	LD	HL,DIRLIST
 LD_3	LD	A,(HL)
-	CP	03H
+	CP	ETX
 	RET	Z
 	CALL	33H
 	LD	A,(HL)
 	INC	HL
-	CP	0DH
+	CP	CR
 	JR	NZ,LD_3
 	JR	LD_1
 ;
@@ -325,6 +362,10 @@ DIRL_DE	DC	42,0
 	DEFB	CR,ETX
 ;
 ADD_DIR
+	LD	A,(IS_OPEN)
+	OR	A
+	LD	A,26H
+	JP	Z,BAD_ERROR
 	CALL	NEXT_SPACE
 	PUSH	HL
 	LD	DE,FILE
@@ -355,7 +396,7 @@ AD_1	POP	IY
 AD_2
 	LD	DE,D_FNAME
 AD_3	LD	A,(HL)
-	CP	0DH
+	CP	CR
 	JR	Z,AD_4
 	CP	' '
 	JR	Z,AD_4
@@ -414,6 +455,10 @@ AD_7	JP	MAIN
 ;
 EXT_DIR
 ;Extract...
+	LD	A,(IS_OPEN)
+	OR	A
+	LD	A,26H
+	JP	Z,BAD_ERROR
 	CALL	NEXT_SPACE
 	JP	NZ,BAD_CMD
 	LD	(STR_1),HL
@@ -435,7 +480,7 @@ ED_2	LD	HL,(STR_1)
 	EX	DE,HL
 	LD	B,16
 ED_3	LD	A,(DE)
-	CP	0DH
+	CP	CR
 	JR	Z,ED_3A
 	CP	(HL)
 	JR	NZ,ED_1
