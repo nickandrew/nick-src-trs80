@@ -12,8 +12,9 @@ FILE  *fpin,*fpout;
 char  logx=0,logp=1,flagd=0;
 char  *fout,*fin;
 int   lpp,lines,nlines,nsaved=0,i=0,c;
-char  line1[80],line2[80];
+
 char  *linen[132],buffer[5280];
+char  line1[80],line2[80];
 
 main(argc,argv)
 int  argc;
@@ -39,8 +40,8 @@ char *argv[];
             case 'P' : /* set lines per page */
                        lpp=atoi(*(++argv))-2; argc--;
                        break;
- 
-           case 'D' : /* delete non-event lines */
+
+            case 'D' : /* delete non-event lines */
                        flagd=1;
                        break;
          }
@@ -63,6 +64,7 @@ char *argv[];
    lines = 0;
    while ((c=getc(fpin))!=EOF)
       if (c=='\n') ++lines;
+
    fputs("printlog: Phase 2 commencing.\n",stderr);
 
    if (lines<lpp) {
@@ -89,8 +91,16 @@ char *argv[];
    while(getc(fpin)!='\n'); /* bypass title 1 */
    while(getc(fpin)!='\n'); /* bypass title 2 */
 
+   fputs(line1,stdout);
+   fputs(line2,stderr);
+   if (lpp != 58) {
+      fputs("Lpp != 58\n",stderr);
+      lpp = 58;
+   }
+
+
    for(i=0;i<nlines;++i) {
-      if (i%lpp == 0) {
+      if ((i%lpp) == 0) {
          fputs(line1,fpout);
          fputs(line2,fpout);
       }
@@ -98,6 +108,7 @@ char *argv[];
    }
 
    /* finished output - save rest of file in memory */
+   fputs("Phase 2a\n",stderr);
    nsaved = 0;
    while (fgets(linen[nsaved++],80,fpin)!=NULL);
    fclose(fpout);
