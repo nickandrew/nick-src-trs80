@@ -1,0 +1,94 @@
+;survey: Assemble survey
+;
+ZETA	EQU	1
+;
+*GET	DOSCALLS:0
+;
+	IF	ZETA
+*GET	EXTERNAL.HDR
+*GET	ASCII.HDR
+;
+	COM	'<Survey 1.0a 23-Jan-88 Zeta>'
+	ORG	PROG_START
+	DEFW	BASE
+	DEFW	THIS_PROG_END
+	DEFW	0
+	DEFW	TERMINATE
+;End of program load info.
+	ORG	BASE
+	ELSE
+	ORG	5200H
+;
+	ENDIF
+;
+;;*GET	DEBUG:1
+DEBUG	MACRO	#$STR
+	ENDM
+;
+START
+	IF	ZETA
+START1	DEC	HL
+	LD	A,(HL)
+	CP	' '
+	JR	NC,START1
+	INC	HL		;Pseudo start of cmd line
+;
+	LD	SP,START	;There is plenty of stack
+	LD	(_CMDLINE),HL	;Save cmd line pointer
+	LD	HL,1		;Disable redirection
+	LD	(_NOREDIR),HL
+;
+;;	LD	A,(PRIV_1)
+;;	BIT	IS_SYSOP,A
+;;	LD	A,0
+;;	JP	Z,TERMINATE
+;
+	ELSE
+;
+	LD	HL,(HIMEM)
+	LD	SP,HL
+;
+	ENDIF
+;
+*GET	CINIT:1
+*GET	CALL:1
+;
+*GET	SURVEY1
+*GET	GETUNAME
+;
+;reada(line)
+;char *line;
+_READA
+	LD	HL,2
+	ADD	HL,SP
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	EX	DE,HL
+	LD	B,78
+	CALL	40H
+	JP	C,_READA
+READA1	LD	A,(HL)
+	INC	HL
+	CP	0DH
+	JR	NZ,READA1
+	DEC	HL
+	LD	(HL),0
+	RET
+;
+	IF	ZETA
+*GET	LIBCZ
+	ELSE
+*GET	LIBC:1
+	ENDIF
+;
+_CMDLINE	DEFW	4318H
+_NOREDIR	DEFW	0
+;
+HIGHEST	DEFW	$+2
+;
+	IF	ZETA
+THIS_PROG_END	EQU	$
+	ENDIF
+;
+	END	START
