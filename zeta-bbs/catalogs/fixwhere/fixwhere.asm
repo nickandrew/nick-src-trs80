@@ -1,0 +1,515 @@
+;fixwhere: Build and maintain file catalogues
+;
+*GET	DOSCALLS.HDR
+*GET	EXTERNAL.HDR
+*GET	ASCII.HDR
+;
+	COM	'<Fixwhere 1.3  02-Jan-88>'
+;
+	ORG	PROG_START
+	DEFW	BASE
+	DEFW	THIS_PROG_END
+	DEFW	0
+	DEFW	0
+;End of program load info.
+;
+	ORG	BASE+100H
+START	LD	SP,START
+;
+	LD	DE,FCB_DIR	;Try without password
+	LD	HL,BUFF
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JR	Z,OPEN_OK
+	LD	HL,FCB_DIR2	;Try with n7r password
+	LD	DE,FCB_DIR
+	LD	BC,32
+	LDIR
+	LD	DE,FCB_DIR
+	LD	HL,BUFF
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,ERROR
+;
+OPEN_OK
+	LD	A,(FCB_DIR+1)	;Unprotect
+	AND	0F8H
+	OR	5
+	LD	(FCB_DIR+1),A
+;
+	LD	B,0D0H		;Bypass GAT
+	LD	DE,FCB_DIR
+FW_1	CALL	GETDIR
+	JP	NZ,ERROR
+	DJNZ	FW_1
+;
+	LD	HL,THIS_DISK	;Read disk name
+	LD	B,8
+FW_2	CALL	GETDIR
+	JP	NZ,ERROR
+	LD	(HL),A
+	INC	HL
+	DJNZ	FW_2
+;
+	LD	HL,THIS_DATE	;Read date (alias cat)
+	LD	B,8
+FW_2C	CALL	GETDIR
+	JP	NZ,ERROR
+	LD	(HL),A
+	INC	HL
+	DJNZ	FW_2C
+;
+	LD	B,32		;Bypass boot info
+FW_2A	CALL	GETDIR
+	DJNZ	FW_2A
+;
+	LD	B,0		;Bypass HIT table
+FW_2B	CALL	GETDIR
+	DJNZ	FW_2B
+;
+FW_3	LD	DE,FCB_DIR	;Read a slot
+	CALL	GETDIR
+	JR	Z,FW_3A
+	JP	NZ,FW_EOF
+FW_3A	LD	HL,SLOT_BUF
+	LD	(HL),A
+	INC	HL
+	LD	B,31
+FW_4	CALL	GETDIR
+	JR	Z,FW_4A
+	JP	NZ,ERROR
+FW_4A	LD	(HL),A
+	INC	HL
+	DJNZ	FW_4
+;
+	LD	A,(SLOT_BUF)	;Ensure non-sys,
+	AND	0D8H		;non-killed, normal.
+	CP	10H
+	JR	NZ,FW_3
+;
+	LD	HL,(SLOT_BUF+18)
+	LD	DE,4296H	;Ensure blank access pwd
+	OR	A
+	SBC	HL,DE
+	JR	NZ,FW_3
+;
+	LD	DE,(END_LIST)	;Store in memory
+	LD	HL,SLOT_BUF+5
+	LD	BC,11
+	LDIR
+	LD	A,' '		;Add room for a dot
+	LD	(DE),A
+	INC	DE
+	LD	(END_LIST),DE
+	XOR	A
+	LD	(DE),A
+	JR	FW_3
+;
+FW_EOF	CP	1CH
+	JR	Z,SORT
+	CP	1DH
+	JP	NZ,ERROR
+SORT
+	CALL	BUBBLE
+	LD	HL,START_LIST
+FW_10	LD	A,(HL)
+	OR	A
+	JP	Z,FW_FIXED
+	PUSH	HL
+	EX	DE,HL
+	LD	HL,8
+	ADD	HL,DE
+	PUSH	HL
+	PUSH	DE
+	LD	HL,FILNAM
+	LD	DE,FILNAM+1
+	LD	(HL),' '
+	LD	BC,11
+	LDIR
+	POP	HL
+	LD	DE,FILNAM
+	LD	B,8
+FW_11	LD	A,(HL)
+	CP	' '
+	JR	Z,FW_12
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	DJNZ	FW_11
+FW_12	POP	HL
+	LD	A,(HL)
+	CP	' '
+	JR	Z,FW_15
+	LD	A,'.'
+	LD	(DE),A
+	INC	DE
+	LD	B,3
+FW_13	LD	A,(HL)
+	CP	' '
+	JR	Z,FW_15
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	DJNZ	FW_13
+FW_15	LD	HL,FILNAM
+	POP	DE
+	LD	BC,12
+	LDIR
+	EX	DE,HL
+	JR	FW_10
+;
+FW_FIXED
+	LD	HL,START_LIST
+FWF_01	LD	A,(HL)
+	OR	A
+	JR	Z,FWF_03
+	CP	'A'
+	JR	C,FWF_02
+	CP	'Z'+1
+	JR	NC,FWF_02
+	OR	20H		;to lower
+	LD	(HL),A
+FWF_02	INC	HL
+	JR	FWF_01
+;
+FWF_03
+	LD	A,(THIS_DATE)	;Check date alphabetic
+	AND	5FH
+	CP	'A'
+	JR	C,FWF_03A	;Use default (filelist)
+	CP	'z'+1
+	JR	NC,FWF_03A	;Use default
+;
+	LD	HL,THIS_DATE	;Copy date to fcb
+	LD	B,8
+	LD	DE,FCB_FL
+FWF_03B	LD	A,(HL)
+	CP	' '
+	JR	Z,FWF_03C
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	DJNZ	FWF_03B
+FWF_03C
+	LD	A,CR
+	LD	(DE),A
+	LD	DE,FCB_FL
+	LD	HL,CAT_EXT
+	CALL	DOS_EXTEND
+;
+FWF_03A	LD	DE,FCB_FL
+	LD	HL,BUFF
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,ERROR
+;
+	LD	A,(FCB_FL+1)
+	AND	0F8H
+	OR	44H		;write + no eof shrink
+	LD	(FCB_FL+1),A
+;
+; Bypass comment text at the beginning of the file
+RE_00A	LD	DE,FCB_FL
+	CALL	$GET
+	JP	NZ,ERROR
+	CP	CR
+	JR	Z,RE_01		;Cr at start of line
+RE_00B	CALL	$GET
+	JP	NZ,ERROR
+	CP	CR
+	JR	NZ,RE_00B	;Ignore rest of line
+	JR	RE_00A
+;
+RE_01	LD	DE,FCB_FL
+	LD	A,(FCB_FL+5)	;Save NEXT position
+	LD	(FL_POS),A
+	LD	A,(FCB_FL+10)
+	LD	(FL_POS+1),A
+	LD	A,(FCB_FL+11)
+	LD	(FL_POS+2),A
+;
+	LD	HL,LINE_BUFF	;Read a line
+RE_01A	CALL	$GET
+	JR	NZ,RE_01B
+	LD	(HL),A
+	INC	HL
+	CP	CR
+	JR	NZ,RE_01A
+	LD	(HL),0
+	JR	RE_02
+RE_01B
+	CP	1CH
+	JP	Z,RE_ADD
+	CP	1DH
+	JP	Z,RE_ADD
+	JP	ERROR
+;
+;Check if filename is on directory of current disk.
+RE_02	LD	HL,START_LIST
+RE_03	LD	A,(HL)
+	OR	A
+	JR	Z,NOT_IN_DIR
+	PUSH	HL
+	LD	DE,LINE_BUFF
+	LD	B,12
+RE_03A	LD	A,(DE)
+	CP	(HL)
+	JR	NZ,RE_04
+	INC	DE
+	INC	HL
+	DJNZ	RE_03A
+	JR	RE_05
+;
+RE_04	POP	HL
+	LD	DE,12
+	ADD	HL,DE
+	JR	RE_03
+;
+RE_05	POP	HL
+	PUSH	HL
+	LD	(HL),1
+;
+;Check if files pack id != this_disk.
+	LD	HL,PACK_ID
+	LD	DE,THIS_DISK
+	LD	B,8
+RE_05A	LD	A,(DE)
+	CP	(HL)
+	JR	NZ,RE_06
+	INC	HL
+	INC	DE
+	DJNZ	RE_05A
+	POP	HL	;off stack
+	JR	RE_01	;try next record.
+;
+;Pack id differs so fix it and rewrite.
+RE_06
+	LD	HL,THIS_DISK
+	LD	DE,PACK_ID
+	LD	BC,8
+	LDIR
+;
+REWRITE
+	LD	DE,FCB_FL
+	LD	A,(FL_POS)
+	LD	C,A
+	LD	HL,(FL_POS+1)
+	CALL	DOS_POS_RBA
+	JP	NZ,ERROR
+	LD	HL,LINE_BUFF
+RE_06A	LD	A,(HL)
+	OR	A
+	JR	Z,RE_06B
+	CALL	$PUT
+	JP	NZ,ERROR
+	INC	HL
+	JR	RE_06A
+RE_06B
+	POP	HL		;off stack
+	JP	RE_01		;try next record.
+;
+NOT_IN_DIR
+	LD	HL,THIS_DISK
+	LD	DE,PACK_ID
+	LD	B,8
+NID_1	LD	A,(DE)
+	CP	(HL)
+	JP	NZ,RE_01	;forget & go for next
+	INC	DE
+	INC	HL
+	DJNZ	NID_1
+;file's record is for current disk but not in directory.
+;suss. Change "Pack_id" to '????????'.
+	LD	HL,QUESTIONS
+	LD	DE,PACK_ID
+	LD	BC,8
+	LDIR
+	JP	REWRITE		;rewrite record.
+;
+ERROR	PUSH	AF
+	LD	A,(FCB_FL)
+	BIT	7,A
+	JR	Z,ERR_1
+	LD	DE,FCB_FL
+	CALL	DOS_CLOSE
+ERR_1	POP	AF
+	PUSH	AF
+	OR	80H
+	CALL	DOS_ERROR
+	POP	AF
+	JP	TERMINATE
+;
+RE_ADD
+	LD	A,' '
+	LD	(FILL_1),A
+	LD	(FILL_2),A
+	LD	HL,WHATSIT
+	LD	DE,FILL_CR
+	CALL	STRCPY		;Add an unknown word.
+;
+	LD	HL,THIS_DISK
+	LD	DE,PACK_ID
+	LD	BC,8
+	LDIR
+	LD	HL,DATE_ADDED
+	CALL	X_TODAY
+	LD	HL,START_LIST
+;
+RE_07	LD	A,(HL)
+	OR	A
+	JR	Z,RE_FIN
+	CP	1
+	JR	NZ,RE_09
+	LD	DE,12
+	ADD	HL,DE
+	JR	RE_07
+;
+RE_09
+	PUSH	HL
+	LD	BC,12
+	LD	DE,LINE_BUFF
+	LDIR
+	LD	DE,FCB_FL
+	LD	HL,LINE_BUFF
+RE_09A	LD	A,(HL)
+	OR	A
+	JR	Z,RE_09B
+	CALL	$PUT
+	JP	NZ,ERROR
+	INC	HL
+	JR	RE_09A
+RE_09B
+	POP	HL
+	LD	DE,12
+	ADD	HL,DE
+	JR	RE_07
+;
+RE_FIN
+	LD	DE,FCB_FL
+	CALL	DOS_CLOSE
+	JP	NZ,ERROR
+	XOR	A
+	JP	TERMINATE
+;
+BUBBLE	LD	HL,START_LIST
+	XOR	A
+	LD	(SWAP_FLAG),A
+	CALL	PASS
+	LD	A,(SWAP_FLAG)
+	OR	A
+	JR	NZ,BUBBLE
+	RET
+;
+PASS	PUSH	HL
+	LD	DE,12
+	ADD	HL,DE
+	POP	DE
+	LD	B,12
+	LD	A,(HL)
+	CP	0
+	RET	Z
+	PUSH	HL
+BUB_01	LD	A,(DE)
+	CP	(HL)
+	JR	Z,BUB_01A
+	JR	NC,BUB_03
+	JR	BUB_02
+BUB_01A	INC	HL
+	INC	DE
+	DJNZ	BUB_01
+BUB_02	POP	HL
+	JR	PASS
+;
+BUB_03	LD	A,1
+	LD	(SWAP_FLAG),A
+	POP	DE
+	LD	HL,-12
+	ADD	HL,DE
+	LD	B,12
+BUB_04	LD	A,(DE)
+	LD	C,A
+	LD	A,(HL)
+	LD	(HL),C
+	LD	(DE),A
+	INC	DE
+	INC	HL
+	DJNZ	BUB_04
+	JR	PASS
+;
+GETDIR	PUSH	HL
+	LD	HL,(DIR_POSN)
+	LD	A,L
+	CP	BUFF.AND.255
+	CALL	Z,READDIR
+	LD	HL,(DIR_POSN)
+	LD	A,(HL)
+	INC	HL
+	LD	(DIR_POSN),HL
+	POP	HL
+	CP	A
+	RET
+;
+READDIR	PUSH	DE
+	LD	DE,FCB_DIR
+	CALL	DOS_READ_SECT
+	LD	HL,BUFF
+	LD	(DIR_POSN),HL
+	POP	DE
+	CP	6
+	RET	Z
+	POP	IY	;readdir return
+	POP	HL	;hl pushed
+	RET
+;
+*GET	ROUTINES
+;
+DIR_POSN	DEFW	BUFF
+;
+LINE_BUFF
+	DEFM	'filename.ext'
+FILL_1	DEFM	' '
+DATE_ADDED
+	DEFM	'dd-mmm-yy'
+FILL_2	DEFM	' '
+PACK_ID	DEFM	'Disk1   '
+FILL_CR	DEFS	225
+;
+THIS_DISK	DEFM	'Disk1   ',0
+THIS_DATE	DEFM	'Catalog1',0
+CAT_EXT		DEFM	'Cat',0
+;
+QUESTIONS	DEFM	'????????',0
+WHATSIT		DEFM	' Unknown.',CR,0
+;
+FL_POS	DEFB	0,0,0	;Position of Filelist.
+;
+SLOT_BUF
+	DEFS	32
+;
+SWAP_FLAG
+	DEFW	0
+;
+FILNAM	DEFM	'abcdefgh.ijk'
+;
+FCB_FL	DEFM	'filelist.zms:2',CR
+	DC	32-15,0
+;
+FCB_DIR	DEFM	'dir.sys:1',CR
+	DC	32-10,0
+;
+FCB_DIR2
+	DEFM	'dir.sys/n7r:1',CR
+	DC	32-14,0
+;
+BUFF	DEFS	256
+;
+END_LIST
+	DEFW	START_LIST
+;
+START_LIST
+	DEFB	0
+	DEFS	2048
+;
+THIS_PROG_END	EQU	$	;not correct.
+;
+	END	START
