@@ -13,8 +13,7 @@ main() {
    int  c;
    while ((c=getchar())!=EOF) {
       if ((c>='a' & c<='z') | (c>='A' & c<='Z')) {
-         if ((c&95 - 64) > 13) putchar(c-13);
-         else putchar(c+13);
+         putchar( (c&0x5f-0x40)>13  ? c-13 : c+13);
       }
       else putchar(c);
    }
