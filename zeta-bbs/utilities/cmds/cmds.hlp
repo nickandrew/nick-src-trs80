@@ -2,3 +2,4 @@ Usage: cmds
 
         CMDS prints the names of all the command files executable by Zeta's Shell.  To get help on one of these commands, type "HELP commandname" from the Shell.
 
+0

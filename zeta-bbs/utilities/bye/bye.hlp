@@ -7,29 +7,17 @@
     ** Don't type in the square brackets!! **
 
 
-"BYE" is the command which formally logs you off Zeta in turn
-for the next caller. It also gives you the opportunity to
-leave a comment for the Sysop to read, and to tell Zeta what
-the quality of the modem connection was like, in terms of
-frequency of character garbling.
+"BYE" is the command which formally logs you off Zeta in turn for the next caller. It also gives you the opportunity to leave a message for the Sysop to read, and to tell Zeta what the quality of the modem connection was like, in terms of frequency of character garbling.
 
+    If invoked with no parameters, BYE will prompt you about comments and garbled characters.
 
-    If invoked with no parameters, BYE will prompt you about
-comments and garbled characters.
+    If you specify the 'C' option, BYE will allow you to send mail to the Sysop.  Even non-members are allowed to do this.
 
-    If you specify the 'C' option, BYE will execute the
-COMMENT command for you to leave a comment for the sysop.
+    If you specify a number between 1 and 5, BYE will record that number as the level of garbage you received. 1 is little garbage, 5 is worst imaginable.
 
-    If you specify a number between 1 and 5, BYE will record
-that number as the level of garbage you received. 1 is little
-garbage, 5 is worst imaginable.
+    If you specify the 'Q' option, you will bypass all of the printed text BYE usually sends, and you will be logged off immediately.
 
-    If you specify the 'Q' option, you will bypass all of the
-printed text BYE usually sends, and you will be logged off
-immediately.
-
-   You can abort a logoff by hitting your <ESCAPE> key anytime
-before Zeta hangs up (except during execution of 'comment').
+   You can abort a logoff by hitting your <ESCAPE> key anytime before Zeta hangs up (except during execution of 'comment').
 
       Please treat Zeta with respect. Use BYE to logoff.
 
