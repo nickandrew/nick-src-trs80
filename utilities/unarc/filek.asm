@@ -16,7 +16,6 @@ TITLES:	DB	'Name           Length  Disk  Stowage  Ver  Stored Save'
 	DB	CR
 TITLE1:	DB	'============  =======  ====  ======== === ======= ===='
 	DB	'= =========  ======  ===='
-;LINLEN	EQU	$-TITLE1
 	DB	0
 TOTALS:	DB	'        ====  =======  ====               =======  ==='
 	DB	CR
@@ -52,7 +51,7 @@ TIME:	DS	2		; Creation time
 CRC:	DS	2		; Cyclic check of uncompressed file
 LEN:	DS	4		; Uncompressed bytes (version > 1)
 HDRSIZ	EQU	$-HDRBUF	; Header size (4 less if version = 1)
-MINMEM	EQU	$-1		; Min memory limit (no file output)
+MINMEM	EQU	$		; Min memory limit (no file output)
 	PAGE
 ; Data for file output processing only
 				; Following order required:

@@ -11,8 +11,7 @@ NHASH:	LD	A,L		; Copy low byte of string count in HL
 	DEC	H		; Complete double-register decrement
 	LD	DE,STRCT	; Set to bump string count (bypasses
 	JR	Z,NHASH1	;  next entry) if exactly 256
-;;	CP	4096/256	; Else, is count the full 4K?
-	CP	16		;Else, is count the full 4k?
+	CP	4096/16/16	;Else, is count the full 4k?
 	JR	Z,STRPTR	; Yes (last table entry), skip
 ; Note the following cute test.  (It's mentioned in K & R, ex. 2-9.)
 	AND	H		; Is count a power-of-two?
@@ -107,8 +106,7 @@ NGETC4:	PUSH	BC		; Loop to flush the (encoder's) buffer
 ;NGETC5:	LD	HL,STRT+(3*256)	; Clear out (all but one-byte) strings
 NGETC5:
 	LD	HL,STRT+768	;Clear out all but ...
-;	ld	bc,strsz-(3*256)-1
-	LD	BC,STRSZ-769
+	LD	BC,STRSZ-769	;strsz-(3*256)-1
 	CALL	STRTCL
 	LD	HL,257		; Reset count for just one-byte strings
 	LD	(STRCT),HL	;  plus the unused entry

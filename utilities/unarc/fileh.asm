@@ -56,6 +56,7 @@ OGETC1:	PUSH	DE		; Save byte just read (high 8 code bits)
 	ADC	HL,HL
 	RET			; Return (carry clear after last rotate)
 ; Output next byte decoded from crunched file
+;
 PUTCR:	EXX			; Swap in output registers
 	JP	0		; Vector to the appropriate routine
 PUTCRP	EQU	$-2		; (ptr to PUT or PUTUP stored here)
@@ -132,10 +133,10 @@ PUTBUF:	PUSH	HL		; Save register (i.e. CRC)
 	XOR	A		; (it's always page-aligned)
 	LD	L,A
 	EX	DE,HL		; Swap with buffer end ptr
-	SBC	HL,DE		; Compute buffer length
+	SBC	HL,DE		; HL=computed buffer length
 	JR	Z,PUTB2		; But skip all the work if it's empty
 	PUSH	BC		; Save register (i.e. repeat flag/byte)
-	LD	B,H		; Copy buffer length
+	LD	B,H		; BC= buffer length
 	LD	C,L
 	LD	HL,(LEN)	; Get (remaining) output file length
 	SBC	HL,BC		; Subtract size of buffer
@@ -147,8 +148,8 @@ PUTBUF:	PUSH	HL		; Save register (i.e. CRC)
 PUTB1:	PUSH	DE		; Save buffer start
 	CALL	WRTBUF		; Write the buffer
 	POP	DE		; Reset output ptr for next refill
-	POP	BC		; Restore register
-PUTB2:	POP	HL		; Restore register
+	POP	BC
+PUTB2:	POP	HL
 	RET			; Return to caller
 	PAGE
 ; Write buffer to disk
@@ -159,28 +160,37 @@ WRTBUF:	LD	A,(OFLAG)	; Output file open?
 	LD	L,E
 	ADD	HL,BC
 	JR	WRTB2		; Enter loop
-WRTB1:	LD	(HL),CTLZ	; Fill last record with CPM EOF...
-	INC	HL
-	INC	BC
+;;WRTB1:	LD	(HL),CTLZ	; Fill last record with CPM EOF...
+;;	INC	HL
+;;	INC	BC
 WRTB2:	LD	A,L		; Buffer ends on a CPM record boundary?
-	AND	7FH
-	JR	NZ,WRTB1	; No, loop until it does
+;;	AND	7FH
+;;	JR	NZ,WRTB1	; No, loop until it does
 	OR	B		; At least one page to write?
 	JR	Z,WRTB4		; Skip if not
 WRTB3:	PUSH	BC		; Save remaining byte count
-	CALL	WRTREC		; Output 2 records to disk (i.e. 1 page)
-	CALL	WRTREC		; (Note returns A=0 as expected below)
+	EX	DE,HL
+	PUSH	HL
+	LD	DE,OFCB_BUF
+	LD	BC,256
+	LDIR
+	PUSH	HL
+	POP	BC
+	POP	HL
+	PUSH	BC		;BC=next addr in buffer.
+	LD	DE,OFCB		;Write a full sector.
+	CALL	DOS_WRIT_SECT
+	JP	NZ,WRTREC_2
+	POP	DE		;Next addr.
 	POP	BC		; Restore count
 	DJNZ	WRTB3		; Loop for all (full) pages in buffer
-WRTB4:	OR	C		; Half-page left?
+WRTB4:	OR	C		; Any bytes left?
 	RET	Z		; No, return
 ; Write record to disk
-WRTREC:	LD	HL,128		; Get CPM record length
-	ADD	HL,DE		; Add buffer ptr
-	PUSH	HL		; Save next record start
+;;WRTREC:
 ;*******************************
 	EX	DE,HL
-	LD	B,128
+	LD	B,C
 	LD	DE,OFCB
 WRTREC_1
 	LD	A,(HL)
@@ -189,10 +199,8 @@ WRTREC_1
 	INC	HL
 	DJNZ	WRTREC_1
 ;*******************************
-;;	CALL	SETDMA		; Set to write from buffer ptr
-;;	LD	C,$WRITE	; Write a record to output file
-;;	CALL	OFDOS
-	POP	DE		; Restore ptr for next call
+	EX	DE,HL		;Swap addresses back again
+;;	POP	DE		; Restore ptr for next call
 	RET
 WRTREC_2
 	LD	DE,DSKFUL	; Disk is full, report error

@@ -74,7 +74,7 @@ OUTPUT:	LD	A,(OFCB)	; Any output drive (or typing files)?
 	LD	HL,BUFPAG	; Point to buffer start page
 	LD	(HL),A		; Save it
 	LD	C,A		; (also for typeout buffer check)
-	INC	HL		; Point to buffer limit (BUFLIM)
+	LD	HL,BUFLIM
 	LD	A,(HIPAGE)	; Get memory limit page
 	LD	(HL),A		; Assume max possible output buffer
 	INC	B		; Typing files?
@@ -102,29 +102,38 @@ OUTDSK:
 	LD	B,0
 	CALL	DOS_OPEN_EX
 	JR	NZ,OUTD2	; no, skip.
+OUTD1_0
 	LD	DE,EXISTS	; Inform user and ask:
 	CALL	PRINTS		; Should we overwrite existing file?
 OUTD1:	CALL	CABORT		; Wait for response (or CTRL-C abort)
+	OR	A
 	JR	Z,OUTD1
 	LD	E,A		; Save response
 	CALL	CRLF		; Start a new line after prompt
 	LD	A,E		; Get response char
 	CALL	UPCASE		; Upper and lower case are the same
 	CP	'Y'		; Answer was yes?
-	RET	NZ		; No, return (skip file output)
-	JR	OUTD2_1		;File already open.
+	JR	Z,OUTD2_1
+	CP	'N'
+	JR	NZ,OUTD1_0
+	RET
+;;	RET	NZ		; No, return (skip file output)
+;;	JR	OUTD2_1		;File already open.
 OUTD2:
 	LD	HL,OFCB_BUF
 	LD	DE,OFCB
 	LD	B,0
 	CALL	DOS_OPEN_NEW
-	LD	DE,DIRFUL	; Yes, report error
-	JP	NZ,PABORT	;  and abort
+	JP	NZ,F_ERROR	;Print error & abort
 ;
 OUTD2_1
 	LD	A,1
 	LD	(OFLAG),A	; Set flag for output file open
 	PAGE
+;
+;
+;
+;
 ; All set to output file
 OUTBEG:	LD	A,(VER)		; Check compression type
 	CP	4

@@ -16,7 +16,7 @@ LISTT:	LD	HL,LINE		; Setup listing line ptr
 	LD	DE,TLEN		; List total file length
 	PUSH	DE		;  and save ptr for factor calculation
 	CALL	LTODA
-	LD	DE,(TDISK)		; List total disk space
+	LD	DE,(TDISK)	; List total disk space
 	CALL	LDISK1
 	LD	B,13		; Fill next columns with blanks
 	CALL	FILLB	
@@ -31,7 +31,7 @@ PRINTL:	CALL	PRINTS
 ; Note:	Must preserve DE
 CRLF:	LD	A,CR
 	CALL	PCHAR
-	LD	A,LF
+	RET
 ; Print character
 PCHAR:	PUSH	DE		; Save register
 	CALL	33H
@@ -90,7 +90,8 @@ LDISK:	PUSH	HL		; Save line ptr
 	AND	3FH
 	LD	L,H		; Result -> HL
 	LD	H,A
-	LD	A,(LBLKSZ)	; Get disk block size
+;;	LD	A,(LBLKSZ)	; Get disk block size
+	LD	A,1		;1k block size? Its 1.25k!
 	DEC	A		; Round up result accordingly
 	LD	E,A
 	LD	D,0
@@ -196,7 +197,7 @@ LSIZE2:	POP	HL		; Clean stack
 LDATE:	LD	A,(DATE)	; Get date
 	AND	1FH		; List day
 	CALL	BTODA
-	LD	(HL),' '	; Then a blank
+	LD	(HL),'-'	; Then a separator
 	INC	HL
 	EX	DE,HL		; Save listing line ptr
 	LD	HL,(DATE)	; Get date again
@@ -218,7 +219,7 @@ LDATE1:	LD	C,A		; Use to index to 3-byte string table
 	LD	C,3
 	LDIR			; Move month text into listing line
 	EX	DE,HL		; Restore line ptr
-	LD	(HL),' '	; Then a blank
+	LD	(HL),'-'	; Then a separator
 	INC	HL
 	POP	AF		; Recover high byte of date
 	SRL	A		; Get 1980-relative year
@@ -239,14 +240,14 @@ LTIME:	EX	DE,HL		; Save listing line ptr
 	RRA
 	RRA
 	AND	1FH
-	LD	B,'a'		; Assume am
-	JR	Z,LTIME1	; Skip if 0 (12 midnight)
-	CP	12		; Is it 1-11 am?
-	JR	C,LTIME2	; Yes, skip
-	LD	B,'p'		; Else, it's pm
-	SUB	12		; Convert to 12-hour clock
-	JR	NZ,LTIME2	; Skip if not 12 noon
-LTIME1:	LD	A,12		; Convert 0 to 12
+	LD	B,' '		; Assume am
+;;	JR	Z,LTIME1	; Skip if 0 (12 midnight)
+;;	CP	12		; Is it 1-11 am?
+;;	JR	C,LTIME2	; Yes, skip
+;;	LD	B,' '		; Else, it's pm
+;;	SUB	12		; Convert to 12-hour clock
+;;	JR	NZ,LTIME2	; Skip if not 12 noon
+;;LTIME1:	LD	A,12		; Convert 0 to 12
 LTIME2:	PUSH	BC		; Save am/pm indicator
 	ADD	HL,HL		; Shift minutes up to high byte
 	ADD	HL,HL
