@@ -1,49 +1,4 @@
-; @(#) bb3.asm - BB code file #3, 16 May 89
-;
-; ------------------------------
-;
-LIST_CMD
-	CALL	GET_CHAR
-	CP	CR
-	JP	NZ,BADSYN
-	XOR	A
-	LD	(TOPIC_CNT),A
-	LD	HL,M_UNDER
-	CALL	MESS
-	LD	A,(MY_TOPIC)
-	CALL	TOPIC_PRINT
-	CALL	PUTCR
-	LD	B,7
-	LD	A,(MY_LEVEL)
-	CP	3
-	JR	Z,LC_4
-	CP	2
-	JR	C,LC_1
-	LD	B,3
-LC_1	LD	C,1
-LC_2	PUSH	BC
-	LD	A,(MY_TOPIC)
-	CALL	TOPIC_DOWN
-	LD	(TEMP_TOPIC),A
-	CALL	TOP_INT
-	CALL	TOP_ADDR
-	LD	A,(HL)
-	OR	A
-	JR	Z,LC_3
-	LD	A,1
-	LD	(TOPIC_CNT),A
-	LD	A,(TEMP_TOPIC)
-	CALL	TOPIC_PRINT
-	CALL	PUTCR
-LC_3	POP	BC
-	INC	C
-	DJNZ	LC_2
-LC_4	LD	A,(TOPIC_CNT)
-	OR	A
-	JP	NZ,MAIN
-	LD	HL,M_NOBELO
-	CALL	MESS
-	JP	MAIN
+; @(#) bb3.asm - BB code file #3, 30 Jul 89
 ;
 ; ------------------------------
 ;
@@ -113,17 +68,6 @@ OPT_CMD
 OC_0A	LD	HL,M_OPTIONS
 	CALL	MESS
 	LD	HL,OPTIONS
-	BIT	FO_CURR,(HL)
-	JR	Z,OC_1
-	LD	HL,M_CURR
-	CALL	MESS
-	LD	HL,OPTIONS
-OC_1	BIT	FO_LOWR,(HL)
-	JR	Z,OC_2
-	LD	HL,M_LOWR
-	CALL	MESS
-	LD	HL,OPTIONS
-OC_2
 	BIT	FO_NORM,(HL)
 	JR	Z,OC_3
 	LD	HL,M_NORM
@@ -143,37 +87,14 @@ OC_X2	LD	HL,MENU_OPT
 OC_X3	CALL	GET_CHAR
 	CP	CR
 	JP	Z,MAIN
-	CP	'1'
-	JR	Z,SET_CURR
-	CP	'2'
-	JR	Z,SET_LOWR
 	CP	'3'
 	JR	Z,SET_NORM
 	CP	'4'
 	JR	Z,SET_EXP
 	JP	MAIN
 ;
-SET_CURR
-	CALL	GET_CHAR
-	CP	CR
-	JR	NZ,OC_X2
-	LD	HL,OPTIONS
-	SET	FO_CURR,(HL)
-	RES	FO_LOWR,(HL)
-	CALL	INFO_SETUP
-OC_X4	LD	HL,M_OK
-	CALL	MESS
+OC_X4
 	JP	MAIN
-;
-SET_LOWR
-	CALL	GET_CHAR
-	CP	CR
-	JR	NZ,OC_X2
-	LD	HL,OPTIONS
-	RES	FO_CURR,(HL)
-	SET	FO_LOWR,(HL)
-	CALL	INFO_SETUP
-	JR	OC_X4
 ;
 SET_NORM
 	CALL	GET_CHAR
@@ -192,21 +113,6 @@ SET_EXP
 	RES	FO_NORM,(HL)
 	SET	FO_EXP,(HL)
 	JR	OC_X4
-;
-SET_MASK
-	LD	A,0FFH		;all!
-	LD	(TOPIC_MASK),A
-	LD	A,(OPTIONS)
-	BIT	FO_LOWR,A
-	RET	Z		;if LOWER not selected.
-	LD	A,(MY_LEVEL)
-	LD	E,A
-	LD	D,0
-	LD	HL,MASK_DATA
-	ADD	HL,DE
-	LD	A,(HL)
-	LD	(TOPIC_MASK),A
-	RET
 ;
 ; ------------------------------
 ;
@@ -396,19 +302,13 @@ TREAD_CMD
 ;
 	LD	A,(OPTIONS)
 	LD	(TR_OPTIONS),A
-	SET	FO_CURR,A	;Turn off option 2
-	RES	FO_LOWR,A
-	LD	(OPTIONS),A
 ;
 	LD	A,(MY_TOPIC)
 	LD	(TR_TOPIC),A
+;
 	XOR	A		;Go to General
 	LD	(MY_TOPIC),A
 ;
-	LD	A,(MY_LEVEL)
-	LD	(TR_LEVEL),A
-	XOR	A		;Go to general
-	LD	(MY_LEVEL),A
 ;
 	CALL	INFO_SETUP	;Move yo' asses!
 ;
@@ -442,13 +342,19 @@ TL_00
 	LD	A,(MY_TOPIC)
 	CALL	TREE_WALK	;Find next place to be
 	CP	0		;If wrap to general
-	JR	Z,TL_01
+	JR	Z,TL_01		;End the treewalk
+	CP	200
+	JR	Z,TL_01		;The real end of the loop
 	LD	(MY_TOPIC),A
-	CALL	SUB_NONEX	;Check if used.
+;Check if used
+	CALL	TOP_ADDR
+	LD	A,(HL)
+	OR	A
 	JR	Z,TL_00		;If unused
+;
 	LD	A,(MY_TOPIC)
 	CALL	INFO_SETUP
-;(My_level remains at zero. Should have no effect?)
+;
 	LD	HL,1
 	LD	(FIRST_MSG),HL	;From 1
 	LD	HL,(N_MSG_TOP)
@@ -456,12 +362,8 @@ TL_00
 	JR	TOP_LOOP
 ;
 TL_01
-	LD	A,(TR_OPTIONS)
-	LD	(OPTIONS),A
 	LD	A,(TR_TOPIC)
 	LD	(MY_TOPIC),A
-	LD	A,(TR_LEVEL)
-	LD	(MY_LEVEL),A
 	CALL	INFO_SETUP
 	JP	MAIN		;Finished.
 ;
@@ -597,20 +499,6 @@ TWK_02
 ; ------------------------------
 ; Find the next topic in the tree in a preorder scan
 TREE_WALK
-	LD	B,A
-	CP	0
-	JR	NZ,S_TW_01
-	ADD	A,32		;from gen to gen>sig
-	RET
-S_TW_01
-	LD	A,1FH
-	AND	B
-	JR	NZ,S_TW_02
-	LD	A,4
-	ADD	A,B		;from gen>sig to gen>sig>c
-	RET
-S_TW_02
-	LD	A,B
 	INC	A
 	RET
 ;
@@ -618,44 +506,6 @@ S_TW_02
 ;
 TOPIC_PRINT
 	LD	(TEMP_TOPIC),A
-	LD	A,0
-	CALL	TOP_ADDR
-	CALL	TOP_PRT_1
-	LD	A,(TEMP_TOPIC)
-	AND	0E0H
-	OR	A
-	RET	Z
-;
-	PUSH	AF
-	LD	A,'>'
-	CALL	PUT
-	POP	AF
-	CALL	TOP_INT
-	CALL	TOP_ADDR
-	CALL	TOP_PRT_1
-;
-	LD	A,(TEMP_TOPIC)
-	AND	0FCH
-	LD	B,A
-	AND	1CH
-	RET	Z
-	LD	A,B
-	PUSH	AF
-	LD	A,'>'
-	CALL	PUT
-	POP	AF
-	CALL	TOP_INT
-	CALL	TOP_ADDR
-	CALL	TOP_PRT_1
-;
-	LD	A,(TEMP_TOPIC)
-	OR	A
-	AND	3
-	RET	Z
-	LD	A,'>'
-	CALL	PUT
-	LD	A,(TEMP_TOPIC)
-	CALL	TOP_INT
 	CALL	TOP_ADDR
 	CALL	TOP_PRT_1
 	RET
@@ -673,56 +523,6 @@ TP1_1
 	CALL	PUT
 	INC	HL
 	JR	TOP_PRT_1
-;
-; ------------------------------
-;
-TOPIC_DOWN
-	LD	B,A
-	OR	A
-	JR	NZ,TD_1
-	LD	A,C		;level 0 to 1.
-	AND	7
-	RRCA
-	RRCA
-	RRCA
-	CP	A
-	RET
-TD_1	LD	A,B
-	AND	1CH
-	JR	NZ,TD_2
-	LD	A,C		;level 1 to 2.
-	AND	7
-	RLCA
-	RLCA
-	OR	B
-	CP	A
-	RET
-TD_2	LD	A,B
-	AND	3
-	RET	NZ
-	LD	A,C
-	AND	3
-	OR	B
-	CP	A
-	RET
-;
-; ------------------------------
-;
-TOPIC_UP
-	LD	B,A
-	AND	3
-	JR	Z,TU_1
-	LD	A,B
-	AND	0FCH
-	RET
-TU_1	LD	A,B
-	AND	1CH
-	JR	Z,TU_2
-	LD	A,B
-	AND	0E0H
-	RET
-TU_2	XOR	A
-	RET
 ;
 ; ------------------------------
 ;
@@ -756,7 +556,6 @@ STAT_02
 STAT_03
 	PUSH	BC
 	LD	A,(MY_TOPIC)
-	CALL	TOP_INT
 	CALL	TOP_ADDR
 	LD	DE,19
 	ADD	HL,DE
@@ -769,7 +568,6 @@ STAT_03
 ;
 ;Find offset within topic file and overwrite 1 byte
 	LD	A,(MY_TOPIC)
-	CALL	TOP_INT
 	CALL	MUL_20
 	LD	DE,16		;Size of initial status information
 	ADD	HL,DE

@@ -1,0 +1,1408 @@
+; @(#) bb4.asm - Message entry, 30 Jul 89
+;
+;Enter command ... manual message entry
+ENTER_CMD
+	CALL	GET_CHAR
+	CALL	TO_UPPER_C
+	CP	'F'
+	JP	Z,FROM_FILE
+	CP	CR
+	JP	NZ,BADSYN
+;
+	CALL	SET_HIGH
+;
+	LD	HL,M_ENTER
+	CALL	MESS
+;
+	CALL	CHECK_MAX	;# of msgs in total
+	JP	NC,MAIN		;If full
+;
+	CALL	PRT_TOPIC_STAT	;set Local or Non-local (News/Echomail)
+;
+	CALL	SETUP_MEM	;Date
+	LD	HL,(USR_NAME)
+	CALL	SET_FIELD
+	CALL	GET_NAME	;local & networking.
+	JP	NZ,MAIN
+	LD	HL,NAME_BUFF
+	CALL	SET_FIELD	;Into memory
+;
+	LD	A,(MY_TOPIC)
+	LD	(HDR_TOPIC),A
+;
+	CALL	ADD_DATE	;Add date to text_buff
+	CALL	GET_SUBJ	;Add a subject
+	JP	NZ,MAIN
+;
+	CALL	ENTER_MSG	;enter message manually
+	JP	NZ,MAIN		;if aborted.
+	CALL	SAVE_MSG	;save it to txt
+	JP	MAIN
+;
+;Do reply ... from, to, subject are supplied automagically
+DO_REPLY
+	CALL	TEXT_POSN
+	CALL	HDR_STORE
+;
+	CALL	SET_HIGH
+;
+	LD	HL,M_REPLY
+	CALL	MESS
+;
+	CALL	CHECK_MAX	;# of msgs in total
+	RET	NC		;If full
+;
+	CALL	PRT_TOPIC_STAT	;Local or Echomail
+;
+	CALL	SETUP_MEM	;Date
+	LD	HL,(USR_NAME)
+	CALL	SET_FIELD	;Set from name
+;
+	LD	HL,M_SNDR
+	CALL	MESS
+	LD	HL,(USR_NAME)
+	LD	DE,$2
+	CALL	MESS_NOCR
+	LD	HL,M_RCVR
+	CALL	MESS
+	LD	HL,B_FROM	;New To address
+	CALL	MESS
+	CALL	PUTCR
+;
+	CALL	SET_TO		;Set to for reply (local|networking)
+	RET	NZ		;Cannot enter proper reply
+	LD	HL,NAME_BUFF
+	CALL	SET_FIELD	;Into memory
+;
+	LD	A,(MY_TOPIC)
+	LD	(HDR_TOPIC),A
+;
+	CALL	ADD_DATE	;Add date to text_buff
+;
+	LD	HL,M_SUBJ
+	CALL	MESS
+	LD	HL,B_SUBJ
+	CALL	MESS
+	CALL	PUTCR
+	CALL	SET_SUBJ	;Add a subject
+	RET	NZ
+;
+	CALL	ENTER_MSG	;enter message manually
+	RET	NZ		;if aborted.
+	CALL	SAVE_MSG	;save it to txt
+	RET
+;
+;Enter message from a file
+FROM_FILE
+	CALL	GET_CHAR
+	CP	CR
+	JP	NZ,BADSYN
+;
+	CALL	IF_VISITOR
+	JP	NZ,NO_PERMS
+;
+	LD	HL,M_ENTER
+	CALL	MESS
+	CALL	CHECK_MAX
+	JP	NC,MAIN		;If full
+	CALL	SETUP_MEM
+	LD	HL,(USR_NAME)
+	CALL	SET_FIELD
+	CALL	GET_NAME
+	JP	NZ,MAIN
+	LD	HL,NAME_BUFF
+	CALL	SET_FIELD
+;
+FF_00A
+	CALL	GET_TOPIC
+	JR	NZ,FF_00A
+;
+	CALL	ADD_DATE
+	CALL	GET_SUBJ
+	JP	NZ,MAIN
+;
+	LD	HL,M_WHATFILE
+	CALL	GET_STRING
+	LD	DE,FILE_FCB
+	LD	B,28
+FF_02	CALL	GET_CHAR
+	CP	CR
+	JR	Z,FF_03
+	LD	(DE),A
+	INC	DE
+	DJNZ	FF_02
+FF_03	LD	A,CR
+	LD	(DE),A
+;
+	LD	HL,FILE_BUF
+	LD	DE,FILE_FCB
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,SF1_09
+;
+;Maximum file length is 10k or 40 sectors...
+	CALL	IF_SYSOP
+	JR	NZ,FF_05
+;
+	LD	A,(FILE_FCB+13)
+	OR	A
+	JR	NZ,FF_04
+	LD	A,(FILE_FCB+12)
+	CP	40
+	JR	C,FF_05
+FF_04
+	LD	HL,M_LONGFILE
+	CALL	MESS
+	JP	MAIN
+;
+FF_05
+	CALL	INC_MSG_COUNTS
+	CALL	SET_HDR_RBA
+	CALL	SAVE_TOP_1	;save in mem & disk
+	CALL	SAVE_TEXT_1	;save header ONLY
+	CALL	SAVE_FILE_1	;Copy file contents.
+	PUSH	AF
+	CALL	SET_TXT_EOF	;Write zero byte & set
+	CALL	SAVE_NEW_COUNT	;save new NUM_MSG etc..
+	CALL	WRIT_HDR
+	CALL	INFO_SETUP	;Fix in-memory counts
+	POP	AF
+	JR	NZ,FF_06
+	LD	HL,M_FILESAFE
+	CALL	MESS
+	JP	MAIN		;Finished from_file
+;
+FF_06
+	LD	HL,M_FILEFAIL
+	CALL	MESS
+	JP	MAIN
+;
+;Date and sender name
+SETUP_MEM
+	LD	(LINES),A	;No lines in it.
+	CALL	ZERO_HDR	;zero all bytes of it.
+;
+	XOR	A
+	LD	(HDR_FLAG),A
+;
+	LD	A,(4041H)	;Date/time stamp
+	LD	(HDR_TIME),A	;Sec
+	LD	A,(4042H)
+	LD	(HDR_TIME+1),A	;Min
+	LD	A,(4043H)
+	LD	(HDR_TIME+2),A	;Hours
+	LD	A,(4045H)
+	LD	(HDR_DATE),A	;Day
+	LD	A,(4046H)
+	LD	(HDR_DATE+1),A	;Mon
+	LD	A,(4044H)
+	LD	(HDR_DATE+2),A	;Year
+;
+	LD	HL,TEXT_BUF
+	LD	(MEM_PTR),HL
+	LD	(MEMT_PTR),HL
+	RET
+;
+SET_FIELD
+	LD	DE,(MEM_PTR)
+SF_01	LD	A,(HL)		;Copy senders name
+	CP	CR
+	JR	Z,SF_02
+	OR	A
+	JR	Z,SF_02
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	JR	SF_01
+;
+SF_02	EX	DE,HL
+	LD	A,CR
+	LD	(HL),A
+	INC	HL
+	LD	(HL),0
+	LD	(MEM_PTR),HL
+	LD	(MEMT_PTR),HL
+	RET
+;
+;Set highest allowable address.
+SET_HIGH
+	LD	HL,(HIMEM)
+	LD	DE,-256		;Give it some clearance!
+	ADD	HL,DE
+;;	LD	HL,THIS_PROG_END-256	;max addr
+	LD	(TEXT_HIMEM),HL
+	LD	HL,F_WARN
+	RES	1,(HL)		;Message length warning
+	RET
+;
+;Allow typing in of the message only....
+ENTER_MSG
+	XOR	A
+	LD	(NULL_LINE),A
+	LD	(WORD_WRAP),A
+	LD	(LI_PRE),A	;no preinput.
+;
+	LD	HL,M_TYPEIN
+	CALL	MESS
+EM_1	CALL	ENTER_PMPT
+;
+EM_2
+	CALL	LINEIN		;Wraparound input routine
+	JR	C,EM_6		;no CR, null terminated
+;
+;Give warning if buffer nearly full.
+	LD	DE,(MEM_PTR)	;current high address
+	LD	HL,(TEXT_HIMEM)
+	OR	A
+	SBC	HL,DE		;hl = whats left unused
+	LD	DE,256
+	OR	A
+	SBC	HL,DE
+	CALL	C,WARN_1
+;
+	CALL	INTO_BUFF
+	JP	NZ,EM_7		;If buffer full.
+;
+	LD	A,(LI_BUF)	;first char
+	OR	A
+	JR	Z,EM_4
+	CP	'.'		;Dot commands.
+	JR	NZ,EM_2Z
+;
+EM_2Z
+	XOR	A
+	LD	(NULL_LINE),A
+;
+EM_3
+	LD	A,(LINES)
+	INC	A
+	LD	(LINES),A
+	CP	MAX_LINES
+	JR	Z,EM_7
+	CP	MAX_LINES-3
+	JR	NZ,EM_1
+	LD	HL,M_ENDWRN
+	CALL	MESS
+	JR	EM_1
+;
+EM_4	LD	A,(NULL_LINE)
+	INC	A
+	LD	(NULL_LINE),A
+	CP	2
+	JR	NZ,EM_3
+	LD	HL,(MEM_PTR)
+	DEC	HL	;take off last CR
+	DEC	HL	;take off second last CR
+	LD	(MEM_PTR),HL
+	LD	(HL),0
+	LD	HL,LINES
+	DEC	(HL)
+	LD	A,(HL)
+	OR	A
+	JR	Z,NO_LINES
+EM_5	JP	MESG_QUEST
+;
+NO_LINES			;abort exit.
+	XOR	A
+	CP	1
+	RET
+;
+EM_6
+;ask if abort desired.
+	LD	HL,M_IFABRT
+	CALL	YES_NO
+	CP	'Y'
+	JR	Z,NO_LINES
+	CP	'Q'
+	JR	Z,NO_LINES
+	LD	HL,M_DISREG
+	CALL	MESS
+	JP	EM_1
+;
+EM_7
+	LD	HL,M_FRCEND
+	CALL	MESS
+	JP	MESG_QUEST
+;
+WARN_1
+	LD	A,(F_WARN)
+	BIT	1,A
+	RET	NZ
+	SET	1,A
+	LD	(F_WARN),A
+	LD	HL,M_ENDWRN
+	CALL	MESS
+	RET
+;
+ENTER_PMPT
+;Good place to put "Line 8", "Line 16" messages....
+	LD	A,':'
+	CALL	PUT
+	LD	A,' '
+	CALL	PUT
+	LD	A,0EH		;Cursor on
+	LD	DE,$DO
+	CALL	$PUT
+	RET
+;
+MESG_QUEST
+MQ_01
+	XOR	A
+	LD	(NULL_LINE),A
+;
+	LD	HL,MU_QUEST
+	CALL	MESS
+MQ_1	LD	HL,PMPT_QUEST
+	CALL	MESS
+	LD	HL,MSGQ_BUFF
+	LD	B,1
+	CALL	40H
+	JR	C,MQ_01
+;
+MQ_2	LD	A,(MSGQ_BUFF)
+	CP	CR
+	JR	Z,MQ_1
+	AND	5FH
+	CP	'A'		;Abort
+	JP	Z,NO_LINES
+	CP	'S'		;Save
+	RET	Z
+	CP	'C'		;Continue
+	JR	Z,CONTIN
+	CP	'L'		;List
+	JR	Z,M_LIST
+	CP	'E'		;Edit line
+	JR	Z,MESG_EDIT
+	JR	MQ_01
+;
+CONTIN
+	LD	A,(LINES)
+	CP	MAX_LINES
+	JP	C,EM_1
+	LD	HL,M_MAXLIN
+	CALL	MESS
+	JR	MESG_QUEST
+;
+M_LIST
+	LD	HL,(MEMT_PTR)
+	LD	A,1
+	LD	(M_LINE),A
+MLS_1	LD	A,(HL)
+	CP	0
+	JR	Z,MESG_QUEST
+	PUSH	HL
+	LD	A,(M_LINE)
+	LD	L,A
+	LD	H,0
+	CALL	PRINT_NUMB
+	LD	A,':'
+	CALL	PUT
+	LD	A,' '
+	CALL	PUT
+	POP	HL
+MLS_2	PUSH	HL
+	LD	A,(HL)
+	CP	CR
+	JR	Z,MLS_3
+	CALL	PUT
+	CALL	GET_$2
+	CP	1
+	JR	Z,MLS_3
+	POP	HL
+	INC	HL
+	JR	MLS_2
+MLS_3	PUSH	AF
+	LD	A,(M_LINE)
+	INC	A
+	LD	(M_LINE),A
+	CALL	PUTCR
+	POP	AF
+	POP	HL
+	INC	HL
+	CP	1
+	JR	NZ,MLS_1
+;list finished.
+	JP	MESG_QUEST
+;
+MESG_EDIT
+;ask which line to edit.
+	CALL	IF_CHAR
+	JR	Z,MED_2
+MED_1	LD	HL,M_EDWHLI
+	CALL	GET_STRING
+MED_2	CALL	GET_CHAR
+	CP	CR
+	JP	Z,MESG_QUEST
+	CALL	IF_NUM
+	JR	NZ,MED_1
+	CALL	GET_NUM
+	EX	DE,HL
+	LD	A,D
+	OR	A
+	JR	NZ,MED_1
+	LD	A,(LINES)
+	CP	E
+	JR	C,MED_1
+	LD	HL,(MEMT_PTR)
+	LD	B,1
+MED_3	LD	A,(HL)
+	OR	A
+	JP	Z,MESG_QUEST
+	LD	A,B
+	CP	E
+	JR	Z,DO_EDIT
+;
+MED_4	LD	A,(HL)		;bypass line
+	CP	CR
+	INC	HL
+	JR	NZ,MED_4
+	INC	B
+	JR	MED_3
+;
+DO_EDIT
+	LD	(EDIT_PTR),HL
+	LD	DE,OUTBUF
+MED_5	LD	A,(HL)
+	LD	(DE),A
+	CP	CR
+	JR	Z,DO_EDIT_2
+	INC	HL
+	INC	DE
+	JR	MED_5
+;
+DO_EDIT_2
+	LD	HL,M_TRSEDIT
+	CALL	MESS
+;
+	LD	HL,TRUE_ESC	;setup ESC key for abort
+	LD	(ABORT),HL
+;
+	CALL	X_START		;NZ on ret if quit.
+;
+	LD	HL,0		;mask out escape
+	LD	(ABORT),HL
+;
+	JP	NZ,MESG_QUEST
+;
+	LD	HL,OUTBUF	;save message
+	LD	C,0		;count chars incl 0.
+MED_6	LD	A,(HL)
+	INC	C
+	INC	HL
+	OR	A
+	JR	NZ,MED_6
+;set last char as 0dh
+	DEC	HL
+	LD	(HL),CR
+;
+;c=number of chars including 00h.
+	LD	HL,(EDIT_PTR)
+MED_7	LD	A,(HL)
+	CP	CR
+	INC	HL
+	JR	NZ,MED_7
+	LD	DE,(EDIT_PTR)	;move msg down
+MED_8	LD	A,(HL)
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	OR	A
+	JR	NZ,MED_8
+	DEC	DE		;de=0h byte at end of msg
+	PUSH	DE
+	EX	DE,HL		;hl=last byte end of msg.
+	LD	DE,(EDIT_PTR)
+	OR	A
+	SBC	HL,DE
+	INC	HL		;hl=length of msg.
+	POP	DE		;de=addr end of msg
+	PUSH	HL
+	EX	DE,HL		;hl=addr end, de=length
+	PUSH	HL		;push addr end
+	LD	B,0
+	ADD	HL,BC		;hl=end of msg after move up
+	LD	(MEM_PTR),HL	;new EOM.
+	POP	DE		;de=src (addr end)
+	POP	BC		;bc=len (num bytes to move)
+	EX	DE,HL
+	LDDR			;open space.
+;
+	LD	HL,OUTBUF	;move out OUTBUF line
+	LD	DE,(EDIT_PTR)
+MED_9	LD	A,(HL)
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	CP	CR
+	JR	NZ,MED_9
+	JP	MESG_QUEST
+;
+X_START
+	LD	HL,OUTBUF
+	LD	C,255
+EDIT_01	INC	C
+	LD	A,(HL)
+	CP	CR
+	INC	HL
+	JR	NZ,EDIT_01
+	DEC	HL
+	LD	(HL),0		;null terminate
+EDIT_02	LD	B,0
+	LD	HL,OUTBUF
+	LD	A,'>'
+	CALL	EDIT_PUT
+	LD	A,0EH
+	CALL	EDIT_PUT
+EDIT_03	LD	D,0
+EDIT_04
+	CALL	KEY_GET
+	CP	'0'
+	JR	C,EDIT_05
+	CP	'9'+1
+	JR	NC,EDIT_05
+	SUB	'0'
+	LD	E,A		;to numb.
+	LD	A,D
+	RLCA
+	RLCA
+	ADD	A,D
+	RLCA
+	ADD	A,E
+	LD	D,A
+	JR	EDIT_04
+EDIT_05	PUSH	AF
+	LD	A,D
+	OR	A
+	JR	NZ,EDIT_06
+	INC	D		;d=1 if 0.
+EDIT_06	POP	AF
+	CP	1		;break
+	JR	Z,EDIT_08
+	CP	8		;bsp
+	JR	Z,EDIT_09
+	CP	CR		;cr. finished.
+	JP	Z,EDIT_18
+	CP	' '		;space
+	JR	Z,EDIT_10
+	CP	9		;tab like space.
+	JR	Z,EDIT_10
+	CP	'a'		;l/c.
+	JR	C,EDIT_07
+	AND	5FH		;to U/C.
+EDIT_07	CP	'A'
+	JR	Z,EDIT_11
+	CP	'C'
+	JR	Z,EDIT_12
+	CP	'D'
+	JP	Z,EDIT_14
+	CP	'E'
+	JP	Z,EDIT_19
+	CP	'H'
+	JP	Z,EDIT_20
+	CP	'I'
+	JP	Z,EDIT_23
+	CP	'K'
+	JP	Z,EDIT_33
+	CP	'L'
+	JP	Z,EDIT_30
+	CP	'Q'
+	JP	Z,EDIT_29
+	CP	'S'
+	JP	Z,EDIT_31
+	CP	'X'
+	JP	Z,EDIT_21
+	JR	EDIT_04
+EDIT_08	CALL	EDIT_MESS
+	LD	A,CR
+	CALL	EDIT_PUT
+	LD	HL,M_EQUIT
+	CALL	EDIT_MESS
+	JP	E_ABORT
+M_EQUIT	DEFM	'Quit.',CR
+EDIT_09	LD	A,B
+	OR	A
+	JP	Z,EDIT_03
+	DEC	B
+	DEC	HL
+	LD	A,8
+	CALL	EDIT_PUT
+	DEC	D
+	JR	NZ,EDIT_09
+	JP	EDIT_03
+;
+EDIT_10	LD	A,(HL)
+	OR	A
+	JP	Z,EDIT_03
+	INC	B
+	CALL	EDIT_PUT
+	INC	HL
+	DEC	D
+	JR	NZ,EDIT_10
+	JP	EDIT_03
+EDIT_11	CALL	RELOAD
+	LD	A,CR
+	CALL	EDIT_PUT
+	JP	EDIT_02
+;**** Can't do. Need original line.
+EDIT_12	LD	A,(HL)
+	OR	A
+	JP	Z,EDIT_03
+EDIT_13	CALL	KEY_GET
+	CP	' '
+	JR	C,EDIT_13
+	CP	7FH
+	JR	NC,EDIT_13
+	LD	(HL),A
+	CALL	EDIT_PUT
+	INC	HL
+	INC	B
+	DEC	D
+	JR	NZ,EDIT_12
+	JP	EDIT_03
+EDIT_14	LD	A,(HL)
+	OR	A
+	JP	Z,EDIT_03
+	LD	A,5BH	;open bracket.
+	CALL	EDIT_PUT
+EDIT_15	LD	A,(HL)
+	OR	A
+	JR	Z,EDIT_17
+	CALL	EDIT_PUT
+	PUSH	HL
+	POP	IX
+EDIT_16	LD	A,(IX+1)
+	LD	(IX+0),A
+	INC	IX
+	OR	A
+	JR	NZ,EDIT_16
+	DEC	C
+	DEC	D
+	JR	NZ,EDIT_15
+EDIT_17	LD	A,']'
+	CALL	EDIT_PUT
+	JP	EDIT_03
+EDIT_18	CALL	EDIT_MESS
+EDIT_19	LD	A,CR
+	CALL	EDIT_PUT
+;real exit point.
+;**
+E_EXIT
+	CP	A
+	RET
+E_ABORT
+	XOR	A
+	CP	1
+	RET
+;**
+EDIT_20	LD	(HL),0
+	LD	C,B
+EDIT_21	CALL	EDIT_MESS
+	LD	HL,OUTBUF
+EDIT_22	LD	A,(HL)
+	INC	HL
+	OR	A
+	JR	NZ,EDIT_22
+	DEC	HL
+	LD	B,C
+EDIT_23	CALL	KEY_GET
+	CP	8
+	JR	Z,EDIT_27
+	CP	CR
+	JR	Z,EDIT_18
+	CP	1BH
+	JP	Z,EDIT_03
+	CP	' '
+	JR	C,EDIT_23
+	CP	7FH
+	JR	NC,EDIT_23
+	PUSH	AF
+	LD	A,C
+	CP	78		;was 62
+	JR	C,EDIT_24
+	POP	AF
+	JR	EDIT_23
+EDIT_24	PUSH	HL
+	INC	C
+	INC	B
+	LD	D,0
+EDIT_25	LD	A,(HL)
+	INC	HL
+	INC	D
+	OR	A
+	JR	NZ,EDIT_25
+	DEC	HL
+	PUSH	HL
+	POP	IX
+EDIT_26	LD	A,(IX)
+	LD	(IX+1),A
+	DEC	IX
+	DEC	D
+	JR	NZ,EDIT_26
+	POP	HL
+	POP	AF
+	LD	(HL),A
+	INC	HL
+	CALL	EDIT_PUT
+	JR	EDIT_23
+EDIT_27	LD	A,B
+	OR	A
+	JR	Z,EDIT_23
+	LD	A,8
+	CALL	EDIT_PUT
+	DEC	C
+	DEC	B
+	DEC	HL
+	PUSH	HL
+	POP	IX
+EDIT_28	LD	A,(IX+1)
+	LD	(IX+0),A
+	OR	A
+	INC	IX
+	JR	NZ,EDIT_28
+	JR	EDIT_23
+EDIT_29	CALL	EDIT_MESS
+	LD	A,CR
+	CALL	EDIT_PUT
+	JP	E_ABORT
+EDIT_30
+	CALL	EDIT_MESS
+	LD	A,CR
+	CALL	EDIT_PUT
+	JP	EDIT_02
+EDIT_31	CALL	KEY_GET
+	CP	' '
+	JR	C,EDIT_31
+	CP	7FH
+	JR	NC,EDIT_31
+	LD	E,A
+	LD	A,(HL)
+	OR	A
+	JP	Z,EDIT_03
+	CP	E
+	JR	NZ,EDIT_32
+	CALL	EDIT_PUT
+	INC	HL
+	INC	B
+EDIT_32	LD	A,(HL)
+	OR	A
+	JP	Z,EDIT_03
+	CALL	EDIT_PUT
+	INC	HL
+	INC	B
+	CP	E
+	JR	NZ,EDIT_32
+	DEC	D
+	JR	NZ,EDIT_32
+	LD	A,8
+	CALL	EDIT_PUT
+	DEC	HL
+	DEC	B
+	JP	EDIT_03
+EDIT_33	CALL	KEY_GET
+	CP	' '
+	JR	C,EDIT_33
+	CP	7FH
+	JR	NC,EDIT_33
+	LD	E,A
+	LD	A,5BH
+	CALL	EDIT_PUT
+EDIT_34	LD	A,(HL)
+	OR	A
+	JR	Z,EDIT_36
+	CALL	EDIT_PUT
+	PUSH	HL
+	POP	IX
+EDIT_35	LD	A,(IX+1)
+	LD	(IX+0),A
+	INC	IX
+	OR	A
+	JR	NZ,EDIT_35
+	DEC	C
+	LD	A,(HL)
+	CP	E
+	JR	NZ,EDIT_34
+	DEC	D
+	JR	NZ,EDIT_34
+EDIT_36	LD	A,']'
+	CALL	EDIT_PUT
+	JP	EDIT_03
+KEY_GET
+	PUSH	BC
+	PUSH	DE
+	LD	DE,$2
+KEYGET_1
+	CALL	$GET
+	OR	A
+	JR	Z,KEYGET_1
+	POP	DE
+	POP	BC
+	RET
+;
+EDIT_PUT
+	PUSH	AF
+	PUSH	BC
+	PUSH	DE
+	LD	DE,$2
+	CALL	$PUT
+	POP	DE
+	POP	BC
+	POP	AF
+	RET
+;
+EDIT_MESS
+	LD	A,(HL)
+	OR	A
+	RET	Z
+	CP	ETX
+	RET	Z
+	CALL	EDIT_PUT
+	LD	A,(HL)
+	CP	CR
+	RET	Z
+	INC	HL
+	JR	EDIT_MESS
+;
+RELOAD
+	LD	HL,(EDIT_PTR)
+	LD	DE,OUTBUF
+MED_A	LD	A,(HL)
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	CP	CR
+	JR	NZ,MED_A
+	DEC	DE
+	LD	A,0
+	LD	(DE),A
+	RET
+;
+TRUE_ESC	;allow the ESC key to give an ESC char
+	LD	A,1BH
+	RET
+;
+;Save a message to the tree.
+SAVE_MSG
+	CALL	INC_MSG_COUNTS
+	CALL	SET_HDR_RBA
+	CALL	SAVE_TOP_1	;save in mem & disk
+	CALL	SAVE_TEXT_1	;save header & text
+	CALL	SET_TXT_EOF
+	CALL	SAVE_NEW_COUNT	;save new NUM_MSG etc..
+	CALL	WRIT_HDR
+	CALL	INFO_SETUP	;Fix in-memory counts
+	RET
+;
+INC_MSG_COUNTS
+	LD	HL,(N_MSG)
+	INC	HL
+	LD	(N_MSG),HL
+	RET
+;
+SET_HDR_RBA
+	CALL	_GETFREE
+	LD	A,H
+	CP	255
+	JP	Z,SAVE_ERROR	;No free blocks
+	XOR	A
+	LD	(HDR_RBA),A
+	LD	A,L
+	LD	(HDR_RBA+1),A
+	LD	A,H
+	LD	(HDR_RBA+2),A
+	CALL	_SEEKTO
+;
+	LD	HL,_BLOCK
+	PUSH	HL
+	LD	HL,256
+	PUSH	HL
+	CALL	_ZEROMEM
+	POP	HL
+	POP	HL
+	RET
+;
+SAVE_TOP_1
+	LD	HL,(N_MSG)
+	DEC	HL
+	LD	DE,MSG_TOPIC
+	ADD	HL,DE
+	LD	A,(HDR_TOPIC)
+	LD	(HL),A
+	LD	DE,TOPIC	;Yuk.
+	OR	A
+	SBC	HL,DE
+	LD	C,L
+	LD	L,H
+	LD	H,0
+	LD	DE,TOP_FCB
+	CALL	DOS_POS_RBA
+	JP	NZ,SAVE_ERROR
+	LD	A,(HDR_TOPIC)
+	CALL	$PUT
+	JP	NZ,SAVE_ERROR
+	RET
+;
+;save message text.
+SAVE_TEXT_1
+	LD	HL,(HDR_RBA+1)
+	CALL	_SEEKTO
+	LD	HL,2
+	LD	(_BLKPOS),HL
+	LD	A,0FFH
+	CALL	BPUTC
+	JP	NZ,SAVE_ERROR
+	XOR	A
+	CALL	BPUTC
+	JP	NZ,SAVE_ERROR
+	XOR	A		;Unused
+	CALL	BPUTC
+	JP	NZ,SAVE_ERROR
+	LD	HL,TEXT_BUF
+	CALL	_BPUTS
+	JP	NZ,SAVE_ERROR
+	RET
+;
+SET_TXT_EOF
+	LD	A,0
+	CALL	BPUTC
+	JP	NZ,SAVE_ERROR
+	CALL	_BFLUSH
+	RET
+;
+SAVE_NEW_COUNT
+	LD	DE,TOP_FCB
+	CALL	DOS_REWIND
+	JP	NZ,SAVE_ERROR
+	LD	HL,TOPIC
+	LD	B,7
+SNC_01	LD	A,(HL)
+	CALL	$PUT
+	JP	NZ,SAVE_ERROR
+	INC	HL
+	DJNZ	SNC_01
+	RET
+;
+; ------------------------------
+;
+GET_NAME
+GEN_01
+	LD	HL,M_WHOTO
+	CALL	GET_STRING
+	CALL	COPY_NAME	;read, and copy into name_buff
+;
+GEN_02
+	LD	HL,NAME_BUFF
+	LD	A,(HL)
+	CP	CR
+	JP	Z,RET_NZ	;Quitting
+	OR	A
+	JP	Z,RET_NZ
+GEN_04
+;
+GEN_05	LD	A,(HL)		;Check for network address
+	JR	GEN_06
+;
+;@ seen, so this address is an ACSnet or Fidonet address.
+	LD	A,(NETMSG)
+	CP	1
+	JR	NZ,GEN_05A	;Allow it
+	LD	HL,M_NONET
+	CALL	MESS
+	JR	GEN_01		;Disallow @ if echomail topic
+;
+GEN_05A
+;has a network address appended. This is (NET_BIT).
+	LD	A,(PRIV_1)
+	BIT	GRA_ENET,A	;Network message entry
+	JP	Z,NO_PERMS
+;
+	LD	A,(HL)
+	CP	'['		;Start of Fidonet address
+	JR	Z,GEN_05B
+	CP	'0'
+	JR	C,GEN_05C	;Must be acsnet (looks wonky though)
+	CP	'9'+1
+	JR	NC,GEN_05C	;Must be acsnet
+GEN_05B
+	LD	A,2		;Fidonet ...@[xxx/xxx] or ...@xxx/xxx
+	LD	(NETMSG),A
+	JR	GEN_05D
+GEN_05C
+	LD	A,3
+	LD	(NETMSG),A
+GEN_05D
+	LD	HL,HDR_FLAG
+	SET	FM_NETMSG,(HL)
+	LD	HL,0FFFEH
+	LD	(HDR_RCVR),HL	;to network id.
+;
+	CALL	ASK_PRIV	;Ask private for both nets
+	CP	A
+	RET
+;
+;A destination has been entered without a network address
+GEN_06
+	LD	A,(NETMSG)
+	CP	1
+	JR	NZ,GEN_06A	;A local topic
+;
+;This is an echomail topic
+	LD	HL,HDR_FLAG
+	SET	FM_NETMSG,(HL)
+	RES	FM_NETSENT,(HL)	
+	LD	A,(PRIV_1)
+	BIT	GRA_ENET,A
+	JP	Z,NO_PERMS	;Cannot enter into echomail topic
+	JR	GEN_06B
+;
+;this is not an echomail topic
+GEN_06A
+	LD	A,(PRIV_1)
+	BIT	GRA_ELOC,A
+	JP	Z,NO_PERMS	;Cannot enter local msgs
+;
+GEN_06B
+;check if name is registered.
+	LD	HL,NAME_BUFF
+	CALL	CHK_USERS
+	LD	HL,(US_NUM)
+	JP	Z,TO_KNOWN	;Name is in userfile
+;
+	LD	A,(NETMSG)
+	CP	1
+	JR	Z,TO_UNKNOWN	;Is echomail, so do not enforce name
+;
+	LD	HL,M_DESTSTR
+	CALL	MESS
+	LD	HL,NAME_BUFF
+	LD	DE,$2
+	CALL	MESS_CR
+	LD	HL,M_DESTSTR2
+	CALL	MESS
+	JP	RET_NZ		;Name not in userfile, return
+;
+TO_UNKNOWN
+	LD	HL,0FFFEH
+	LD	(HDR_RCVR),HL
+	RET
+;
+TO_KNOWN
+	LD	(HDR_RCVR),HL
+	LD	HL,UF_NAME
+	LD	DE,NAME_BUFF
+	CALL	STRCPY
+	RET
+;
+; ------------------------------
+;
+SET_TO
+	LD	HL,B_FROM
+	LD	DE,NAME_BUFF	
+	CALL	STRCPY_CR
+	JP	GEN_02		;Check contents of name for validity
+;
+STRCPY_CR
+SCCR_01
+	LD	A,(HL)
+	LD	(DE),A
+	OR	A
+	JR	Z,SCCR_02
+	CP	CR
+	JR	Z,SCCR_02
+	INC	HL
+	INC	DE
+	JR	SCCR_01
+;
+SCCR_02
+	LD	A,CR
+	LD	(DE),A
+	RET
+;
+; ------------------------------
+;
+ASK_PRIV
+	LD	HL,HDR_FLAG
+	RES	FM_PRIVATE,(HL)
+	LD	HL,M_PRIVATE	;Ask if private
+	CALL	YES_NO
+	CP	'N'
+	RET	Z
+	CP	'Q'
+	JP	Z,RET_NZ
+	LD	HL,HDR_FLAG
+	SET	FM_PRIVATE,(HL)
+	CP	A
+	RET
+;
+; ------------------------------
+;
+ADD_DATE
+	LD	HL,HDR_TIME
+	LD	A,(HL)
+	LD	(HMS_S),A
+	INC	HL
+	LD	A,(HL)
+	LD	(HMS_M),A
+	INC	HL
+	LD	A,(HL)
+	LD	(HMS_H),A
+;
+	LD	HL,HDR_DATE
+	LD	A,(HL)
+	LD	(DMY_D),A
+	INC	HL
+	LD	A,(HL)
+	LD	(DMY_M),A
+	INC	HL
+	LD	A,(HL)
+	LD	(DMY_Y),A
+;
+	LD	DE,DMY_BUF
+	CALL	DMY_ASCII
+	LD	HL,DMY_STRING
+	LD	DE,(MEM_PTR)
+	CALL	STRCPY
+	EX	DE,HL
+	LD	(HL),' '
+	INC	HL
+	LD	(MEM_PTR),HL
+;
+	LD	DE,HMS_BUF
+	CALL	HMS_ASCII
+	LD	HL,HMS_STRING
+	LD	DE,(MEM_PTR)
+	CALL	STRCPY
+	LD	A,CR
+	LD	(DE),A
+	INC	DE
+	LD	(MEM_PTR),DE
+	LD	(MEMT_PTR),DE
+;
+	XOR	A
+	LD	(DE),A		;zero it.
+	RET
+;
+SET_SUBJ
+	LD	HL,B_SUBJ
+	CALL	SET_FIELD
+	CP	A
+	RET
+;
+GET_SUBJ
+GS_1	LD	HL,M_WHTSUBJ
+	CALL	GET_STRING
+GS_2	CALL	IF_CHAR
+	CP	CR
+	JR	NZ,GS_3
+	XOR	A
+	CP	1
+	RET
+;
+GS_3	LD	HL,(MEM_PTR)
+GS_4	PUSH	HL
+	CALL	GET_CHAR
+	POP	HL
+	LD	(HL),A
+	INC	HL
+	CP	CR
+	JR	NZ,GS_4
+	LD	(MEM_PTR),HL
+	LD	(MEMT_PTR),HL
+	LD	(HL),0
+	CP	A
+	RET
+;
+WRIT_HDR
+	LD	A,(LINES)
+	LD	(HDR_LINES),A
+	LD	HL,(USR_NUMBER)
+	LD	(HDR_SNDR),HL
+;
+	LD	HL,(N_MSG)
+	DEC	HL
+	PUSH	HL
+	POP	BC
+	LD	DE,HDR_FCB
+	CALL	DOS_POSIT
+	JP	NZ,ERROR
+	LD	HL,THIS_MSG_HDR
+	CALL	DOS_WRIT_SECT
+	JP	NZ,ERROR
+	RET
+;
+ZERO_HDR
+	LD	HL,THIS_MSG_HDR
+	LD	B,16
+IH_01	LD	(HL),0
+	INC	HL
+	DJNZ	IH_01
+	RET
+;
+SAVE_FILE_1
+SF1_01
+	LD	DE,FILE_FCB
+	CALL	$GET
+	JR	NZ,SF1_07
+SF1_02	AND	7FH
+	CP	7FH
+	JR	Z,SF1_04
+	CP	CR
+	JR	Z,SF1_05
+	CP	LF
+	JR	Z,SF1_06
+	CP	TAB
+	JR	Z,SF1_03
+	CP	1AH		;Cpm eof byte text files
+	JR	Z,SF1_08
+	OR	A
+	JR	Z,SF1_08
+	CP	20H
+	JR	C,SF1_04
+SF1_03
+	CALL	BPUTC
+	JR	SAVE_FILE_1
+;
+SF1_04	LD	A,'.'
+	CALL	BPUTC
+	JR	SAVE_FILE_1
+;
+SF1_05
+	LD	HL,LINES
+	INC	(HL)
+	LD	A,CR
+	CALL	BPUTC
+	LD	DE,FILE_FCB
+	CALL	$GET
+	JR	NZ,SF1_07
+	AND	7FH
+	CP	LF
+	JR	NZ,SF1_02
+	JR	SAVE_FILE_1
+;
+SF1_06
+	LD	HL,LINES
+	INC	(HL)
+	LD	A,CR
+	CALL	BPUTC
+	JR	SAVE_FILE_1
+;
+SF1_07	CP	1CH
+	JR	NZ,SF1_09
+SF1_08
+	CP	A
+	RET
+;
+SF1_09
+	PUSH	AF
+	OR	80H
+	CALL	DOS_ERROR
+	POP	AF
+	OR	A
+	RET
+;
+INTO_BUFF
+;HL=LI_BUF
+;DE=(mem_ptr) *de = 0;
+;maximum address = (text_himem)
+	LD	DE,(MEM_PTR)
+	LD	HL,LI_BUF
+IB_01	PUSH	HL
+	LD	HL,(TEXT_HIMEM)
+	DEC	HL
+	OR	A
+	SBC	HL,DE
+	POP	HL
+	JR	Z,IB_03
+	LD	A,(HL)
+	LD	(DE),A
+	OR	A
+	JR	Z,IB_02
+	INC	HL
+	INC	DE
+	JR	IB_01
+;
+IB_02
+	EX	DE,HL
+	LD	(HL),CR
+	INC	HL
+	LD	(HL),0
+	LD	(MEM_PTR),HL
+	CP	A
+	RET
+IB_03
+	LD	HL,(MEM_PTR)
+	LD	(HL),0
+	XOR	A
+	CP	1
+	RET
+;
+;Check to be sure that there are less than MAX_MSGS-4 messages.
+CHECK_MAX
+	LD	HL,(N_MSG)
+	LD	DE,MAX_MSGS-4
+	CALL	CPHLDE
+	RET	C		;If not full
+	PUSH	AF
+	LD	HL,M_BRDFULL
+	CALL	MESS
+	POP	AF
+	RET
+;
+COPY_NAME
+	LD	IX,NAME_BUFF
+CN_01	CALL	GET_CHAR	;Get name until CR
+	LD	(IX),A
+	INC	IX
+	CP	CR
+	JR	NZ,CN_01
+	RET
+;
+GET_TOPIC
+	LD	HL,M_TOPIC1
+	CALL	MESS
+	LD	A,(MY_TOPIC)
+	LD	(HDR_TOPIC),A
+	CALL	TOPIC_PRINT
+	LD	HL,M_TOPIC2
+	CALL	MESS
+	LD	HL,M_TOPIC3
+	CALL	GET_STRING
+;
+	CALL	COPY_NAME
+	LD	(IX-1),0
+	LD	HL,NAME_BUFF
+	LD	A,(HL)
+	OR	A
+	RET	Z
+	CALL	FIND_TOP_NUM
+	RET	NZ
+	LD	A,(FTN_TOP)
+	LD	(HDR_TOPIC),A
+	RET
+;
+SAVE_ERROR
+	LD	HL,M_SAVEERR
+	CALL	MESS
+	JP	MAIN
+;
+PRT_TOPIC_STAT
+	LD	A,(MY_TOPIC)
+	CALL	TOP_ADDR
+	LD	DE,19
+	ADD	HL,DE
+	LD	A,(HL)
+	AND	1
+	JR	NZ,PTS_01
+;
+	XOR	A
+	LD	(NETMSG),A
+	LD	HL,M_TOPLOC
+	JR	PTS_02
+PTS_01
+	LD	A,1
+	LD	(NETMSG),A
+	LD	HL,M_TOPECHO
+PTS_02
+	CALL	MESS
+	RET
+;
+;End of bb4
