@@ -1,27 +1,34 @@
 /*
  *
- *    PP.C: A simple 'C' preprocessor.
- *    Nick Andrew,
- *         04-Oct-85
+ *    PP/C: A simple 'C' preprocessor.
+ *    Nick Andrew, 04-Oct-85
+ *    Usage: PP infilename  outfilename
+ *
+ *    11-Nov-85:
+ *         Modified for Alcor 'C' as follows:
+ *            'char' arguments changed to 'int' in function
+ *            declarations.
+ *
  *    Currently understands the following commands:
- *        #include
+ *        #include,#ifdef,#ifndef,#else,#endif
+ *        #define (no definition replacement or macro fns)
  *
  */
 
-#include <stdio.h>
+#include <stdio.h>       /* Get standard IO file        */
 
-#define MAXINCL   20
-#define LINELEN   255
-#define NAMELEN   80
-#define MAXDEFS   100
-#define DEFLEN    12
+#define MAXINCL   20     /* Maximum INCLUDE nesting     */
+#define LINELEN   255    /* Maximum source line length  */
+#define NAMELEN   80     /* Maximum filename length     */
+#define MAXDEFS   100    /* Maximum No of #defines      */
+#define DEFLEN    12     /* Maximum define name length  */
 
 FILE *fout;              /* Output file pointer         */
 int  nocomment;          /* Delete comments from source */
 int  ignore;             /* True if inside false #if    */
 int  line;               /* Global line counter         */
-int  is_unix;            /* flag for unix system        */
-int  is_trs80;           /* To 00 for everything else   */
+int  is_unix;            /* flag for a unix system      */
+int  is_trs80;           /* flag for trs-80 under LC    */
 int  *curr_line;         /* Current line pointer        */
 char *curr_file;         /* Current filename            */
 char *curr_text;         /* Current line text of file   */
@@ -36,8 +43,9 @@ char *argv[];
 {
 
    is_trs80=0;
-   is_unix=1;
-   nocomment=ignore=numdef=0;
+   is_unix=0;
+   nocomment=1;
+   ignore=numdef=0;
    if (argc!=3)
       {
       printf("pp: Usage is PP infile outfile\n");
@@ -73,7 +81,8 @@ char *name;
       line++;
       i=0;
       while (whitencr(thisline[i])) i++;
-      if (thisline[i]=='#') handlepp(thisline,fp,&i,name,&line);
+      if (thisline[i]=='#')
+         handlepp(thisline,fp,&i);
       else
          {
          i=0;
@@ -94,13 +103,13 @@ char *name;
 }
 
 whitencr(c)
-char c;
+int  c;
 {
    return((c==' ')||(c=='\t')||(c=='\f'));
 }
 
 white(c)
-char c;
+int  c;
 {
    return(whitencr(c) || (c=='\n'));
 }
@@ -127,7 +136,8 @@ char string[];
             }
          }
       }
-   else if (*cp=='\'') error("Empty character constant\n");
+   else if (*cp=='\'')
+           error("Empty character constant\n");
         else cputc(*(cp++));
    if (*cp!='\'')
       error("Character constant not terminated properly!\n");
@@ -136,14 +146,14 @@ char string[];
 }
 
 escchr(c)
-char c;
+int  c;
 {
    return ((c=='n')||(c=='t')||(c=='b')||(c=='r')||
            (c=='f')||(c=='\\')||(c=='\'')||isoctal(c));
 }
 
 isoctal(c)
-char c;
+int  c;
 {
    return( (c>='0') && (c<='7'));
 }
@@ -161,7 +171,8 @@ int  *ip;
    while (!*cp)
       {
       (*curr_line)++;
-      if (!fgets(string,LINELEN,fp)) error("EOF within string\n");
+      if (!fgets(string,LINELEN,fp))
+         error("EOF within string\n");
       cp=curr_text=string;
       while (*cp && (*cp!='"'))
          cputc(*(cp++));
@@ -185,7 +196,8 @@ int  *ip;
    while (!*cp)
       {
       (*curr_line)++;
-      if (!fgets(string,LINELEN,fp)) error("EOF within comment\n");
+      if (!fgets(string,LINELEN,fp))
+         error("EOF within comment\n");
       cp=curr_text=string;
       while (*cp && ((ch1!='*')||(*cp!='/')))
          cputc(ch1=(*(cp++)));
@@ -204,7 +216,8 @@ int  *ip;
    while (whitencr(*(++cp)));
    if (!*cp || (*cp=='\n')) error("No preprocessor Cmd\n");
    i=0;
-   while (*cp && !white(*cp)) preproc[i++]=(*(cp++));
+   while (*cp && !white(*cp))
+      preproc[i++]=(*(cp++));
    preproc[i]=0;
    if      (!strcmp(preproc,"include")) hinclude(cp);
    else if (!strcmp(preproc,"define" )) hdefine(cp);
@@ -233,8 +246,8 @@ char *cp;
    if (i>80) error("Include filename too long\n");
    file[i]=0;
    fname=file;
-   if (is_trs80 && !strcmp(file,"stdio.h")) fname="STDIO/CSH";
-   if (unix && (delim=='>'))
+   if (is_trs80 && !strcmp(file,"stdio.h")) fname="stdio";
+   if (is_unix && (delim=='>'))
       {
       /* Prepend standard unix search directory */
       char stddir[NAMELEN];
@@ -249,7 +262,7 @@ char *cp;
 }
 
 error(str1,str2)
-char *str1,str2;
+char *str1,*str2;
 {
    printf(str1,str2);
    exit(-1);
@@ -265,7 +278,7 @@ int  flag;
 }
 
 cputc(c)
-char c;
+int  c;
 {
    if (!ignore) putc(c,fout);
 }
