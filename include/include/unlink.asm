@@ -1,0 +1,44 @@
+;unlink : Provide the unlink(filename) call.
+; Last updated: 14-Jan-88
+;
+	IFREF	_UNLINK
+_UNLINK
+	LD	HL,2
+	ADD	HL,SP
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+;
+	EX	DE,HL
+	LD	DE,UNL_FCB
+UNL_1	LD	A,(HL)
+	OR	A
+	JR	Z,UNL_2
+	CP	CR
+	JR	Z,UNL_2
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	JR	UNL_1
+;
+UNL_2	LD	A,CR
+	LD	(DE),A
+;
+	LD	DE,UNL_FCB
+	LD	HL,UNL_BUF
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	LD	HL,-1
+	RET	NZ
+;
+	CALL	DOS_KILL
+	LD	HL,-1
+	RET	NZ
+;
+	LD	HL,0
+	RET
+;
+UNL_FCB	DEFS	32
+UNL_BUF	DEFS	256
+;
+	ENDIF	;_unlink

@@ -1,0 +1,252 @@
+;Listalc: List Alloc/Dealloc routines.....
+;Last modified 08-May-86.
+;
+MAX_ITEMS	EQU	32
+MAX_ALLOC	EQU	4096
+;
+;List_push: Push a buffer onto the end of a list.
+;Calling: HL=Address of source, C=length, B=list #.
+	IFREF	LIST_PUSH
+LIST_PUSH:
+	PUSH	HL
+	PUSH	BC
+	CALL	LIST_ALLOC
+	POP	BC
+	POP	HL
+	RET	NZ
+	EX	DE,HL
+	LD	B,0
+	DEC	C
+	INC	BC
+	LDIR
+	CP	A
+	RET
+	ENDIF	;list_push
+;
+;list_pop: Pop an item off the end of a numbered list.
+;Calling: HL=Address of destination.
+	IFREF	LIST_POP
+LIST_POP:
+	PUSH	HL
+	CALL	LIST_END
+	INC	HL
+	LD	C,(HL)
+	INC	HL
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	EX	DE,HL
+	POP	DE
+	PUSH	BC
+	LD	B,0
+	DEC	C
+	INC	BC
+	LDIR
+	POP	BC
+	CALL	LIST_FREE
+	RET
+;
+LIST_END:
+	CALL	LIST_INDEX
+	LD	A,(HL)
+	OR	A
+	RET	Z
+	LD	B,A
+	JR	LIST_END
+;
+	ENDIF	;list_pop
+;
+	IFREF	LIST_ALLOC
+;List_alloc: Input B=List number (or list entry number),
+;		   C=Length to save 1-256, 0=256.
+;Output:	B=Actual list entry allocated
+;		HL=Physical address
+;		Z=Successful.
+;
+LIST_ALLOC:
+LA_01
+	CALL	LIST_INDEX
+	LD	A,(HL)
+	CP	255
+	JR	Z,LA_03
+	OR	A
+	JR	Z,LA_01A
+	LD	B,A
+	JR	LA_01
+LA_01A
+	LD	(LA_END),A
+	LD	B,-1
+LA_02
+	INC	B
+	LD	A,B
+	CP	MAX_ITEMS-1
+	JP	Z,RET_NZ
+	CALL	LIST_INDEX
+	LD	A,(HL)
+	CP	255
+	JR	NZ,LA_02
+	LD	A,B
+	LD	(LA_FOUND),A
+	LD	A,(LA_END)
+	LD	B,A
+	CALL	LIST_INDEX
+	LD	A,(LA_FOUND)
+	LD	(HL),A
+	LD	B,A
+	CALL	LIST_INDEX
+LA_03
+	PUSH	HL
+	PUSH	BC
+	CALL	CORE_ALLOC
+	POP	BC
+	POP	HL
+	RET	NZ
+	LD	(HL),0
+	INC	HL
+	LD	(HL),C
+	INC	HL
+	LD	(HL),E
+	INC	HL
+	LD	(HL),D
+	CP	A
+	RET
+;
+LIST_INDEX
+	LD	E,B
+	LD	D,0
+	LD	HL,LIST_TABLE
+	ADD	HL,DE
+	ADD	HL,DE
+	ADD	HL,DE
+	ADD	HL,DE
+	RET
+;
+CORE_ALLOC
+	LD	HL,(MEM_USED)
+	LD	DE,MAX_ALLOC
+	OR	A
+	SBC	HL,DE
+	JP	NC,RET_NZ
+	DEC	C
+	LD	B,0
+	INC	BC
+	LD	HL,(MEM_USED)
+	ADD	HL,BC
+	LD	(MEM_USED),HL
+	LD	HL,(FIRST_MEM)
+	PUSH	HL
+	ADD	HL,BC
+	LD	(FIRST_MEM),HL
+	LD	(PROG_END),HL
+	POP	DE
+	CP	A
+	RET
+;
+LIST_TABLE
+	DC	MAX_ITEMS*4,0FFH
+MEM_USED
+	DEFW	0
+FIRST_MEM
+	DEFW	0
+LA_END	DEFB	0
+LA_FOUND DEFB	0
+;
+	ENDIF	;list_alloc
+;
+	IFREF	LIST_FREE
+;In: B=list item number.
+;Out: Z/NZ.
+LIST_FREE:
+	CALL	LIST_INDEX
+	LD	A,(HL)
+	CP	255
+	JP	Z,RET_NZ
+	PUSH	HL
+	LD	C,B
+	LD	B,-1
+LF_01
+	INC	B
+	LD	A,B
+	CP	MAX_ITEMS-1
+	JR	Z,LF_02
+	CALL	LIST_INDEX
+	LD	A,(HL)
+	CP	C
+	JR	NZ,LF_01
+	LD	(HL),0
+LF_02
+	POP	HL
+	LD	(HL),0FFH
+	INC	HL
+	LD	C,(HL)
+	INC	HL
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	EX	DE,HL
+	LD	(LF_MIN),HL
+	PUSH	HL
+	DEC	C
+	LD	B,0
+	INC	BC
+	LD	(LF_SUB),BC
+	ADD	HL,BC
+	EX	DE,HL
+	LD	HL,(MEM_USED)
+	OR	A
+	SBC	HL,BC
+	LD	(MEM_USED),HL
+;
+	LD	HL,(FIRST_MEM)
+	OR	A
+	SBC	HL,DE
+	PUSH	HL
+	POP	BC
+;
+	EX	DE,HL
+	POP	DE
+	LDIR
+;
+	LD	(FIRST_MEM),HL
+	LD	(PROG_END),HL
+;
+	LD	B,-1
+LF_04	INC	B
+	LD	A,B
+	CP	MAX_ITEMS-1
+	RET	Z
+	CALL	LIST_INDEX
+	INC	HL
+	INC	HL
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	PUSH	HL
+	LD	HL,(LF_MIN)
+	OR	A
+	SBC	HL,DE
+	JR	C,LF_05
+	POP	HL
+	JR	LF_04
+LF_05	LD	HL,(LF_SUB)
+	EX	DE,HL
+	OR	A
+	SBC	HL,DE
+	EX	DE,HL
+	POP	HL
+	LD	(HL),D
+	DEC	HL
+	LD	(HL),E
+	JR	LF_04
+;
+LF_MIN	DEFW	0
+LF_SUB	DEFW	0
+;
+	ENDIF	;list_free
+;
+	IFREF	RET_NZ
+RET_NZ:	XOR	A
+	CP	1
+	RET
+	ENDIF
+;
