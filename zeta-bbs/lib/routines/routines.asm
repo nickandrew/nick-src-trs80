@@ -1,5 +1,5 @@
 ;routines.lib: Common routines for global label search.
-;Last updated: 09-Mar-89.
+;Last updated: 28 Jun 89.
 ;
 ;PRINT_NUMB. Print a number in HL to unit $stdout_def.
 ;sets up TENS&ONES for suffix printing.
@@ -623,6 +623,7 @@ _TERM_01
 ;
 ;str_len: Find the 0-255 length of a string.
 	IFREF	STR_LEN
+	ERR	'Should use STRLEN instead of STR_LEN'
 STR_LEN
 	LD	C,0
 _STR_01	LD	A,(HL)
@@ -690,6 +691,7 @@ _FG2	LD	(HL),0
 ;
 ;List: List a file to $2, allow abort with ^C
 	IFREF	LIST
+	ERR	'List should no longer be used'
 LIST	LD	DE,_L_DCB
 	CALL	EXTRACT
 	LD	HL,_L_BUFF
@@ -892,6 +894,42 @@ _SPONES		DEFB	0
 _SPPOS		DEFW	0
 ;
 	ENDIF	SPUTNUM
+;
+;get_number: Convert a string ptd to by HL to a number HL
+	IFREF	GET_NUMBER
+GET_NUMBER
+	LD	DE,0
+$GN_01
+	LD	A,(HL)
+	CALL	IF_NUM
+	JR	NZ,$GN_02
+	CALL	$GN_03
+	INC	HL
+	JR	$GN_01
+;
+$GN_02
+	PUSH	DE
+	POP	HL
+	RET
+;
+$GN_03
+	PUSH	HL
+	SUB	'0'
+	PUSH	DE
+	POP	HL
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,DE
+	ADD	HL,HL
+	LD	E,A
+	LD	D,0
+	ADD	HL,DE
+	EX	DE,HL
+	POP	HL
+	RET
+;
+	ENDIF	;get_number
+;
 ;
 ;if_num: Check if contents of A is numeric
 	IFREF	IF_NUM
