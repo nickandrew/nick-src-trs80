@@ -1,0 +1,41 @@
+3ST Start of XMF help
+
+   XMODEM command ... xmodem/crc file transfers. 24-Feb-87
+
+          ** Don't type in the square brackets!! **
+
+   Usage is: xmodem  [-c] [-s files ...] [-r files ...]
+
+   For example: xmodem -s sydpams.txt
+
+(Many filenames may be given after a '-s' or '-r' keyword)
+
+Options:
+
+   -s        Send file(s) to you.
+             Filenames following the '-s' option only.
+
+   -r        Receive file(s) from your computer.
+             Filenames following the '-r' option only.
+
+   -c        Set CRC mode on receive.
+             CRC on Sending is set automatically.
+
+
+If you use the command "xmodem" with no parameters you will be
+prompted for send or receive, then filename.
+
+
+
+   Failure to send any file successfully means XMODEM will
+ignore any further command-line options (more files).
+
+
+   Use the "dir" command to find out which files are online.
+today, and download the catalogues to find files which suit
+your needs.
+
+    Non-members may use XMODEM for the purpose of acquiring
+certain files only.
+
+0
