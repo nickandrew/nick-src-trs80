@@ -1,14 +1,21 @@
 /*
-**  @(#) ankhmai1.c - Process Zeta's incoming files - 11 Mar 90
+**  @(#) ankhmai1.c 14 Aug 90 - Process Zeta's incoming files
 **
 **  Process all incoming files, including:
 **
 **      Arcmail,	(unarc & process the bundles later)
 **	Bundles,	(process)
 **	Fidonews,	(remove oldest and unarc)
-**	News files	(delete oldest from queue then queue)
+**	News files,	(delete oldest from queue then queue)
 **	Nodediffs	(remove)
 **
+**  1.2c 14 Aug 90
+**	Add 3rd trigger for arcmail processing ... BBB10004.???
+**  1.2b 17 Jun 90
+**	Add password to PKT????.NET before trying to open it
+**  1.2a 13 Jun 90
+**	Change arcmail name from A0000004.??? to A000FFFE.???
+**	Add a #define for the password
 **  1.2  12 Apr 90
 **	Add processing of PKT????.NET files (with a password)
 **  1.1  11 Mar 90
@@ -86,10 +93,11 @@ int     procfile() {
 
 	if (chkwild(arc1mask, fn) != 0) return procarc();
 	if (chkwild(arc2mask, fn) != 0) return procarc();
+	if (chkwild(arc3mask, fn) != 0) return procarc();
+	if (chkwild(netmask, fn) != 0) return procnet();
+	if (chkwild(newsmask, fn) != 0) return procnews();
 	if (chkwild(fnewsmask, fn) != 0) return procfnews();
 	if (chkwild(ndiffmask, fn) != 0) return procndiff();
-	if (chkwild(newsmask, fn) != 0) return procnews();
-	if (chkwild(netmask, fn) != 0) return procnet();
 
 	return '?';
 }
@@ -175,6 +183,7 @@ int     procarc() {
 int     procpac() {
 
 	if (pac != NULL) fclose(pac);
+
 	if ((pac = fopen(packets, "r+")) == NULL) {
 		fputs("Cannot reopen 'packets'\n", stderr);
 		retcode += 3;
@@ -256,7 +265,7 @@ int  do_pkt() {
 
 	msg3("Processing bundle '", fn, "'\n");
 
-	strcpy(cmd, pktdis);
+	strcpy(cmd, packone);
 	strcat(cmd, fn);
 
 	arccode = system(cmd);
@@ -356,16 +365,17 @@ procnews() {
 procnet() {
 	if (*line != ' ') return 0;
 
+	/* add secret password */
+	strcat(fn, PASSWORD);
+
 	if ((fp = fopen(fn, "r")) == NULL)
 		return ' ';
 	fclose(fp);
 
 	msg3("Processing bundle '", fn, "'\n");
 
-	strcpy(cmd, pktdis);
+	strcpy(cmd, packone);
 	strcat(cmd, fn);
-	/* add secret password */
-	strcat(cmd, "/poof");
 
 	arccode = system(cmd);
 	retcode += arccode;
@@ -441,4 +451,4 @@ char	*s1, *s2, *s3;
 	fputs(s3, stderr);
 }
 
-/* end of program */
+/* end of ankhmai1.c */
