@@ -1,3 +1,4 @@
+;kermit: Main file for Kermit Trs-80
 ;Kermit-Trs80	(kermit/asm)
 ;originally based on CP/M-80 Kermit V3.5
 ;started	10-Oct-83
@@ -5,6 +6,8 @@
 ;updated    	29-Nov-85	by Nick Andrew.
 ;Next Update	23-Mar-86	by Nick Andrew.
 ;Next Update	30-Jul-86	by Nick Andrew.
+;Next Update	13-Aug-86	by Nick Andrew.
+;Next Update    05-Jun-87       NA
 ;
 ;Changed by Nick Andrew 29-Nov-85 for:
 ;  - Different RS232 interfaces
@@ -18,6 +21,9 @@
 ;    File content conversion can easily be done on the
 ;    host or slave systems... and can be much more
 ;    sophisticated than Kermit could ever achieve.
+;
+;Change on 14-Feb-87 for:
+;  - Fix to Trs-80 modem reset code
 ;
 ;
 ;Version for:	  YES   1) Trs-80 Model I/III
@@ -53,6 +59,8 @@ RDDATA	EQU	0F8H		;Read Data
 WRDATA	EQU	0F8H		;Write Data
 CTS	EQU	0		;Output bit pattern
 DAV	EQU	1		;Input bit pattern
+DTR_BIT	EQU	1
+RTS_BIT	EQU	5
 	ENDIF			;zeta
 ;
 	IF	F_SYS80		;sys80
@@ -62,7 +70,7 @@ RDDATA	EQU	0F8H		;Read Data
 WRDATA	EQU	0F9H		;Write Data
 RDSTAT	EQU	0F9H		;Read Status
 WRSTAT	EQU	00H		;Not Used.
-DAV	EQU	0		;(NOT.DAV actually)
+DAV	EQU	0		;(inverted DAV)
 CTS	EQU	7
 	ENDIF			;sys80
 ;
@@ -86,13 +94,13 @@ CTS	EQU	1		;Bit value of OUTPUT
 	COM	'<Kermit 30-Jul-86 for Trs-80 M1/3>'
 	ENDIF
 	IF	F_SYS80
-	COM	'<Kermit 30-Jul-86 for System-80>'
+	COM	'<Kermit 13-Aug-86 for System-80>'
 	ENDIF
 	IF	F_ZETA
-	COM	'<Kermit 30-Jul-86 for Zeta>'
+	COM	'<Kermit 05-Jun-87 for Zeta>'
 	ENDIF
 	IF	F_ATERM
-	COM	'<Kermit 30-Jul-86 for Aterm>'
+	COM	'<Kermit 13-Aug-86 for Aterm>'
 	ENDIF
 ;
 ;
@@ -154,7 +162,7 @@ PDPAD	EQU	00H		;Send padding
 PDPADCH EQU	00H		;No pad char
 PDEOL	EQU	CR		;Carriage return
 PDQUOTE	EQU	'#'		;ordinary quote
-PDQUOTE8 EQU	' '		;no 8bit quoting
+PDQUOTE8 EQU	'&'
 PDCHK	EQU	'1'		;1-char checksum
 PDQUOTER EQU	' '		;no repeat quoting
 ;
@@ -162,7 +170,7 @@ PDQUOTER EQU	' '		;no repeat quoting
 ;
 MAXTRY	EQU	10H		;Default No. of retries on a packet.
 IMXTRY	EQU	10H		;Default number of retries send initiate.
-DSCHKT	EQU	'3'		;Block check we like
+DSCHKT	EQU	'1'		;Block check we like
 ;
 ;
 DRPSIZ	EQU	PDPSIZ		;Default Recv packet size
@@ -239,18 +247,18 @@ MDMRST
 	OUT	(RESET),A	;trs80
 	OUT	(BAUDOUT),A	;trs80
 	LD	A,108		;trs80
-	OUT	(MNPRTS),A	;trs80
+	OUT	(WRSTAT),A	;trs80
 	ENDIF			;f_trs80
 ;
 	IF	F_ZETA
 	LD	A,82H		;zeta
-	LD	(WRSTAT),A	;zeta
+	OUT	(WRSTAT),A	;zeta
 	LD	A,40H		;zeta
-	LD	(WRSTAT),A	;zeta
+	OUT	(WRSTAT),A	;zeta
 	LD	A,0EH		;zeta
-	LD	(WRSTAT),A	;zeta
-	LD	A,05H		;zeta
-	LD	(WRSTAT),A	;zeta
+	OUT	(WRSTAT),A	;zeta
+	LD	A,07H		;zeta
+	OUT	(WRSTAT),A	;zeta
 	ENDIF			;zeta
 ;
 	IF	F_SYS80

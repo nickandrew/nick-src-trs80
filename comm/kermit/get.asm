@@ -213,9 +213,15 @@ RPAR	LD	A,(RPSIZ)	;GET THE RECEIVE PACKET SIZE.
 ;**                      SPAR                         **
 ;*******************************************************
 ;
-;THIS ROUTINE READS IN ALL THE SEND_INIT PACKET INFORMATION.
+;THIS ROUTINE READS IN ALL THE SEND_INIT PACKET INFO.
 ;
 SPAR	LD	(TEMP4),A	;SAVE THE count of data
+;Adjust variables to protocol defaults for missing data
+;items. Status of included data will be determined below.
+	LD	A,PDCHK		;set check type
+	LD	(INICHK),A
+;
+	LD	A,(TEMP4)	;how many data?
 	CP	2		;<1 piece of data?
 	RET	M		;if packet empty
 ;If no data was given in the ACK packet for a send-init
