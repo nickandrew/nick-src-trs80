@@ -1,4 +1,5 @@
-;Fileg/asm
+;Fileg - Last updated 14-Jan-88
+;
 ;	added to the table sequentially with the newer crunch method.
 ;	This routine's main responsibility is to update the bit-length
 ;	for expected input codes, and to bypass the table entry for

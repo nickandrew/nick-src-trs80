@@ -1,4 +1,9 @@
 ;Filek/asm
+;
+E_FLAG	DEFB	0		;1=extract data
+E_DRIVE	DEFB	0		;Extract drive #
+T_FLAG	DEFB	0		;1=type to vdu.
+;
 CLSERR:	DB	'Cannot close output file',0
 UCRERR:	DB	'Incompatible crunched file format',0
 TYPERR:	DB	'Typeout line limit exceeded',0
@@ -11,13 +16,13 @@ STOWTX:	DB	'Unpacked'
 	DB	'Squeezed'
 	DB	'Crunched'
 	DB	'Unknown!'
-TITLES:	DB	'Name           Length  Disk  Stowage  Ver  Stored Save'
-	DB	'd   Date      Time   CRC'
+TITLES:	DB	'Name           Length  Stowage  Ver  Stored Save'
+	DB	'd   Date'
 	DB	CR
-TITLE1:	DB	'============  =======  ====  ======== === ======= ===='
-	DB	'= =========  ======  ===='
+TITLE1:	DB	'============  =======  ======== === ======= ===='
+	DB	'= ========='
 	DB	0
-TOTALS:	DB	'        ====  =======  ====               =======  ==='
+TOTALS:	DB	'        ====  =======               =======  ==='
 	DB	CR
 	DB	'Total  '	; (LINE must follow!)
 	PAGE

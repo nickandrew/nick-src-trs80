@@ -1,0 +1,56 @@
+;unarc.zas: Zeta version of Unarc
+;Unarc ... by Bob Freed ... Modified for Trs-80 by
+;Nick Andrew, 29-Nov-86.
+;	      31-Dec-86
+;	      29-Jan-86
+; Zeta version: 11-May-87
+;		14-Jan-88
+;
+*GET	DOSCALLS
+*GET	UNARCEXT
+;
+SEP	EQU	'.'
+TBASE	EQU	BASE
+;
+	COM	'<Unarc-Zeta, 14-Jan-88>'
+	ORG	PROG_START
+	DEFW	BASE
+	DEFW	THIS_PROG_END
+	DEFW	0
+	DEFW	0
+;End of program load info.
+;
+	ORG	BASE+100H
+START	LD	SP,START
+	LD	A,(PRIV_1)
+	BIT	IS_SYSOP,A
+	JR	Z,_EXIT
+	JP	BEGIN
+;
+_EXIT
+	XOR	A
+	JP	TERMINATE
+;
+_ERROR
+	LD	A,1
+	JP	TERMINATE
+;
+;SHOWC	EQU	1
+;SHOWD	EQU	1
+;SHOWE	EQU	1
+;SHOWF	EQU	1
+;
+*GET	FILEA:2
+*GET	FILEB:2
+*GET	FILEC:2
+*GET	FILED:2
+*GET	FILEE:2
+*GET	FILEF:2
+*GET	FILEG:2
+*GET	FILEH:2
+*GET	FILEI:2
+*GET	FILEJ:2
+*GET	FILEK:2
+;
+THIS_PROG_END	EQU	$
+	END	START

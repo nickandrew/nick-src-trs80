@@ -191,7 +191,7 @@ UPCASE:	CP	'a'
 	PAGE
 ;
 	SUBTTL	Messages and Initialized Data
-NOTZ80:	DB	'Z80 CPU required',CR
+;;NOTZ80:	DB	'Z80 CPU required',CR
 ABOMSG:	DB	'UNARC aborted!',0
 CPMERR:	DB	'CP/M version 2 or higher required',0
 NOROOM:	DB	'Not enough memory',0

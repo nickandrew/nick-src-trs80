@@ -1,4 +1,11 @@
-;Filee/asm
+;Filee - Last updated 14-Jan-88
+;
+	IFDEF	SHOWE
+*LIST	ON
+	ELSE
+*LIST	OFF
+	ENDIF
+;
 	JR	NC,CRCIN3	; Skip if 0 shifted out
 	EX	AF,AF'		; Save lower CRC byte
 	LD	A,C		; Update upper CRC byte
@@ -36,7 +43,6 @@ CKTYP4:	INC	HL		; Char matched, point to next
 	DJNZ	CKTYP2		; Loop for all chars in file type
 	RET			; If all matched, return (no typeout)
 CKTYP5:	DEC	A		; If no match, file name is valid
-;;	LD	(OFCB),A	; Set dummy drive (0FFH) in output FCB
 	RET			; Return
 ;
 ;
@@ -50,17 +56,16 @@ FAMBIG:	LD	BC,11		; Setup count for file name and type
 	LD	A,'?'		; Any "?" chars?
 	CPIR			; Yes, return with Z set
 	RET			; No, return NZ
-	PAGE
 ;
 ;
 ;
 ;
 ;
 ; Extract file for disk or console output
-OUTPUT:	LD	A,(OFCB)	; Any output drive (or typing files)?
+OUTPUT	LD	A,(E_FLAG)	;=0 if no extraction reqd
 	OR	A
-	RET	Z		; No, there's nothing to do here
-	LD	B,A		; Save output drive
+	RET	Z
+;
 	LD	A,(VER)		; Get header version
 	CP	ARCVER+1	; Supported for output?
 	LD	DE,BADVER	; No, report unknown version
@@ -77,8 +82,11 @@ OUTPUT:	LD	A,(OFCB)	; Any output drive (or typing files)?
 	LD	HL,BUFLIM
 	LD	A,(HIPAGE)	; Get memory limit page
 	LD	(HL),A		; Assume max possible output buffer
-	INC	B		; Typing files?
-	JR	NZ,OUTDSK	; No, go extract to disk
+;*******************************
+	LD	A,(T_FLAG)	;=1 if typing output
+	OR	A
+	JR	Z,OUTDSK
+;*******************************
 ; Setup for console output
 	LD	A,(TYPGS)	; Get max. pages to buffer typeout
 	OR	A		; No limit?
@@ -117,8 +125,6 @@ OUTD1:	CALL	CABORT		; Wait for response (or CTRL-C abort)
 	CP	'N'
 	JR	NZ,OUTD1_0
 	RET
-;;	RET	NZ		; No, return (skip file output)
-;;	JR	OUTD2_1		;File already open.
 OUTD2:
 	LD	HL,OFCB_BUF
 	LD	DE,OFCB
@@ -146,11 +152,13 @@ UNC:	CALL	GETC		; Just copy input to output
 	JR	C,OUTEND	;  until end of file
 	CALL	PUT
 	JR	UNC
-; Packed file (repeat character encoding)
+; (repeat character encoding)
 ;
 UPK1:	CALL	PUTUP		; Output with repeated byte expansion
 UPK:	CALL	GETC		; Get input byte
 	JR	NC,UPK1		; Loop until end of file
+	JR	OUTEND
+;
 ; End of output file
 OUTEND:	CALL	PUTBUF		; Flush final buffer (if any)
 	LD	A,(OFLAG)	; File open?
@@ -175,7 +183,7 @@ OUTEND:	CALL	PUTBUF		; Flush final buffer (if any)
 	RET	Z		; Return unless error closing file
 	LD	DE,CLSERR	; Else, report close failure
 	JP	PABORT		;  and abort
-	PAGE
+;
 ; Unsqueeze (Huffman-coded) file
 ;Note:  Although numerous assembly-language implementations of Richard 
 ;Greenlaw's pioneer USQ (C language) program have appeared, all of the 

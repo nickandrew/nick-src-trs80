@@ -1,13 +1,20 @@
 ;Filea/asm
+;
+	IFDEF	SHOWA
+*LIST	ON
+	ELSE
+*LIST	OFF
+	ENDIF
+;
 ;	TITLE	Archive File Extractor for Trs-80
 IDENT	MACRO
-	DB	'UNARC  1.2 modified for Trs-80 24-Jun-86 31-Dec-86'
+	DB	'UNARC  1.2 24-Jun-86 for Trs-80 23-Jun-87'
 	ENDM
 ; (Remember to update version/date here and maintain history log below)
 COPR	MACRO
 	DB	'Copyright (C) 1986 by Robert A. Freed.  All Rights Reserved.'
 	ENDM
-;	.COMMENT \
+;
 ;NOTICE:  This program is the copyrighted property of its author -- it 
 ;is NOT in the public domain.  HOWEVER...  Free use, distribution, and 
 ;modification of this program is permitted (and encouraged), subject to 
@@ -25,7 +32,7 @@ COPR	MACRO
 ;		62 Miller Rd.
 ;		Newton Centre, MA  02159
 ;		Telephone (617) 332-3533
-;\
+;
 ;	PAGE
 ;	SUBTTL	Modification History
 ;1.2	24 Jun 86  (RAF)
@@ -66,7 +73,7 @@ COPR	MACRO
 ;of MS-DOS ARC through (at least) version 5.12 dated February 7, 1986.
 ;\
 ;	PAGE
-;	.COMMENT \
+;
 ;0.0	01 Mar 86  (RAF)
 ;I undertook writing this program to satisfy my curiosity about software 
 ;developments in the MS-DOS/PC-DOS world.  The ARC "freeware" program 
@@ -106,26 +113,8 @@ COPR	MACRO
 ;compression method for crunched files).
 ;\
 ;	PAGE
-;	SUBTTL	Z80/8080 Version Definitions
-;This source program uses Zilog mnemonics (author's preference) and may 
-;be assembled with the M80 ((C) Microsoft) or Z80ASM ((C) SLR Systems) 
-;macro assemblers.  (Relocatable code features have been avoided, so 
-;conversion to other assembler formats should be straightforward but 
-;may require manual expansion of the macros defined here.)
-;The following macro definitions enable conditional assembly of a 
-;version which will execute on 8080/8085 CPU's.  Our intent is to 
-;provide a non-Z80 version without imposing a limitation on any 
-;Z80-specific capabilities in the source.  (I.e., in specific cases the 
-;chosen emulation of Z80 opcodes does not necessarily produce the 
-;optimal 8080/8085 implementation, in terms of either size or speed.  
-;This approach allows us to offer a non-Z80 version without worrying too 
-;much about its efficiency.)
-;\
+;
 NO	EQU	0
 YES	EQU	.NOT.NO
-; For Z80ASM only, the following may be left undefined to allow
-; interactive definition at assembly time.  For M80 (which does not
-; support the .ACCEPT directive), the leading semicolon must be removed
-; in order to generate the non-Z80 version.
 	PAGE
 LINLEN	EQU	80		;to 64?

@@ -1,4 +1,5 @@
-;Fileh/asm
+;Fileh - Last updated 14-Jan-88
+;
 ; (circular) entries past that of the last duplicate.
 	EX	(SP),HL		; Save collision ptr, swap its index
 	LD	E,101		; Move 101 entries past it
@@ -126,7 +127,7 @@ PUT:	LD	(DE),A		; Store byte in buffer
 	LD	A,(BUFLIM)	; Get buffer limit page
 	CP	D		; Buffer full?
 	RET	NZ		; No, return
-	PAGE
+;
 ; Output buffer
 PUTBUF:	PUSH	HL		; Save register (i.e. CRC)
 	LD	HL,(BUFPAG-1)	; Get buffer start address
@@ -151,7 +152,7 @@ PUTB1:	PUSH	DE		; Save buffer start
 	POP	BC
 PUTB2:	POP	HL
 	RET			; Return to caller
-	PAGE
+;
 ; Write buffer to disk
 WRTBUF:	LD	A,(OFLAG)	; Output file open?
 	OR	A
@@ -160,12 +161,8 @@ WRTBUF:	LD	A,(OFLAG)	; Output file open?
 	LD	L,E
 	ADD	HL,BC
 	JR	WRTB2		; Enter loop
-;;WRTB1:	LD	(HL),CTLZ	; Fill last record with CPM EOF...
-;;	INC	HL
-;;	INC	BC
+;
 WRTB2:	LD	A,L		; Buffer ends on a CPM record boundary?
-;;	AND	7FH
-;;	JR	NZ,WRTB1	; No, loop until it does
 	OR	B		; At least one page to write?
 	JR	Z,WRTB4		; Skip if not
 WRTB3:	PUSH	BC		; Save remaining byte count
@@ -187,7 +184,6 @@ WRTB3:	PUSH	BC		; Save remaining byte count
 WRTB4:	OR	C		; Any bytes left?
 	RET	Z		; No, return
 ; Write record to disk
-;;WRTREC:
 ;*******************************
 	EX	DE,HL
 	LD	B,C
@@ -200,7 +196,6 @@ WRTREC_1
 	DJNZ	WRTREC_1
 ;*******************************
 	EX	DE,HL		;Swap addresses back again
-;;	POP	DE		; Restore ptr for next call
 	RET
 WRTREC_2
 	LD	DE,DSKFUL	; Disk is full, report error
@@ -267,13 +262,12 @@ LIST:	LD	HL,(TFILES)	; Get total files so far
 	CALL	LADD
 	LD	HL,LINE		; Setup listing line pointer
 	LD	DE,OFCB	; List file name from output FCB
-;;was	ld	de,ofcb+@fn
 	LD	C,0		; (with blank fill)
 	CALL	LNAME
 	POP	DE		; Recover file length ptr
 	PUSH	DE		; Save again for factor calculation
 	CALL	LTODA		; List file length
-	CALL	LDISK		; Compute and list disk space
+;;	CALL	LDISK		; Compute and list disk space
 	CALL	LSTOW		; List stowage method and version
 	POP	BC		; Restore uncompressed length ptr	
 	POP	DE		; Restore compressed size ptr

@@ -1,4 +1,5 @@
-;Filef/asm
+;Filef - Last updated 14-Jan-88
+;
 TREECL:	LD	HL,TREE		; Point to tree (also string table)
 STRTCL:				; (Entry for partial string table clear)
 	LD	(HL),L		; Clear first byte (it's page-aligned)
@@ -9,7 +10,7 @@ STRTCL:				; (Entry for partial string table clear)
 	RET			; Return
 	PAGE
 ; Uncrunch (LZW-coded) file
-;	.COMMENT \
+;
 ;The Lempel-Ziv-Welch (so-called "LZW") data compression algorithm is 
 ;the most impressive benefit of ARC files.  It performs better than
 ;Huffman coding in many cases, often achieving 50% or better compression 
@@ -54,7 +55,7 @@ STRTCL:				; (Entry for partial string table clear)
 ;ARC program uses only this last version for encoding, we (like ARC) 
 ;support all four versions for compatibility with files encoded by 
 ;earlier releases.
-	PAGE
+;
 ; Setup for uncrunching
 ; We've been able to isolate all of the differences between the four
 ; versions of LZW into just three routines -- input, output, and hash

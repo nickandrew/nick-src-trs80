@@ -1,10 +1,10 @@
 ;Filei/asm
-	LD	B,19		; Else, clear out date and time fields
-	CALL	FILLB
+;;	LD	B,19		; Else, clear out date and time fields
+;;	CALL	FILLB
 	JR	LIST2		; Skip
 LIST1:	CALL	LDATE		; List file date
-	CALL	LTIME		; List file time
-LIST2:	CALL	LCRC		; List CRC value
+;;	CALL	LTIME		; List file time
+LIST2:	;;CALL	LCRC		; List CRC value
 	PAGE
 ; Terminate and print listing line
 LISTL:	LD	DE,LINE		; Setup listing line ptr
@@ -16,8 +16,8 @@ LISTT:	LD	HL,LINE		; Setup listing line ptr
 	LD	DE,TLEN		; List total file length
 	PUSH	DE		;  and save ptr for factor calculation
 	CALL	LTODA
-	LD	DE,(TDISK)	; List total disk space
-	CALL	LDISK1
+;;	LD	DE,(TDISK)	; List total disk space
+;;	CALL	LDISK1
 	LD	B,13		; Fill next columns with blanks
 	CALL	FILLB	
 	POP	BC		; Recover total uncompressed length ptr
@@ -27,6 +27,9 @@ LISTT:	LD	HL,LINE		; Setup listing line ptr
 LIST3:	LD	(HL),0		; Terminate listing line
 ; Print string, then start new line
 PRINTL:	CALL	PRINTS
+	CALL	CRLF
+	RET
+;
 ; Start new line
 ; Note:	Must preserve DE
 CRLF:	LD	A,CR
@@ -39,7 +42,7 @@ PCHAR:	PUSH	DE		; Save register
 	RET			; Return
 	PAGE
 ; Print string on new line, then start another
-; Note:	Restricted to at most 6 stack levels (c.f. CHECK)
+;
 PRINTX:	CALL	CRLF
 	JR	PRINTL
 ; Print string on new line
@@ -48,9 +51,10 @@ PRINT:	CALL	CRLF
 PRINTS:	LD	A,(DE)
 	OR	A
 	RET	Z
-	CALL	PCHAR		; (Ignore help msg chars with MSB set)
+	CALL	PCHAR
 	INC	DE
 	JR	PRINTS
+;
 ; Output warning message about extracted file
 OWARN:	PUSH	DE
 	LD	DE,WARN
@@ -62,19 +66,18 @@ OWARN:	PUSH	DE
 ; Note:	We use name in output file FCB, rather than original name in
 ;	archive header (illegal chars already filtered by GETNAM).
 ;	This routine also called by INIT to unparse ARC file name.
-LNAME:	LD	B,12		; Setup count for name, '.', and type
-LNAME1:	LD	A,B		; Get count
-	CP	4		; At end of name?
-	LD	A,'.'
-	JR	Z,LNAME2	; Yes, go store separator
+LNAME:	LD	B,12		; Setup count for name.
+LNAME1:	LD	A,(DE)		;If end of name
+	CP	3		;ETX delimiter
+	LD	A,' '
+	JR	Z,LNAME2	; Yes, go fill rest
 	LD	A,(DE)		; Get next char
 	INC	DE
-	CP	C		; Ignore blanks (possibly)
-	JR	Z,LNAME3
 LNAME2:	LD	(HL),A		; Store char
 	INC	HL
 LNAME3:	DJNZ	LNAME1		; Loop for all chars in name and type
 	RET			; Return to caller
+;
 	PAGE
 ; Compute and list disk space for uncompressed file
 LDISK:	PUSH	HL		; Save line ptr
@@ -240,7 +243,7 @@ LTIME:	EX	DE,HL		; Save listing line ptr
 	RRA
 	RRA
 	AND	1FH
-	LD	B,' '		; Assume am
+	LD	B,' '		; Assume 24 hour format!
 ;;	JR	Z,LTIME1	; Skip if 0 (12 midnight)
 ;;	CP	12		; Is it 1-11 am?
 ;;	JR	C,LTIME2	; Yes, skip
