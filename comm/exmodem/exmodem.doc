@@ -1,0 +1,126 @@
+     Documentation for Extended XMODEM (EXMODEM)
+     -------------------------------------------
+
+    Extended Xmodem (EXMODEM) is a recent extension to Ward
+Christensen's original XMODEM protocol. It allows suitable
+computers to transfer files with knowledge of exactly where
+the file ends (on a Byte boundary rather than on a Block
+boundary as in standard Xmodem). Exmodem is 100% compatible
+with standard Xmodem, and will automatically inform the
+receiving system of the real end-of-file.
+
+    Zeta Rtrs supports Exmodem protocol transfers, and any
+Exmodem transfer program is usable with an ordinary old
+Xmodem protocol program as well.
+
+    Suitable computers here refers to any computer which
+knows the length of a disk file in units of one byte - some
+examples are all Trs-80's, IBM PC's, Unix, Xenix (and by
+inference, OS-9) and undoubtably more. Computers which are
+UNSUITABLE for the Exmodem extension are all CP/M and MP/M
+systems for the simple fact that they store end of file as
+a SECTOR number only rather than as a byte position within
+a sector. The preceding sentence does NOT mean that a CP/M
+or MP/M computer can't transfer files with an Exmodem - as
+previously stated the Exmodem extension is 100% COMPATIBLE
+so they can talk to other computers with Exmodem, but cant
+run it themselves.
+
+    A Sending computer running Exmodem will send an item of
+additional data at the end of the transfer to signal how
+many bytes of the last block were valid (if the receiving
+computer is an Exmodem). If not, the Sending computer will
+send nothing.
+
+    If a Receiving program is an Exmodem then it will take
+note of that additional item of data sent by a sending
+Exmodem. If the sending computer is NOT an Exmodem then the
+receiving computer will behave like an Xmodem (ie. put ALL
+of the last block into the resulting file).
+
+    Details of the protocol extension are as follows:
+
+     This is the SENDER flowchart...
+
+ 1)  Done at the same point an Xmodem would send an EOT...
+     Send an ENQ character.
+
+ 2)  Wait for reply. Choices are
+      A) (NAK seen, or anything which isn't 2B or 2C):
+         2A) Do standard EOT routine
+             Send EOT (this is the standard EOT routine)
+             Wait for reply. etc...
+      B) (CAN seen):
+         2B) Do standard CANCEL actions etc...
+
+      C) (ACK seen):
+         2C) Rem 'Aha! ExModem!'
+             Find EOF LSB of file. Convert to value 1 thru
+                128 inclusive. This means: "1 byte of the
+                previous block which I fully sent actually
+                belonged to the file".
+
+             Send this, send (255-this) (or this.xor.255)
+             Wait for reply. Choices:
+            x)  (NAK or anything else):
+                 Loop back to 'Send ENQ' box above
+            y)  (CAN only):
+                 Standard CANcel actions
+            z)  (ACK only):
+                 Finish AS IF (on Xmodem) your EOT was
+                 followed by an ACK. Basically, close files
+                  and exit.
+
+Thats all the SENDER flowchart. Rules are also :- if
+a timeout, behave as if a NAK seen except if the contiguous
+NAKs become >= 10, in which case behave as if a CAN
+seen.
+
+        The RECEIVER loop....
+
+1) Wait for header. Choices:
+    A) SOH:   Do standard block get routine. loop to
+              (1).
+    B) EOT:   Set EOF position in last sector equal
+              (last sector recvd) to 128.
+              Send ACK thence whatever normally happens
+                  as in (#) above.
+    C) other: Do the standard actions (NAK, CAN, whatever..)
+    D) ENQ:   Send ACK.
+              Get X and (X.XOR.255)
+              If they are complements of each other:
+                    set EOF value to X
+                    send ACK
+                    (finish as in R.1.B) above...
+              Else:
+                    standard actions ie. NAK, or CAN
+                       if >10 NAKs.
+
+There is only one fiddly change now (this is mostly
+separate from the sender and receiver loops and only
+affects the receiver)... RECEIVER normally when its
+buffer is full it flushes the whole lot to disk and
+readies itself for next time. If your disk output is
+purely sequential (eg. Unix byte-by-byte output) then
+when flushing the buffer, you MUST only flush until
+ONE block of data (the last block received) is left.
+  THEN and only THEN send the ACK for that block. This is
+so if the ENQ code comes whistling through immediately AFTER
+you flushed the buffers to disk you still have the last
+block handy so as to write only a portion of it to disk.
+If, on the other hand, you can set the file's EOF in
+RBA (Relative Byte) format (as you can on the TRS-80), then
+you can flush the complete buffer so long as when
+you receive the ENQ code and the EOF relative to
+the last sector you can truncate the file (which
+has already been written to disk). The EOF byte as
+transmitted stands for the offset of the first byte
+in the block which is not to be allocated to the
+resultant file. Which is the same as saying the number
+of bytes which ACTUALLY BELONG to the file.
+    If there is only 1 byte in the last block
+(offset = 00), then the EOF will point to offset 01.
+    Conversely if the block is full (all 128 bytes used)
+then the EOF should point to offset 128 which doesn't
+actually exist in the block but shows where the file ends.
+---------------------------------------------------------

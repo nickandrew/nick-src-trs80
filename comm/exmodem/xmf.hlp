@@ -1,0 +1,49 @@
+3ST Start of XMF help
+
+   XMF command ... xmodem/crc file transfers. 24-Feb-87
+
+          ** Don't type in the square brackets!! **
+
+   Usage is:     xmf [-c] [-s files ...] [-r files ...]
+
+   For example:   xmf -s sydpams.txt
+
+(Many filenames may be given after a '-s' or '-r' keyword)
+
+Options:
+
+   -s        Send file(s) to you.
+             Filenames following the '-s' option only.
+
+   -r        Receive file(s) from your computer.
+             Filenames following the '-r' option only.
+
+   -c        Set CRC mode on receive.
+             CRC on Sending is set automatically.
+
+
+If you use the command "xmf" with no parameters you will be
+prompted for send or receive, then filename.
+
+
+
+   Failure to send any file successfully means XMF will
+ignore any further command-line options (more files).
+
+
+   Use the "dir" command to find out which files are online
+today, and search FILELIST.ZMS for files which suit your
+needs.
+
+    Finally, it may interest some users to know that XMF is
+in fact an Extended Xmodem protocol program (really EXMF),
+which allows 100% compatibility with standard Xmodem but when
+used with another Exmf has the ability to transfer files of
+exact length between two systems (ie. not in chunks of 128).
+The file "exmodem.doc" gives full details on Exmodem protocol.
+
+
+    Non-members may use XMF for the purpose of acquiring
+Certain files only.
+
+0
