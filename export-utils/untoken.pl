@@ -1,5 +1,11 @@
 #!/usr/bin/perl
-#	Usage: untoken < filename ...
+#	@(#) $Header$
+#	Copyright (C) 2002, Nick Andrew (See http://www.nick-andrew.net/)
+#	Released under the GNU General Public License.
+#
+#	Converts a tokenised BASIC file (trs-80 encoding) to plain text.
+#
+#	Usage: untoken.pl < filename ...
 
 my $buffer;
 
@@ -194,12 +200,9 @@ while (length($buffer) >= 6) {
 			$m .= '3';
 		} elsif ($state == 4) {
 			$m .= '4';
-			if ($class == 3) {
-				$s .= ' ';
-			}
 		} elsif ($state == 5) {
 			$m .= '5';
-			if ($class != 6) {
+			if ($class != 0 && $class != 6) {
 				$s .= ' ';
 			}
 		} elsif ($state == 6) {
@@ -216,7 +219,9 @@ while (length($buffer) >= 6) {
 	}
 
 	printf "%05d   %s\n", $lineno, $s;
-	printf "%05d | %s\n", $lineno, $m;
+
+	# Output a debugging representation also
+	printf STDERR "%05d | %s\n", $lineno, $m;
 
 	my $i = 4 + length($text) + 1;
 	$buffer = substr($buffer, $i);
