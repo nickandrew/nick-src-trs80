@@ -1,11 +1,11 @@
-;BB2: BB code file #2, on 14-Jan-88
+; @(#) bb2.asm - BB code file #2, on 14 May 89
+;
+; ------------------------------
 ;
 KILL_CMD
 	CALL	GET_CHAR
 	CP	CR
 	RET	NZ
-;;	CALL	IF_VISITOR
-;;	JP	NZ,NO_PERMS
 	LD	HL,M_KILL
 	LD	(FUNCNM),HL
 	LD	HL,KILLMESSAGE
@@ -14,6 +14,8 @@ KILL_CMD
 ;Fixup counts of messages here...
 	CALL	INFO_SETUP
 	RET
+;
+; ------------------------------
 ;
 KILLMESSAGE
 	LD	A,(MSG_FOUND)
@@ -138,6 +140,8 @@ KMSG_4	LD	A,(HL)
 	CALL	MESS
 	RET
 ;
+; ------------------------------
+;
 HDR_PRNT			;print a header.
 	LD	HL,M_MSG2
 	CALL	MESS
@@ -202,12 +206,16 @@ HPR_2A
 	CALL	PUTCR
 	RET
 ;
+; ------------------------------
+;
 TXT_GET_PUT_NCR
 	CALL	BGETC
 	CP	CR
 	RET	Z
 	CALL	PUT
 	JR	TXT_GET_PUT_NCR
+;
+; ------------------------------
 ;
 CREATE_CMD
 	CALL	GET_CHAR
@@ -360,6 +368,8 @@ CC_14	LD	A,(HL)
 	CALL	MESS
 	JP	MAIN
 ;
+; ------------------------------
+;
 FIX_MFD
 	LD	A,0
 	CALL	TOP_ADDR
@@ -388,6 +398,8 @@ FMFD_1	LD	A,(HL)
 	DJNZ	FMFD_1
 	RET
 ;
+; ------------------------------
+;
 STATS_MSG
 	LD	HL,M_SYSGOT
 	CALL	MESS
@@ -402,6 +414,8 @@ STATS_MSG
 	LD	HL,M_MESGS
 	CALL	MESS
 	RET
+;
+; ------------------------------
 ;
 MOVE2_CMD
 	CALL	GET_CHAR
@@ -552,6 +566,8 @@ M2_7	POP	AF
 	INC	(HL)
 	JR	M2_5
 ;
+; ------------------------------
+;
 DELTOP_CMD
 	CALL	GET_CHAR
 	CP	CR
@@ -652,96 +668,7 @@ DC_8	CALL	$PUT
 	CALL	INFO_SETUP
 	JP	MAIN
 ;
-;Check_mail: Check for and give option to read mail.
-CHECK_MAIL
-	LD	HL,M_LOOKMAIL
-	CALL	MESS
-;
-	LD	HL,(N_MSG)
-	PUSH	HL
-	POP	BC
-	LD	HL,0
-CKML_1	PUSH	BC
-	PUSH	HL
-	PUSH	HL
-	POP	BC
-	LD	DE,HDR_FCB
-	CALL	DOS_POSIT
-	JP	NZ,ERROR
-;check if 1) Not killed. 2) For me.
-	LD	HL,THIS_MSG_HDR
-	CALL	DOS_READ_SECT
-	JP	NZ,ERROR
-	LD	HL,THIS_MSG_HDR
-	BIT	FM_KILLED,(HL)
-	JP	NZ,CKML_2
-	LD	HL,(HDR_RCVR)
-	LD	DE,(USR_NUMBER)
-	OR	A
-	SBC	HL,DE
-	JR	Z,CKML_3
-CKML_2	POP	HL
-	POP	BC
-	INC	HL
-	DEC	BC
-	LD	A,B
-	OR	C
-	JR	NZ,CKML_1
-;
-	LD	HL,M_NOMAIL	;no mail sorry
-	CALL	MESS
-	RET
-;
-CKML_3
-	POP	AF
-	POP	AF
-	LD	HL,M_READMAIL
-	CALL	YES_NO
-	CP	'Y'
-	RET	NZ
-;
-	LD	HL,DUMMY_READ	;ok, read it.
-	LD	DE,IN_BUFF
-	LD	BC,4
-	LDIR
-	LD	HL,IN_BUFF
-	LD	(CHAR_POSN),HL
-;now set to ALL topics.
-	XOR	A
-	LD	(MY_TOPIC),A
-	LD	HL,OPTIONS
-	SET	FO_LOWR,(HL)
-	RES	FO_CURR,(HL)
-	CALL	INFO_SETUP
-;now READ..
-	CALL	READ_CMD
-;now KILL ???
-;;	CALL	IF_VISITOR
-;;	JR	NZ,CHKM_FINI	;If VISITOR, no Kill.
-	LD	HL,M_KILLMAIL
-	CALL	YES_NO
-	CP	'Y'
-	JR	NZ,CHKM_FINI
-;KILL Mail...
-	LD	HL,DUMMY_KILL
-	LD	DE,IN_BUFF
-	LD	BC,4
-	LDIR
-	LD	HL,IN_BUFF
-	LD	(CHAR_POSN),HL
-;
-	CALL	KILL_CMD
-;
-;now reset all options.
-CHKM_FINI
-	XOR	A
-	LD	(MY_TOPIC),A
-	LD	HL,OPTIONS
-	RES	FO_LOWR,(HL)
-	SET	FO_CURR,(HL)
-	CALL	INFO_SETUP
-;finished.
-	RET
+; ------------------------------
 ;
 ;Kill all free blocks used by the current message
 KILL_FREE
