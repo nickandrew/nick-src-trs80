@@ -1,11 +1,14 @@
-;BBdata: Data for treeboard, 14-Feb-88
+; @(#) bbdata.asm - Data for treeboard, 14 May 89
+;
+;Meanings of bits of status byte for each topic (offset 19)
+TOP_ECHO	EQU	0	;Bit #0, 1=echomail topic
 ;
 M_BADCMD
-	DEFM	'Unknown command.',CR,0
+M_UNK
+	DEFM	'Unknown command',CR,0
 M_BADSYN
 	DEFM	'Command error',CR,0
-M_UNK	DEFM	'Unknown command.',CR,0
-M_BDRNG	DEFM	'Bad message range.',CR,0
+M_BDRNG	DEFM	'Bad message range',CR,0
 M_KILLERR
 	DEFM	'Disk error while killing message',CR,0
 M_SAVEERR
@@ -33,7 +36,7 @@ M_RCVR	DEFM	CR,'To:      ',0
 M_DATE	DEFM	CR,'Date:    ',0
 M_SUBJ	DEFM	CR,'Subject: ',0
 M_NOWAT	DEFM	'Now at topic ',0
-M_UNDER	DEFM	CR,'Subtopics under ',0
+M_UNDER	DEFM	CR,'Topics under ',0
 M_WHRTO	DEFM	'Where to (number,<U>, or <CR> to stay): ',0
 M_WHOTO
 	DEFM	'To:      ',0
@@ -50,7 +53,15 @@ M_BRDFULL
 M_DESTSTR
 	DEFM	'Not a user: ',0
 M_DESTSTR2
-	DEFM	'To leave a public message, address to ALL',CR,CR,0
+	DEFM	'Messages in a local topic must be addressed to a real',CR
+	DEFM	'Zeta user or to ALL.',CR,0
+M_NONET
+	DEFM	'You cannot enter network mail into an echomail topic',CR,0
+M_TOPLOC
+	DEFM	'This will be a local message',CR,0
+M_TOPECHO
+	DEFM	'This message will be distributed through ACSnet or Fidonet'
+	DEFM	CR,0
 ;;M_ALL	DEFM	'ALL',CR
 M_PRIVATE
 	DEFM	'Private? (Y/N/Q): ',0
@@ -68,14 +79,10 @@ PMPT_SPEC
 	DEFM	'Enter special command: ',0
 PMPT_OPT
 	DEFM	'Option: ',0
-M_LOOKMAIL
-	DEFM	CR,'Searching for mail...',CR,0
-M_NOMAIL
-	DEFM	'No mail for you.',CR,0
-M_READMAIL
-	DEFM	'You have mail.',CR,'Read it now? (Y/N/Q): ',0
-M_KILLMAIL
-	DEFM	'Kill your mail now? (Y/N/Q): ',0
+PMPT_STATUS
+	DEFM	'Enter new topic status. E for echomail, L for local: ',0
+M_STATOK
+	DEFM	'Topic status byte updated OK',CR,0
 M_NODLTP
 	DEFM	'Sorry you can''t delete "GENERAL"',CR,0
 M_NOTCRTR
@@ -95,10 +102,11 @@ M_CURTPC
 M_YOATUP
 	DEFM	'   You are at the top.',CR,CR,0
 M_UPWRD
-	DEFM	CR,0	;Looking up the tree
+	DEFM	CR,0
+;
 M_UPTO	DEFM	'<U>  Move up to ',0
 M_DWNWRD
-	DEFM	CR,0	;'Looking Downwards:',CR,0
+	DEFM	CR,0
 M_NOBELO
 	DEFM	'  NO Sub-Topics.',CR,0
 M_NOPERMS
@@ -160,8 +168,9 @@ M_DISREG
 M_FRCEND
 	DEFM	'** Buffer full. Message truncated BEFORE your last input line',CR,0
 M_INTRO
-	DEFM	'Treeboard network mail & echomail system,',CR
-	DEFM	'Fidonet 3:713/602, also ACSnet node zeta.fido',CR
+	DEFM	'Treeboard Network news and echomail system,',CR
+	DEFM	'Fidonet node 3:713/602',CR
+	DEFM	'ACSnet site 713.602@fidogate.fido.oz',CR
 	DEFM	CR,0
 M_KLQRY	DEFM	'Ask before killing? (Y/N/Q): ',0
 M_MVQRY	DEFM	'Ask before moving? (Y/N/Q): ',0
@@ -173,14 +182,14 @@ M_KILLING
 	DEFM	'Killing # ',0
 M_MOVING
 	DEFM	'Moving  # ',0
-M_PAUSE	DEFM	'Hit  N to continue, Q to quit',CR,0
+M_PAUSE	DEFM	'Hit N to see the next message, Q to quit',CR,0
 M_TRMPAUSE
 	DEFM	CR,'Hit N to continue, T to skip this topic, Q to quit',CR,0
 M_APAUSE
 	DEFM	'Pause after each message? (Y/N/Q): ',0
 ;
 M_NTOSKP
-	DEFM	'Hit <N> while msg being printed to skip to the next message.',CR,0
+	DEFM	'Hit <N> skip to the next message, Q to quit.',CR,0
 ;
 M_EDWHLI
 	DEFM	'Edit which line? (CR to exit): ',0
@@ -200,6 +209,24 @@ M_TOPIC2
 	DEFM	CR,0
 M_TOPIC3
 	DEFM	'Topic:   ',0
+M_READHELP
+	DEFM	CR,'The following keys are accepted by more:',CR
+	DEFM	'  <space>   Display the next page',CR
+	DEFM	'  <enter>   Display another line',CR
+	DEFM	'     N      Skip to the next message',CR
+	DEFM	'     Q      Quit',CR
+	DEFM	'     ?      Display this help message',CR
+	DEFM	0
+;
+M_TRMHELP
+	DEFM	CR,'The following keys are accepted by more:',CR
+	DEFM	'  <space>   Display the next page',CR
+	DEFM	'  <enter>   Display another line',CR
+	DEFM	'     N      Skip to the next message',CR
+	DEFM	'     T      Skip to the next topic',CR
+	DEFM	'     Q      Quit',CR
+	DEFM	'     ?      Display this help message',CR
+	DEFM	0
 ;
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++
 MENU_MAIN
@@ -240,34 +267,35 @@ MU_SPEC
 	DEFM	'<M>  Move messages           <#>  Main functions',CR
 	DEFM	'<C>  Create new subtopic     <D>  Delete this topic',CR
 	DEFM	'<F>  Forward messages        <R>  Resend message',CR
+	DEFM	'<S>  Change topic status',CR
 	DEFM	0
 ;
 MU_DS1	DEFM	'<A>  ALL Messages           <M>  Messages to you',CR
-	DEFM	'<U>  Unread Messages        <F>  Messages sent by you',CR
-	DEFM	'<CR> No messages',CR
+	DEFM	'<U>  "Unread" Messages      <F>  Messages sent by you',CR
+	DEFM	'<enter> No messages',CR
 	DEFM	'OR enter a range ie. 1+  20-30  18  $-  etc..',CR,0
 ;
 MU_OPT
 	DEFM	CR,'   Set your desired options..',CR
-	DEFM	'<1>  You see this topic only',CR
-	DEFM	'<2>  You see all topics beneath this',CR
-	DEFM	'<3>  Long menus',CR
-	DEFM	'<4>  Short menus',CR
-	DEFM	'<CR> Change nothing',CR,0
+	DEFM	'<1>     You see this topic only',CR
+	DEFM	'<2>     You see all topics beneath this',CR
+	DEFM	'<3>     Long menus',CR
+	DEFM	'<4>     Short menus',CR
+	DEFM	'<enter> Change nothing',CR,0
 ;
 MU_QUEST
 	DEFM	'<L> List, <E> Edit, <C> Continue, <A> Abort, <S> Save',CR,0
 MX_MAIN
 	DEFM	'MAIN: (R,S,E,K,T,L,M,O,X,#)',CR,0
 MX_SPEC
-	DEFM	'Spec: (M,C,D,F,R,#)',CR,0
-MX_DS1	DEFM	'Msg Select (M,U,A,F,<CR> or range)',CR,0
-MX_OPT	DEFM	'Options: (1,2,3,4,<CR>)',CR,0
+	DEFM	'Spec: (M,C,D,F,R,S,#)',CR,0
+MX_DS1	DEFM	'Msg Select (M,U,A,F,<enter> or range)',CR,0
+MX_OPT	DEFM	'Options: (1,2,3,4,<enter>)',CR,0
 MX_QUEST
 	DEFM	'Msg: (L,E,C,A,S)',CR,0
 ;
 CL_MAIN		DEFM	'RSEKTLMOX#',0
-CL_SPEC		DEFM	'MCDFR#',0
+CL_SPEC		DEFM	'MCDFRS#',0
 CL_DS1		DEFM	'MUAF',0
 CL_OPT		DEFM	'1234',0
 CL_QUEST	DEFM	'LECAS',0
@@ -277,7 +305,7 @@ MFD_DATA
 	DEFM	'General',CR
 	DC	16-8,0		;Pad out to 16 chars
 	DEFB	0,0
-	DEFB	0FFH,00H	;perms,no max age
+	DEFB	0FFH,00H	;max age 255, no special flags
 ;
 GENERAL	DEFM	'General',0
 ;
