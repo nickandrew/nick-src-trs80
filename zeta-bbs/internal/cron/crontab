@@ -1,51 +1,54 @@
 # crontab: Do things at specified dates, times and periods
 #
 # Fix stuff every 8 hours
-D 1 8904070000 shell runcron
-D 1 8904060800 shell runcron
-D 1 8904061600 shell runcron
+D 1 8905160000 shell runcron
+D 1 8905160800 shell runcron
+D 1 8905161600 shell runcron
 #
 # Fix up things every so often
-D 1 8904070000 msgdel
-D 1 8904070400 logclean
-D 7 8904100600 msgcomp
-D 9 8904090200 loccomp
-M 1 8905010000 usrclean
+D 1 8905160000 msgdel
+D 1 8905160400 logclean
+D 1 8905160500 mailass
+D 1 8905161200 ankhmail
+D 1 8905161300 mailass
+D 7 8905220600 msgcomp
+D 9 8905240200 loccomp
+M 1 8906010000 usrclean
 #
 # talk to ACSgate and Prophet when we want to
-# D 1 8903270100 dialout A
-# D 1 8903270100 ankhmail
-D 2 8904061600 dialout P
-D 2 8904061600 ankhmail
+D 1 8905160100 dialout A
+D 1 8905160100 ankhmail
+D 2 8905161600 dialout P
+D 2 8905161600 ankhmail
 #
 # Reminders
 Y 1 8912240800 echo Merry xmas from Zeta!
 Y 1 9001060800 echo Tomorrow is Greek Orthodox Xmas day!
-M 1 8905010800 echo Do system backups you bastard!
-D 7 8904071700 echo Hey, look alive - its the weekend!
+M 1 8906010800 echo Do system backups you bastard!
+D 7 8905191700 echo Hey, look alive - its the weekend!
 #
 # Guard the fort
-D 1 8904070000 echo zero bells, and you should be in bed
-D 1 8904070100 echo one bell, and you're up late
-D 1 8904070200 echo two bells, and all's well
-D 1 8904070300 echo three bells, and all's well
-D 1 8904070400 echo four bells, and all's well
-D 1 8904070500 echo five bells, and all's well
-D 1 8904070600 echo six bells, and all's well
-D 1 8904060700 echo seven bells, and good morning
-D 1 8904060800 echo eight bells, and get to work!
-D 1 8904060900 echo nine bells, and all's well
-D 1 8904061000 echo ten bells, and all's well
-D 1 8904061100 echo eleven bells, and all's well
-D 1 8904061200 echo twelve bells, and it's midday
-D 1 8904061300 echo thirteen bells, and all's well
-D 1 8904061400 echo fourteen bells, and all's well
-D 1 8904061500 echo fifteen bells, and all's well
-D 1 8904061600 echo sixteen bells, and all's well
-D 1 8904061700 echo seventeen bells, and all's well
-D 1 8904061800 echo eighteen bells, and good afternoon
-D 1 8904061900 echo nineteen bells, and good evening
-D 1 8904062000 echo twenty bells, and all's well
-D 1 8904062100 echo twenty-one bells, and all's well
-D 1 8904062200 echo twenty-two bells, and all's well
-D 1 8904062300 echo twenty-three bells, and goodnight!
+D 1 8905160000 echo zero bells, and you should be in bed
+D 1 8905160100 echo one bell, and you're up late
+D 1 8905160200 echo two bells, and all's well
+D 1 8905160300 echo three bells, and all's well
+D 1 8905160400 echo four bells, and all's well
+D 1 8905160500 echo five bells, and all's well
+D 1 8905160600 echo six bells, and all's well
+D 1 8905160700 echo seven bells, and good morning
+D 1 8905160800 echo eight bells, and get to work!
+D 1 8905160900 echo nine bells, and all's well
+D 1 8905161000 echo ten bells, and all's well
+D 1 8905161100 echo eleven bells, and all's well
+D 1 8905161200 echo twelve bells, and it's midday
+D 1 8905161300 echo thirteen bells, and all's well
+D 1 8905161400 echo fourteen bells, and all's well
+D 1 8905161500 echo fifteen bells, and all's well
+D 1 8905161600 echo sixteen bells, and all's well
+D 1 8905161700 echo seventeen bells, and all's well
+D 1 8905151800 echo eighteen bells, and good afternoon
+D 1 8905151900 echo nineteen bells, and good evening
+D 1 8905152000 echo twenty bells, and all's well
+D 1 8905152100 echo twenty-one bells, and all's well
+D 1 8905152200 echo twenty-two bells, and all's well
+D 1 8905152300 echo twenty-three bells, and goodnight!
