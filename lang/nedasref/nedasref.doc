@@ -1,0 +1,37 @@
+    Documentation for NEDASREF/C    V1.0  02-Aug-86
+    ============================    Gustav Francois
+
+   "Nedasref" is a 'C' program which takes an Edas or Nedas
+source file (/ASM type) and produces a list of all labels and
+where they were defined.
+
+   Nedasref follows the *GET source inclusion chain in the
+same way that {N}Edas does. *GET nesting is catered for.
+
+   Nedasref is written in generic 'C' and was compiled using
+Alcor 'C'.
+
+   The program may be easily changed to cater for
+other assemblers on any machine, such as M-80 or Edtasm+.
+
+   Nedasref attempts to determine the way in which the label
+was defined, into broad categories:
+
+CONSTANT   - where the label is followed by EQU or DEFL.
+Data....   - where the label is followed by any of:
+
+   BYTE ........ DEFB   or    DB
+   WORD ........ DEFW   or    DW
+   MESSAGE ..... DEFM   or    DM
+   STRING ...... DEFS   or    DS
+
+LABEL      - Any other.
+ ??        - When the type cannot be determined.
+
+
+   Future versions of the program will cater for multiple
+defining of labels, values of constants/strings, buffer
+lengths and complete label reference report showing all lines
+in which the label was referenced and the context in which it
+was used (eg: jump to label, pointer, load register).
+

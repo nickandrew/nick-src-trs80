@@ -1,0 +1,41 @@
+NAME
+
+     newsfmt - Reformat news files for non-Unix systems
+
+SYNTAX
+
+     newsfmt inputpath outputpath
+
+OPTIONS
+
+     inputpath      The input news pathname
+                    (eg: /usr/spool/news/aus/sources/77)
+
+     outputpath     The converted output
+                    (eg ~fido/newsn/713.602/news0324.nws)
+
+DESCRIPTION
+
+     Newsfmt strips the more arcane headers from its input news
+     article. The more fundamental ones, such as From:, To:,
+     Subject: are retained.
+
+     An additional non-standard header, Gated-By:, is added to
+     identify news converted by this program.
+
+     The rest of the news file is then converted into text
+     format for non-Unix systems (ie: with CRLF at end of
+     each line, and terminated by a 0x1A).
+
+FILES
+
+     ~fido/newsn/NET.NODE   Output directory
+     /usr/spool/news/....   Typical input pathname
+
+BUGS
+
+     This should be incorporated into Bigbatch( ).
+
+SEE ALSO
+
+    bigbatch( ).
