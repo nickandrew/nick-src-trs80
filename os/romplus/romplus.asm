@@ -1,0 +1,121 @@
+;RomPlus source code.
+; Ver 1.0 on 28-Dec-84.
+	ORG	0000H
+;rst_0
+	DI
+	JP	COLD
+;
+	ORG	08H
+	JP	4000H
+;
+	ORG	10H
+	JP	4003Hˆˆ3H
+;
+	ORG	18H
+	JP	4006H
+;
+	ORG	20H
+	JP	4009H
+;
+	ORG	28H
+	JP	400CH
+;
+	ORG	30H
+	JP	400FH
+;
+	ORG	38H
+	JP	4012H
+;
+	ORG	66H
+	JP	NMI
+;
+;Dummy origin for equates..
+	ORG	4000H
+JPS	DEFS	8*3
+CURSCH	DEFB	0
+CURSPO	DEFW	3C00H
+;
+;
+;
+	ORG	0100H
+;Cold start.
+COLD	LD	A,(3840H)
+	BIT	2,A
+	JR	NZ,MONITOR
+	BIT	1,A
+	JR	NZ,NOCLEAR
+	LD	HL,3C00H	;Clear Screen
+	LD	BC,0400H
+CLR_VDU	LD	(HL),20H
+	INC	HL
+	DEC	BC
+	LD	A,B
+	OR	C
+	JR	NZ,CLR_VDU
+	LD	HL,4000H	;Clear RAM
+	LD	BC,0C000H
+CLEAR	LD	(HL),00H
+	INC	HL
+	DEC	BC
+	LD	A,B
+	OR	C
+	JR	NZ,CLEAR
+NOCLEAR	LD	HL,4000H	;find top of memory
+	LD	BC,0C000H
+MEMTEST	LD	A,(HL)
+	LD	D,A
+	XOR	0FFH
+	LD	(HL),A
+	CP	(HL)
+	LD	(HL),D
+	JR	NZ,MEM_END
+	INC	HL
+	DEC	BC
+	LD	A,B
+	OR	C
+	JR	NZ,MEMTEST
+MEM_END	LD	SP,HL		;stack at top of ram
+	DEC	HL
+	DEC	H		;256 bytes stack
+	LD	A,H		;test if too little ram
+	CP	42H
+	JR	C,MEM_BAD
+	LD	(HIMEM),HL
+	JR	LINKS
+;
+MEM_BAD	LD	HL,MESS_1
+	LD	DE,3C00H
+	LD	BC,MESS_1E-MESS_1
+	LDIR
+	JR	$
+;
+MESS_1	DEFM	'INSUFFICIENT MEMORY ABOVE 4200H'
+MESS_1E	DEFB	00H
+;
+;
+; Now insert links.
+LINKS	CALL	SET_RST
+	CALL	SET_VDU
+	CALL	SET_KBD
+	JR	BOOT
+;
+SET_RST	LD	HL,JUMPS
+	LD	DE,4000H
+	LD	BC,8*3
+	LDIR
+	RET
+;
+NMI	LD	A,(3840H)
+	BIT	0,A
+	JR	NZ,COLD
+	JP	4015H
+;
+JUMPS	JP	RST_8	;warm start (dos return)
+	JP	RST_10	;read from device
+	JP	RST_18	;write to device
+	JP	RST_20	;system call
+	JP	RST_28	;dos call
+	JP	RST_30	;monitor
+	JP	RST_38	;interrupt handler
+	JP	NM_INT	;non maskable interrupts
+;
