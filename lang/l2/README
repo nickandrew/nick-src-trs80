@@ -1,0 +1,12 @@
+These programs were written as assignments for Languages and Processors
+
+Assignment 1: Lexical Analyser
+	la.c
+	latest.c
+	lls.c
+	llstest.c
+	la.h
+	lls.h
+	+ 3 sample inputs
+	+ misc
+
