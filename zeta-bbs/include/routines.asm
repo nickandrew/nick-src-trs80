@@ -1,9 +1,10 @@
-;routines: Common routines for global label search.
-;Last updated: 23-Nov-87.
+;routines.lib: Common routines for global label search.
+;Last updated: 26-Feb-89.
 ;
 ;PRINT_NUMB. Print a number in HL to unit $stdout_def.
 ;sets up TENS&ONES for suffix printing.
 ;Also PRINT_NUMB_DEV for printing to a device.
+;
 	IFREF	PRINT_NUMB
 PRINT_NUMB
 	LD	DE,$2
@@ -99,6 +100,58 @@ SUFF_TBL
 	DEFM	'th','st','nd','rd'
 ;
 	ENDIF	;ifref print_suff
+;
+;SPRINT_NUMB. Print a number in HL to a string at DE.
+;
+	IFREF	SPRINT_NUMB
+SPRINT_NUMB
+	LD	($SPRNU_DEV),DE
+	XOR	A
+	LD	($SBLANK),A
+	LD	DE,10000
+	CALL	$SPRT_DIGIT
+	LD	DE,1000
+	CALL	$SPRT_DIGIT
+	LD	DE,100
+	CALL	$SPRT_DIGIT
+	LD	DE,10
+	CALL	$SPRT_DIGIT
+	LD	DE,1
+	LD	A,E
+	LD	($SBLANK),A
+	CALL	$SPRT_DIGIT
+	XOR	A
+	LD	(DE),A
+	RET
+;
+$SPRT_DIGIT
+	LD	B,'0'-1
+$SPD_1	INC	B
+	OR	A
+	SBC	HL,DE
+	JR	NC,$SPD_1
+	ADD	HL,DE
+	LD	A,($SBLANK)
+	OR	A
+	JR	NZ,$SPD_2
+	LD	A,B
+	LD	($SDIGIT),A
+	CP	'0'
+	RET	Z
+$SPD_2	LD	($SBLANK),A
+	LD	A,B
+	LD	($SDIGIT),A
+	LD	DE,($SPRNU_DEV)
+	LD	(DE),A
+	INC	DE
+	LD	($SPRNU_DEV),DE
+	RET
+;
+$SBLANK		DEFB	0
+$SDIGIT		DEFB	0
+$SPRNU_DEV	DEFW	0
+;
+	ENDIF	;sprint_numb
 ;
 ;MESS_CR: Print a CR terminated msg on device.
 	IFREF	MESS_CR
@@ -772,6 +825,20 @@ _STRCAT_1
 	JR	_STRCAT_1
 	ENDIF	;strcat
 ;
+;strlen: Find (in HL) the length of the string in DE
+	IFREF	STRLEN
+STRLEN
+	LD	HL,0
+_STRLEN_1
+	LD	A,(DE)
+	OR	A
+	RET	Z
+	INC	HL
+	INC	DE
+	JR	_STRLEN_1
+	ENDIF	;strlen
+;
+;
 ;SPUTNUM: Put a decimal integer into a string.
 	IFREF	SPUTNUM
 SPUTNUM:
@@ -836,7 +903,7 @@ IF_NUM:		;check if ascii numeric
 	RET
 	ENDIF	IF_NUM
 ;
-;sec10: Delay B x 0.1 seconds
+;sec10: Delay A x 0.1 seconds
 	IFREF	SEC10
 SEC10:
 	PUSH	BC
@@ -896,3 +963,36 @@ TWIRL	LD	A,(4308H)
 	RET
 	ENDIF	;twirl
 ;
+; dtr_off: Turn off DTR usually to drop carrier on modem
+	IFREF	DTR_OFF
+DTR_OFF
+	LD	A,82H
+	OUT	(WRSTAT),A
+	LD	A,40H
+	OUT	(WRSTAT),A
+	LD	A,(MODEM_STAT1)
+	OUT	(WRSTAT),A
+	LD	A,(MODEM_STAT2)
+	RES	DTR_BIT,A
+	LD	(MODEM_STAT2),A
+	OUT	(WRSTAT),A
+	RET
+	ENDIF	;dtr_off
+;
+; dtr_on: Turn on DTR
+	IFREF	DTR_ON
+DTR_ON
+	LD	A,82H		;Re-init USART
+	OUT	(WRSTAT),A
+	LD	A,40H
+	OUT	(WRSTAT),A
+	LD	A,(MODEM_STAT1)
+	OUT	(WRSTAT),A
+	LD	A,(MODEM_STAT2)
+	SET	DTR_BIT,A
+	LD	(MODEM_STAT2),A
+	OUT	(WRSTAT),A
+	RET
+	ENDIF	;dtr_on
+;
+;End of routines.lib
