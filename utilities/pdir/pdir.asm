@@ -1,32 +1,34 @@
 ;pdir/asm: do a printer oriented 'DIR I P'
-; Ver 1.2 on 29-Dec-84
+; Ver 1.3 on 29-Dec-84
 ;
 	ORG	5200H
 START	LD	A,(HL)
-	CP	0DH
-	LD	A,'0'
-	JR	Z,ST_1
-	LD	A,(HL)
-ST_1	SUB	30H
-	CP	'4'
-	JP	NC,402DH
+	SUB	'0'
+	CP	4
+	LD	B,A
+	LD	A,32	;Illegal/Missing drive #
+	JP	NC,4409H
+	LD	A,B
 	CALL	445BH
 	JP	NZ,4409H
 	LD	HL,MESS
 	CALL	4467H
 KEY	CALL	0049H
-	CP	5BH
+	CP	5BH	;Escape
 	JP	Z,402DH
-	CP	0DH
+	CP	0DH	;New Line
 	JR	Z,PD_1
-	CP	' '
+	CP	' '	;Spacebar
 	JR	NZ,KEY
 	JR	PD_2
 PD_1	CALL	PAGE_THROW
 PD_2	XOR	A
 	CALL	490AH
+	JP	NZ,4409H
 	XOR	A
 	LD	(NUM_X),A
+	LD	A,0EH
+	CALL	PRINT		;set EXPANDED mode
 	LD	HL,42D0H
 	LD	B,8
 PD_3	LD	A,(HL)
@@ -67,7 +69,7 @@ LOOP	LD	A,(SECTOR)
 	CALL	NZ,PRINT
 	LD	A,0DH
 	CALL	PRINT
-	JR	KEY
+	JP	KEY
 ;
 PRINT	PUSH	AF
 	PUSH	BC
@@ -155,7 +157,7 @@ SECS	DEFB	0
 SECTOR	DEFB	0
 CHARS	DEFB	0
 ;
-MESS	DEFM	'Super Directory 1.2 by Nick Andrew',0DH
+MESS	DEFM	'Super Directory 1.3 by Nick Andrew',0DH
 ;
 ;
 	END	START
