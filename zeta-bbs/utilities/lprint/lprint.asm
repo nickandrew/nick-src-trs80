@@ -1,0 +1,33 @@
+;lprint: print time & message on printer.
+;
+*GET	DOSCALLS.HDR
+*GET	EXTERNAL.HDR
+*GET	ASCII.HDR
+;
+	COM	'<Lprint 1.1a 06-Jul-86>'
+	ORG	BASE+100H
+START	PUSH	HL
+	LD	HL,DATE
+	CALL	X_TODAY
+	LD	HL,TIME
+	CALL	446DH
+	LD	HL,STRING
+	CALL	LOG_MSG
+	POP	HL
+	PUSH	HL
+P_MSG	LD	A,(HL)
+	INC	HL
+	CP	CR
+	JR	NZ,P_MSG
+	LD	(HL),0		;past end of string!!!!
+	POP	HL
+	CALL	LOG_MSG
+	JP	DOS		;Auth.
+;
+STRING	DEFM	'{'
+DATE	DEFM	'dd-mmm-yy  '
+TIME	DEFM	'HH:MM:SS} : ',0
+;
+*GET	ROUTINES
+;
+	END	START
