@@ -1,11 +1,5 @@
-rm tempfile:1
-echo pktass
-pktass
-echo msgass
-msgass
-echo ankhmail & packdis
+echo packdis -pr
 packdis -pr
-ankhmail
 echo mailass
 mailass
 exit
