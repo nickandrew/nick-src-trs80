@@ -1,623 +1,925 @@
-;Xmodem/asm: As of 20-Oct-84 this version was used
-;as XM/CMD assembled using edplus.
-; Modified by Nick Andrew 02-Jul-84.
+;xmodem1: Xmf source code file 1
+;Last updated: 22-Aug-87
 ;
-ORIG	EQU	6080H
-	ORG	ORIG+80H
-RDDATA	EQU	0F8H
-WRDATA	EQU	0F8H
-RDSTAT	EQU	0F9H
-WRSTAT	EQU	0F9H
-DAV	EQU	1
-CTS	EQU	0
-HIMEM	EQU	4049H
-DOS	EQU	402DH
-DOSERR	EQU	4409H
-EREXIT	EQU	4030H
-EXTRCT	EQU	441CH
-OPENNW	EQU	4420H
-OPENEX	EQU	4424H
-CLOSE	EQU	4428H
-VDUDVR	EQU	0000H
-ACH	DEFB	55H	;Probably baud select.
-ACI	DEFB	6CH	;??
-ACJ	DEFB	55H	;Baud sel.
-ACK	DEFB	6CH	;??
-MESS	PUSH	HL
-MESV01	LD	A,(HL)
-	CP	3H
-	JR	Z,MESV02
-	PUSH	AF
-	CALL	33H
-	POP	AF
-	INC	HL
-	CP	0DH
-	JR	NZ,MESV01
-MESV02	POP	HL
-	RET	
-ACP	DEFM	'Parameter error!'
-	DEFB	0AH
-	DEFM	'Must be "R" to receive or "S" '
-	DEFM	'to send'
-	DEFB	0DH
-ACR	DEFM	'Filename error!'
-	DEFB	0DH
-ACS	DEFB	0AH
-	DEFM	'>> File transfer aborted! <<'
-	DEFB	0DH
-ACU	DEFB	0AH
-	DEFM	'Ready to send - '
-	DEFM	'awaiting initial NAK...'
-	DEFB	0DH
-ACY	DEFB	0AH
-	DEFM	'Ready to receive - '
-	DEFM	'awaiting SOH byte...'
-	DEFB	0DH
-ADH	DEFM	'File already exists! '
-	DEFM	'Use another filename. '
-	DEFB	03H
-ADR	DEFB	0AH
-	DEFM	'[File transfer completed]'
-	DEFB	0DH
-ADU	DEFB	0AH
-	DEFM	'Receiving - Enter filename: '
-	DEFB	03H
-ADZ	DEFB	0AH
-	DEFM	'Sending - Enter Filename:  '
-	DEFB	03H
-AEF	DEFB	0AH
-	DEFM	'Block Number:   '
-	DEFB	03H
-AEH	LD	HL,ACP	;'Parameter error!'
-AEI	CALL	MESS
-AEJ	JP	DOS	;Back to Dos.
-AEL	LD	HL,ACR	;'Filename error!'
-	CALL	MESS
-	JP	AHG
-AEN	LD	(MODE),A		;Save S/R mode.
-AEO	LD	A,0FFH
-	LD	(AHX),A
-AEP	INC	HL
+START	LD	SP,START
+;
+	PUSH	HL
+	CALL	FLAGS_RESET
+	CALL	CHK_USAGE
+	POP	HL
+	JP	NZ,NO_PAR
+;
 	LD	A,(HL)
+	CP	CR
+	JP	Z,NO_PAR	;No parameters.
+;
+;Loop for sending or receiving to follow.....
+	LD	(ARG),HL
+XFER_LOOP
+	LD	HL,(ARG)
+XL_01	LD	A,(HL)
+	CP	CR
+	JP	Z,XFER_FINI
+	OR	A
+	JP	Z,XFER_FINI
+	CP	'-'
+	JP	NZ,XFER_FILE
+	INC	HL
+XL_02	LD	A,(HL)		;check value of flag
+	CP	'S'
+	JR	Z,SET_DIRECTION
+	CP	'R'
+	JR	Z,SET_DIRECTION
+	CP	'Q'
+	JR	Z,SET_QUIET
+	CP	'C'
+	JR	Z,SET_CRC
+	CP	'O'
+	JR	Z,SET_OVERWRITE
+	CP	'T'		;Telink mode
+	JR	Z,SET_TELINK
+	CP	'E'
+	JR	Z,SET_EXMODEM
+;flag unknown. bypass rest of flags
+	CALL	BYP_WORD
+	JR	XL_01
+;
+FLAGS_RESET
+	LD	A,'S'		;assume sending first
+	LD	(B_TYPE),A
+	XOR	A
+	LD	(QUIET),A
+	LD	(CRCMODE),A
+	LD	(OVERWRITE),A
+	LD	(NOLOG),A
+	RET
+;
+SET_DIRECTION
+	LD	(B_TYPE),A
+	LD	(3D30H),A
+	INC	HL
+	JR	XL_02
+;
+SET_QUIET
+	LD	A,1
+	LD	(QUIET),A
+	INC	HL
+	LD	A,'Q'
+	LD	(3D31H),A
+	JR	XL_02
+;
+SET_CRC
+	LD	A,1
+	LD	(CRCMODE),A
+	LD	A,'C'
+	LD	(3D32H),A
+	INC	HL
+	JR	XL_02
+;
+SET_OVERWRITE
+	LD	A,1
+	LD	(OVERWRITE),A
+	LD	A,'O'
+	LD	(3D33H),A
+	INC	HL
+	JR	XL_02
+;
+SET_TELINK
+	LD	A,1
+	LD	(TELINK),A
+	LD	(CRCMODE),A
+	INC	HL
+	JR	XL_02
+;
+SET_EXMODEM
+	LD	A,1
+	LD	(EX_FLAG),A
+	INC	HL
+	JP	XL_02
+;
+;Jump to XFER_FINI when no more args to process.
+XFER_FINI
+	LD	A,(TELINK)
+	OR	A
+	JR	Z,XE_1
+	LD	A,(B_TYPE)
+	CP	'R'
+	JP	Z,TELINK_RECV
+XE_1
+	XOR	A
+	JP	EXIT_EXMF
+;
+XFER_FILE
+	PUSH	HL
+	CALL	BYP_WORD
+	LD	(NEWARG),HL
+	POP	HL
+;
+	CALL	SET_FILENAME
+;
+	CALL	XFER_INIT	;Initialise.
+	CALL	START2		;Do the transfer.
+;Next argument please
+NEW_ARG
+	LD	HL,(NEWARG)
+	LD	(ARG),HL
+	JP	XFER_LOOP
+;
+SET_FILENAME
+	LD	DE,B_FILE
+	LD	B,22
+XF_01	LD	A,(HL)
+	CP	CR
+	JR	Z,XF_02
 	CP	' '
-	JR	Z,AEP		;Bypass spaces again.
-	CP	0DH
-AEQ	JP	Z,AET
-	LD	A,(MODE)
-	CP	'R'
-	JP	Z,AEX
-AES	JP	AFE
-AET	LD	A,(MODE)
-	CP	'R'
-	JP	Z,AEW
-	JP	AFD
-	CALL	AEU2
-AEW	LD	HL,ADU
-	CALL	MESS
-	LD	HL,AIL
-	LD	B,1FH
-	CALL	40H
-	JP	C,AHG
-AEX	LD	DE,AIK
-	CALL	EXTRCT
-	JP	NZ,AEL
-	LD	HL,AIL
-	LD	DE,AIK
-	LD	B,0H
-	CALL	OPENNW
-	JR	Z,AEY
-	OR	0C0H
-	CALL	DOSERR
-	JP	AHG
-AEY	JP	C,AEZ
-	LD	HL,ADH
-	CALL	MESS
-	JP	DOS	;Dos.
-AEZ	LD	HL,ACY
-	CALL	MESS
-	LD	A,15H
-	CALL	AHA2
-AFA	CALL	AFK
-	JP	C,AFC
-	CALL	AGQ
-	CALL	AGF
-	CALL	AFS
-	JP	AFA
-AFC	CALL	AGR
-	CALL	AFS
-	CALL	AGG
-	JP	AHE
-	CALL	AEU2
-AFD	LD	HL,ADZ	;'Enter Filename:  '
-	CALL	MESS
-	LD	HL,AIL	;Read filename into buffer.
-	LD	B,1FH
-	CALL	40H	;Read 31 chars.
-	JP	C,AHG	;If break hit.
-AFE	LD	DE,AIK	;Extract into FCB.
-	CALL	EXTRCT
-	JP	NZ,AEL	;If 'Filename error'.
-	LD	HL,AIL	;File buffer.
-	LD	DE,AIK	;FCB Address.
-	LD	B,0H	;LRL=256.
-	CALL	OPENEX
-	JR	Z,AFF	;If OPEN succeeded.
-	OR	0C0H
-	CALL	DOSERR
-	JP	AHG
-AFF	LD	HL,ACU	;'Ready to send'.
-	CALL	MESS
-	LD	E,50H
-	CALL	AHC
-AFG	CALL	AGH
-	JP	C,AFJ
-	CALL	AGF
-	XOR	A
-	LD	(AIH),A
-AFH	CALL	AFT
-	CALL	AFU
-	CALL	AFW
-	CALL	AFX
-	JP	C,AFH
-	JP	AFG
-AFJ	LD	A,4H
-	CALL	AHA2
-	CALL	AFX
-	JP	C,AFJ
-	JP	AHE
-AFK	XOR	A
-	LD	(AIH),A
-	LD	(AIE),A
-	LD	A,(AIG)
-	INC	A
-	CALL	AHO
-AFL	LD	B,0AH
-	CALL	AGW
-	JP	C,AFN
-	CP	1H
-	JP	Z,AFO
+	JR	Z,XF_02
 	OR	A
-	JP	Z,AFL
-	CP	4H
-	SCF	
-	RET	Z
-AFM	LD	B,1H
-	CALL	AGW
-	JP	NC,AFM
-	LD	A,15H
-	CALL	AHA2
-	LD	A,(AIH)
-	INC	A
-	LD	(AIH),A
-	CP	0AH
-	JP	C,AFL
-	CALL	AGG
-	CALL	AHD
-AFN	JP	AFM
-AFO	LD	B,1H
-	CALL	AGW
-	JP	C,AFN
-	LD	D,A
-	LD	B,1H
-	CALL	AGW
-	JP	C,AFN
-	CPL	
-	CP	D
-	JP	Z,AFP
-	JP	AFM
-AFP	LD	A,D
-	LD	(AIF),A
-	LD	A,1H
-	LD	(AIE),A
-	LD	C,0H
-	LD	HL,ORIG
-AFQ	LD	B,1H
-	CALL	AGW
-	JP	C,AFN
-	LD	(HL),A
-	INC	L
-	JP	NZ,AFQ
-	XOR	A
-	LD	(AIE),A
-	LD	D,C
-	LD	B,1H
-	CALL	AGW
-	JP	C,AFN
-	CP	D
-	JP	NZ,AFM
-	LD	A,(AIF)
-	LD	B,A
-	LD	A,(AIG)
-	CP	B
-	JP	Z,AFR
-	INC	A
-	CP	B
-	JP	NZ,AGC
-	RET	
-AFR	CALL	AFS
-	JP	AFK
-AFS	LD	A,6H
-	CALL	AHA2
-	RET	
-AFT	LD	A,(AIG)
-	CALL	AHO
-	LD	A,1H
-	CALL	AHA2
-	LD	A,(AIG)
-	CALL	AHA2
-	LD	A,(AIG)
-	CPL	
-	CALL	AHA2
-	RET	
-AFU	LD	A,1H
-	LD	(AIE),A
-	LD	C,0H
-	LD	HL,ORIG
-AFV	LD	A,(HL)
-	CALL	AHA2
-	INC	L
-	JP	NZ,AFV
-	XOR	A
-	LD	(AIE),A
-	RET	
-AFW	LD	A,C
-	CALL	AHA2
-	RET	
-AFX	LD	B,0AH
-	CALL	AGV
-	JP	C,AFZ
-	CP	6H
-	RET	Z
-	CP	18H
-	JP	Z,AGC
-AFY	LD	A,(AIH)
-	INC	A
-	LD	(AIH),A
-	CP	0AH
-	RET	C
-	CALL	AHD
-AFZ	JP	AFY
-AGA	PUSH	AF
-	LD	A,(3840H)
-	BIT	02H,A
-	JR	NZ,AGB
-	POP	AF
-	RET	
-AGB	POP	AF
-AGC	LD	SP,(OLDSP)
-AGD	LD	B,1H
-	CALL	AGW
-	JP	NC,AGD
-	LD	A,18H
-	CALL	AHA2
-AGE	LD	B,1H
-	CALL	AGW
-	JP	NC,AGE
-	LD	A,20H
-	CALL	AHA2
-	CALL	AHD
-AGF	LD	A,(AIG)
-	INC	A
-	LD	(AIG),A
-	RET	
-AGG	LD	DE,AIK
-	CALL	CLOSE
-	RET	Z
-	OR	0C0H
-	CALL	DOSERR
-	JP	AHG
-AGH	LD	A,(AIJ)
-	DEC	A
-	LD	(AIJ),A
-	JP	M,AGI
-	LD	HL,(AID)
-	LD	DE,ORIG
-	CALL	AHU
-	LD	(AID),HL
-	RET	
-AGI	LD	A,(AII)
-	CP	1H
-	SCF	
-	RET	Z
-	LD	C,0H
-	LD	DE,START
-AGJ	LD	B,80H
-AGK	PUSH	DE
-	LD	DE,AIK
-	CALL	13H
-	POP	DE
-	JR	Z,AGL
-	CP	1CH
-	JR	Z,AGM
-	OR	0C0H
-	CALL	DOSERR
-	JP	AGC
-AGL	LD	(DE),A
+	JR	Z,XF_02
+	LD	(DE),A
 	INC	DE
-	DJNZ	AGK
-	INC	C
-	LD	A,C
-	CP	14H
-	JP	Z,AGP
-	JR	AGJ
-AGM	LD	A,B
-	CP	80H
-	JR	Z,AGO
+	INC	HL
+	DJNZ	XF_01
+XF_02	XOR	A
+	LD	(DE),A
+	RET
+;
+XFER_INIT
+	CALL	CONFIG
+	LD	A,10
+	LD	(MAX_TOREAD),A	;Quick startup, SENDING
+;
 	XOR	A
-AGN	LD	(DE),A
-	INC	DE
-	DJNZ	AGN
-	INC	C
-AGO	LD	A,1H
-	LD	(AII),A
-	LD	A,C
-AGP	LD	(AIJ),A
-	LD	HL,START
+	LD	(BLK_RCV),A
+	LD	(BLK_SNT),A
+	LD	(FIL_EOF),A
+	LD	(NNAKS),A
+	LD	(BLK_STORED),A
+	LD	(XFABRT),A
+	LD	(EOFB),A
+	LD	HL,BIG_BUFF
 	LD	(AID),HL
-	JP	AGH
-AGQ	LD	HL,(AID)
-	EX	DE,HL
-	LD	HL,ORIG
-	CALL	AHU
-	EX	DE,HL
-	LD	(AID),HL
-	LD	A,(AIJ)
-	INC	A
-	LD	(AIJ),A
-	CP	14H
+	LD	B,128
+	LD	HL,DATABUF
+	XOR	A
+XI_01	LD	(HL),A
+	INC	HL
+	DJNZ	XI_01
+	RET
+;
+BYP_SP	LD	A,(HL)
+	CP	' '
 	RET	NZ
-AGR	LD	A,(AIJ)
+	INC	HL
+	JR	BYP_SP
+BYP_WORD
+	LD	A,(HL)
+	CP	CR
+	RET	Z
 	OR	A
 	RET	Z
-	LD	C,A
-	LD	DE,START
-AGS	LD	B,80H
-AGT	PUSH	DE
-	LD	A,(DE)
-	LD	DE,AIK
-	CALL	1BH
-	POP	DE
-	JR	Z,AGU
-	OR	0C0H
-	CALL	DOSERR
-	JP	AGC
-AGU	INC	DE
-	DJNZ	AGT
-	DEC	C
-	JP	NZ,AGS
+	CP	' '
+	JR	Z,BYP_SP
+	INC	HL
+	JR	BYP_WORD
+;
+NO_PAR
+	LD	HL,M_SIGNON	;Print signon msg.
+	LD	DE,$2
+	CALL	MESS_0
+NP_01	LD	HL,M_S_OR_R	;cmd mode
+	LD	DE,$2
+	CALL	MESS_0
+	LD	HL,B_TYPE	;Get S or R.
+	LD	B,1
+	CALL	40H
+	JP	C,NO_TRANSFER
+	LD	A,(HL)
+	CP	CR
+	JP	Z,NO_TRANSFER
+	AND	5FH
+	LD	(HL),A
+	INC	HL
+	LD	(HL),' '
+	CP	'S'
+	JR	Z,NP_02
+	CP	'R'
+	JR	NZ,NP_01
+NP_02	LD	HL,M_FILE
+	LD	DE,$2
+	CALL	MESS_0
+	LD	HL,B_FILE	;Get filename.
+	LD	B,23
+	CALL	40H
+	JP	C,NO_TRANSFER
+	CALL	BYP_SP
+	CP	CR
+	JR	Z,NP_02
+;Null terminate the filename.
+NP_03	LD	A,(HL)
+	CP	CR
+	JR	Z,NP_04
+	INC	HL
+	JR	NP_03
+NP_04	LD	(HL),0
+;
+	CALL	XFER_INIT
+	CALL	START2
 	XOR	A
-	LD	(AIJ),A
-	LD	HL,START
-	LD	(AID),HL
-	RET	
-AGV	NOP
-	NOP	;Was 2*(IN A,(EB)).
-AGW	PUSH	DE
-	DEFW	0
-	DEFW	0
-AGX	LD	DE,0B000H
-	CALL	AGA
-AGY	IN	A,(RDSTAT)
-	BIT	DAV,A
-	JP	NZ,AGZ
-	DEC	E
-	JP	NZ,AGY
-	DEC	D
-	JP	NZ,AGY
-	DEC	B
-	JP	NZ,AGX
-	POP	DE
-	SCF	
-	RET	
-AGZ	IN	A,(RDDATA)
-	POP	DE
+	JP	EXIT_EXMF
+;
+NO_TRANSFER
+	LD	A,0
+EXIT_EXMF
 	PUSH	AF
+	CALL	LOG_CLOSE
+	CALL	CONFIG
+	POP	AF
+	JP	TERMINATE
+;
+LOG_CLOSE
+	LD	A,(FCB_LOG)
+	BIT	7,A
+	RET	Z
+	LD	DE,FCB_LOG
+	CALL	DOS_CLOSE
+	RET
+;
+CHK_USAGE
+	LD	A,(HL)
+	CP	CR
+	RET	Z
+	OR	A
+	RET	Z
+CU_01	LD	A,(HL)
+	OR	A
+	RET	Z
+	CP	CR
+	RET	Z
+	CP	'-'
+	JR	Z,CU_02
+	CALL	BYP_WORD
+	JR	CU_01
+CU_02	INC	HL
+CU_02A	LD	A,(HL)
+	CP	'S'
+	JR	Z,CU_03
+	CP	'R'
+	JR	Z,CU_03
+	CP	'Q'		;quiet mode. Shh!
+	JR	Z,CU_03
+	CP	'C'		;CRC mode.
+	JR	Z,CU_03
+	CP	'O'		;Overwrite existing file
+	JR	Z,CU_03
+	CP	'T'		;Telink mode
+	JR	Z,CU_03
+	JP	USAGE
+CU_03	INC	HL
+	LD	A,(HL)
+	CP	CR
+	RET	Z
+	OR	A
+	RET	Z
+	CP	' '
+	JR	NZ,CU_02A
+	CALL	BYP_SP
+	JR	CU_01
+;
+USAGE
+	LD	HL,M_USAGE
+	LD	DE,$2
+	CALL	MESS_0
+	XOR	A
+	CP	1		;send to interactive
+	RET
+;
+;
+VDU_PUTS
+VP_01
+	LD	A,(HL)
+	OR	A
+	RET	Z
+	PUSH	DE
+	PUSH	HL
+	LD	HL,3C41H
+	LD	DE,3C40H
+	LD	BC,63
+	LDIR
+	LD	(3C7FH),A
+	POP	HL
+	POP	DE
+	INC	HL
+	JR	VP_01
+;
+TELINK_RECV
+	XOR	A
+	LD	(M7_TRY),A
+	CALL	M7R_FILE
+	JP	NC,EXIT_EXMF
+	CP	EOT
+	JP	Z,EXIT_EXMF
+	CALL	XFER_INIT
+	CALL	START2
+	JR	TELINK_RECV
+;
+LOG_OPEN
+	LD	DE,FCB_LOG
+	LD	A,(DE)
+	BIT	7,A
+	RET	NZ		;if already open.
+	LD	HL,BUFF_LOG
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,DOSERR
+	LD	A,(FCB_LOG+1)	;unprotect.
+	AND	0F8H
+	LD	(FCB_LOG+1),A
+	CALL	DOS_POS_EOF
+	JP	NZ,DOSERR
+	RET			;log is open.
+;
+START2
+	CALL	LOG_OPEN
+;*-*
+	LD	HL,B_DATE	;log date
+	CALL	X_TODAY		;Use nice date format
+	LD	HL,B_TIME
+	CALL	446DH
+;
+	LD	HL,B_DATE
+	CALL	LOG_2
+;
+;Log users name.
+	LD	HL,(USR_NAME)
+	LD	DE,FCB_LOG
+	CALL	MESS_NOCR
+	LD	A,' '
+	CALL	$PUT
+	LD	HL,B_TYPE	;Log S|R and filename.
+	CALL	LOG_2
+	LD	A,CR
+	CALL	$PUT
+;
+	CALL	SCREEN_SETUP	;setup host screen.
+;
+	LD	A,(B_TYPE)
+	CP	'S'
+	JP	Z,SEND		;recv if not 'S'
+;
+	LD	HL,M_RECVNG	;receive a file
+	CALL	QUIET_0
+	LD	HL,B_FILE
+	CALL	QUIET_0
+	LD	A,CR
+	CALL	QUIET_PUT
+;
+	LD	HL,B_FILE
+	LD	DE,FCB_1
+	CALL	EXTRACT
+	JR	Z,RECV_0
+;If bad extract
+	LD	HL,M_ERROR
+	CALL	LOG_2
+	LD	HL,M_BDFL
+	LD	DE,$2
+	CALL	MESS_0
+	LD	A,1		;bad filename on recv.
+	JP	EXIT_EXMF
+;
+RECV_0
+	LD	HL,FCB_1
+	CALL	NODRIVE		;Remove ':D' from fname.
+	LD	DE,FCB_1	;Try to open existing.
+	LD	HL,BUFF_1
+	LD	B,0
+	CALL	DOS_OPEN_EX	;Should fail.
+	JP	Z,EXISTS
+	CP	18H		;de_fnid
+	JR	Z,GETDESC
+	PUSH	AF
+	LD	HL,M_ERROR
+	CALL	LOG_2
+	POP	AF		;unknown error on initial
+	JP	DOSERR		;file open, receive.
+;
+;ask for description.
+GETDESC
+	LD	A,(QUIET)
+	OR	A
+	JR	NZ,NODESC	;none if quiet
+;
+NODESC
+	LD	HL,BUFF_1	;open new file for recv.
+	LD	DE,FCB_1
+	LD	B,0H
+	CALL	DOS_OPEN_NEW
+	JR	Z,AEZ
+	PUSH	AF		;error opening RECV file
+	LD	HL,M_ERROR
+	CALL	LOG_2
+	POP	AF
+	JP	DOSERR		;error opening for RECV.
+;
+NODRIVE	LD	A,(HL)		;remove :D from name
+	CP	CR
+	RET	Z
+	OR	A
+	RET	Z
+	INC	HL
+	CP	':'
+	JR	NZ,NODRIVE
+	DEC	HL
+	LD	(HL),CR
+	RET
+;
+EXISTS				;recv file exists
+	LD	A,(OVERWRITE)
+	OR	A
+	JR	Z,EXIST_1
+	LD	A,(PRIV_1)
+	BIT	IS_SYSOP,A
+	JR	NZ,AEZ		;allow overwrite
+EXIST_1
+	LD	HL,M_SENDEX
+	CALL	LOG_2
+	LD	HL,M_EXISTS	;file already exists
+	LD	DE,$2
+	CALL	MESS_0
+	LD	A,2
+	JP	EXIT_EXMF
+;
+AEZ	LD	HL,M_RRDY	;file is now open OK.
+	CALL	QUIET_0
+;delay a bit. Not if quiet though.
+	LD	A,(QUIET)
+	OR	A
+	LD	A,50		;pre-initial NAK delay.
+	CALL	Z,SEC10
+	CALL	CONFIG
+;
+	LD	A,1
+	LD	(FIRST_BLK),A
+;
+	CALL	INITIAL_NAK	;Send initial NAK
+;
+	CALL	POSS_ABRT
+;
+RCV_LP	CALL	GET_BLK		;get block
+	JR	C,RCV_OK	;if EOT
+	XOR	A
+	LD	(FIRST_BLK),A
+	CALL	POSS_ABRT
+	CALL	WRITE_BLK	;Store
+	CALL	INC_SNT		;inc send block number
+	LD	A,(BLK_SNT)
+	CALL	BLK_NUMB
+	CALL	SEND_ACK
+	JR	RCV_LP
+;
+;******* Start of Exmodem mods *******
+RCV_OK	PUSH	AF
+	CALL	AGR		;save all blocks
+				;fixup EOF in FCB....
+	POP	AF
+	CP	ENQ
+	JR	NZ,ROK_3
+	LD	A,ACK
+	CALL	PUT_BYTE
+;
+	LD	HL,M_R_ENQ	;signal enq ACK
+	CALL	VDU_PUTS
+	LD	HL,M_S_ACK
+	CALL	VDU_PUTS
+;
+	LD	B,10		;wait for EOFB
+	CALL	GET_BYTE
+	JR	C,ROK_4
+	LD	(EOFB),A
+	LD	B,1
+	CALL	GET_BYTE
+	JR	C,ROK_4
+	CPL
+	LD	B,A
+	LD	A,(EOFB)
+	CP	B
+	JR	C,ROK_4
+ROK_1
+	LD	A,(EOFB)
+	AND	7FH
+	JR	Z,ROK_5
+	LD	B,A
+	LD	A,(FCB_1+8)
+	AND	80H
+	JR	Z,ROK_2
+	LD	A,B
+	LD	(FCB_1+8),A
+	JR	ROK_5
+ROK_2
+	LD	HL,(FCB_1+12)
+	DEC	HL
+	LD	(FCB_1+12),HL
+	LD	A,B
+	OR	80H
+	LD	(FCB_1+8),A
+	JR	ROK_5
+ROK_3
+	LD	A,128
+	LD	(EOFB),A
+	JR	ROK_1
+ROK_4
+	CALL	LOAD_NAK
+	CALL	PUT_BYTE
+;
+	LD	HL,M_S_NAK
+	CALL	VDU_PUTS
+	JP	RCV_LP
+;
+;******* End of Exmodem mods *******
+;
+ROK_5
+	LD	HL,M_S_ACK	;send an ACK
+	CALL	VDU_PUTS
+	CALL	SEND_ACK
+	CALL	F_CLOSE
+	LD	HL,M_FINI
+	CALL	QUIET_0
+	RET			;go for next file.
+;
+INITIAL_NAK
+	LD	A,(CRCMODE)
+	OR	A
+	LD	A,NAK
+	JR	Z,INAK_1
+	LD	A,CRCNAK
+INAK_1
+	CALL	PUT_BYTE
+	RET
+;
+LOAD_NAK
+	LD	A,(CRCMODE)
+	OR	A
+	LD	A,NAK
+;;	RET	Z
+	RET
+	LD	A,CRCNAK
+	RET
+;
+;Modem-7 receive filename gathering.
+M7R_FILE
+M7R_MR0
+	LD	A,(M7_TRY)
+	INC	A
+	LD	(M7_TRY),A
+	CP	20
+	JR	Z,M7R_FAILED
+	IN	A,(RDDATA)
+	IN	A,(RDDATA)
+	LD	A,NAK
+	CALL	PUT_BYTE
+M7R_MR1
+	LD	B,5
+	CALL	GET_BYTE
+	JR	C,M7R_MR0
+	CP	ACK
+	JR	Z,M7R_MR2
+	CP	EOT
+	JR	Z,M7R_NOFILES
+	JR	M7R_MR0
+;
+M7R_NOFILES
+	LD	A,EOT
+	SCF
+	RET
+;
+M7R_FAILED
+	XOR	A
+	SCF
+	CCF
+	RET
+;
+M7R_MR2
+	LD	HL,M7_FIELD
+	LD	C,0
+	LD	(HL),C
+	LD	(M7_POSN),HL
+M7R_1
+	LD	B,1
+	CALL	GET_BYTE
+	JP	C,M7R_MR0
+	CP	EOT
+	JR	Z,M7R_NOFILES
+	CP	SUB
+	JR	Z,M7R_MR3
+	CP	'u'
+	JP	Z,M7R_MR0
+	LD	HL,(M7_POSN)
+	LD	(HL),A
+	INC	HL
+	LD	(M7_POSN),HL
+	LD	(HL),0
 	ADD	A,C
 	LD	C,A
-	POP	AF
-	CALL	AHT
-	OR	A
-	RET	
-AHC	CALL	AGA
-	LD	B,1H
-	CALL	AGW
-	CP	15H
-	RET	Z
-	CP	18H
-	JP	Z,AGC
-	DEC	E
-	JP	Z,AGC
-	JP	AHC
-AHD	LD	SP,(OLDSP)
-	CALL	AHH
-	LD	HL,ACS
-	JP	AHF
-AHE	LD	SP,(OLDSP)
-	CALL	AHH
-	LD	HL,ADR
-	JP	AHF
-AHF	CALL	MESS
-	JP	DOS	;Dos.
-AHG	CALL	AHH
-	LD	SP,(OLDSP)
-	JP	DOS	;Dos.
-AHH	XOR	A
-	EI	
-	LD	HL,AIF
-	LD	B,6H
-AHI	LD	(HL),A
-	INC	HL
-	DJNZ	AHI
-	LD	HL,START
-	LD	(AID),HL
-	CALL	ACL2
-	LD	A,0C9H
-	LD	(AHO),A
-	XOR	A
-	LD	(AHJ),A
-	LD	HL,(AHZ)
-	LD	A,H
-	OR	L
-	RET	Z
-	LD	(VDUDVR),HL
-	RET	
-AHJ	NOP	
-	PUSH	HL
-	DEC	A
-	LD	(AHY),A
-	LD	A,(AHX)
-	OR	A
-	JR	Z,AHN
-	LD	L,96H
-AHK	LD	H,0FFH
-AHL	DEC	H
-	JR	NZ,AHL
-	DEC	L
-	JR	NZ,AHK
-	CALL	AEU2
-	LD	HL,(VDUDVR)
-	LD	(AHZ),HL
-	LD	HL,458H
-AHM	EQU	$-2
-	LD	(VDUDVR),HL
-AHN	LD	HL,AEF
-	CALL	MESS
-	LD	A,0C9H
-	LD	(AHJ),A
-	POP	HL
-	RET	
-AHO	NOP	
-	PUSH	DE
-	PUSH	AF
-	CALL	AGA
-	CALL	AHJ
-	POP	AF
-	PUSH	AF
-	LD	E,A
-	LD	A,(AHY)
-	CP	E
-	CALL	Z,AHP
-	LD	A,8H
-	CALL	33H
-	LD	A,8H
-	CALL	33H
-	POP	AF
-	LD	(AHY),A
-	PUSH	AF
-	CALL	AHQ
-	POP	AF
-	CALL	AHR
-	POP	DE
-	RET	
-AHP	PUSH	HL
-	LD	HL,AHW
-	CALL	MESS
-	POP	HL
-	RET	
-AHQ	RRCA	
-	RRCA	
-	RRCA	
-	RRCA	
-AHR	AND	0FH
-	CP	0AH
-	JR	C,AHS
-	ADD	A,7H
-AHS	ADD	A,30H
-	CALL	33H
-	RET	
-AHT	JP	AGA
-AHU	LD	B,80H
-AHV	LD	A,(HL)
+;
+	LD	A,ACK
+	CALL	PUT_BYTE
+;
+	JR	M7R_1
+;
+M7R_MR3
+	ADD	A,C
+	CALL	PUT_BYTE
+;
+	LD	B,1
+	CALL	GET_BYTE
+	JP	C,M7R_MR0
+	CP	ACK
+	JR	Z,M7R_2
+	JP	M7R_MR0
+;
+;Fix the filename so its standard.
+M7R_2
+	LD	HL,M7_FIELD
+	LD	DE,B_FILE
+	LD	B,8
+M7R_2A
+	LD	A,(HL)
+	CP	' '
+	JR	Z,M7R_2B
 	LD	(DE),A
 	INC	HL
 	INC	DE
-	DEC	B
-	JP	NZ,AHV
-	RET	
-AHW	LD	HL,(2020H)
-	JR	NZ,AIA
-AHX	DEFB	0FFH
-AHY	NOP	
-AHZ	NOP	
-AIA	NOP	
-MODE	DEFB	0		;For S/R char.
-	DEFS	30	;I hope!
-	;All NOPs....
-OLDSP	DEFW	0000H
-AID	DEFW	START
-AIE	NOP	
-AIF	NOP	
-AIG	NOP	
-AIH	NOP	
-AII	NOP	
-AIJ	NOP	
-AIK	DEFS	32	;FCB.
-AIL	DEFS	256	;File Buffer...
-ACL2	CALL	CONFIG
-	RET
-AEU2	CALL	CONFIG
-	XOR	A
-	LD	(AHO),A
-	RET
-CONFIG	LD	A,82H
-	OUT	(WRSTAT),A
-	LD	A,40H
-	OUT	(WRSTAT),A
-	LD	A,0EH
-	OUT	(WRSTAT),A
-	LD	A,05H
-	OUT	(WRSTAT),A
-	RET
-AHA2	PUSH	AF
-	CALL	AHT
-	ADD	A,C
-	LD	C,A
-	POP	AF
-	PUSH	AF
-AHAV01	IN	A,(RDSTAT)
-	BIT	CTS,A
-	JR	Z,AHAV01
-	POP	AF
-	OUT	(WRDATA),A
-	RET
-START	LD	(OLDSP),SP
-	PUSH	HL
-	LD	HL,SIGNON
-	CALL	MESS
-	LD	DE,721BH
-	LD	A,(54H)		;Decide which machine.
-	DEC	A
-	JR	Z,AIN
-	LD	HL,473H
-	LD	(AHM),HL
-	LD	HL,(4411H)	;Himem for Mod/III.
-	JR	AIO
-AIN	LD	HL,(HIMEM)	;Himem for Mod/I.
-AIO	OR	A
-	SBC	HL,DE
-	POP	HL
-	JP	C,AIQ
-	DEC	HL
-AIP	INC	HL
+	DJNZ	M7R_2A
+M7R_2B
+	LD	HL,M7_FIELD+8
 	LD	A,(HL)
-	CP	0DH
-	JP	Z,AEH	;Must be least 1 parameter.
-	CP	' '	;Bypass spaces.
-	JR	Z,AIP
-	AND	5FH	;Change to U/c.
-	CP	'R'	;For Receive.
-	JP	Z,AEN
-	CP	'S'	;For Send.
-	JP	Z,AEN
-	JP	AEH	;Otherwise param error.
-AIQ	LD	HL,NOMEM	;Lacking memory.
-	CALL	MESS
-	JP	EREXIT		;Error-displayed exit.
-NOMEM	DEFM	'Insufficient memory for file '
-	DEFM	'transfer!'
-	DEFB	0DH
-SIGNON	DEFM	'XMODEM file transfer utility'
-	DEFM	'  Ver. 1.1  02-Jul-84'
-	DEFB	0DH
-	DEFB	76H	;???
-	END	START
+	CP	' '
+	JR	Z,M7R_2D
+	LD	A,'.'	;Sep
+	LD	(DE),A
+	INC	DE
+	LD	B,3
+M7R_2C
+	LD	A,(HL)
+	CP	' '
+	JR	Z,M7R_2D
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	DJNZ	M7R_2C
+M7R_2D
+	XOR	A
+	LD	(DE),A
+	SCF
+	RET
+;
+SEND
+	LD	HL,B_FILE
+	LD	DE,FCB_1	;extract
+	CALL	EXTRACT
+	JR	Z,SEND_1
+;
+	LD	HL,M_ERROR
+	CALL	LOG_2
+	LD	HL,M_BDFL	;If bad extract (send)
+	LD	DE,$2
+	CALL	MESS_0
+	RET			;loop to send next file.
+;
+SEND_1	LD	HL,BUFF_1	;File buffer.
+	LD	DE,FCB_1	;FCB Address.
+	LD	B,0H		;LRL=256.
+	CALL	DOS_OPEN_EX
+	JR	Z,AFF		;If file found
+;Check if not existing.
+	CP	18H		;de_fnid
+	JR	NZ,IS_ERROR
+;Special stuff....
+	LD	HL,M_RECVNO
+	CALL	LOG_2
+	LD	HL,M_FNID
+	LD	DE,$2
+	CALL	MESS_0
+	LD	A,20
+	CALL	SEC10
+	RET			;loop to next file.
+;
+IS_ERROR
+	PUSH	AF
+	LD	HL,M_ERROR
+	CALL	LOG_2
+	POP	AF
+	JP	DOSERR
+;
+AFF				;check file access.
+	LD	A,(FCB_1+1)	;must have read or better
+	AND	7
+	CP	6		;0=all,...6=exec,7=lock
+	JR	NC,BUST_EM	;if exec|lock then bust.
+;
+	LD	A,(FCB_1+6)	;which drive is it on?
+	CP	1		;The members only drive
+	JR	NZ,AFF_2	;Anybody can send
+	LD	A,(PRIV_2)
+	BIT	IS_VISITOR,A	;check for visitor.
+	JR	Z,AFF_2		;must not be visitor.
+;ha! Stop this transfer!
+BUST_EM
+	LD	HL,M_BUSTED
+	CALL	LOG_2
+	LD	HL,M_CANNOT
+	LD	DE,$2
+	CALL	MESS_0
+	LD	A,19H
+	JR	IS_ERROR
+;
+AFF_2
+;Print file send statistics...
+	LD	A,(QUIET)
+	OR	A
+	CALL	Z,FILE_STATS
+;
+	CALL	CONFIG
+;
+	LD	E,100		;wait 100 seconds.
+	CALL	INIT_AHC	;wait for NAK, CAN or 'C'
+;
+SND_LP	CALL	READ_BLK	;get block data
+	JR	C,S_E_I		;if no blks to send
+	CALL	INC_SNT		;inc sending block number
+;
+	XOR	A
+	LD	(NNAKS),A	;zero NAK count
+;
+AFH	CALL	SEND_HDR	;print No & send header
+	CALL	SEND_BLK
+	CALL	SEND_CHECK
+	CALL	AFX		;wait for ack,nak,can
+	JR	C,AFH
+	JR	SND_LP
+;
+S_E_I
+;
+	LD	A,(EX_FLAG)
+	OR	A
+	JR	Z,SND_EOT	;Not '-e' exmodem
+;
+	LD	HL,M_S_ENQ
+	CALL	VDU_PUTS
+	LD	A,ENQ
+	CALL	PUT_BYTE	;send exmodem ENQ?
+	CALL	AFX		;ack/nak/can check.
+	JR	C,SND_EOT_FIRST	;if NAK or timeout.
+	LD	HL,M_R_ACK
+	CALL	VDU_PUTS
+	LD	A,(FCB_1+8)
+	AND	7FH
+	JR	NZ,SEI_1
+	OR	80H
+SEI_1	LD	(EOFB),A
+	CALL	PUT_BYTE
+	LD	A,(EOFB)
+	CPL
+	CALL	PUT_BYTE
+	CALL	AFX		;ack/nak/can check
+	JR	C,S_E_I
+;
+	LD	HL,M_EXMODEM
+	CALL	VDU_PUTS
+;
+	JR	S_E_2	;OK....
+;
+SND_EOT_FIRST
+;;	LD	HL,M_NAK
+;;	CALL	VDU_PUTS
+;
+SND_EOT
+	XOR	A
+	LD	(NNAKS),A
+SND_EOT_0
+	LD	HL,M_S_EOT
+	CALL	VDU_PUTS
+;
+	LD	A,EOT
+	CALL	PUT_BYTE
+	CALL	POSS_ABRT
+	CALL	AFX		;wait for ack,nak,can
+	JR	NC,S_E_2	;if ACK.
+	LD	A,(NNAKS)
+	INC	A
+	LD	(NNAKS),A
+	CP	MAX_NAKS
+	JR	NZ,SND_EOT_0
+	JR	S_E_3
+;
+S_E_2
+	LD	HL,M_R_ACK
+	CALL	VDU_PUTS
+S_E_3
+	LD	HL,M_FINI
+	CALL	QUIET_0
+	RET			;go for more
+;
+GET_BLK	XOR	A
+	LD	(NNAKS),A	;No of NAKs sent
+AFL	LD	B,10	 	;wait 10 sec for SOH
+	CALL	GET_BYTE
+	JP	C,SEND_NAK	;if no char recvd
+	CALL	POSS_ABRT
+	OR	A
+	JR	Z,AFL		;ignore padding zeroes.
+	CP	SOH
+	JR	Z,AFO		;Block header seen
+	CP	16H		;SYN
+	JP	Z,TL_HDR
+	CP	CAN
+	JP	Z,SNDR_CANCELS	;the sender cancels it.
+	CP	EOT
+	SCF	
+	RET	Z		;scf & ret if EOT
+;******* Start of Exmodem mods *******
+	CP	ENQ
+	SCF
+	RET	Z		;scf & ret if ENQ
+;******* End of Exmodem mods *******
+	JP	SEND_NAK
+;
+AFO	LD	B,1H		;try to get block number
+	CALL	GET_BYTE
+	JP	C,SEND_NAK
+	LD	(BLK1),A
+	LD	B,1		;get inverse.
+	CALL	GET_BYTE
+	JP	C,SEND_NAK
+	CPL	
+	LD	D,A
+	LD	A,(BLK1)
+	CP	D
+	JP	NZ,SEND_NAK
+;
+	LD	(BLK_RCV),A	;block # being received.
+	LD	HL,DATABUF
+	LD	B,128
+AFQ	PUSH	BC
+	LD	B,1
+	CALL	GET_BYTE
+	POP	BC
+	JP	C,SEND_NAK	;if no char recvd
+	LD	(HL),A
+	INC	HL
+	DJNZ	AFQ
+;
+	LD	A,(CRCMODE)
+	OR	A
+	JR	NZ,TRY_R_CRC
+;Get, calculate, and compare an 8 bit checksum.
+	LD	B,1H
+	CALL	GET_BYTE	;recv checksum
+	JP	C,SEND_NAK
+	LD	(CHECKSUM),A
+	CALL	CALC_SUM
+	LD	D,A
+	LD	A,(CHECKSUM)
+	CP	D
+	JR	Z,CHECK_SEQ
+	JP	SEND_NAK
+;
+TRY_R_CRC
+	LD	B,1
+	CALL	GET_BYTE
+	JP	C,SEND_NAK	;if none
+	LD	(CRC_LOW+1),A
+	LD	B,1
+	CALL	GET_BYTE
+	JP	C,SEND_NAK
+	LD	(CRC_LOW),A	;backwards! msb first!
+	CALL	CALC_CRC
+	LD	DE,(CRC_LOW)
+	OR	A
+	SBC	HL,DE		;compare HL to (crc_low)
+	JP	NZ,SEND_NAK	;if wrong
+	JR	CHECK_SEQ
+;
+CHECK_SEQ
+	LD	A,(BLK_RCV)	;block just received
+	LD	B,A
+	LD	A,(BLK_SNT)	;previous last block OK
+	CP	B
+	JR	Z,AFR		;if same ACK & discard
+	INC	A
+	CP	B
+	JP	NZ,AGC		;abort if out of sequence
+	RET			;store & ACK later.
+;
+AFR	CALL	SEND_ACK	;send ACK
+	JP	GET_BLK		;throw away.
+;
+TL_HDR
+	LD	B,131
+TLH_1
+	PUSH	BC
+	LD	B,1
+	CALL	GET_BYTE
+	POP	BC
+	DJNZ	TLH_1
+	CALL	SEND_ACK
+	JP	GET_BLK
