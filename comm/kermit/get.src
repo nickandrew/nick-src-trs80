@@ -182,7 +182,14 @@ RPAR	LD	A,(RPSIZ)	;GET THE RECEIVE PACKET SIZE.
 	INC	HL		;ADVANCE POINTER
 	LD	A,08H	;SIX PIECES OF DATA.
 	RET
+;
+;
+;*******************************************************
+;**                      SPAR                         **
+;*******************************************************
+;
 ;THIS ROUTINE READS IN ALL THE SEND_INIT PACKET INFORMATION.
+;
 SPAR	LD	(TEMP4),A	;SAVE THE NUMBER OF ARGUMENTS.
 	LD	A,(HL)		;GET THE MAX PACKET SIZE.
 	SUB	20H		;SUBTRACT A SPACE.
