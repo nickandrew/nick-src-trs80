@@ -3,16 +3,16 @@
  */
 
 #include <stdio.h>
+#define COLUMNS 6
 
 FILE *fpin,*fpout;
 int  i;
 char table[18][10];
 /*
-	char *wordy[18] ={"0","5","6","7","9a","11","12","12p","13","14",
-		"15","15a","16","18","19","20","21","22"};
-*/
 char *wordy[18] ={"5","6","7","9a","11","12","12p","13","14",
 	"15","15a","16","17","18","19","20","21","22"};
+*/
+char *wordy[COLUMNS] ={"p","s","b","m","i","l"};
 
 char instr[80],outstr[80];
 char *cp,*ccp,*scp;
@@ -45,7 +45,7 @@ char *argv[];
       *scp++ =0;
       space(&cp);
       /* clear table entries */
-      for (i=0;i<18;i++) {
+      for (i=0;i<COLUMNS;i++) {
 	 table[i][0] = 0;
       }
       while (*cp!='\n') {
@@ -58,13 +58,13 @@ char *argv[];
 	 *ccp=0;
          space(&cp);
 	 /* put into table */
-	 for (i=0;i<18 && strcmp(code,wordy[i]);i++);
-	 if (i==18) {
+	 for (i=0;i<COLUMNS && strcmp(code,wordy[i]);i++);
+	 if (i==COLUMNS) {
 	    printf("code,value: '%s' '%s'\n",code,value);
 	    printf("Bad column reference: %s\n",instr);
 	 } else strcpy(table[i],value);
       }
-      for (i=0;i<18;i++) {
+      for (i=0;i<COLUMNS;i++) {
 	 strcat(outstr,table[i]);
 	 strcat(outstr,":");
       }
