@@ -1,0 +1,195 @@
+;Carrier: Interrupt-Driven carrier detect.
+; Figure out when to send a disconnect signal
+;
+*GET	EXTERNAL.HDR
+*GET	DOSCALLS.HDR
+*GET	ASCII.HDR
+*GET	RS232.HDR
+;
+	COM	'<Carrier 1.2a 31-Dec-87>'
+	ORG	BASE+100H
+START	LD	SP,START
+	LD	HL,(HIMEM)
+	LD	BC,EN_CODE-ST_CODE
+	OR	A
+	SBC	HL,BC
+	LD	(HIMEM),HL
+	INC	HL
+	PUSH	HL
+	LD	DE,ST_CODE
+	OR	A
+	SBC	HL,DE
+	EX	DE,HL
+;
+	LD	HL,(RELOC1+1)
+	ADD	HL,DE
+	LD	(RELOC1+1),HL
+;
+	LD	HL,(RELOC2+1)
+	ADD	HL,DE
+	LD	(RELOC2+1),HL
+;
+	LD	HL,(RELOC3+1)
+	ADD	HL,DE
+	LD	(RELOC3+1),HL
+;
+	LD	HL,(RELOC4+1)
+	ADD	HL,DE
+	LD	(RELOC4+1),HL
+;
+	LD	HL,(RELOC5+1)
+	ADD	HL,DE
+	LD	(RELOC5+1),HL
+;
+	LD	HL,(RELOC6+1)
+	ADD	HL,DE
+	LD	(RELOC6+1),HL
+;
+	LD	HL,(RELOC7+1)
+	ADD	HL,DE
+	LD	(RELOC7+1),HL
+;
+	LD	HL,(RELOC8+1)
+	ADD	HL,DE
+	LD	(RELOC8+1),HL
+;
+	POP	DE
+	LD	HL,ST_CODE
+	LDIR
+	LD	DE,(HIMEM)
+	INC	DE
+	CALL	DOS_ENQUEUE
+	JP	DOS
+;
+ST_CODE
+	DEFW	0	;fwd chain pointer
+	DEFB	2,128	;Every 2, 6.4 sec till it starts
+;
+	LD	A,(CD_MODE)
+	AND	0FH
+	OR	30H
+	LD	(3C02H),A
+;
+	LD	A,(CD_STAT)
+	OR	30H
+	LD	(3C04H),A
+;
+	LD	A,(CD_MODE)
+	AND	0FH
+RELOC1	JP	Z,MODE_0	;no carrier
+	DEC	A
+RELOC2	JP	Z,MODE_1	;carrier just found
+	DEC	A
+RELOC3	JP	Z,MODE_2	;normal operation
+	DEC	A
+RELOC4	JP	Z,MODE_3	;carrier just lost
+	DEC	A
+RELOC5	JP	Z,MODE_4	;no carrier
+	DEC	A
+RELOC6	JP	Z,MODE_5	;TEST mode.
+;unknown mode. Set on right track and exit.
+	XOR	A
+	LD	(CD_MODE),A
+	RET
+;
+MODE_0
+;;	LD	HL,CD_STAT
+;;	RES	CDS_DISCON,(HL)
+;
+	LD	HL,SYS_STAT
+	BIT	SYS_TEST,(HL)
+	LD	A,5
+	JR	NZ,SET_MODE	;if test mode->5
+;
+;;	BIT	SYS_OFFHK,(HL)
+;;	RET	Z
+;
+	CALL	CARR_DETECT
+	RET	NZ
+	LD	A,1
+RELOC7	JP	S_M_A
+;
+MODE_1	LD	HL,SYS_STAT
+	BIT	SYS_TEST,(HL)
+	LD	A,5		;test
+	JR	NZ,SET_MODE
+	CALL	CARR_DETECT
+	JR	Z,M1_C
+	LD	A,3		;go to carrier falling
+	JR	SET_MODE
+M1_C				;Carrier up right now
+	LD	A,2
+	JR	SET_MODE
+;
+SET_MODE
+RELOC8	JP	S_M_A
+;
+MODE_2	LD	HL,SYS_STAT
+	BIT	SYS_TEST,(HL)		;if test -> 5
+	LD	A,5
+	JR	NZ,SET_MODE
+;
+	CALL	CARR_DETECT	;Is it there?
+	RET	Z
+	LD	A,3		;Carrier falling
+	JR	SET_MODE
+;
+MODE_3	LD	HL,SYS_STAT
+	BIT	SYS_TEST,(HL)
+	LD	A,5
+	JR	NZ,SET_MODE
+;
+;Reset usart to drop DTR
+	LD	A,82H
+	OUT	(WRSTAT),A
+	LD	A,40H
+	OUT	(WRSTAT),A
+	LD	A,(MODEM_STAT1)
+	OUT	(WRSTAT),A
+	LD	A,(MODEM_STAT2)
+	RES	DTR_BIT,A
+	LD	(MODEM_STAT2),A
+	OUT	(WRSTAT),A
+;
+	LD	HL,CD_STAT
+	SET	CDS_DISCON,(HL)
+;
+	LD	HL,SYS_STAT
+	RES	SYS_OFFHK,(HL)
+;
+	LD	A,4
+	JR	SET_MODE	;if lost forever -> 4
+;
+MODE_4
+	LD	HL,CD_STAT
+	BIT	CDS_DISCON,(HL)
+	RET	NZ		;Wait for discon processing
+	LD	A,0		;if hung up -> 0
+	JR	SET_MODE
+;
+MODE_5	LD	HL,SYS_STAT
+	BIT	SYS_TEST,(HL)	;if test stay asis
+	RET	NZ
+	LD	A,(CD_MODE)	;Revert to former mode
+	AND	0F0H
+	SRL	A
+	SRL	A
+	SRL	A
+	SRL	A
+	JR	S_M_A
+;
+S_M_A
+	AND	0FH
+	LD	B,A
+	LD	A,(CD_MODE)
+	ADD	A,A
+	ADD	A,A
+	ADD	A,A
+	ADD	A,A
+	OR	B
+	LD	(CD_MODE),A
+	RET
+;
+EN_CODE	NOP
+;
+	END	START
