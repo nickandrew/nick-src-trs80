@@ -1,0 +1,84 @@
+.cm PT Assignment 2 (07-Apr-85).
+.im stdptr/dot
+.mf 1
+.bf lomb3/pr
+.ce on
+.co off
+Programming Techniques
+Assignment 2
+.bf roman/pr
+Nick Andrew S8425464
+Sun 7 April 1985.
+.sk
+.ce off
+.co on
+.bf logo/pr
+Question 1
+.sk 2
+.bf clar2/pr
+.lh 4
+.co off
+correct:=true;
+while (not end of string) and (correct) do
+.in 5
+begin
+symbol:=(next item in string);
+if (symbol=')')
+then begin
+.in 5
+while (stack not empty) and (symbol <> '(') do
+.in 5
+symbol:=pop(s);
+.in -5
+if (symbol <> '(') (* stack is therefore empty. Too many )s *)
+.in 5
+then correct:=false
+.in -5
+end
+.in -5
+else push(s,symbol)
+end;
+.in -5
+while (stack not empty) and (correct) do (* check stack for too many (s *)
+.in 5
+begin
+symbol:=pop(s);
+if (symbol='(') then correct:=false
+end;
+.in -5
+(* correct=true if parentheses match *)
+.lh 12
+.sk 4
+.bf logo/pr
+Question 2
+.sk 2
+.bf clar2/pr
+.lh 4
+.co off
+while not (end of string) do
+.in 5
+begin
+get next item in string
+if OPERAND
+then
+.in 5
+push associated value (value of identifier)
+.in -5
+else (* is an operator +,-,*,/ *)
+.in 5
+begin
+pop as many operands as needed (usually 2)
+calculate partial result (ie. D+E)
+push partial result on stack
+end
+.in -5
+end
+.in -5
+pop final result off stack.
+.in 0
+.lh 12
+.bf roman/pr
+.sk 3
+.ce on
+End of Assignment II
+.en
