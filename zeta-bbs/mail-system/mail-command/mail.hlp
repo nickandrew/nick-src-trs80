@@ -1,0 +1,135 @@
+3ST  MAIL help
+               Help on Zeta's MAIL command, and network mail
+                         Last updated: 12 Mar 89
+
+
+
+    MAIL is Zeta's command which allows you to send and receive private
+messages.  Its use for sending messages is limited to Zeta members, however
+non-members can receive mail sent to them by members, or send a message to
+the Sysop using MAIL.
+
+    Zeta is a member of two large computer networks, namely Fidonet and
+ACSnet.  Fidonet is a worldwide network of Bulletin Boards running Fido,
+Opus, TBBS or other software.  ACSnet is an Australia-wide network of
+University and business computers mostly running the Unix operating system.
+ACSnet is linked to UUCP in the United States, and the USENET News network.
+
+    Topics discussed:
+ 1      Sending mail
+ 2      Receiving mail
+ 3      News and Echomail (go read help on BB)
+ 4      Acquiring the fruits of the networks (downloading/ordering files)
+
+5
+
+
+
+                             Sending mail
+
+    Sending mail is easy enough to do, and you should become familiar with
+it.  It is said that they who never speak, are never spoken to.  This is
+especially true with computers.
+
+    You can send a message to one of 3 places:  Zeta, ACSnet or Fidonet.
+
+    Sending local mail to a Zeta user is simple. When MAIL asks "To:", just
+reply with the name of the person. Case is unimportant, but any leading or
+trailing blanks will cause your message to bounce (not be delivered).
+Eg:     To: george janczuk
+
+    The name must be correct.  MAIL does not check that you have typed a
+correct name for a local user.  If the name is incorrect, your message will
+bounce back to you.
+
+
+5
+
+
+
+
+    Sending mail into ACSnet requires the person's name on the host system,
+as well as the host's full domain address.  For example, to send to George
+Janczuk on Runx, you would enter the To: address as "grog@runx.ips.oz".
+
+    Messages on BB which originate from people on ACSnet will show the
+person's ACSnet address at the top of the message. For example:
+
+        From:    zaphod@mango.cs.su.oz  (Mark Wing-Davies)
+        To:      all
+        Subject: Sixth dimensional continuity criteria
+        Date:    28 Feb 89 16:38:02
+
+To make a personal reply to that, you would reply:
+To:      zaphod@mango.cs.su.oz
+
+
+5
+    To send mail into Fidonet you need to know the person's name, and the
+number of a Fidonet which they use regularly.  Say you want to mail to James
+Snowdon, who uses Paragon BBS.  Paragon's number is 712/502, so you would
+enter a message in MAIL, and reply to To:
+To:      James Snowdon (712/502)
+
+
+Upper and lower case are important for the time being when sending mail to
+Fidonet.  The first and last name of the person should start with an UPPER
+case letter, and all other letters of the name should be in LOWER case.
+
+
+    MAIL is not instantaneous.  Messages to Fidonet and ACSnet are sent
+through the modem. In the case of Fidonet, they are sent every second day.
+In the case of ACSnet, they are sent every day, however the intermittent
+nature of the connection to Zeta may mean several day's delay.  Sending
+local mail is not instantaneous either.  Zeta runs a program to process
+all mail to be sent every other hour.  Should you enter a message, and
+later decide to get rid of it, read the message.  If the word  (sent)
+appears on the To: line then you are too late, the message has already
+been sent.
+
+5
+
+
+        Receiving Mail
+
+    You can receive messages sent to you by Zeta users, or by people on
+either Fidonet or ACSnet.  The way they send you messages differs, as is
+the network name by which they know you.  But the effect is the same, you
+get the message in MAIL.
+
+    A Zeta user sending you mail just sends it to your name, in the same
+way you would send a message to them.  A Fidonet user needs to know Zeta's
+Fidonet number in order to get the message here.  Zeta's number is 713/602.
+An ACSnet user needs to know what Zeta is known as within ACSnet. This is
+a fairly complex string: "713.602@fidogate.fido.oz".  The reason this is
+so is because Zeta is principally on Fidonet, and a gateway between ACSnet
+and Fidonet does the data conversion. That string is an example of a more
+general addressing format which allows ACSnet users to send messages to
+Fidonet users.
+
+
+
+5
+
+
+    Messages in Mail are either Incoming or Outgoing messages.  When you
+send a message elsewhere, the message you enter is an Outgoing message.
+When somebody sends a message to a person on Zeta, that message becomes
+that person's Incoming message.  Also, if you send a message to somebody
+else on Zeta, the message you type is duplicated.  The original is
+Outgoing, and the copy is Incoming.  You own the Outgoing message, and
+the other person owns the Incoming message.
+
+    The point of Incoming and Outgoing messages is that Outgoing messages
+are your record of messages you have sent.  You can delete them when you
+no longer want them, or retain them for a while.  Likewise with Incoming
+messages.  Soon a new option will be added to MAIL which will allow you
+to save your Incoming or Outgoing mail into a text file to download and
+then delete.
+
+    When somebody sends you a message, and you haven't read it yet, this
+is a New message.  MAIL detects this when you start it up, and you get
+the option to read just the new messages.  When MAIL finishes, it turns
+off the New flag on all New messages which you have read.
+
+0
