@@ -1,5 +1,7 @@
 /* Merge.c: Merge two files columnwise.
  * Ported off the Crappywell L/66 'merge.b'
+ * (Substantial changes required )
+ * Current version for Trs-80 Alcor 'C' Compiler.
  * Nick Andrew.
  */
 
@@ -29,7 +31,7 @@ char *argv[];
          argv++;
          }
 
-   column=atoi(argv[3]);  /* Get merging column */
+   column=atoi(argv[3]);              /* Get merging column */
    if (tabs) column=((column+8) % 8); /* adjust for tabs */
    unit1=fopen(argv[0],"r");          /* Open all files  */
    unit2=fopen(argv[1],"r");
@@ -55,7 +57,7 @@ char *argv[];
       {
       if ((max3str(currl1,lastl1,nextl1)>=column) ||
           (strlen(currl2)==0))
-         fprintf(unit3,currl1,"",strlen(currl1));
+         fprintf(unit3,"%s",currl1);
       else
          {
          wrline(unit3,currl1,currl2,column);
@@ -71,6 +73,7 @@ char *argv[];
       nextl1=temp;
       rdline(nextl1,unit1);
       }
+exit(0);
 }
 
 rdline(string,unit)
@@ -78,17 +81,23 @@ char string[];
 FILE *unit;
 {
    int chars=0;
-   char c;
-   c=((c=getc(unit))==EOF ? 0 : c);
+   int  c;
+             /* MUST be int for Alcor C - nearest I can
+              * work out is that char --> int casting
+              * does not involve sign extension. Silly!
+              */
+
+   if ((c=getc(unit))==EOF) c=0;
    while (c)
       {
       string[chars++]=c;
       if (c=='\n') break;
-      c=((c=getc(unit))==EOF ? 0 : c);
+      if ((c=getc(unit))==EOF) c=0;
+      if (chars > STRLENGTH) printf("Length exceeded %d\n",c);
       }
    string[chars]=0;
-   printf(":  %s",string);
 }
+
 
 wrline(unit,string1,string2,column)
 FILE *unit;
@@ -117,6 +126,7 @@ m2=(s2>s3 ? s2 : s3);
 return (m1>m2 ? m1 : m2);
 }
 
+/* Get string length taking tabs into account */
 int strlenp(string)
 char *string;
 {
