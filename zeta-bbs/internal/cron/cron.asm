@@ -1,29 +1,37 @@
-;cron: Assemble a CRON, compiled C, for Zeta
+;Cron: Execute commands at certain times and at certain intervals
 ;
-ZETA	EQU	1
+ZETA		EQU	1
+DEBUGF		EQU	0	;Function call debugging
+DEBUGG		EQU	0	;Loop at start debug
+SYSOPONLY	EQU	1	;Only the Sysop may run
+REDIRDIS	EQU	1	;1 to disable redirection
+STACKSIZE	EQU	100H	;Size of the stack
 ;
-*GET	DOSCALLS.HDR
+*GET	DOSCALLS:0
 ;
 	IF	ZETA
 *GET	EXTERNAL.HDR
 *GET	ASCII.HDR
 ;
-	COM	'<Cron 1.0c 03-Apr-88>'
+	COM	'<Cron 1.1  12 May 90>'
 	ORG	PROG_START
 	DEFW	BASE
 	DEFW	THIS_PROG_END
 	DEFW	0
 	DEFW	0
 ;End of program load info.
-	ORG	BASE+100H
+	ORG	BASE+STACKSIZE
 	ELSE
-	ORG	5200H
+	ORG	5200H+STACKSIZE
 ;
 	ENDIF
 ;
-;;*GET	DEBUG:1
+	IF	DEBUGF
+*GET	DEBUGF
+	ELSE
 DEBUG	MACRO	#$STR
 	ENDM
+	ENDIF
 ;
 START
 	IF	ZETA
@@ -35,13 +43,15 @@ START1	DEC	HL
 ;
 	LD	SP,START	;There is plenty of stack
 	LD	(_CMDLINE),HL	;Save cmd line pointer
-	LD	HL,1		;Disable redirection
+	LD	HL,REDIRDIS	;Disable redirection
 	LD	(_NOREDIR),HL
 ;
+	IF	SYSOPONLY
 	LD	A,(PRIV_1)
 	BIT	IS_SYSOP,A
 	LD	A,0
 	JP	Z,TERMINATE
+	ENDIF
 ;
 	ELSE
 ;
@@ -50,20 +60,31 @@ START1	DEC	HL
 ;
 	ENDIF
 ;
+	IF	DEBUGG
+DB_LOOP
+	JP	DB_LOOP
+	ENDIF
+;
 *GET	CINIT
 *GET	CALL
 ;
 *GET	CRON1
 *GET	CRON2
-;
-;;*GET	ATOI
-;;*GET	CTYPE
+;;*GET	ARCSUBS
+;;*GET	ATOI		;Requires ctype
+;;*GET	CTYPE		;Required by atoi
 ;;*GET	FTELL
 ;;*GET	FWRITE
+;;*GET	GETOPT
+*GET	GETTIME
+;;*GET	GETW
 ;;*GET	INDEX
+;;*GET	PNUMB
+*GET	SAVEPOS
+;;*GET	STRCHR
 ;;*GET	STRCMP
 ;;*GET	STRLEN
-;;*GET	SYSTEM
+*GET	SYSTEM
 ;;*GET	UNLINK
 ;;*GET	WILD
 ;
