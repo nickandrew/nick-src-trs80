@@ -1,4 +1,4 @@
-; @(#) bb3.asm - BB code file #3, 14 May 89
+; @(#) bb3.asm - BB code file #3, 16 May 89
 ;
 ; ------------------------------
 ;
@@ -440,7 +440,7 @@ TOP_LOOP:
 ;
 TL_00
 	LD	A,(MY_TOPIC)
-	CALL	TREE_WALK
+	CALL	TREE_WALK	;Find next place to be
 	CP	0		;If wrap to general
 	JR	Z,TL_01
 	LD	(MY_TOPIC),A
@@ -453,7 +453,6 @@ TL_00
 	LD	(FIRST_MSG),HL	;From 1
 	LD	HL,(N_MSG_TOP)
 	LD	(LAST_MSG),HL	;To   $
-;
 	JR	TOP_LOOP
 ;
 TL_01
@@ -480,7 +479,6 @@ TOP_RMESSAGE
 	CALL	PUTCR
 	LD	A,(MY_TOPIC)
 	CALL	TOPIC_PRINT
-	CALL	PUTCR
 	LD	A,2
 	LD	(SCRDONE),A
 ;
@@ -488,7 +486,7 @@ TOP_RMESSAGE
 	LD	(TR_NEWFLAG),A
 ;
 TRM_01
-	CALL	PUTCR		;Print message header
+;Print message header
 	CALL	PUTCR
 	CALL	TEXT_POSN
 	CALL	HDR_PRNT
@@ -513,9 +511,17 @@ TRM_09	CALL	GET_$2
 	OR	A
 	JR	Z,TRM_09
 TRM_10
+	CP	' '
+	JR	Z,TRM_11	;Next message
+	CP	'?'
+	JR	Z,TRM_16	;Help
 	AND	5FH
+	CP	'A'
+	JR	Z,TRM_14	;Read again
 	CP	'N'
-	JR	Z,TRM_11	;Skip rest of message
+	JR	Z,TRM_11	;Next message
+	CP	'R'
+	JR	Z,TRM_15	;Reply
 	CP	'T'
 	JR	Z,TRM_12	;Skip rest of topic
 	CP	'Q'
@@ -536,8 +542,21 @@ TRM_12
 TRM_13
 	LD	A,1
 	LD	(SCAN_ABORT),A
-	CALL	PUTCR
 	RET
+;
+TRM_14
+	XOR	A
+	LD	(SCRDONE),A
+	JP	TRM_01
+;
+TRM_15
+	CALL	DO_REPLY
+	RET
+;
+TRM_16
+	LD	HL,M_TRMHELP
+	CALL	MESS
+	JR	TRM_08
 ;
 ; ------------------------------
 ;
@@ -551,16 +570,18 @@ TW_INFUNC
 ;
 TW_KEYFUNC
 	CP	'?'
-	JR	Z,TWK_01
+	JR	Z,TWK_01	;Help
 	AND	5FH
-	CP	'H'
-	JR	Z,TWK_01
+	CP	'A'
+	JR	Z,TWK_02	;Read again
 	CP	'N'
-	JP	Z,MORE_Q
+	JR	Z,TWK_02	;Next message
+	CP	'R'
+	JR	Z,TWK_02	;Reply
 	CP	'T'
-	JP	Z,MORE_Q
+	JR	Z,TWK_02	;Next topic
 	CP	'Q'
-	JP	Z,MORE_Q
+	JR	Z,TWK_02	;Quit
 	XOR	A		;Redisplay more prompt
 	RET
 ;
@@ -569,6 +590,9 @@ TWK_01
 	CALL	MESS
 	XOR	A
 	RET
+;
+TWK_02
+	JP	MORE_Q
 ;
 ; ------------------------------
 ; Find the next topic in the tree in a preorder scan
