@@ -1,0 +1,20 @@
+;Unarc ... by Bob Freed ... Modified for Trs-80 by
+;Nick Andrew, 29-Nov-86.
+;	      31-Dec-86
+;	      29-Jan-86
+;
+*GET	DOSCALLS
+;
+*GET	FILEA/ASM:1
+*GET	FILEB/ASM:1
+*GET	FILEC/ASM:1
+*GET	FILED/ASM:1
+*GET	FILEE/ASM:1
+*GET	FILEF/ASM:1
+*GET	FILEG/ASM:1
+*GET	FILEH/ASM:1
+*GET	FILEI/ASM:1
+*GET	FILEJ/ASM:1
+*GET	FILEK/ASM:1
+;
+	END	BEGIN
