@@ -1,0 +1,54 @@
+#
+# Zaps to model III Alcor 'C' Compiler package
+#        to work on model I.
+# Nick Andrew, 02-Nov-85
+#
+# Patches for CC/CMD - main compiler module
+#
+CC/CMD       Frs  26, Rel 20H:  2A,11,44 --> 2A,49,40
+CC/CMD       Frs  26, Rel CBH:  2A,11,44 --> 2A,49,40
+CC/CMD       Frs  17, Rel DAH:  C3,36,30,C3,33,30 --> C3,70,44,C3,6D,44
+CC/CMD       Frs  29, Rel 5DH:  CD,8D,02 --> C9,00,00
+CC/CMD       Frs  27, Rel C6H:  21,25,42 --> 21,18,43
+#
+# Patches for CC/OV1 - cc/cmd overlay #1
+#
+CC/OV1       Frs  10, Rel 1CH:  CD,36,30 --> CD,70,44
+CC/OV1       Frs  10, Rel 39H:  CD,33,30 --> CD,6D,44
+#
+# Patches for RUNC/CMD - Runtime prog with libraries etc..
+#
+RUNC/CMD     Frs 108, Rel 3AH:  2A,11,44 --> 2A,49,40
+RUNC/CMD     Frs 108, Rel 58H:  2A,11,44 --> 2A,49,40
+RUNC/CMD     Frs 109, Rel FDH:  2A,11,44 --> 2A,49,40
+RUNC/CMD     Frs 110, Rel 9AH:  2A,11,44 --> 2A,49,40
+RUNC/CMD     Frs  25, Rel 95H:  C3,36,30,C3,33,30 --> C3,70,44,C3,6D,44
+RUNC/CMD     Frs  65, Rel 03H:  CD,36,30 --> CD,70,44
+RUNC/CMD     Frs  65, Rel 20H:  CD,33,30 --> CD,6D,44
+RUNC/CMD     Frs  61, Rel 26H:  CD,8D,02 --> C9,00,00
+RUNC/CMD     Frs 101, Rel A8H:  03,25,42 --> 03,18,43
+RUNC/CMD     Frs 108, Rel 9BH:  21,25,42 --> 21,18,43
+#
+# Patches to linkload/cmd the linker-loader.
+#
+LINKLOAD/CMD Frs  64, Rel 7EH:  2A,11,44 --> 2A,49,40
+LINKLOAD/CMD Frs  64, Rel A7H:  2A,11,44 --> 2A,49,40
+LINKLOAD/CMD Frs  65, Rel 85H:  2A,11,44 --> 2A,49,40
+LINKLOAD/CMD Frs  67, Rel 01H:  2A,11,44 --> 2A,49,40
+LINKLOAD/CMD Frs  67, Rel 68H:  2A,11,44 --> 2A,49,40
+LINKLOAD/CMD Frs  68, Rel 27H:  2A,11,44 --> 2A,49,40
+LINKLOAD/CMD Frs  25, Rel 95H:  C3,36,30,C3,33,30 --> C3,70,44,C3,6D,44
+LINKLOAD/CMD Frs  62, Rel 48H:  CD,8D,02 --> C9,00,00
+#
+# Patches to CC.CMD and RUNC.CMD for dots in filenames
+# 09-Aug-87
+#
+CC.CMD       Frs  28, Rel 7AH:  2F --> 2E
+CC.CMD       Frs  28, Rel 7FH:  2F --> 2E
+CC.CMD       Frs  28, Rel 8DH:  2F --> 2E
+CC.CMD       Frs  28, Rel 94H:  2F --> 2E
+CC.CMD       Frs  33, Rel 90H:  2F --> 2E
+#
+RUNC.CMD     Frs 109, Rel 77H:  2F --> 2E
+#
+# End of patches.
