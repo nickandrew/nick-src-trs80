@@ -1,4 +1,12 @@
-;@(#) mail4.asm: mail message entry, 08 Apr 89
+; @(#) mail4.asm - message entry, 20 Aug 89
+;
+;20 Aug 89:	Rewrite editor & fix crash when editor fails
+;04 Jul 89:	Fix stuffup when asking for name
+;02 Jul 89:	Remove bug causing mail entered from
+;	the command line (ie mail sysop) having two
+;	destination headers
+;
+;28 Jun 89:	Original reply version.
 ;
 ;The user entered a destination on the command line, so send one
 ;message and exit.
@@ -6,22 +14,27 @@ MAIL_SEND
 	LD	A,(PRIV_2)
 	BIT	IS_VISITOR,A
 	LD	HL,(SEND_TO)
-	JR	Z,MS_01		;Members - unchanged
+	JR	Z,MS_01		;If Members - unchanged
 	LD	HL,M_WHOTO
 	CALL	MESS
 	LD	HL,SYSOP_NAME
 	CALL	MESS
 	CALL	PUTCR
-	LD	HL,SYSOP_NAME
+	LD	HL,SYSOP_NAME	;Send to sysop
 MS_01
 	LD	DE,NAME_BUFF
-	CALL	CR_STRCPY
+	CALL	CR_STRCPY	;Copy
 ;
-	CALL	ENTER_INIT
-	CALL	CHECK_MAX
+	CALL	SET_HIGH
+	CALL	CHECK_MAX	;# of msgs in total
+	JP	NC,EXIT_CMD	;If full
+;
 	CALL	SETUP_MEM
+	LD	HL,(USR_NAME)	;From
+	CALL	SET_FIELD	;From
 ;
-	CALL	SET_DEST_NAME
+	LD	HL,NAME_BUFF
+	CALL	SET_FIELD	;To
 ;
 	CALL	SET_TOPIC
 	CALL	ADD_DATE
@@ -44,16 +57,21 @@ ENTER_CMD
 	CP	CR
 	JP	NZ,BADSYN
 ;
-	CALL	ENTER_INIT
+	CALL	SET_HIGH
 ;
 	LD	HL,M_ENTER
 	CALL	MESS
 ;
 	CALL	CHECK_MAX	;# of msgs in total
+	JP	NC,MAIN		;If full
 ;
 	CALL	SETUP_MEM	;Header & store senders name
-	CALL	GET_NAME	;Get To: address and store
+	LD	HL,(USR_NAME)	;Set from address
+	CALL	SET_FIELD	;From
+	CALL	GET_NAME	;Get To: address
 	JP	NZ,MAIN		;No name entered
+	LD	HL,NAME_BUFF	;Set to address
+	CALL	SET_FIELD	;To
 ;
 	CALL	SET_TOPIC
 ;
@@ -66,6 +84,54 @@ ENTER_CMD
 	CALL	SAVE_MSG	;save it to txt
 	JP	MAIN
 ;
+;Do reply ... from, to, subject are supplied automagically
+DO_REPLY
+	CALL	TEXT_POSN
+	CALL	HDR_STORE
+;
+	CALL	SET_HIGH
+;
+	LD	HL,M_REPLY
+	CALL	MESS
+;
+	CALL	CHECK_MAX	;# of msgs in total
+	RET	NC		;If full
+;
+	CALL	SETUP_MEM	;Date
+	LD	HL,(USR_NAME)
+	CALL	SET_FIELD	;Set from name
+;
+	LD	HL,M_SNDR
+	CALL	MESS
+	LD	HL,(USR_NAME)
+	LD	DE,$2
+	CALL	MESS_NOCR
+	LD	HL,M_RCVR
+	CALL	MESS
+	LD	HL,B_FROM	;New To address
+	CALL	MESS
+	CALL	PUTCR
+;
+	CALL	SET_TO		;Set to for reply (mail)
+;
+	CALL	SET_TOPIC
+;
+	CALL	ADD_DATE	;Add date to text_buff
+;
+	LD	HL,M_SUBJ
+	CALL	MESS
+	LD	HL,B_SUBJ
+	CALL	MESS
+	CALL	PUTCR
+	CALL	SET_SUBJ	;Add a subject
+	RET	NZ
+;
+	CALL	ENTER_MSG	;enter message manually
+	RET	NZ		;if aborted.
+	CALL	SAVE_MSG	;save it to txt
+	RET
+;
+;Enter message from a file
 FROM_FILE
 	CALL	GET_CHAR
 	CP	CR
@@ -75,10 +141,14 @@ FROM_FILE
 	CALL	MESS
 ;
 	CALL	CHECK_MAX
+	JP	NC,MAIN		;If full
 	CALL	SETUP_MEM
-;
-	CALL	GET_NAME
+	LD	HL,(USR_NAME)
+	CALL	SET_FIELD	;From
+	CALL	GET_NAME	;Get To: address
 	JP	NZ,MAIN
+	LD	HL,NAME_BUFF
+	CALL	SET_FIELD	;To
 ;
 	CALL	SET_TOPIC
 ;
@@ -143,7 +213,7 @@ FF_06
 	JP	MAIN
 ;
 ;Set highest allowable address. This code is not well behaved.
-ENTER_INIT
+SET_HIGH
 	LD	HL,(HIMEM)
 	LD	DE,-256		;Give it some clearance!
 	ADD	HL,DE
@@ -153,28 +223,34 @@ ENTER_INIT
 	RES	1,(HL)		;Message length warning
 	RET
 ;
+;Date and sender name
 SETUP_MEM
 	XOR	A
 	LD	(LINES),A	;No lines in it.
 	CALL	INIT_HDR	;Initialise header fields
 ;
-	LD	DE,TEXT_BUF
-	LD	(MEM_PTR),DE
-	LD	HL,(USR_NAME)
-SM_01	LD	A,(HL)		;Copy senders name
+	LD	HL,TEXT_BUF
+	LD	(MEM_PTR),HL
+	LD	(MEMT_PTR),HL
+	RET
+;
+SET_FIELD
+	LD	DE,(MEM_PTR)
+SF_01	LD	A,(HL)		;Copy senders name
 	CP	CR
-	JR	Z,SM_02
+	JR	Z,SF_02
 	OR	A
-	JR	Z,SM_02
+	JR	Z,SF_02
 	LD	(DE),A
 	INC	HL
 	INC	DE
-	JR	SM_01
+	JR	SF_01
 ;
-SM_02	LD	A,CR
-	LD	(DE),A
-	INC	DE
-	EX	DE,HL
+SF_02	EX	DE,HL
+	LD	A,CR
+	LD	(HL),A
+	INC	HL
+	LD	(HL),0
 	LD	(MEM_PTR),HL
 	LD	(MEMT_PTR),HL
 	RET
@@ -290,19 +366,22 @@ ENTER_PMPT
 	RET
 ;
 MESG_QUEST
+MQ_01
 	XOR	A
 	LD	(NULL_LINE),A
 ;
-	LD	HL,MENU_QUEST
-	CALL	MENU
+	LD	HL,MU_QUEST
+	CALL	MESS
 MQ_1	LD	HL,PMPT_QUEST
-	CALL	GET_STRING
-MQ_2	CALL	GET_CHAR
+	CALL	MESS
+	LD	HL,MSGQ_BUFF
+	LD	B,1
+	CALL	40H
+	JR	C,MQ_01
+;
+MQ_2	LD	A,(MSGQ_BUFF)
 	CP	CR
 	JR	Z,MQ_1
-	PUSH	AF
-	CALL	GET_CHAR	;get CR
-	POP	AF
 	AND	5FH
 	CP	'A'		;Abort
 	JP	Z,NO_LINES
@@ -314,7 +393,7 @@ MQ_2	CALL	GET_CHAR
 	JR	Z,M_LIST
 	CP	'E'		;Edit line
 	JR	Z,MESG_EDIT
-	JR	MESG_QUEST
+	JR	MQ_01
 ;
 CONTIN
 	LD	A,(LINES)
@@ -367,23 +446,33 @@ MLS_3	PUSH	AF
 ;
 MESG_EDIT
 ;ask which line to edit.
-	CALL	IF_CHAR
-	JR	Z,MED_2
 MED_1	LD	HL,M_EDWHLI
-	CALL	GET_STRING
-MED_2	CALL	GET_CHAR
+	CALL	MESS
+	LD	HL,MSGQ_BUFF
+	LD	B,3
+	CALL	40H
+	JP	C,MESG_QUEST
+;
+	LD	A,(MSGQ_BUFF)
 	CP	CR
 	JP	Z,MESG_QUEST
 	CALL	IF_NUM
 	JR	NZ,MED_1
-	CALL	GET_NUM
+	LD	HL,MSGQ_BUFF
+	CALL	GET_NUMBER
 	EX	DE,HL
 	LD	A,D
 	OR	A
-	JR	NZ,MED_1
+	JR	NZ,MED_1	;256 or greater!
+;
 	LD	A,(LINES)
 	CP	E
-	JR	C,MED_1
+	JR	NC,MED_2
+	LD	HL,M_TOOFEW
+	CALL	MESS
+	JR	MED_1
+;
+MED_2
 	LD	HL,(MEMT_PTR)
 	LD	B,1
 MED_3	LD	A,(HL)
@@ -846,11 +935,11 @@ SET_HDR_RBA
 	CP	255
 	JP	Z,SAVE_ERROR	;No free blocks
 	XOR	A
-	LD	(HDR_RBA),A
+	LD	(NHDR_RBA),A
 	LD	A,L
-	LD	(HDR_RBA+1),A
+	LD	(NHDR_RBA+1),A
 	LD	A,H
-	LD	(HDR_RBA+2),A
+	LD	(NHDR_RBA+2),A
 	CALL	_SEEKTO
 ;
 	LD	HL,_BLOCK
@@ -867,7 +956,7 @@ SAVE_TOP_1
 	DEC	HL
 	LD	DE,MSG_TOPIC
 	ADD	HL,DE
-	LD	A,(HDR_TOPIC)
+	LD	A,(NHDR_TOPIC)
 	LD	(HL),A
 	LD	DE,TOPIC	;Yuk.
 	OR	A
@@ -878,14 +967,14 @@ SAVE_TOP_1
 	LD	DE,TOP_FCB
 	CALL	DOS_POS_RBA
 	JP	NZ,SAVE_ERROR
-	LD	A,(HDR_TOPIC)
+	LD	A,(NHDR_TOPIC)
 	CALL	$PUT
 	JP	NZ,SAVE_ERROR
 	RET
 ;
 ;save message text.
 SAVE_TEXT_1
-	LD	HL,(HDR_RBA+1)
+	LD	HL,(NHDR_RBA+1)
 	CALL	_SEEKTO
 	LD	HL,2
 	LD	(_BLKPOS),HL
@@ -899,7 +988,39 @@ SAVE_TEXT_1
 	CALL	BPUTC
 	JP	NZ,SAVE_ERROR
 	LD	HL,TEXT_BUF
-	CALL	_BPUTS
+	XOR	A
+	LD	(PREV_CHAR),A
+;
+ST1_01
+	LD	A,(HL)
+	OR	A
+	JR	Z,ST1_04	;End of message
+	CP	CR
+	JR	NZ,ST1_02
+	LD	A,(PREV_CHAR)	;Delete CR if preceded by a space
+	CP	' '
+	JR	Z,ST1_03	;Bypass it entirely
+	LD	A,CR		;Restore its value
+ST1_02
+	LD	(PREV_CHAR),A
+	PUSH	HL
+	CALL	BPUTC
+	POP	HL
+	JP	NZ,SAVE_ERROR
+ST1_03
+	INC	HL
+	JR	ST1_01		;Loop up
+;
+ST1_04
+	LD	A,(PREV_CHAR)	;Ensure last char of msg is a CR
+	CP	CR
+	JR	Z,ST1_05
+	LD	A,CR
+	CALL	BPUTC
+	JP	NZ,SAVE_ERROR
+ST1_05
+	XOR	A
+	CALL	BPUTC
 	JP	NZ,SAVE_ERROR
 	RET
 ;
@@ -924,7 +1045,6 @@ GET_NAME
 	LD	DE,NAME_BUFF
 	CALL	CR_STRCPY
 	JR	GEN_00B
-
 GEN_00A
 	LD	HL,M_WHOTO
 	CALL	GET_STRING
@@ -947,28 +1067,15 @@ GEN_02
 	RET
 ;
 GEN_03
-	CALL	SAY_PRIV	;Set the message private
-	CALL	SET_DEST_NAME
+	CP	A		;Set Z flag
 	RET
 ;
-SET_DEST_NAME
+SET_TO
+	LD	HL,B_FROM
 	LD	DE,NAME_BUFF
-	LD	HL,(MEM_PTR)
-SDN_01	LD	A,(DE)
-	CP	CR
-	JR	Z,SDN_02
-	OR	A
-	JR	Z,SDN_02
-	LD	(HL),A
-	INC	HL
-	INC	DE
-	JR	SDN_01
-;
-SDN_02	LD	(HL),CR
-	INC	HL
-	LD	(MEM_PTR),HL
-	LD	(HL),0
-	CP	A
+	CALL	STRCPY_CR
+	LD	HL,NAME_BUFF
+	CALL	SET_FIELD
 	RET
 ;
 SAY_PRIV
@@ -977,17 +1084,17 @@ SAY_PRIV
 	RET
 ;
 ADD_DATE
-	LD	HL,HDR_TIME
+	LD	HL,NHDR_TIME
 	LD	A,(HL)
-	LD	(HMS_S),A
+	LD	(HMS_H),A
 	INC	HL
 	LD	A,(HL)
 	LD	(HMS_M),A
 	INC	HL
 	LD	A,(HL)
-	LD	(HMS_H),A
+	LD	(HMS_S),A
 ;
-	LD	HL,HDR_DATE
+	LD	HL,NHDR_DATE
 	LD	A,(HL)
 	LD	(DMY_D),A
 	INC	HL
@@ -1005,8 +1112,6 @@ ADD_DATE
 	EX	DE,HL
 	LD	(HL),' '
 	INC	HL
-;;	LD	(HL),' '
-;;	INC	HL
 	LD	(MEM_PTR),HL
 ;
 	LD	DE,HMS_H
@@ -1023,6 +1128,12 @@ ADD_DATE
 ;
 	XOR	A
 	LD	(DE),A		;zero it.
+	RET
+;
+SET_SUBJ
+	LD	HL,B_SUBJ
+	CALL	SET_FIELD	;Subj
+	CP	A
 	RET
 ;
 GET_SUBJ
@@ -1053,42 +1164,39 @@ GS_4
 ;
 WRITE_HDR
 	LD	A,8
-	LD	(HDR_LINES),A
+	LD	(NHDR_LINES),A
 ;
-	LD	HL,(N_MSG)
-	DEC	HL
-	LD	(A_MSG_POSN),HL
-	CALL	WRITE_MSGHDR
+	CALL	WRITE_NMSGHDR
 	RET
 ;
 INIT_HDR
-	LD	HL,THIS_MSG_HDR
-	LD	B,16
+	LD	HL,NEW_MSG_HDR
+	LD	B,HDR_LEN
 IH_01	LD	(HL),0
 	INC	HL
 	DJNZ	IH_01
 ;
 	XOR	A
 	SET	FM_OUTGOING,A		;Set to outgoing message
-	LD	(HDR_FLAG),A
+	LD	(NHDR_FLAG),A
 ;
 	LD	HL,(USR_NUMBER)
-	LD	(HDR_SNDR),HL
+	LD	(NHDR_SNDR),HL
 	LD	HL,0
-	LD	(HDR_RCVR),HL
+	LD	(NHDR_RCVR),HL
 ;
 	LD	A,(4041H)	;Date/time stamp
-	LD	(HDR_TIME),A	;Sec
+	LD	(NHDR_TIME+2),A	;Sec
 	LD	A,(4042H)
-	LD	(HDR_TIME+1),A	;Min
+	LD	(NHDR_TIME+1),A	;Min
 	LD	A,(4043H)
-	LD	(HDR_TIME+2),A	;Hours
+	LD	(NHDR_TIME),A	;Hours
 	LD	A,(4045H)
-	LD	(HDR_DATE),A	;Day
+	LD	(NHDR_DATE),A	;Day
 	LD	A,(4046H)
-	LD	(HDR_DATE+1),A	;Mon
+	LD	(NHDR_DATE+1),A	;Mon
 	LD	A,(4044H)
-	LD	(HDR_DATE+2),A	;Year
+	LD	(NHDR_DATE+2),A	;Year
 	RET
 ;
 SAVE_FILE_1
@@ -1164,6 +1272,8 @@ IB_01	PUSH	HL
 	DEC	HL
 	OR	A
 	SBC	HL,DE
+	LD	A,H
+	OR	L
 	POP	HL
 	JR	Z,IB_03
 	LD	A,(HL)
@@ -1176,8 +1286,18 @@ IB_01	PUSH	HL
 ;
 IB_02
 	EX	DE,HL
+;If there is preinput for the next line, put a space
+;at the end of this line as well as a CR
+;(The errant CR will be stripped off later).
+	LD	A,(LI_PRE)
+	OR	A
+	JR	Z,IB_04		;Is no preinput
+	LD	(HL),' '
+	INC	HL
+IB_04
 	LD	(HL),CR
 	INC	HL
+IB_05
 	LD	(HL),0
 	LD	(MEM_PTR),HL
 	CP	A
@@ -1194,9 +1314,11 @@ CHECK_MAX
 	LD	DE,MAX_MSGS-4
 	CALL	CPHLDE
 	RET	C		;If not full
+	PUSH	AF
 	LD	HL,M_BRDFULL
 	CALL	MESS
-	JP	MAIN
+	POP	AF
+	RET
 ;
 COPY_NAME
 	LD	IX,NAME_BUFF
@@ -1210,7 +1332,7 @@ CN_01	CALL	GET_CHAR	;Get name until CR
 ;
 SET_TOPIC
 	LD	A,(MY_TOPIC)
-	LD	(HDR_TOPIC),A
+	LD	(NHDR_TOPIC),A
 	RET
 ;
 SAVE_ERROR
@@ -1233,6 +1355,23 @@ CRS_01
 ;
 CRS_02
 	XOR	A
+	LD	(DE),A
+	RET
+;
+STRCPY_CR
+SCCR_01
+	LD	A,(HL)
+	LD	(DE),A
+	OR	A
+	JR	Z,SCCR_02
+	CP	CR
+	JR	Z,SCCR_02
+	INC	HL
+	INC	DE
+	JR	SCCR_01
+;
+SCCR_02
+	LD	A,CR
 	LD	(DE),A
 	RET
 ;

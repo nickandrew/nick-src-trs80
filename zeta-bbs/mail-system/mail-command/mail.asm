@@ -1,11 +1,14 @@
 ;@(#) mail.asm: Private network mail system
 ;
+;1.10	20 Aug 89	Fix crashing bug in editor
+;1.9c	24 Jul 89	Base version
+;
 *GET	DOSCALLS.HDR
 *GET	EXTERNAL.HDR
 *GET	ASCII.HDR
 ;
 MAX_LINES	EQU	250
-MAX_MSGS	EQU	512
+MAX_MSGS	EQU	400
 ;
 	ORG	PROG_START
 	DEFW	BASE
@@ -14,7 +17,7 @@ MAX_MSGS	EQU	512
 	DEFW	CLEAN_DISCON
 ;End of program load info.
 ;
-	COM	'<Mail 1.8a 08-Apr-89>'
+	COM	'<Mail 1.10  20-Aug-89>'
 ;
 	ORG	BASE+100H
 ;
@@ -27,13 +30,14 @@ MAX_MSGS	EQU	512
 *GET	MAIL7		;Text file routines
 ;
 *GET	LINEIN.LIB
+*GET	MOREPIPE.LIB	;Pipe output through - more - filter
 *GET	TIMES.LIB
 *GET	ROUTINES.LIB
 ;
 *GET	MAILDATA
 ;
 ZZZZZZZY EQU $		;End of required data
-	DEFS	4096	;Text buffer.
+	DEFS	5120	;Text buffer.
 ZZZZZZZZ EQU $		;End of 4k buffer.
 ;
 THIS_PROG_END	EQU	$
