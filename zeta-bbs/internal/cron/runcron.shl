@@ -1,12 +1,7 @@
-rm tempfile:1 sortwrk1:1 sortwrk2:1
+rm tempfile:1
 pktass
-logclean
+msgass
+
+mailass
+
 exit
-fixwhere
-exit
-echo These commands execute thrice daily unless somebody
-echo is logged on. What they do is print the date, then
-echo remove some temporary files, assemble outgoing Fidonet
-echo packets, fix up the overall list of download files
-echo on Zeta, clean up one of Zeta's logs if necessary,
-echo and then terminate. All this takes echo only a minute.
