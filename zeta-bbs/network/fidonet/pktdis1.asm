@@ -1,0 +1,903 @@
+;pktdis1: Code for pktdis
+;
+START	LD	SP,START
+;
+	LD	A,(PRIV_1)
+	BIT	IS_SYSOP,A
+	JR	NZ,PKT_01
+;
+	LD	A,127
+	JP	TERMINATE
+;
+PKT_01
+	LD	A,(HL)
+	CP	'-'
+	JR	NZ,PKT_01A
+	INC	HL
+	LD	A,(HL)
+	INC	HL
+	INC	HL
+	CP	'R'
+	JR	NZ,PKT_01A
+	LD	A,1
+	LD	(RMFLAG),A
+PKT_01A	LD	DE,PKT_FCB
+	CALL	EXTRACT
+	JP	NZ,ERROR
+	LD	HL,PKT_BUFF
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,ERROR
+;
+	CALL	READ_PKTHDR	;Check its to us
+	JP	NZ,ERROR	;Bad header
+;
+;Setup Zeta message files.
+	CALL	OPEN_MSG	;Open triple files
+;
+	CALL	LOAD_NODES
+;
+	LD	HL,M_HDROK
+	CALL	LOG_MSG_2
+;
+PKT_02	CALL	READ_MSGHDR
+	LD	HL,M_NOMSG
+	JP	NZ,BAD_PKT
+;
+	CALL	COPY_MESSAGE
+	LD	HL,M_NOCOPY
+	JP	NZ,BAD_PKT
+	JR	PKT_02
+;
+OPEN_MSG
+	LD	DE,TXT_FCB
+	LD	HL,MSGTXT_BUFF
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,ERROR
+	LD	A,(TXT_FCB+1)
+	AND	0F8H
+	OR	40H
+	LD	(TXT_FCB+1),A
+	CALL	DOS_POS_EOF
+	JP	NZ,ERROR
+;
+	LD	DE,HDR_FCB
+	LD	HL,MSGHDR_BUFF
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,ERROR
+	LD	A,(HDR_FCB+1)
+	AND	0F8H
+	OR	40H
+	LD	(HDR_FCB+1),A
+;
+	LD	DE,TOP_FCB
+	LD	HL,MSGTOP_BUFF
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,ERROR
+	LD	A,(TOP_FCB+1)
+	AND	0F8H
+	OR	40H
+	LD	(TOP_FCB+1),A
+;
+;Setup counts
+	LD	HL,COUNTS
+	LD	DE,TOP_FCB
+	LD	B,16
+OF_01	CALL	$GET
+	JP	NZ,ERROR
+	LD	(HL),A
+	INC	HL
+	DJNZ	OF_01
+;
+	LD	HL,COUNTS	;Save original counts.
+	LD	DE,COUNTS_ORIG
+	LD	BC,16
+	LDIR
+;
+	LD	HL,(NUM_MSG)
+	LD	C,0
+	SRL	H	;Multiply by 16, result in H/L/C
+	RR	L
+	RR	C
+	SRL	H	;2
+	RR	L
+	RR	C
+	SRL	H	;3
+	RR	L
+	RR	C
+	SRL	H	;4
+	RR	L
+	RR	C
+	LD	DE,HDR_FCB
+	CALL	DOS_POS_RBA
+	JP	NZ,ERROR
+;
+	LD	HL,1000H	;topic file offset.
+	LD	DE,(NUM_MSG)
+	ADD	HL,DE
+	LD	DE,TOP_FCB
+	LD	C,L
+	LD	L,H
+	LD	H,0
+	CALL	DOS_POS_RBA	;position topic file
+	JP	NZ,ERROR
+;
+	CALL	_READFREE	;Read free blocks
+	RET
+;
+LOAD_NODES
+	LD	HL,NODELIST
+	LD	(LIST_POS),HL
+	LD	HL,NODE_BUF
+	LD	DE,NODE_FCB
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,ERROR
+	LD	A,(NODE_FCB+1)
+	AND	0F8H
+	LD	(NODE_FCB+1),A
+;Format is:
+;# - comments
+;nudename    nudenumber   linkname  description
+;   "             "          "           "
+;*                     default_linkname
+LN_1	CALL	NODE_LINE
+	JR	NZ,LN_1
+	LD	HL,(LIST_POS)
+	LD	(HL),0
+	RET
+;
+NODE_LINE
+	LD	HL,(LIST_POS)
+	LD	(HL),0
+	LD	DE,NODE_FCB
+	CALL	$GET
+	JR	Z,NL_2
+	CP	1CH
+	RET	Z
+	CP	1DH
+	RET	Z
+	JP	ERROR
+NL_2
+	CP	'*'	;End of first list
+	RET	Z
+	CP	'#'
+	JR	NZ,NL_4
+NL_3	CALL	$GET
+	CP	CR
+	JR	NZ,NL_3
+	XOR	A
+	CP	1
+	RET
+NL_4	LD	(HL),A
+	INC	HL
+	CALL	$GET
+	JP	NZ,ERROR
+	CP	' '
+	JR	NZ,NL_4
+	LD	(HL),0
+	INC	HL
+	LD	(LIST_POS),HL
+NL_5	CALL	$GET
+	CP	' '
+	JR	Z,NL_5
+NL_6	LD	(HL),A
+	INC	HL
+	CALL	$GET
+	JP	NZ,ERROR
+	CP	' '
+	JR	NZ,NL_6
+	LD	(HL),0
+	INC	HL
+	LD	(LIST_POS),HL
+NL_7	CALL	$GET
+	JR	Z,NL_8
+	CP	1CH
+	RET	Z
+	CP	1DH
+	RET	Z
+	JP	ERROR
+NL_8	CP	CR
+	JR	NZ,NL_7
+	XOR	A
+	INC	A
+	RET
+;
+;;CONVERT_NODE
+;;	LD	(NODE_STR),HL
+;;	LD	HL,NODELIST
+;;CN_01	LD	(LEFT_STR),HL
+;;	LD	A,(HL)
+;;	OR	A
+;;	RET	Z
+;;CN_02	LD	A,(HL)
+;;	INC	HL
+;;	OR	A
+;;	JR	NZ,CN_02
+;;	LD	(RIGHT_STR),HL
+;;CN_03	INC	HL
+;;	LD	A,(HL)
+;;	OR	A
+;;	JR	NZ,CN_03
+;;	INC	HL
+;;	PUSH	HL
+;;	LD	DE,(NODE_STR)
+;;	LD	HL,(RIGHT_STR)
+;;	CALL	STRCMP_CI
+;;	POP	HL
+;;	JR	NZ,CN_01
+;;	LD	HL,(LEFT_STR)
+;;	LD	DE,(NODE_STR)
+;;	CALL	STRCPY
+;;	RET
+;
+READ_PKTHDR
+	LD	HL,HEADER
+	LD	DE,PKT_FCB
+	LD	B,58
+RH_01	CALL	$GET
+	JP	NZ,ERROR
+	LD	(HL),A
+	INC	HL
+	DJNZ	RH_01
+;
+	LD	HL,(H_DEST_NET)
+	LD	DE,ZETA_NET	;Our net number
+	OR	A
+	SBC	HL,DE
+	JR	Z,RH_03
+;
+	LD	HL,(H_DEST_NET)
+	LD	DE,713		;New net number
+	OR	A
+	SBC	HL,DE
+	JR	Z,RH_03
+RH_02	LD	HL,M_NOTME
+	JP	BAD_PKT
+RH_03	LD	HL,(H_DEST_NODE)
+	LD	DE,ZETA_NODE	;602=Zeta
+	OR	A
+	SBC	HL,DE
+	JR	Z,RH_04
+	LD	HL,(H_DEST_NODE)
+	LD	DE,4177		;dummy number.
+	OR	A
+	SBC	HL,DE
+	JR	NZ,RH_02
+;
+RH_04	LD	HL,(H_VER)
+	OR	A
+	LD	DE,2
+	SBC	HL,DE
+	LD	HL,M_BADVER
+	JP	NZ,BAD_PKT	;Bad version #
+	CP	A
+	RET			;Finished with header
+;
+FGETW:	CALL	$GET		;get an integer L,H
+	LD	L,A
+	RET	NZ
+	CALL	$GET
+	LD	H,A
+	RET
+;
+READ_MSGHDR
+	LD	DE,PKT_FCB
+	CALL	FGETW		;Read message type
+	JP	NZ,RD_ERROR
+	LD	A,H
+	OR	L
+	JP	Z,PKT_TRAIL	;0 == end of packet
+	EX	DE,HL
+	LD	HL,2
+	OR	A
+	SBC	HL,DE
+	JR	Z,RM_01		;Standard message
+	LD	HL,M_BADHDR
+	JP	BAD_PKT
+;
+RM_01	LD	HL,F_MSG_HDR	;Read rest of msg hdr
+	LD	B,12
+	LD	DE,PKT_FCB
+RM_02	CALL	$GET
+	JP	NZ,RD_ERROR
+	LD	(HL),A
+	INC	HL
+	DJNZ	RM_02
+;
+	LD	DE,PKT_FCB
+	LD	HL,DATE_BUFFER
+	LD	B,20
+	CALL	FGETS		;Get the text date
+	JP	NZ,RD_ERROR
+	LD	HL,TO_BUFFER
+	LD	B,37
+	CALL	FGETS		;Get the destination
+	JP	NZ,RD_ERROR
+	LD	HL,FROM_BUFFER
+	LD	B,37
+	CALL	FGETS		;Get the origin
+	JP	NZ,RD_ERROR
+	LD	HL,SUBJ_BUFFER
+	LD	B,81
+	CALL	FGETS		;Get the subject
+	JP	NZ,RD_ERROR
+;
+	LD	HL,SUBJ_BUFFER
+	LD	DE,$2
+	CALL	MESS_0
+	LD	A,CR
+	CALL	$PUT
+;
+;Check if message intended for Zeta
+	XOR	A
+	LD	(TO_ZETA),A
+	LD	HL,(DEST_NET)
+	LD	DE,ZETA_NET
+	OR	A
+	SBC	HL,DE
+	JR	NZ,RM_03	;Not our net
+	LD	HL,(DEST_NODE)
+	LD	DE,ZETA_NODE
+	OR	A
+	SBC	HL,DE
+	JR	Z,RM_04
+RM_03
+	LD	HL,0FFFFH	;dest id not on Zeta
+	LD	(HDR_RCVR),HL
+	LD	A,2		;Passthrough message
+	LD	(DEST_KNOWN),A
+	CP	A
+	RET
+RM_04
+	LD	A,1		;Msg is to us
+	LD	(TO_ZETA),A
+;Check userfile for the name given.
+	LD	HL,TO_BUFFER
+	LD	A,(HL)
+	OR	A
+	JR	Z,RM_04A
+	CALL	USER_SEARCH
+	JR	Z,RM_05
+RM_04A	LD	HL,0FFFFH	;dest ID
+	LD	(HDR_RCVR),HL
+	XOR	A
+	LD	(DEST_KNOWN),A
+	CP	A
+	RET
+RM_05
+	LD	HL,(UF_UID)
+	LD	(HDR_RCVR),HL
+;
+	LD	A,1
+	LD	(DEST_KNOWN),A
+	CP	A
+	RET			;message header is read.
+;
+RD_ERROR
+	LD	HL,M_RDERR
+	JP	BAD_PKT
+;
+COPY_MESSAGE
+;
+	CALL	MAKE_NAMES	;Make @name from origin
+;
+	LD	A,DEFAULT_TOPIC
+	LD	(HDR_TOPIC),A
+;
+	XOR	A
+	LD	(ECHOMAIL),A	;Default not echomail.
+;
+;Read first line of message. if AREA: then it is echomail
+	LD	HL,STRING
+	LD	DE,PKT_FCB
+	LD	B,255
+CM_02	CALL	$GET
+	JP	NZ,ERROR
+	OR	A
+	JR	Z,NO_FIRST_LINE
+	CP	LF
+	JR	Z,CM_02
+	AND	7FH
+	LD	(HL),A
+	INC	HL
+	CP	CR
+	JR	Z,CM_03
+	DJNZ	CM_02
+	PUSH	HL
+	LD	HL,M_LONGLINE
+	CALL	LOG_MSG_2
+	POP	HL
+	JR	CM_03
+;
+NO_FIRST_LINE
+	LD	HL,M_EMPTY
+	CALL	LOG_MSG_2
+	CP	A
+	RET			;read next message
+;
+CM_03
+	LD	(HL),0
+	LD	A,(TO_ZETA)
+	OR	A
+	JR	Z,CM_03A	;If not to us, not echo
+;
+	LD	HL,STRING
+	LD	DE,ECHO_MARK
+	CALL	STRCMP_CI_PART
+	JR	Z,CM_03B
+;
+	LD	HL,STRING
+	LD	DE,ECHO_MARK2	;With ^A in front
+	CALL	STRCMP_CI_PART
+	JR	Z,CM_03B
+	JR	CM_03A
+;
+CM_03B
+	CALL	WHICH_CONF	;Find out where it goes
+;
+CM_03A
+;Create a new message.
+;
+	LD	A,(HDR_TOPIC)	;Write topic # in msgtop
+	LD	DE,TOP_FCB
+	CALL	$PUT
+	JP	NZ,WRIT_ERR
+;
+	CALL	FIX_HDR
+;
+	LD	A,0FFH		;Write header byte
+	CALL	BPUTC
+	JP	NZ,WRIT_ERR
+;
+	XOR	A
+	CALL	BPUTC
+	JP	NZ,WRIT_ERR
+;
+	XOR	A		;Write filler byte
+	CALL	BPUTC
+	JP	NZ,WRIT_ERR
+;
+	LD	HL,FROM_BUFFER
+	CALL	_BPUTS
+	JP	NZ,WRIT_ERR
+	LD	HL,ID_ORIG
+	CALL	_BPUTS
+	JP	NZ,WRIT_ERR
+	LD	A,CR
+	CALL	BPUTC
+	JP	NZ,WRIT_ERR
+;
+	LD	HL,TO_BUFFER
+	CALL	_BPUTS
+	JP	NZ,WRIT_ERR
+	LD	HL,ID_DEST
+	CALL	_BPUTS
+	JP	NZ,WRIT_ERR
+	LD	A,CR
+	CALL	BPUTC
+	JP	NZ,WRIT_ERR
+;
+	LD	HL,DATE_BUFFER
+	CALL	_BPUTS
+	JP	NZ,WRIT_ERR
+	LD	A,CR
+	CALL	BPUTC
+	JP	NZ,WRIT_ERR
+;
+	LD	HL,SUBJ_BUFFER
+	CALL	_BPUTS
+	JP	NZ,WRIT_ERR
+	LD	A,CR
+	CALL	BPUTC
+	JP	NZ,WRIT_ERR
+;
+	LD	A,(ECHOMAIL)	;if echomail do not write
+	OR	A		;first line.
+	JR	NZ,RM_07A
+;
+;Output the first line of the message
+	LD	HL,STRING
+RM_06	LD	A,(HL)
+	OR	A
+	JR	Z,RM_07
+	CALL	BPUTC
+	JP	NZ,WRIT_ERR
+	INC	HL
+	JR	RM_06
+RM_07
+;
+RM_07A
+	XOR	A
+	LD	(HDR_LINES),A
+;
+RM_08
+;Copy message line by line
+	CALL	GETLINE
+	JP	NZ,ERROR
+	LD	A,(LINEBUF)
+	OR	A
+	JR	Z,RM_12		;End of message.
+	CALL	IF_KEYWORD	;SEEN-BY, PATH,
+	JR	Z,RM_08		;if key, ignore
+	CALL	PUTLINE
+	JP	NZ,WRIT_ERR
+	JR	RM_08
+;
+RM_12
+	XOR	A		;Write terminator.
+	CALL	BPUTC
+	JP	NZ,WRIT_ERR
+;
+	CALL	_BFLUSH
+;
+	LD	HL,MSGHDR_REC	;Write HDR record
+	LD	DE,HDR_FCB
+	LD	B,16
+CM_04	LD	A,(HL)
+	CALL	$PUT
+	JP	NZ,WRIT_ERR
+	INC	HL
+	DJNZ	CM_04
+;
+	LD	HL,(NUM_MSG)
+	INC	HL
+	LD	(NUM_MSG),HL
+	CP	A
+	RET
+;
+GETLINE
+	LD	B,80
+	LD	DE,PKT_FCB
+	LD	HL,LINEBUF
+GL_01	CALL	$GET
+	RET	NZ
+	OR	A
+	JR	Z,GL_02
+	CP	8DH
+	JR	Z,GL_01
+	AND	7FH
+	CP	LF
+	JR	Z,GL_01
+	LD	(HL),A
+	INC	HL
+	CP	CR
+	JR	Z,GL_03
+	DJNZ	GL_01
+	LD	(HL),0		;Line too long - wrap
+	CP	A
+	RET
+GL_02
+	XOR	A
+	LD	(LINEBUF),A
+	RET
+GL_03	LD	(HL),0
+	LD	HL,HDR_LINES
+	INC	(HL)
+	CP	A
+	RET
+;
+PUTLINE
+	LD	HL,LINEBUF
+	CALL	_BPUTS
+	RET
+;
+IF_KEYWORD
+	LD	HL,LINEBUF
+	LD	DE,SEEN_MARK
+	CALL	STRCMP_CI_PART
+	RET	Z
+	LD	HL,LINEBUF
+	LD	DE,CTRL_MARK
+	CALL	STRCMP_CI_PART
+	RET	Z
+	RET
+;
+PKT_TRAIL
+	LD	HL,M_PKTOK
+	CALL	LOG_MSG_2
+	CALL	UPD_COUNTS
+	CALL	STATS
+	LD	A,(RMFLAG)
+	OR	A
+	LD	DE,PKT_FCB
+	CALL	NZ,DOS_KILL
+	XOR	A
+	JP	TERMINATE
+;
+UPD_COUNTS
+;Packet is loaded successfully so update counts.
+	LD	DE,TOP_FCB		;Rewrite counts
+	CALL	DOS_REWIND
+	JP	NZ,ERROR
+;
+	LD	HL,COUNTS
+	LD	B,16
+CM_05	LD	A,(HL)
+	CALL	$PUT
+	JP	NZ,WRIT_ERR
+	INC	HL
+	DJNZ	CM_05
+;
+	CALL	_WRITEFRE
+	LD	DE,TXT_FCB
+	CALL	DOS_CLOSE
+	JP	NZ,ERROR
+	LD	DE,TOP_FCB		;Close top file
+	CALL	DOS_CLOSE
+	JP	NZ,ERROR
+	LD	DE,HDR_FCB
+	CALL	DOS_CLOSE
+	JP	NZ,ERROR
+	RET
+;
+;stats: Print message counts for each echomail group
+STATS
+	LD	HL,M_STATS
+	CALL	LOG_MSG_2
+	LD	DE,CONF_TABLE
+ST_01	LD	A,(DE)
+	OR	A
+	RET	Z
+	CALL	BYP_STR
+	PUSH	DE		;ourname - 1
+	CALL	BYP_STR
+	INC	DE		;bypass null
+	INC	DE		;bypass topic #
+	LD	A,(DE)
+	INC	DE
+	POP	HL
+	OR	A
+	JR	Z,ST_01		;If no messages there
+	PUSH	DE
+	EX	DE,HL
+	INC	DE		;de is our name
+	LD	L,A
+	LD	H,0
+	PUSH	HL
+	PUSH	DE
+	LD	HL,BLANKS	;Fill field with blanks
+	LD	DE,STRING
+	CALL	STRCPY
+	POP	HL		; our name
+	LD	DE,STRING
+	CALL	STRCPY
+	LD	A,' '		;remove null
+	LD	(DE),A
+	POP	HL		;the count
+	LD	DE,STRING+16
+	CALL	SPUTNUM
+	LD	A,CR
+	CALL	SPUTC
+	LD	HL,STRING
+	CALL	LOG_MSG_2
+	POP	DE		;next table position
+	JR	ST_01
+;
+WHICH_CONF
+	LD	A,(HL)
+	CP	' '
+	JR	NZ,WC_00	;Bypass preceding spaces
+	INC	HL
+	JR	WHICH_CONF
+WC_00
+;HL points to first character of area name
+;
+;Now find out which conference it is in.
+	LD	DE,CONF_TABLE
+WC_01
+	LD	A,(DE)
+	OR	A		;If end of table
+	RET	Z		;Unknown conference.
+	PUSH	HL
+	PUSH	DE
+	CALL	STRCMP_CI_PART
+	JR	Z,WC_04
+	POP	DE
+	CALL	BYP_STR		;Bypass incoming name
+	CALL	BYP_STR		;Bypass our name
+	INC	DE
+	INC	DE		;Bypass topic #
+	INC	DE		;Bypass message count
+	POP	HL
+	JR	WC_01
+;
+WC_04	POP	DE
+;
+	LD	A,1
+	LD	(ECHOMAIL),A
+	CALL	BYP_STR
+	INC	DE		;de points to our name
+	PUSH	DE
+	EX	DE,HL		;HL now our name
+;---
+;;	LD	DE,ID_ORIG+1	;after the '@'
+;;	CALL	STRCPY		;use conference id_orig.
+;---
+	LD	DE,ID_ORIG	;on the @
+	XOR	A
+	LD	(DE),A		;No net address (yet)
+;---
+	POP	DE
+WC_06	LD	A,(DE)		;bypass our name
+	INC	DE
+	OR	A
+	JR	NZ,WC_06
+	LD	A,(DE)		;topic number.
+	LD	(HDR_TOPIC),A
+;
+	INC	DE
+	LD	A,(DE)		;Inc messages count
+	INC	A
+	LD	(DE),A
+;
+	POP	HL		;now unused.
+	RET
+;
+BYP_STR	INC	DE
+	LD	A,(DE)
+	OR	A
+	JR	NZ,BYP_STR
+	RET
+;
+FIX_HDR
+;Setup remainder of msg's header & write to MSGHDR.
+	LD	A,(FLAGS)
+	AND	1		;get PRIVATE bit
+	ADD	A,A		;shift to bit 1
+	LD	(HDR_FLAG),A
+;
+	LD	A,(TO_ZETA)
+	OR	A
+	JR	NZ,FH_01	;Destination IS zeta
+	LD	A,(HDR_FLAG)
+FM_NETMSG	EQU	4
+	SET	FM_NETMSG,A
+	LD	(HDR_FLAG),A
+FH_01
+;
+	CALL	_GETFREE
+	LD	A,H
+	AND	L
+	CP	255
+	JP	Z,WRIT_ERR
+	LD	(_THISBLK),HL
+	CALL	_SEEKTO
+;
+	LD	HL,2
+	LD	(_BLKPOS),HL
+	LD	HL,_BLOCK
+	PUSH	HL
+	LD	HL,256
+	PUSH	HL
+	CALL	_ZEROMEM
+	POP	HL
+	POP	HL
+;
+	XOR	A
+	LD	(HDR_RBA),A
+	LD	HL,(_THISBLK)
+	LD	A,L
+	LD	(HDR_RBA+1),A
+	LD	A,H
+	LD	(HDR_RBA+2),A
+;
+	LD	A,(4045H)	;d 4044=y, 4046=m
+	LD	(HDR_DATE),A
+	LD	A,(4046H)
+	LD	(HDR_DATE+1),A
+	LD	A,(4044H)
+	LD	(HDR_DATE+2),A
+;
+	LD	HL,0FFFFH	;dummy out sender id
+	LD	(HDR_SNDR),HL
+;
+	LD	A,(4043H)	;hr
+	LD	(HDR_TIME),A
+	LD	A,(4042H)	;min
+	LD	(HDR_TIME+1),A
+	LD	A,(4041H)	;sec
+	LD	(HDR_TIME+2),A
+	RET
+;
+NODENUMB
+	PUSH	IX
+	LD	A,'@'
+	CALL	SPUTC
+	LD	A,'['
+	CALL	SPUTC
+	CALL	SPUTNUM
+	LD	A,'/'
+	CALL	SPUTC
+	POP	HL
+	CALL	SPUTNUM
+	LD	A,']'
+	CALL	SPUTC
+	RET
+;
+ERROR	PUSH	AF
+	OR	80H
+	CALL	DOS_ERROR
+	POP	AF
+	JP	TERMINATE
+;
+WRIT_ERR
+	PUSH	AF
+	OR	80H
+	CALL	DOS_ERROR
+	LD	HL,M_WRITERR
+	CALL	LOG_MSG_2
+	POP	AF
+	JP	TERMINATE
+;
+BAD_PKT	PUSH	HL
+	LD	HL,M_PKTDIS
+	CALL	LOG_MSG_2
+	POP	HL
+	CALL	LOG_MSG_2
+	LD	A,1
+	JP	TERMINATE
+;
+STRMOVE	LD	A,(HL)
+	LD	(DE),A
+	OR	A
+	RET	Z
+	INC	HL
+	INC	DE
+	JR	STRMOVE
+;
+SPUTC	LD	(DE),A
+	INC	DE
+	EX	DE,HL
+	LD	(HL),0
+	EX	DE,HL
+	RET
+;
+;strcmp_ci_part: Compare short string (DE) to start of
+; long string (hl). when (DE)=0, (HL) need not be 0.
+STRCMP_CI_PART
+	LD	A,(DE)
+	OR	A
+	RET	Z
+	CALL	CI_CMP		;Case independant
+	RET	NZ
+	INC	DE
+	INC	HL
+	JR	STRCMP_CI_PART
+;
+LOG_MSG_2
+	PUSH	HL
+	LD	DE,$DO
+	CALL	MESS_0
+	POP	HL
+	CALL	LOG_MSG
+	RET
+;
+;Determine host addresses for orig & dest systems
+MAKE_NAMES
+	LD	IX,(ORIG_NODE)
+	LD	HL,(ORIG_NET)
+	LD	DE,ID_ORIG
+	CALL	NODENUMB
+;;	LD	HL,ID_ORIG+1		;bypass '@'
+;;	CALL	CONVERT_NODE
+;
+	XOR	A		;null ID_DEST string
+	LD	(ID_DEST),A	;in case of unkn_dest.
+;
+	LD	A,(DEST_KNOWN)	;if person not a user
+	OR	A		;do not append '@zeta'.
+	RET	Z
+;
+	LD	IX,(DEST_NODE)
+	LD	HL,(DEST_NET)
+	LD	DE,ID_DEST
+	CALL	NODENUMB
+;;	LD	HL,ID_DEST+1	;Bypass '@'
+;;	CALL	CONVERT_NODE
+	RET
+;
+;End of pktdis1
