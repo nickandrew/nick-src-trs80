@@ -2,10 +2,26 @@
 ;* ************* For Newdos/80 Version two. *
 ;* ** Restore ** Written by Nicholas Andrew *
 ;* ************* Submitted on 16-May-1984   *
+;* 'Restore' Loads Newdos/80 Ver 2.0 System *
+;* files into high memory (32 or 48K), and  *
+;* patches the portion of Dos in memory so  *
+;* that whenever a system file is requires, *
+;* it is first searched for in memory, then *
+;* on disk. This speeds up Dos's execution  *
+;* and file access times, and allows single *
+;* drive users to use disks not containing  *
+;* Newdos/80 System files.                  *
 ;* Requires: System-80/Trs-80 Model I       *
 ;* with 32K or 48K Ram, Newdos/80 Version 2 *
 ;* and an Editor/Assembler (such as Edtasm) *
 ;********************************************
+;* Written by N.P. Andrew, 77 Windsor road  *
+;* Vineyard NSW 2765 Aust. Tel: 02-627-2386 *
+;* Copyright (C) 16-May-84, by N.P. Andrew. *
+;********************************************
+;
+; Assembled OK 30-Mar-85.
+;
 ;Newdos/80 Version 2 Function addresses:
 COMBUF	EQU	4318H	;Address of command buffer
 DOS	EQU	402DH	;No error exit
@@ -28,18 +44,41 @@ CKSM	EQU	CKSM48	;CKSM32 for 32K memory
 ;Equate for system file lookup table.
 TABLE	EQU	ORIGIN-256 ;System file lookup table.
 ;End of equates.
-;Start of 'RESTORE/asm' program:
-	ORG	PATCH
-	LD	HL,4317H
+;Start of 'RESTORE/EDT' program:
+	ORG	PATCH		;ON LOAD, SET DOS TO
+	LD	HL,4317H	;ORIGINAL STATE.
 	ORG	TABLE
-	DEFW	0	;clear start of table.
+	DEFW	0	;CLEAR START OF TABLE.
 	ORG	ORIGIN
+START	LD	HL,CKST		;PERFORM PROTECTIVE
+	LD	DE,0123H	;CHECKSUM.
+	LD	BC,CKEN-CKST+1
+STAV01	LD	A,(HL)
+	INC	HL
+	ADD	A,E
+	LD	E,A
+	JR	NC,STAV02
+	INC	D
+STAV02	DEC	BC
+	LD	A,B
+	OR	C
+	JR	NZ,STAV01
+	LD	HL,CKSM
+CKST	OR	A
+	SBC	HL,DE
+	LD	(LV00+1),HL
+	LD	A,H
+	OR	L
+	JR	Z,RESTOR
+	LD	HL,MESS2
+	CALL	MESSDI
+	JP	DOS
 RESTOR	LD	HL,COMBUF
-	CALL	NXTWRD	;Bypass 'restore' command
+	CALL	NXTWRD	;BYPASS 'RESTORE' COMMAND
 	PUSH	HL
 	LD	HL,TABLE
 	PUSH	HL
-	LD	(CRTPS),HL	;setup pointers
+	LD	(CRTPS),HL	;SETUP POINTERS
 	DEC	HL
 	LD	(CRLOAD),HL
 	INC	HL
@@ -61,7 +100,6 @@ RDNAME	LD	A,(HL)	;TEST FOR END OF COMMAND LINE.
 NODOS	CALL	GETNUM	;GET NUMBER OF SYSTEM FILE
 	CALL	RDSYS	;READ INTO MEMORY & ADD TO TABLE.
 	JR	RDNAME
-;
 ;SUBROUTINE NEXTWORD: FINDS NEXT COMMAND WORD.
 NXTWRD	LD	A,(HL)	;BYPASS WORD AT LOCATION HL
 	INC	HL	;AND RETURN HL=START OF NEXT
@@ -132,7 +170,7 @@ RDSYS	LD	HL,(CST)
 	JP	NZ,DOSERR ;IF DOS CAN'T OPEN THE FILE.
 	LD	A,(CURSYS) ;GET NUMBER OF SYSFILE.
 	LD	HL,(CRTPS)
-LV00	LD	BC,0
+LV00	LD	BC,ORIGIN
 	ADD	HL,BC
 	LD	(HL),A	;POKE INTO TABLE
 	INC	HL
@@ -177,6 +215,13 @@ SLOAD	LD	HL,4317H	;TEST IF SYSFILE ALREADY
 	CP	(HL)		;IN MEMORY.
 	JP	Z,4C19H		;IF SO, THEN EXECUTE.
 	LD	(HL),A	;SET SYSFILE # IN MEMORY
+;******************************************
+;* Note: When Dos wishes to access System *
+;* File number N, 'SLOAD' is called with  *
+;* A register equal to N+2.               *
+;* The lookup table stores the true       *
+;* System File number.                    *
+;******************************************
 	LD	C,A
 	DEC	C
 	DEC	C	;FIND TRUE SYSTEM NUMBER
@@ -233,11 +278,15 @@ MLOV05	LD	A,(HL)	;POKE INTO DESTINATION
 	DJNZ	MLOV05
 	JR	MLOV01
 ;Start of user messages.
-MESS1	DEFM	'"Restore" Version 1.02 (15-Jan-84),'
+MESS1	DEFM	'"RESTORE" VERSION 1.02 (JANUARY 15, 1984),'
 	DEFB	0AH
-	DEFM	'written by Nick Andrew.'
+	DEFM	'WRITTEN BY  N.P. ANDREW.'
 	DEFB	0AH
-	DEFM	'Now patching Newdos/80 for System loader'
+	DEFM	'NOW PATCHING NEWDOS/80 FOR SYSTEM LOADER'
+	DEFB	0DH
+MESS2	DEFM	'CHECKSUM DETECTS PROGRAM ERROR:'
+	DEFB	0AH
+	DEFM	'PLEASE RE-ASSEMBLE.'
 	DEFB	0DH
 ;Start of pointers, buffers etc...
 CST	DEFW	0
@@ -250,4 +299,4 @@ CKEN	DEFB	41H
 BUFF1	DEFS	256
 FCB	DEFS	32
 ;End of program.
-	END	RESTOR
+	END	START
