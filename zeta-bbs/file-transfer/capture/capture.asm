@@ -1,0 +1,294 @@
+;Capture: Ascii upload of a file to Zeta.
+;
+*GET	DOSCALLS.HDR
+*GET	EXTERNAL.HDR
+*GET	ASCII.HDR
+;
+	ORG	PROG_START
+	DEFW	BASE
+	DEFW	THIS_PROG_END
+	DEFW	0
+	DEFW	UPL_DISCON
+;End of program load info.
+;
+	COM	'<Capture 1.0d 12-Jan-88>'
+	ORG	BASE+100H
+START	LD	SP,START
+;
+	LD	A,(HL)
+	OR	A
+	JR	Z,USAGE
+	CP	CR
+	JR	NZ,NO_USAGE
+USAGE	LD	HL,M_USAGE
+	LD	DE,$2
+	CALL	MESS_0
+	LD	A,128
+	JP	TERMINATE
+;
+NO_USAGE
+	LD	A,(PRIV_2)
+	BIT	1,A
+	JR	Z,NOT_VISITOR
+	LD	HL,M_VIS
+	LD	DE,$2
+	CALL	MESS_0
+	LD	A,136
+	JP	TERMINATE
+;
+NOT_VISITOR
+	PUSH	HL
+;
+	LD	HL,M_UPL
+	LD	DE,$2
+	CALL	MESS_0
+;
+	POP	HL
+	LD	DE,FILENAME
+	CALL	EXTRACT
+	CALL	NO_DRIVE
+;
+OPEN_LOOP
+	LD	HL,FILENAME
+	LD	DE,FCB_OUT
+	CALL	EXTRACT
+	LD	HL,BUFF_OUT
+	LD	B,0
+	CALL	DOS_OPEN_NEW
+	JP	NZ,ERROR
+	JR	C,FILE_OPEN
+;Permute filename to find a unique name.
+	LD	HL,FILENAME
+PER_01	LD	A,(HL)
+	CP	CR
+	JR	Z,PER_02
+	OR	A
+	JR	Z,PER_02
+	CP	ETX
+	JR	Z,PER_02
+	INC	HL
+	JR	PER_01
+PER_02	DEC	HL
+	INC	(HL)
+;
+	LD	HL,M_PERMU
+	LD	DE,$2
+	CALL	MESS_0
+	LD	HL,FILENAME
+PER_03	LD	A,(HL)
+	OR	A
+	JR	Z,PER_04
+	CP	CR
+	JR	Z,PER_04
+	CP	ETX
+	JR	Z,PER_04
+	CALL	$PUT
+	INC	HL
+	JR	PER_03
+PER_04
+	LD	A,CR
+	CALL	$PUT
+	JR	OPEN_LOOP
+;
+FILE_OPEN
+	CALL	XFERLOG
+;
+	LD	HL,M_READY
+	LD	DE,$2
+	CALL	MESS_0
+;
+	LD	HL,BUFF
+	LD	(BUF_POS),HL
+;
+LOOP	LD	DE,$2
+	CALL	$GET
+	OR	A
+	JR	Z,LOOP
+	CP	4		;^D = EOT
+	JR	Z,END_LOOP
+;Save char.
+	LD	HL,(BUF_POS)
+	LD	(HL),A
+	INC	HL
+	LD	(BUF_POS),HL
+;Shuffle display on the screen.
+	PUSH	HL
+	CALL	SHUFFLE
+	POP	HL
+;
+	LD	DE,END_BUFF
+	OR	A
+	SBC	HL,DE
+	JR	NZ,LOOP
+;Buffer is full. write to disk. First send a ^S
+	LD	DE,$2
+	LD	A,13H
+	CALL	$PUT
+;
+	CALL	WRITE_BUFF	;buffer...buf_pos-1
+;
+	LD	DE,$2
+	LD	A,11H		;Then ^Q
+	CALL	$PUT
+;
+	JR	LOOP
+;
+END_LOOP
+	CALL	WRITE_BUFF
+;
+	LD	DE,FCB_OUT
+	CALL	DOS_CLOSE
+	JP	NZ,ERROR
+;
+	XOR	A
+	JP	TERMINATE
+;
+NO_DRIVE
+	LD	A,(DE)
+	OR	A
+	RET	Z
+	CP	CR
+	RET	Z
+	CP	ETX
+	RET	Z
+	INC	DE
+	CP	':'
+	JR	NZ,NO_DRIVE
+	DEC	DE
+	LD	A,ETX
+	LD	(DE),A
+	RET
+;
+ERROR	PUSH	AF
+	OR	80H
+	CALL	DOS_ERROR
+	POP	AF
+	JP	TERMINATE
+;
+WRITE_BUFF
+	LD	HL,(BUF_POS)
+	LD	DE,BUFF
+	OR	A
+	SBC	HL,DE
+	RET	Z
+	PUSH	HL
+	POP	BC
+	LD	HL,BUFF
+WB_01	PUSH	HL
+	PUSH	BC
+	LD	A,(HL)
+	LD	DE,FCB_OUT
+	CALL	$PUT
+	JP	NZ,ERROR
+	POP	BC
+	POP	HL
+	INC	HL
+	DEC	BC
+	LD	A,B
+	OR	C
+	JR	NZ,WB_01
+	LD	HL,BUFF
+	LD	(BUF_POS),HL
+	RET
+;
+UPL_DISCON
+	LD	DE,FCB_OUT
+	LD	A,(DE)
+	BIT	7,A
+	LD	A,132
+	JP	Z,TERM_DISCON
+	CALL	DOS_KILL
+	LD	A,133
+	JP	TERM_DISCON
+;
+XFERLOG
+	LD	DE,FCB_LOG
+	LD	HL,BUFF_LOG
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	RET	NZ		;can't log this.
+;
+	LD	A,(FCB_LOG+1)
+	AND	0F8H
+	LD	(FCB_LOG+1),A
+;
+	CALL	DOS_POS_EOF
+	RET	NZ
+	LD	HL,M_DATE
+	CALL	X_TODAY
+	LD	HL,M_TIME
+	CALL	446DH
+	LD	HL,(USR_NAME)
+	LD	DE,M_NAME
+XL_01	LD	A,(HL)
+	OR	A
+	JR	Z,XL_02
+	CP	CR
+	JR	Z,XL_02
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	JR	XL_01
+XL_02	LD	A,' '
+	LD	(DE),A
+	INC	DE
+	LD	HL,FILENAME
+XL_03	LD	A,(HL)
+	OR	A
+	JR	Z,XL_04
+	CP	ETX
+	JR	Z,XL_04
+	CP	CR
+	JR	Z,XL_04
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	JR	XL_03
+XL_04	LD	A,CR
+	LD	(DE),A
+	INC	DE
+	XOR	A
+	LD	(DE),A
+	LD	HL,M_UPLOAD
+	LD	DE,FCB_LOG
+	CALL	FPUTS
+	CALL	DOS_CLOSE
+	RET
+;
+*GET	ROUTINES
+;
+M_USAGE	DEFM	'Upload: Upload a file in Ascii format',CR
+	DEFM	'Usage:  UPLOAD filename',CR
+	DEFM	'Eg:     UPLOAD myfile.txt',CR,0
+;
+M_UPL	DEFM	'Ascii file upload program. Text entered will NOT echo.',CR
+	DEFM	'Before saving system sends ^S. After saving, ^Q',CR
+	DEFM	'When finished uploading, type a CONTROL-D',CR,0
+;
+M_PERMU	DEFM	'File exists. Permuting name to ',0
+;
+M_READY	DEFM	'Ready to upload. Remember type CONTROL-D to finish.',CR,0
+M_VIS	DEFM	'Sorry. You''re not a member. You can''t upload files.',CR,0
+;
+M_UPLOAD
+M_DATE	DEFM	'dd-mmm-yy '
+M_TIME	DEFM	'hh:mm:ss '
+	DEFM	'Upload '
+M_NAME	DC	64,0
+;
+FCB_LOG	DEFM	'xferlog.zms',CR
+	DC	32-12,0
+BUFF_LOG
+	DEFS	256
+;
+FILENAME	DEFS	32
+FCB_OUT		DEFS	32
+BUFF_OUT	DEFS	256
+BUF_POS		DEFW	BUFF
+;
+BUFF	DEFS	16384
+END_BUFF	EQU	$
+;
+THIS_PROG_END	EQU	$
+;
+	END	START
