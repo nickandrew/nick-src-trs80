@@ -1,12 +1,12 @@
 ;pktdis: Fido packet disassembler
 ;usage:  pktdis [-r] filename
 ;
-*GET	DOSCALLS
+*GET	DOSCALLS.HDR
 *GET	EXTERNAL.HDR
 *GET	ASCII.HDR
 *GET	FIDONET.HDR
 ;
-	COM	'<Pktdis 1.5g 25-Jan-88>'
+	COM	'<Pktdis 1.5h 11-Apr-88>'
 	ORG	PROG_START
 	DEFW	BASE
 	DEFW	THIS_PROG_END
@@ -81,9 +81,29 @@ CONF_TABLE
 	DEFB	00101100B	;gen>echomail>gaters
 	DEFB	0
 ;
-	DEFM	'net_dev',0
-	DEFM	'net_dev',0
-	DEFB	01101100B	;gen>fido>net_dev
+	DEFM	'AUS.GENERAL',0
+	DEFM	'aus.general',0
+	DEFB	11001100B	;gen>usenet>aus.general
+	DEFB	0
+;
+	DEFM	'AUS.FORSALE',0
+	DEFM	'aus.forsale',0
+	DEFB	11010100B	;gen>usenet>aus.forsale
+	DEFB	0
+;
+	DEFM	'AUS.JOBS',0
+	DEFM	'aus.jobs',0
+	DEFB	11011000B	;gen>usenet>aus.jobs
+	DEFB	0
+;
+	DEFM	'AUS.AI',0
+	DEFM	'aus.ai',0
+	DEFB	11011100B	;gen>usenet>aus.ai
+	DEFB	0
+;
+	DEFM	'TRANSPUTER',0
+	DEFM	'transputer',0
+	DEFB	10100100B	;gen>misc>t'puter
 	DEFB	0
 ;
 ;These conferences are no longer being received.
@@ -91,11 +111,6 @@ CONF_TABLE
 	DEFM	'c_echo',0
 	DEFM	'c_echo',0
 	DEFB	10100000B	;general>misc
-	DEFB	0
-;
-	DEFM	'rpg',0
-	DEFM	'rpg',0
-	DEFB	10100000B	;gen>misc
 	DEFB	0
 ;
 	DEFB	0		;end of table.
