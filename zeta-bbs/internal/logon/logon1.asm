@@ -271,7 +271,7 @@ NO_CLRINC
 ;
 	LD	A,(UF_PRIV2)
 	BIT	IS_VISITOR,A
-	CALL	Z,PCREDITS	;Print balance for member
+	CALL	Z,PCREDITS	;Print credit balance for member
 ;
 ;Print message if their last call was >2 months ago max.
 	LD	A,(LAST_CALL+1)	;month number
@@ -302,6 +302,7 @@ LAL_2
 	ENDIF	;sysoponly
 ;
 LAL_2A
+	CALL	NEWINFO_MSG	;Print the new system info
 	CALL	LOGIN_MSG	;List login.zms
 ;
 	LD	A,(PRIV_2)	;check if member
@@ -334,6 +335,56 @@ EXIT_ACSNET
 	LD	HL,M_ACSERR
 	CALL	PUTS
 	JP	$
+;
+NEWINFO_MSG
+	LD	DE,INFO_FCB
+	LD	HL,INFO_BUF
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	RET	NZ
+;
+GINFO	LD	DE,INFO_FCB
+	CALL	DOS_REWIND
+;
+GINFO_1	LD	DE,INFO_FCB
+	CALL	$GET
+	CP	CR
+	JR	Z,GINFO_2
+	LD	DE,$2
+	CALL	$PUT
+	JR	GINFO_1
+GINFO_2
+	LD	HL,M_INFOQ
+	LD	DE,$2
+	CALL	MESS_0
+;
+	LD	HL,STRING
+	LD	B,18
+	CALL	40H
+	JR	C,GINFO
+	LD	A,(HL)
+	AND	5FH
+	CP	'N'
+	RET	Z
+	CP	'Y'
+	JR	NZ,GINFO
+;
+	LD	DE,$2
+GINFO_3
+	CALL	$GET
+	OR	A
+	JR	NZ,GINFO_4
+	LD	DE,INFO_FCB
+	CALL	$GET
+	JR	NZ,GINFO_4
+	LD	DE,$2
+	CALL	$PUT
+	JR	GINFO_3
+GINFO_4
+	LD	A,CR
+	LD	DE,$2
+	CALL	$PUT
+	RET
 ;
 SETUP	LD	HL,($2+1)	;Route devices
 	LD	($KBD+1),HL

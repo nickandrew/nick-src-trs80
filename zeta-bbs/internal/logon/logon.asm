@@ -17,7 +17,7 @@ CREDITS		EQU	0	;Print credit info
 	DEFW	TERMINATE
 ;End of program load info.
 ;
-	COM	'<Logon 3.5d 18-Feb-88>'
+	COM	'<Logon 3.5e 04-Dec-88>'
 	ORG	BASE+100H
 ;
 *GET	LOGON1
@@ -32,7 +32,7 @@ BADN_2	DEFM	'ZETA',0
 BADN_3	DEFM	'THE ',0
 BADN_4	DEFM	'SHIT',0
 BADN_5	DEFM	'FUCK',0
-BADN_6	DEFM	'GET ',0
+BADN_6	DEFM	'ZETA',0
 BADN_7	DEFM	'CRACKER',0
 BADN_8	DEFM	'CRASHER',0
 BADN_9	DEFM	'HACKER',0
@@ -44,12 +44,10 @@ BADN_13	DEFM	'COMPUTER',0
 M_PASS_SHRT
 	DEFM	'Password too short. Try one 4 or more chars long.',CR
 	DEFM	0
-;
 M_PASS_NAME
-	DEFM	'Password too trivial. Try again.',CR,0
-;
+	DEFM	'Password is too trivial. Please use another.',CR,0
 M_NAUGHTY
-	DEFM	'*** Extremely Naughty - disconnected ***',CR,0
+	DEFM	'*** Naughty - disconnected ***',CR,0
 ;
 M_REGISTER
 	DEFM	'Name: "',0
@@ -57,7 +55,12 @@ M_WITHPASS
 	DEFM	'"',0
 ;
 M_WHPASS
-	DEFM	'What logon password do you want? (4-12 chars): ',0
+	DEFM	CR
+	DEFM	'All Zeta accounts are protected by a password, for your',CR
+	DEFM	'own security. It is suggested you use a different word',CR
+	DEFM	'on all BBSs you use. You should change them regularly.',CR
+	DEFM	CR
+	DEFM	'Please enter your desired password (4-12 chars): ',0
 ;
 M_AGRD	DEFM	CR,'   Thank you.',CR,CR,0
 ;
@@ -79,7 +82,7 @@ M_THENAME
 M_UNKN	DEFM	'" is unknown to Zeta. Use upper and lower case.'
 	DEFM	CR,0
 ;
-M_1	DEFM	'Please Login now.',CR,7,0
+M_1	DEFM	CR,7,0
 M_UNSUC	DEFM	'Unsuccessful attempt: ',0
 M_SUCCE	DEFM	'Logged in: ',0
 M_LOG	DEFM	CR,'Logged in...',CR,0
@@ -108,10 +111,10 @@ M_DENIED
 	DEFM	'Login attempt denied (sorry).',CR,0
 ;
 M_FORGOT
-	DEFM	'You seem to have forgotten your password. Enter a comment now',CR
-	DEFM	'to the Sysop stating your name,address,phone number,',CR
-	DEFM	'what you thought your password was,',CR
-	DEFM	'and what you want it to be changed to.',CR,CR,0
+	DEFM	'You seem to have forgotten your password. Enter a',CR
+	DEFM	'private message now to the Sysop stating your name,',CR
+	DEFM	'phone number, what you thought your password was, and',CR
+	DEFM	'what you want it to be changed to.',CR,CR,0
 ;
 M_KICKOUT
 	DEFM	'Invalid login: ',0
@@ -133,7 +136,7 @@ M_NOLOG1
 	DEFM	'Sorry but you were unable to provide a suitable name.',CR
 	DEFM	'Try again on another call...',CR,CR,0
 M_CORRECT
-	DEFM	'Is spelling correct? (Y/N): ',0
+	DEFM	'Is spelling and case correct? (Y/N): ',0
 M_BADFMT
 	DEFM	'" is in bad format.',CR
 	DEFM	'Enter your first and last names on one line.',CR
@@ -145,7 +148,8 @@ M_CRED3	DEFM	'You owe Zeta $',0
 M_CRED4	DEFM	' (monthly usage charge).',CR
 	DEFM	'Note: Payment is currently optional.',CR,0
 ;
-M_PASSWD DEFM	'Your password: ',0
+M_PASSWD DEFM	'Password (will not echo): ',0
+M_INFOQ	DEFM	'  [y,n]: ',0
 NAME_FAIL DEFM	' (failed)',CR,0
 ;
 HI_FILE	DEFM	'hello.zms',CR
@@ -158,6 +162,12 @@ REGIST_FCB
 	DC	32-13,0
 REGIST_BUF
 	DEFS	256
+INFO_FCB
+	DEFM	'newinfo.zms',CR
+	DC	32-13,0
+INFO_BUF
+	DEFS	256
+STRING	DEFS	81
 ;
 S_STR	DEFW	0	;Short instr string
 L_STR	DEFW	0	;Long  instr string
