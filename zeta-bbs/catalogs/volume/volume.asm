@@ -1,0 +1,88 @@
+;Volume: Determine if a particular volume is mounted.
+;
+*GET	DOSCALLS.HDR
+*GET	EXTERNAL.HDR
+*GET	ASCII.HDR
+;
+	ORG	PROG_START
+	DEFW	BASE
+	DEFW	THIS_PROG_END
+	DEFW	0
+	DEFW	0
+;End of program load info.
+;
+	COM	'<Volume 1.0a 15-Jun-86>'
+	ORG	BASE+100H
+START	LD	SP,START
+	LD	A,(HL)
+	CP	CR
+	JR	NZ,NOT_USG
+;
+	LD	HL,M_USAGE
+	CALL	PUTS
+	LD	A,80H
+	JP	TERMINATE
+;
+NOT_USG
+	PUSH	HL
+;
+	LD	DE,FCB_DIR
+	LD	HL,BUFF_DIR
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,ERROR
+;
+	LD	A,(FCB_DIR+1)
+	AND	0F8H
+	OR	5
+	LD	(FCB_DIR+1),A
+;
+	CALL	DOS_READ_SECT
+	CP	6
+	JP	NZ,ERROR
+;
+	LD	HL,BUFF_DIR+0D0H
+	POP	DE
+COMPARE
+	LD	A,(DE)
+	CP	CR
+	JR	Z,MOUNTED
+	CALL	CI_CMP
+	JR	NZ,UNMOUNTED
+	INC	HL
+	INC	DE
+	JR	COMPARE
+;
+;volume is mounted.
+MOUNTED
+	LD	A,0
+	JP	TERMINATE
+;
+UNMOUNTED
+	LD	HL,M_UNMOUNTED
+	CALL	PUTS
+	LD	A,1
+	JP	TERMINATE
+;
+ERROR	PUSH	AF
+	OR	80H
+	CALL	DOS_ERROR
+	POP	AF
+	JP	TERMINATE
+;
+*GET	ROUTINES
+;
+M_UNMOUNTED
+	DEFM	'Requested volume not mounted.',CR,0
+M_USAGE	DEFM	'Volume: Ensure a requested disk is mounted.',CR
+	DEFM	'Usage:  VOLUME volume-name',CR
+	DEFM	'Eg:     volume Disk3',CR,0
+;
+FCB_DIR	DEFM	'dir.sys:1',CR
+	DC	32-10,0
+BUFF_DIR
+	DEFS	256
+;
+THIS_PROG_END	EQU	$
+;
+	END	START
