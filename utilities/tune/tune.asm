@@ -1,7 +1,7 @@
 ;MUSIC ROUTINE (C) NICK
-; tune: play a tune.
+;tune2
 ; Assembled OK 30-Mar-85.
-	ORG	7FF6H
+	ORG	7FFAH
 START	LD	HL,SHEET
 	DI
 	PUSH	HL
@@ -67,7 +67,7 @@ LOOP	LD	A,1
 	DEC	DE
 	LD	A,D
 	OR	E
-	RET	Z
+	JR	NZ,LOOP
 	DEC	DE
 	LD	A,D
 	OR	E
