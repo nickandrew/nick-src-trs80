@@ -1,6 +1,6 @@
-;BB4: Message entry, 13-Dec-88
+; @(#) bb4.asm - Message entry, 03 Jul 89
 ;
-;Message entry
+;Enter command ... manual message entry
 ENTER_CMD
 	CALL	GET_CHAR
 	CALL	TO_UPPER_C
@@ -9,35 +9,26 @@ ENTER_CMD
 	CP	CR
 	JP	NZ,BADSYN
 ;
-;;	CALL	IF_VISITOR
-;;	JP	NZ,NO_PERMS
-;
-;Set highest allowable address.
-	LD	HL,(HIMEM)
-	LD	DE,-256		;Give it some clearance!
-	ADD	HL,DE
-;;	LD	HL,THIS_PROG_END-256	;max addr
-	LD	(TEXT_HIMEM),HL
-	LD	HL,F_WARN
-	RES	1,(HL)		;Message length warning
+	CALL	SET_HIGH
 ;
 	LD	HL,M_ENTER
 	CALL	MESS
 ;
 	CALL	CHECK_MAX	;# of msgs in total
+	JP	NC,MAIN		;If full
 ;
-	CALL	PRT_TOPIC_STAT	;Local or Echomail
+	CALL	PRT_TOPIC_STAT	;set Local or Non-local (News/Echomail)
 ;
-	CALL	SETUP_MEM	;Date & sender name
+	CALL	SETUP_MEM	;Date
+	LD	HL,(USR_NAME)
+	CALL	SET_FIELD
 	CALL	GET_NAME	;local & networking.
 	JP	NZ,MAIN
-	CALL	SET_DEST_NAME	;Into memory
+	LD	HL,NAME_BUFF
+	CALL	SET_FIELD	;Into memory
 ;
-EC_01
 	LD	A,(MY_TOPIC)
 	LD	(HDR_TOPIC),A
-;;	CALL	GET_TOPIC
-;;	JR	NZ,EC_01
 ;
 	CALL	ADD_DATE	;Add date to text_buff
 	CALL	GET_SUBJ	;Add a subject
@@ -48,6 +39,60 @@ EC_01
 	CALL	SAVE_MSG	;save it to txt
 	JP	MAIN
 ;
+;Do reply ... from, to, subject are supplied automagically
+DO_REPLY
+	CALL	TEXT_POSN
+	CALL	HDR_STORE
+;
+	CALL	SET_HIGH
+;
+	LD	HL,M_REPLY
+	CALL	MESS
+;
+	CALL	CHECK_MAX	;# of msgs in total
+	RET	NC		;If full
+;
+	CALL	PRT_TOPIC_STAT	;Local or Echomail
+;
+	CALL	SETUP_MEM	;Date
+	LD	HL,(USR_NAME)
+	CALL	SET_FIELD	;Set from name
+;
+	LD	HL,M_SNDR
+	CALL	MESS
+	LD	HL,(USR_NAME)
+	LD	DE,$2
+	CALL	MESS_NOCR
+	LD	HL,M_RCVR
+	CALL	MESS
+	LD	HL,B_FROM	;New To address
+	CALL	MESS
+	CALL	PUTCR
+;
+	CALL	SET_TO		;Set to for reply (local|networking)
+	RET	NZ		;Cannot enter proper reply
+	LD	HL,NAME_BUFF
+	CALL	SET_FIELD	;Into memory
+;
+	LD	A,(MY_TOPIC)
+	LD	(HDR_TOPIC),A
+;
+	CALL	ADD_DATE	;Add date to text_buff
+;
+	LD	HL,M_SUBJ
+	CALL	MESS
+	LD	HL,B_SUBJ
+	CALL	MESS
+	CALL	PUTCR
+	CALL	SET_SUBJ	;Add a subject
+	RET	NZ
+;
+	CALL	ENTER_MSG	;enter message manually
+	RET	NZ		;if aborted.
+	CALL	SAVE_MSG	;save it to txt
+	RET
+;
+;Enter message from a file
 FROM_FILE
 	CALL	GET_CHAR
 	CP	CR
@@ -59,10 +104,14 @@ FROM_FILE
 	LD	HL,M_ENTER
 	CALL	MESS
 	CALL	CHECK_MAX
+	JP	NC,MAIN		;If full
 	CALL	SETUP_MEM
+	LD	HL,(USR_NAME)
+	CALL	SET_FIELD
 	CALL	GET_NAME
 	JP	NZ,MAIN
-	CALL	SET_DEST_NAME
+	LD	HL,NAME_BUFF
+	CALL	SET_FIELD
 ;
 FF_00A
 	CALL	GET_TOPIC
@@ -128,9 +177,10 @@ FF_06
 	CALL	MESS
 	JP	MAIN
 ;
+;Date and sender name
 SETUP_MEM
 	LD	(LINES),A	;No lines in it.
-	CALL	INIT_HDR	;zero all bytes of it.
+	CALL	ZERO_HDR	;zero all bytes of it.
 ;
 	XOR	A
 	LD	(HDR_FLAG),A
@@ -148,27 +198,42 @@ SETUP_MEM
 	LD	A,(4044H)
 	LD	(HDR_DATE+2),A	;Year
 ;
-	LD	DE,TEXT_BUF
-	LD	(MEM_PTR),DE
-	LD	HL,(USR_NAME)
-SM_01	LD	A,(HL)		;Copy senders name
-	CP	CR
-	JR	Z,SM_02
-	OR	A
-	JR	Z,SM_02
-	LD	(DE),A
-	INC	HL
-	INC	DE
-	JR	SM_01
-;
-SM_02	LD	A,CR
-	LD	(DE),A
-	INC	DE
-	EX	DE,HL
+	LD	HL,TEXT_BUF
 	LD	(MEM_PTR),HL
 	LD	(MEMT_PTR),HL
 	RET
 ;
+SET_FIELD
+	LD	DE,(MEM_PTR)
+SF_01	LD	A,(HL)		;Copy senders name
+	CP	CR
+	JR	Z,SF_02
+	OR	A
+	JR	Z,SF_02
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	JR	SF_01
+;
+SF_02	EX	DE,HL
+	LD	A,CR
+	LD	(HL),A
+	INC	HL
+	LD	(HL),0
+	LD	(MEM_PTR),HL
+	LD	(MEMT_PTR),HL
+	RET
+;
+;Set highest allowable address.
+SET_HIGH
+	LD	HL,(HIMEM)
+	LD	DE,-256		;Give it some clearance!
+	ADD	HL,DE
+;;	LD	HL,THIS_PROG_END-256	;max addr
+	LD	(TEXT_HIMEM),HL
+	LD	HL,F_WARN
+	RES	1,(HL)		;Message length warning
+	RET
 ;
 ;Allow typing in of the message only....
 ENTER_MSG
@@ -197,7 +262,6 @@ EM_2
 ;
 	CALL	INTO_BUFF
 	JP	NZ,EM_7		;If buffer full.
-;
 ;
 	LD	A,(LI_BUF)	;first char
 	OR	A
@@ -282,19 +346,22 @@ ENTER_PMPT
 	RET
 ;
 MESG_QUEST
+MQ_01
 	XOR	A
 	LD	(NULL_LINE),A
 ;
-	LD	HL,MENU_QUEST
-	CALL	MENU
+	LD	HL,MU_QUEST
+	CALL	MESS
 MQ_1	LD	HL,PMPT_QUEST
-	CALL	GET_STRING
-MQ_2	CALL	GET_CHAR
+	CALL	MESS
+	LD	HL,MSGQ_BUFF
+	LD	B,1
+	CALL	40H
+	JR	C,MQ_01
+;
+MQ_2	LD	A,(MSGQ_BUFF)
 	CP	CR
 	JR	Z,MQ_1
-	PUSH	AF
-	CALL	GET_CHAR	;get CR
-	POP	AF
 	AND	5FH
 	CP	'A'		;Abort
 	JP	Z,NO_LINES
@@ -306,7 +373,7 @@ MQ_2	CALL	GET_CHAR
 	JR	Z,M_LIST
 	CP	'E'		;Edit line
 	JR	Z,MESG_EDIT
-	JR	MESG_QUEST
+	JR	MQ_01
 ;
 CONTIN
 	LD	A,(LINES)
@@ -914,27 +981,25 @@ SNC_01	LD	A,(HL)
 	DJNZ	SNC_01
 	RET
 ;
+; ------------------------------
+;
 GET_NAME
 GEN_01
 	LD	HL,M_WHOTO
 	CALL	GET_STRING
-	CALL	COPY_NAME	;into name_buff
+	CALL	COPY_NAME	;read, and copy into name_buff
 ;
+GEN_02
 	LD	HL,NAME_BUFF
 	LD	A,(HL)
 	CP	CR
 	JP	Z,RET_NZ	;Quitting
+	OR	A
+	JP	Z,RET_NZ
 GEN_04
 ;
 GEN_05	LD	A,(HL)		;Check for network address
 	JR	GEN_06
-;;	CP	CR
-;;	JR	Z,GEN_06	;No network address
-;;	OR	A
-;;	JR	Z,GEN_06	;No network address
-;;	INC	HL
-;;	CP	'@'
-;;	JR	NZ,GEN_05
 ;
 ;@ seen, so this address is an ACSnet or Fidonet address.
 	LD	A,(NETMSG)
@@ -978,9 +1043,10 @@ GEN_05D
 GEN_06
 	LD	A,(NETMSG)
 	CP	1
-	JR	NZ,GEN_06A	;this is not an echomail topic
+	JR	NZ,GEN_06A	;A local topic
 ;
-	LD	HL,HDR_FLAG	;This is an echomail topic
+;This is an echomail topic
+	LD	HL,HDR_FLAG
 	SET	FM_NETMSG,(HL)
 	RES	FM_NETSENT,(HL)	
 	LD	A,(PRIV_1)
@@ -988,10 +1054,11 @@ GEN_06
 	JP	Z,NO_PERMS	;Cannot enter into echomail topic
 	JR	GEN_06B
 ;
+;this is not an echomail topic
 GEN_06A
 	LD	A,(PRIV_1)
 	BIT	GRA_ELOC,A
-	JP	Z,NO_PERMS
+	JP	Z,NO_PERMS	;Cannot enter local msgs
 ;
 GEN_06B
 ;check if name is registered.
@@ -1011,7 +1078,7 @@ GEN_06B
 	CALL	MESS_CR
 	LD	HL,M_DESTSTR2
 	CALL	MESS
-	JP	GEN_01		;Name not in userfile
+	JP	RET_NZ		;Name not in userfile, return
 ;
 TO_UNKNOWN
 	LD	HL,0FFFEH
@@ -1025,25 +1092,32 @@ TO_KNOWN
 	CALL	STRCPY
 	RET
 ;
-SET_DEST_NAME
-	LD	DE,NAME_BUFF
-	LD	HL,(MEM_PTR)
-SDN_01	LD	A,(DE)
+; ------------------------------
+;
+SET_TO
+	LD	HL,B_FROM
+	LD	DE,NAME_BUFF	
+	CALL	STRCPY_CR
+	JP	GEN_02		;Check contents of name for validity
+;
+STRCPY_CR
+SCCR_01
+	LD	A,(HL)
+	LD	(DE),A
+	OR	A
+	JR	Z,SCCR_02
 	CP	CR
-	JR	Z,SDN_02
-	OR	A		;if from UF_NAME
-	JR	Z,SDN_02
-	LD	(HL),A
+	JR	Z,SCCR_02
 	INC	HL
 	INC	DE
-	JR	SDN_01
+	JR	SCCR_01
 ;
-SDN_02	LD	(HL),CR
-	INC	HL
-	LD	(MEM_PTR),HL
-	LD	(HL),0
-	CP	A
+SCCR_02
+	LD	A,CR
+	LD	(DE),A
 	RET
+;
+; ------------------------------
 ;
 ASK_PRIV
 	LD	HL,HDR_FLAG
@@ -1059,6 +1133,8 @@ ASK_PRIV
 	CP	A
 	RET
 ;
+; ------------------------------
+;
 HMS_H	DEFB	0
 HMS_M	DEFB	0
 HMS_S	DEFB	0
@@ -1066,6 +1142,8 @@ HMS_S	DEFB	0
 DMY_D	DEFB	0
 DMY_M	DEFB	0
 DMY_Y	DEFB	0
+;
+; ------------------------------
 ;
 ADD_DATE
 	LD	HL,HDR_TIME
@@ -1096,8 +1174,8 @@ ADD_DATE
 	EX	DE,HL
 	LD	(HL),' '
 	INC	HL
-	LD	(HL),' '
-	INC	HL
+;;	LD	(HL),' '
+;;	INC	HL
 	LD	(MEM_PTR),HL
 ;
 	LD	DE,HMS_H
@@ -1113,6 +1191,12 @@ ADD_DATE
 ;
 	XOR	A
 	LD	(DE),A		;zero it.
+	RET
+;
+SET_SUBJ
+	LD	HL,B_SUBJ
+	CALL	SET_FIELD
+	CP	A
 	RET
 ;
 GET_SUBJ
@@ -1157,7 +1241,7 @@ WRIT_HDR
 	JP	NZ,ERROR
 	RET
 ;
-INIT_HDR
+ZERO_HDR
 	LD	HL,THIS_MSG_HDR
 	LD	B,16
 IH_01	LD	(HL),0
@@ -1263,15 +1347,17 @@ IB_03
 	CP	1
 	RET
 ;
-;Check to be sure that there are less than 1020 messages.
+;Check to be sure that there are less than MAX_MSGS-4 messages.
 CHECK_MAX
 	LD	HL,(N_MSG)
 	LD	DE,MAX_MSGS-4
 	CALL	CPHLDE
 	RET	C		;If not full
+	PUSH	AF
 	LD	HL,M_BRDFULL
 	CALL	MESS
-	JP	MAIN
+	POP	AF
+	RET
 ;
 COPY_NAME
 	LD	IX,NAME_BUFF
