@@ -1,7 +1,7 @@
-; @(#) bb1.asm - BB code file #1, on 14-May-89
+; @(#) bb1.asm - BB code file #1, on 30 Jul 89
 ;
 START	LD	SP,START
-	CALL	INIT
+	CALL	INIT		;Initialise the input buffer
 ;
 	LD	HL,M_INTRO
 	CALL	MESS
@@ -15,7 +15,7 @@ START	LD	SP,START
 ;
 	CALL	SETUP		;Setup everything
 ;
-	CALL	FIX_MFD		;Tree initialisation
+	CALL	FIX_MFD		;First topic initialisation
 ;
 MAIN				;Main section
 	LD	SP,START
@@ -42,8 +42,6 @@ MAIN_2				;parse first word
 	JP	Z,EXIT_CMD
 	CP	'M'		;<M>ove
 	JP	Z,MOVE2_CMD
-	CP	'L'		;<L>ist
-	JP	Z,LIST_CMD
 	CP	'E'		;<E>nter
 	JP	Z,ENTER_CMD
 	CP	'S'		;<S>can
@@ -289,13 +287,13 @@ SETUP
 	CALL	FILE_SETUP		;Open all files
 	XOR	A
 	LD	(MY_TOPIC),A
-	LD	(MY_LEVEL),A
 	LD	HL,OPTIONS
 	LD	(HL),0
-	SET	FO_CURR,(HL)		;current only.
 	SET	FO_NORM,(HL)		;not expert.
 	CALL	INFO_SETUP
 	RET
+;
+; ------------------------------
 ;
 FILE_SETUP
 	LD	HL,_BLOCK
@@ -470,16 +468,17 @@ READMESSAGE
 	OR	A
 	JR	NZ,RM_01
 ;
+;Ask if pausing to be done. If pause, then more it.
 	XOR	A
 	LD	(PAUSE),A
-	LD	HL,M_NTOSKP
-	CALL	MESS
 	LD	HL,M_APAUSE
 	CALL	YES_NO
 	CP	'N'
 	JR	Z,RM_01
 	CP	'Q'
-	JR	Z,RM_05
+	JR	Z,RM_06
+	LD	HL,M_TOPT
+	CALL	MESS
 	LD	A,1
 	LD	(PAUSE),A
 ;Start to print the message
@@ -504,23 +503,23 @@ RM_01
 ;
 	CALL	MOREPIPE	;Pipe it through more
 	OR	A
-	JR	NZ,RM_04A	;Interpret a key pressed while in more
+	JR	NZ,RM_05	;Interpret a key pressed while in more
 	JR	RM_03		;Wait for a keystroke
 ;
 RM_02	CALL	BGETC
 	JR	NZ,RM_03	;Read error
 	OR	A
-	JR	Z,RM_03
+	JR	Z,RM_03		;End of message
 	CALL	PUT
 	CALL	GET_$2
 	AND	5FH
 	CP	'N'
-	JR	Z,RM_06
+	JR	Z,RM_07
 	CP	'Q'
-	JR	Z,RM_05
+	JR	Z,RM_06
 	JR	RM_02
+;
 RM_03
-	CALL	PUTCR
 	LD	A,(PAUSE)
 	OR	A
 	RET	Z
@@ -530,22 +529,39 @@ RM_04
 	CALL	GET_$2
 	OR	A
 	JR	Z,RM_04
-RM_04A
+RM_05
+	CP	'?'
+	JR	Z,RM_10
+	CP	' '
+	RET	Z		;Next message
 	AND	5FH
-	CP	'Q'
-	JR	Z,RM_05
+	CP	'A'
+	JR	Z,RM_09		;Read again
 	CP	'N'
-	JR	NZ,RM_04
-;;	CP	'R'
-;;	JP	Z,DO_REPLY
+	RET	Z		;Next message
+	CP	'Q'
+	JR	Z,RM_06		;Quit
+	CP	'R'
+	JR	Z,RM_08		;Reply option
+	JR	RM_04
 	RET
 ;
-RM_05	LD	A,1
+RM_06	LD	A,1
 	LD	(SCAN_ABORT),A
 	RET
-RM_06
-	CALL	PUTCR
+;
+RM_07	CALL	PUTCR
 	RET
+;
+RM_08	CALL	DO_REPLY
+	RET			;Next message
+;
+;Read again - reposition & back to the top
+RM_09	JP	RM_01
+;
+;Display help message
+RM_10	CALL	RMK_01
+	JP	RM_03
 ;
 ; ------------------------------
 ;
@@ -556,15 +572,19 @@ RM_INFUNC
 	RET
 ;
 RM_KEYFUNC
-	CP	'?'		;Help
-	JR	Z,RMK_01
+	CP	'?'
+	JR	Z,RMK_01	;Help
 	AND	5FH
-	CP	'H'		;Help
-	JR	Z,RMK_01
+	CP	'A'
+	JR	Z,RMK_02	;Read again
+	CP	'H'
+	JR	Z,RMK_01	;Help
 	CP	'N'
-	JP	Z,MORE_Q	;Exit more with N code
+	JR	Z,RMK_02	;Next message
 	CP	'Q'
-	JP	Z,MORE_Q	;Exit more with Q code
+	JR	Z,RMK_02	;Quit
+	CP	'R'
+	JR	Z,RMK_02	;Reply
 	LD	A,0		;Redisplay more prompt
 	RET
 ;
@@ -573,6 +593,9 @@ RMK_01
 	CALL	MESS
 	LD	A,0		;Redisplay more prompt
 	RET
+;
+RMK_02
+	JP	MORE_Q
 ;
 ; ------------------------------
 ;
@@ -592,8 +615,10 @@ SCNM_Q	LD	A,1
 	CALL	PUTCR
 	RET
 ;
+; ------------------------------
+;
 DO_SCAN
-	;scan through the file for messages
+	;scan through the database for messages
 	;matching criteria fwd/bkwd etc..
 	XOR	A
 	LD	(BACKWARD),A
@@ -650,25 +675,10 @@ DS_04	LD	HL,(A_MSG_POSN)
 ;This code checks whether a message is in a 'SEEN'
 ;topic or not
 ;******************************************************
-	LD	A,(HL)		;is message's topic.
-	PUSH	HL
-	LD	HL,TOPIC_MASK
-	AND	(HL)
-	POP	HL
-	LD	B,A
-	LD	A,(MY_TOPIC)	;my topic
+	LD	B,(HL)		;is message's topic.
+	LD	A,(MY_TOPIC)
 	CP	B
 	JP	NZ,DS_07	;msg not in seeable topic
-;If topic is restricted, check userids against topic No.
-;Message is given the same status as "private"...
-	CALL	IF_SYSOP
-	JR	NZ,DS_04Z	;allow it if sysop
-	LD	A,(HL)		;get topic its in.
-	AND	0FCH		;Mask out lower topics
-	CP	068H		;general>fidonet>admin
-	JP	Z,DS_05		;do not allow anybody
-	JR	NZ,DS_04C
-DS_04C				;more tests
 DS_04Z
 				;allow it.
 ;******************************************************
@@ -685,6 +695,7 @@ DS_04Z
 	JR	Z,DS_05
 	CALL	PUTCR
 	JR	FIN_SCAN
+;
 DS_05	LD	HL,(MSG_NUM)
 	EX	DE,HL
 	LD	HL,(LAST_MSG)
@@ -724,6 +735,8 @@ BAD_RANGE
 	LD	HL,M_BDRNG
 	CALL	MESS
 	RET
+;
+; ------------------------------
 ;
 READ_MSGHDR
 	LD	BC,(A_MSG_POSN)
@@ -844,8 +857,6 @@ CHK_DATE
 ; ------------------------------
 ;
 INFO_SETUP
-	CALL	SET_MASK
-;
 	LD	HL,0
 	LD	(N_MSG_TOP),HL
 	LD	(A_TOP_1ST),HL
@@ -855,14 +866,13 @@ INFO_SETUP
 	OR	L
 	RET	Z
 ;
-;Count how many messages can be seen by topic number
+;Count how many messages are in this topic
+;
 	LD	BC,(N_MSG)
 	LD	HL,MSG_TOPIC
 	LD	DE,0
 	LD	IX,MY_TOPIC
-	LD	IY,TOPIC_MASK
 CNT_1	LD	A,(HL)
-	AND	(IY)
 	CP	(IX)
 	JR	NZ,CNT_1A
 	INC	DE
@@ -877,19 +887,19 @@ CNT_1A	INC	HL
 	LD	A,H
 	OR	L
 	RET	Z
+;Find the last message in this topic
 	EX	DE,HL
 CNT_2	DEC	HL
 	LD	A,(HL)
-	AND	(IY)
 	CP	(IX)
 	JR	NZ,CNT_2
 CNT_2A	LD	DE,MSG_TOPIC
 	OR	A
 	SBC	HL,DE
 	LD	(A_TOP_LAST),HL
+;Find the first message in this topic
 	LD	HL,MSG_TOPIC
 CNT_3	LD	A,(HL)
-	AND	(IY)
 	CP	(IX)
 	JR	Z,CNT_3A
 	INC	HL
@@ -898,44 +908,12 @@ CNT_3A	LD	DE,MSG_TOPIC
 	OR	A
 	SBC	HL,DE
 	LD	(A_TOP_1ST),HL
-	RET			;finished.
+	RET
 ;
 ; ------------------------------
 ;
-;convert topic number to integer.
-TOP_INT
-;
-	LD	E,A		;a=topic
-	AND	3
-	LD	B,A
-	LD	C,49
-	INC	B
-	LD	A,-49
-TI_1	ADD	A,C
-	DJNZ	TI_1
-	LD	D,A
-	LD	A,E
-	AND	1CH
-	SRL	A
-	SRL	A
-	LD	B,A
-	INC	B
-	LD	C,7
-	LD	A,-7
-TI_2	ADD	A,C
-	DJNZ	TI_2
-	ADD	A,D
-	LD	D,A
-	LD	A,E
-	AND	0E0H
-	RLCA
-	RLCA
-	RLCA
-	ADD	A,D
-	LD	D,A
-	RET
-;
-INIT	XOR	A
+INIT
+	XOR	A
 	LD	HL,IN_BUFF
 	LD	(HL),A
 	LD	(CHAR_POSN),HL

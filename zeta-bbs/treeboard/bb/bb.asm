@@ -1,4 +1,9 @@
 ; @(#) bb.asm: News and echomail system
+;1.9:
+;	Flatten out the tree to become a list of topics!
+;1.8c:
+;	Base version
+;
 *GET	DOSCALLS.HDR
 *GET	EXTERNAL.HDR
 *GET	ASCII.HDR
@@ -13,7 +18,7 @@ MAX_MSGS	EQU	1024
 	DEFW	CLEAN_DISCON
 ;End of program load info.
 ;
-	COM	'<BB 1.8c 03-Jul-89>'
+	COM	'<BB 1.9  30-Jul-89>'
 ;
 	ORG	BASE+100H
 ;
