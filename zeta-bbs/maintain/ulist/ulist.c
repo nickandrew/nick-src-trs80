@@ -37,7 +37,7 @@ main()
       exit(1);
       }
 
-   fp_uf=fopen("userfile/zms","r");
+   fp_uf=fopen("userfile.zms","r");
    if (!fp_uf )
       {
       fprintf(stderr,"ulist: difficulty opening file\n");
