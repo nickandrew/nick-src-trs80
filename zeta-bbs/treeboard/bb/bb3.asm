@@ -1,108 +1,6 @@
-;BB3.asm: BB code file #3, 18-Jan-88
+; @(#) bb3.asm - BB code file #3, 14 May 89
 ;
-TOPIC_PRINT
-	LD	(TEMP_TOPIC),A
-	LD	A,0
-	CALL	TOP_ADDR
-	CALL	TOP_PRT_1
-	LD	A,(TEMP_TOPIC)
-	AND	0E0H
-	OR	A
-	RET	Z
-;
-	PUSH	AF
-	LD	A,'>'
-	CALL	PUT
-	POP	AF
-	CALL	TOP_INT
-	CALL	TOP_ADDR
-	CALL	TOP_PRT_1
-;
-	LD	A,(TEMP_TOPIC)
-	AND	0FCH
-	LD	B,A
-	AND	1CH
-	RET	Z
-	LD	A,B
-	PUSH	AF
-	LD	A,'>'
-	CALL	PUT
-	POP	AF
-	CALL	TOP_INT
-	CALL	TOP_ADDR
-	CALL	TOP_PRT_1
-;
-	LD	A,(TEMP_TOPIC)
-	OR	A
-	AND	3
-	RET	Z
-	LD	A,'>'
-	CALL	PUT
-	LD	A,(TEMP_TOPIC)
-	CALL	TOP_INT
-	CALL	TOP_ADDR
-	CALL	TOP_PRT_1
-	RET
-;
-TOP_PRT_1
-	LD	A,(HL)
-	CP	CR
-	RET	Z
-	OR	A
-	JR	NZ,TP1_1
-	LD	A,'*'
-	CALL	PUT
-	RET
-TP1_1
-	CALL	PUT
-	INC	HL
-	JR	TOP_PRT_1
-;
-TOPIC_DOWN
-	LD	B,A
-	OR	A
-	JR	NZ,TD_1
-	LD	A,C		;level 0 to 1.
-	AND	7
-	RRCA
-	RRCA
-	RRCA
-	CP	A
-	RET
-TD_1	LD	A,B
-	AND	1CH
-	JR	NZ,TD_2
-	LD	A,C		;level 1 to 2.
-	AND	7
-	RLCA
-	RLCA
-	OR	B
-	CP	A
-	RET
-TD_2	LD	A,B
-	AND	3
-	RET	NZ
-	LD	A,C
-	AND	3
-	OR	B
-	CP	A
-	RET
-;
-TOPIC_UP
-	LD	B,A
-	AND	3
-	JR	Z,TU_1
-	LD	A,B
-	AND	0FCH
-	RET
-TU_1	LD	A,B
-	AND	1CH
-	JR	Z,TU_2
-	LD	A,B
-	AND	0E0H
-	RET
-TU_2	XOR	A
-	RET
+; ------------------------------
 ;
 LIST_CMD
 	CALL	GET_CHAR
@@ -147,8 +45,9 @@ LC_4	LD	A,(TOPIC_CNT)
 	CALL	MESS
 	JP	MAIN
 ;
-HDR_SCAN
+; ------------------------------
 ;
+HDR_SCAN
 	LD	HL,M_MSG2
 	CALL	MESS
 	LD	HL,(MSG_NUM)
@@ -182,6 +81,8 @@ HS_09
 	CALL	PUTCR
 	RET
 ;
+; ------------------------------
+;
 CHK_USERS
 ;name is in NAME_BUFF terminated by CR.
 ;move to USN_BUFF.
@@ -199,6 +100,8 @@ CU_2	LD	HL,USN_BUFF
 	LD	HL,(UF_UID)
 	LD	(US_NUM),HL
 	RET	;Z or NZ (even with errors!)
+;
+; ------------------------------
 ;
 OPT_CMD
 	CALL	GET_CHAR
@@ -305,10 +208,14 @@ SET_MASK
 	LD	(TOPIC_MASK),A
 	RET
 ;
+; ------------------------------
+;
 CLEAN_DISCON			;A clean disconnect.
 	CALL	CLOSE_ALL
 	LD	A,0
 	JP	TERM_DISCON	;pass a disconnect.
+;
+; ------------------------------
 ;
 SPEC_CMD
 	CALL	GET_CHAR
@@ -325,10 +232,6 @@ SPEC_1	CALL	GET_CHAR
 	JR	Z,SPEC_1
 	CALL	TO_UPPER_C
 ;
-	PUSH	AF
-	CALL	GET_CHAR
-	POP	AF
-;
 	CP	'#'
 	JP	Z,MAIN
 	CP	'C'		;Create subtopic
@@ -341,7 +244,46 @@ SPEC_1	CALL	GET_CHAR
 	JP	Z,MOVMSG_CMD
 	CP	'R'
 	JP	Z,RESEND_CMD	;In bb6
+	CP	'S'		;Change topic status flags
+	JP	Z,STATUS_CMD
 	JP	BADSYN
+;
+; ------------------------------
+;
+MOVMSG_CMD
+	CALL	GET_CHAR
+	CP	CR
+	JP	NZ,BADSYN
+;
+;***
+MMGX_0
+	LD	HL,M_MOVWHR	;move to where?
+	CALL	GET_STRING
+	LD	IX,TOPNAM_BUFF
+MMGX_1
+	CALL	GET_CHAR
+	LD	(IX),A
+	INC	IX
+	CP	CR
+	JR	NZ,MMGX_1
+;
+	LD	(IX-1),0
+	LD	HL,TOPNAM_BUFF
+	LD	A,(HL)
+	OR	A
+	JP	Z,MAIN
+	CALL	FIND_TOP_NUM
+	JR	NZ,MMGX_0
+MMGX_4
+	LD	HL,MOVEMESSAGE
+	LD	(FUNCTION),HL
+	LD	HL,M_MOVEMSG
+	LD	(FUNCNM),HL
+	CALL	DO_SCAN_1
+	CALL	INFO_SETUP
+	JP	SPEC_CMD
+;
+; ------------------------------
 ;
 MOVEMESSAGE
 	LD	A,(MSG_FOUND)
@@ -445,35 +387,7 @@ MMSG_3
 	CALL	MESS
 	RET
 ;
-MOVMSG_CMD
-;
-;***
-MMGX_0
-	LD	HL,M_MOVWHR	;move to where?
-	CALL	GET_STRING
-	LD	IX,TOPNAM_BUFF
-MMGX_1
-	CALL	GET_CHAR
-	LD	(IX),A
-	INC	IX
-	CP	CR
-	JR	NZ,MMGX_1
-;
-	LD	(IX-1),0
-	LD	HL,TOPNAM_BUFF
-	LD	A,(HL)
-	OR	A
-	JP	Z,MAIN
-	CALL	FIND_TOP_NUM
-	JR	NZ,MMGX_0
-MMGX_4
-	LD	HL,MOVEMESSAGE
-	LD	(FUNCTION),HL
-	LD	HL,M_MOVEMSG
-	LD	(FUNCNM),HL
-	CALL	DO_SCAN_1
-	CALL	INFO_SETUP
-	JP	SPEC_CMD
+; ------------------------------
 ;
 ;Treewalk: Quasi-recursive tree scan to read Unread msgs
 TREAD_CMD
@@ -505,7 +419,7 @@ TREAD_CMD
 	LD	HL,(N_MSG_TOP)
 	LD	(LAST_MSG),HL	;To   $
 ;
-	LD	A,4
+	LD	A,4		;Unread messages (so they think)
 	LD	(SCAN_MASK),A
 ;
 TOP_LOOP:
@@ -552,7 +466,12 @@ TL_01
 	CALL	INFO_SETUP
 	JP	MAIN		;Finished.
 ;
+; ------------------------------
+;
 TOP_RMESSAGE
+	XOR	A
+	LD	(SCRDONE),A
+;
 	LD	A,(TR_NEWFLAG)
 	OR	A
 	JR	Z,TRM_01
@@ -562,59 +481,97 @@ TOP_RMESSAGE
 	LD	A,(MY_TOPIC)
 	CALL	TOPIC_PRINT
 	CALL	PUTCR
-	CALL	PUTCR
+	LD	A,2
+	LD	(SCRDONE),A
 ;
-;** print line of dashes
 	XOR	A
 	LD	(TR_NEWFLAG),A
 ;
 TRM_01
-	CALL	PUTCR
+	CALL	PUTCR		;Print message header
 	CALL	PUTCR
 	CALL	TEXT_POSN
 	CALL	HDR_PRNT
 ;
-TRM_02	CALL	BGETC
+;Initialise more for treewalk
+	LD	HL,TW_INFUNC	;Setup input function
+	LD	(INFUNC),HL
+	LD	HL,TW_KEYFUNC	;Setup key function
+	LD	(KEYFUNC),HL
+	LD	A,(SCRDONE)
+	ADD	A,7
+	LD	(SCRDONE),A
+;
+	CALL	MOREPIPE	;Display the message through more
 	OR	A
-	JR	Z,TRM_08	;End of message
-	CALL	PUT
+	JR	NZ,TRM_10
+	JR	TRM_08
 ;
-	CALL	GET_$2
-	OR	A
-	JR	Z,TRM_02	;Nothing typed
-	CALL	TRM_03
-	JR	TRM_02		;Optional return
-;
-TRM_03
-	AND	5FH
-	CP	'N'
-	JR	Z,TRM_06	;Skip rest of message
-	CP	'T'
-	JR	Z,TRM_07	;Skip rest of topic
-	CP	'Q'
-	JR	Z,TRM_05	;Quit the Treewalk
-	RET			;Optional return
-;
-TRM_05	LD	A,1
-	LD	(SCAN_ABORT),A
-TRM_06
-	CALL	PUTCR
-	POP	BC		;Pop trm_03 return addr
-	RET
-TRM_07	LD	A,1
-	LD	(SCAN_ABORT),A
-	LD	(TR_SKIP),A
-	JR	TRM_06
-;
-TRM_08
-	LD	HL,M_TRMPAUSE
+TRM_08	LD	HL,M_TRMPAUSE
 	CALL	MESS
 TRM_09	CALL	GET_$2
 	OR	A
 	JR	Z,TRM_09
-	CALL	TRM_03		;Handle key
-	JR	TRM_09		;Optional return
+TRM_10
+	AND	5FH
+	CP	'N'
+	JR	Z,TRM_11	;Skip rest of message
+	CP	'T'
+	JR	Z,TRM_12	;Skip rest of topic
+	CP	'Q'
+	JR	Z,TRM_13	;Quit the Treewalk
+	JR	TRM_09		;Try again
 ;
+TRM_11
+	CALL	PUTCR
+	RET
+;
+TRM_12
+	LD	A,1
+	LD	(SCAN_ABORT),A
+	LD	(TR_SKIP),A
+	CALL	PUTCR
+	RET
+;
+TRM_13
+	LD	A,1
+	LD	(SCAN_ABORT),A
+	CALL	PUTCR
+	RET
+;
+; ------------------------------
+;
+TW_INFUNC
+	CALL	BGETC
+	RET	NZ
+	CP	A
+	RET
+;
+; ------------------------------
+;
+TW_KEYFUNC
+	CP	'?'
+	JR	Z,TWK_01
+	AND	5FH
+	CP	'H'
+	JR	Z,TWK_01
+	CP	'N'
+	JP	Z,MORE_Q
+	CP	'T'
+	JP	Z,MORE_Q
+	CP	'Q'
+	JP	Z,MORE_Q
+	XOR	A		;Redisplay more prompt
+	RET
+;
+TWK_01
+	LD	HL,M_TRMHELP
+	CALL	MESS
+	XOR	A
+	RET
+;
+; ------------------------------
+; Find the next topic in the tree in a preorder scan
 TREE_WALK
 	LD	B,A
 	CP	0
@@ -632,5 +589,181 @@ S_TW_02
 	LD	A,B
 	INC	A
 	RET
+;
+; ------------------------------
+;
+TOPIC_PRINT
+	LD	(TEMP_TOPIC),A
+	LD	A,0
+	CALL	TOP_ADDR
+	CALL	TOP_PRT_1
+	LD	A,(TEMP_TOPIC)
+	AND	0E0H
+	OR	A
+	RET	Z
+;
+	PUSH	AF
+	LD	A,'>'
+	CALL	PUT
+	POP	AF
+	CALL	TOP_INT
+	CALL	TOP_ADDR
+	CALL	TOP_PRT_1
+;
+	LD	A,(TEMP_TOPIC)
+	AND	0FCH
+	LD	B,A
+	AND	1CH
+	RET	Z
+	LD	A,B
+	PUSH	AF
+	LD	A,'>'
+	CALL	PUT
+	POP	AF
+	CALL	TOP_INT
+	CALL	TOP_ADDR
+	CALL	TOP_PRT_1
+;
+	LD	A,(TEMP_TOPIC)
+	OR	A
+	AND	3
+	RET	Z
+	LD	A,'>'
+	CALL	PUT
+	LD	A,(TEMP_TOPIC)
+	CALL	TOP_INT
+	CALL	TOP_ADDR
+	CALL	TOP_PRT_1
+	RET
+;
+TOP_PRT_1
+	LD	A,(HL)
+	CP	CR
+	RET	Z
+	OR	A
+	JR	NZ,TP1_1
+	LD	A,'*'
+	CALL	PUT
+	RET
+TP1_1
+	CALL	PUT
+	INC	HL
+	JR	TOP_PRT_1
+;
+; ------------------------------
+;
+TOPIC_DOWN
+	LD	B,A
+	OR	A
+	JR	NZ,TD_1
+	LD	A,C		;level 0 to 1.
+	AND	7
+	RRCA
+	RRCA
+	RRCA
+	CP	A
+	RET
+TD_1	LD	A,B
+	AND	1CH
+	JR	NZ,TD_2
+	LD	A,C		;level 1 to 2.
+	AND	7
+	RLCA
+	RLCA
+	OR	B
+	CP	A
+	RET
+TD_2	LD	A,B
+	AND	3
+	RET	NZ
+	LD	A,C
+	AND	3
+	OR	B
+	CP	A
+	RET
+;
+; ------------------------------
+;
+TOPIC_UP
+	LD	B,A
+	AND	3
+	JR	Z,TU_1
+	LD	A,B
+	AND	0FCH
+	RET
+TU_1	LD	A,B
+	AND	1CH
+	JR	Z,TU_2
+	LD	A,B
+	AND	0E0H
+	RET
+TU_2	XOR	A
+	RET
+;
+; ------------------------------
+;
+STATUS_CMD
+	CALL	GET_CHAR
+	CP	CR
+	JP	NZ,BADSYN
+;
+	CALL	IF_SYSOP
+	JP	Z,NO_PERMS
+;
+	LD	HL,PMPT_STATUS
+	CALL	GET_STRING
+	CALL	GET_CHAR
+	CP	CR
+	JP	Z,MAIN
+	AND	5FH
+	CP	'E'
+	JR	Z,STAT_01
+	CP	'L'
+	JR	Z,STAT_02
+	JP	BADSYN
+;
+STAT_01
+	LD	B,1
+	JR	STAT_03
+STAT_02
+	LD	B,0
+	JR	STAT_03
+;
+STAT_03
+	PUSH	BC
+	LD	A,(MY_TOPIC)
+	CALL	TOP_INT
+	CALL	TOP_ADDR
+	LD	DE,19
+	ADD	HL,DE
+	POP	BC
+	LD	A,(HL)
+	AND	0FEH
+	OR	B
+	LD	(HL),A
+	PUSH	AF
+;
+;Find offset within topic file and overwrite 1 byte
+	LD	A,(MY_TOPIC)
+	CALL	TOP_INT
+	CALL	MUL_20
+	LD	DE,16		;Size of initial status information
+	ADD	HL,DE
+	LD	DE,19
+	ADD	HL,DE		;Offset within data structure
+	LD	C,L
+	LD	L,H
+	LD	H,0
+	LD	DE,TOP_FCB
+	CALL	DOS_POS_RBA
+	POP	BC
+	JP	NZ,ERROR
+	LD	A,B
+	CALL	$PUT
+	JP	NZ,ERROR
+;
+	LD	HL,M_STATOK
+	CALL	MESS
+	JP	MAIN
 ;
 ;End of bb3
