@@ -911,6 +911,6 @@ H5971	DEFB	0
 H5972	DEFB	0,0,0
 H5975	DEFB	0,0
 H5977
-*GET	ZORKSEC1/SRC	;Get checksum data.
+*GET	ZORKSEC1	;Get checksum data.
 H5A77	DEFB	0
 ; End of new data definitions.

@@ -24,8 +24,8 @@ STACK
 ;Following must be in that order because control flows
 ;across Zorkboot into ZorkA.
 *GET	ZORKBOOT	;Boot Sector data
-*GET	ZORKA/SRC	;File # 1
-*GET	ZORKB/SRC	;File # 2
-*GET	ZORKC/SRC	;File # 3
+*GET	ZORKA		;File # 1
+*GET	ZORKB		;File # 2
+*GET	ZORKC		;File # 3
 ;
 	END	H4200

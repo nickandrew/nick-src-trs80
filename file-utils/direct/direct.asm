@@ -24,7 +24,7 @@
 ;* This program is compatible with DIRECT.C for Unix.   *
 ;********************************************************
 ;
-*GET	DOSCALLS		;Include DOSCALLS/ASM
+*GET	DOSCALLS
 ;
 CR	EQU	0DH
 ETX	EQU	03H
