@@ -9,13 +9,14 @@
 
 #include <stdio.h>
 
+struct  stat status;
 char    *argv0, *argvk;
 short   errorm;
 
 #define BLKSIZE  512     /* must be 512 ! */
 #define NAMELEN 80
-#define SUF0    '.'
-#define SUF1    'z'
+#define SUF0    '/'
+#define SUF1    'Z'
 #define US      037
 #define RS      036
 
@@ -142,7 +143,7 @@ decode()
     while (1) {
 
        if (inleft <= 0) {
-          inleft=read(fileno(infile),inp= &inbuff[0],BLKSIZE);
+          inleft=read(fileno(infile),inp=&inbuff[0],BLKSIZE);
           if (inleft < 0) {
              eprintf (".z: read error (1)");
              return (0);
