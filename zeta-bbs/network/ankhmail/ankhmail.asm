@@ -1,39 +1,29 @@
 ;Ankhmail : Process files received from Fidonet
 ;
-ZETA		EQU	1
-DEBUGF		EQU	0	;Function call debugging
-DEBUGG		EQU	0	;Loop at start debug
-SYSOPONLY	EQU	1	;Only the Sysop may run
-REDIRDIS	EQU	1	;1 to disable redirection
-STACKSIZE	EQU	100H	;Size of the stack
+ZETA	EQU	1
 ;
-*GET	DOSCALLS:0
+*GET	DOSCALLS
 ;
 	IF	ZETA
 *GET	EXTERNAL.HDR
 *GET	ASCII.HDR
 ;
-	COM	'<Ankhmail 1.2c 14 Aug 90>'
+	COM	'<Ankhmail 1.1a 28-Jan-88>'
 	ORG	PROG_START
 	DEFW	BASE
 	DEFW	THIS_PROG_END
 	DEFW	0
 	DEFW	0
 ;End of program load info.
-	ORG	BASE+STACKSIZE
+	ORG	BASE+100H
 	ELSE
-	ORG	5200H+STACKSIZE
+	ORG	5200H
 ;
 	ENDIF
 ;
-TOPSTACK	EQU	$
-;
-	IF	DEBUGF
-*GET	DEBUGF
-	ELSE
+;;*GET	DEBUG:1
 DEBUG	MACRO	#$STR
 	ENDM
-	ENDIF
 ;
 START
 	IF	ZETA
@@ -43,17 +33,15 @@ START1	DEC	HL
 	JR	NC,START1
 	INC	HL		;Pseudo start of cmd line
 ;
-	LD	SP,TOPSTACK	;There is plenty of stack
+	LD	SP,START	;There is plenty of stack
 	LD	(_CMDLINE),HL	;Save cmd line pointer
-	LD	HL,REDIRDIS	;Disable redirection
+	LD	HL,1		;Disable redirection
 	LD	(_NOREDIR),HL
 ;
-	IF	SYSOPONLY
 	LD	A,(PRIV_1)
 	BIT	IS_SYSOP,A
 	LD	A,0
 	JP	Z,TERMINATE
-	ENDIF
 ;
 	ELSE
 ;
@@ -62,28 +50,17 @@ START1	DEC	HL
 ;
 	ENDIF
 ;
-	IF	DEBUGG
-DB_LOOP
-	JP	DB_LOOP
-	ENDIF
-;
-*GET	CINIT
-*GET	CALL
+*GET	CINIT:1
+*GET	CALL:1
 ;
 *GET	ANKHMAI1
 ;
 *GET	ARCSUBS
-*GET	ATOI		;Requires ctype
-*GET	CTYPE		;Required by atoi
+;;*GET	ATOI
+;;*GET	CTYPE
 *GET	FTELL
 ;;*GET	FWRITE
-;;*GET	GETOPT
-;;*GET	GETTIME
-;;*GET	GETW
 ;;*GET	INDEX
-;;*GET	PNUMB
-;;*GET	SAVEPOS
-;;*GET	STRCHR
 *GET	STRCMP
 ;;*GET	STRLEN
 *GET	SYSTEM
@@ -99,7 +76,8 @@ DB_LOOP
 ;
 _CMDLINE	DEFW	4318H
 _NOREDIR	DEFW	0
-_BRKSIZE	DEFW	$+2
+;
+HIGHEST	DEFW	$+2
 ;
 	IF	ZETA
 THIS_PROG_END	EQU	$
