@@ -1,4 +1,4 @@
-; @(#) bbdata.asm - Data for treeboard, 14 May 89
+; @(#) bbdata.asm - Data for treeboard, 16 May 89
 ;
 ;Meanings of bits of status byte for each topic (offset 19)
 TOP_ECHO	EQU	0	;Bit #0, 1=echomail topic
@@ -6,52 +6,40 @@ TOP_ECHO	EQU	0	;Bit #0, 1=echomail topic
 M_BADCMD
 M_UNK
 	DEFM	'Unknown command',CR,0
-M_BADSYN
-	DEFM	'Command error',CR,0
-M_BDRNG	DEFM	'Bad message range',CR,0
-M_KILLERR
-	DEFM	'Disk error while killing message',CR,0
-M_SAVEERR
-	DEFM	'Disk error while saving message',CR,0
-M_NTFND
-	DEFM	CR,'No messages found',CR,0
-M_WHERE	DEFM	CR,'You are at ',0
-M_READ	DEFM	CR,'     ** READing **',CR,0
-M_SCAN	DEFM	CR,'     ** SCANning **',CR,0
-M_KILL	DEFM	CR,'     ** KILLing **',CR,0
-M_ENTER	DEFM	CR,'     ** ENTERing **',CR,0
-M_FORWARD
-	DEFM	CR,'     ** Forwarding **',CR,0
-M_MOVEMSG
-	DEFM	CR,'     ** Moving **',CR,0
+M_BADSYN	DEFM	'Command error',CR,0
+M_BDRNG		DEFM	'Bad message range',CR,0
+M_KILLERR	DEFM	'Disk error while killing message',CR,0
+M_SAVEERR	DEFM	'Disk error while saving message',CR,0
+M_NTFND		DEFM	CR,'No messages found',CR,0
+M_WHERE		DEFM	CR,'Current topic is ',0
+M_READ		DEFM	CR,'     ** READing **',CR,0
+M_SCAN		DEFM	CR,'     ** SCANning **',CR,0
+M_KILL		DEFM	CR,'     ** KILLing **',CR,0
+M_ENTER		DEFM	CR,'     ** ENTERing **',CR,0
+M_REPLY		DEFM	CR,'     ** Replying **',CR,0
+M_FORWARD	DEFM	CR,'     ** Forwarding **',CR,0
+M_MOVEMSG	DEFM	CR,'     ** Moving **',CR,0
 M_TREEWALK
-	DEFM	CR,'Treewalk',CR
-	DEFM	'N to skip the message, T to skip the topic, Q to quit',CR,0
-M_MSGNUM
-	DEFM	'Message No ',0
-M_MSGTOP
-	DEFM	CR,'Topic:   ',0
-M_SNDR	DEFM	CR,'From:    ',0
-M_RCVR	DEFM	CR,'To:      ',0
-M_DATE	DEFM	CR,'Date:    ',0
-M_SUBJ	DEFM	CR,'Subject: ',0
-M_NOWAT	DEFM	'Now at topic ',0
-M_UNDER	DEFM	CR,'Topics under ',0
-M_WHRTO	DEFM	'Where to (number,<U>, or <CR> to stay): ',0
-M_WHOTO
-	DEFM	'To:      ',0
-M_FWDWHO
-	DEFM	'To:      ',0
-M_MOVWHR
-	DEFM	'Move msgs to which topic? (by name): ',0
-M_WHTSUBJ
-	DEFM	'Subject: ',0
+	DEFM	CR,'  Treewalk',CR
+	DEFM	'Type ? to see available options',CR,0
+M_MSGNUM	DEFM	'Message No ',0
+M_MSGTOP	DEFM	CR,'Topic:   ',0
+M_SNDR		DEFM	CR,'From:    ',0
+M_RCVR		DEFM	CR,'To:      ',0
+M_DATE		DEFM	CR,'Date:    ',0
+M_SUBJ		DEFM	CR,'Subject: ',0
+M_NOWAT		DEFM	'Now at topic ',0
+M_UNDER		DEFM	CR,'Topics under ',0
+M_WHRTO		DEFM	'Where to (number, U, or <enter> to stay): ',0
+M_WHOTO		DEFM	'To:      ',0
+M_FWDWHO	DEFM	'To:      ',0
+M_MOVWHR	DEFM	'Move msgs to which topic? (by name): ',0
+M_WHTSUBJ	DEFM	'Subject: ',0
 M_FROMFILE	DEFM	'Filename: ',0
+M_DESTSTR	DEFM	'Not a user: ',0
 M_BRDFULL
 	DEFM	'The complete Message System is full.',CR
 	DEFM	'I can''t handle any more messages.',CR,0
-M_DESTSTR
-	DEFM	'Not a user: ',0
 M_DESTSTR2
 	DEFM	'Messages in a local topic must be addressed to a real',CR
 	DEFM	'Zeta user or to ALL.',CR,0
@@ -62,7 +50,6 @@ M_TOPLOC
 M_TOPECHO
 	DEFM	'This message will be distributed through ACSnet or Fidonet'
 	DEFM	CR,0
-;;M_ALL	DEFM	'ALL',CR
 M_PRIVATE
 	DEFM	'Private? (Y/N/Q): ',0
 M_FWD_NOONE
@@ -133,16 +120,16 @@ M_MSGMVD
 M_SYSGOT
 	DEFM	CR
 	DEFM	'This system contains a total of ',0
-M_NKLD	DEFM	'Killed messages comprise ',0
+M_NKLD		DEFM	'Killed messages comprise ',0
 M_TO		DEFM	'  to  ',0
 M_P		DEFM	'  (Private)',0
 M_NETSENT	DEFM	'  (Sent)',0
 M_SPACE		DEFM	'  Topic: ',0
 M_ABOUT		DEFM	CR,'Subject: ',0
 M_SPACES	DEFM	'   ',0
-M_NO	DEFM	'  (No)',CR,0
-M_YES	DEFM	'  (Yes)',CR,0
-M_QUIT	DEFM	'  (Quit)',CR,0
+M_NO		DEFM	'  (No)',CR,0
+M_YES		DEFM	'  (Yes)',CR,0
+M_QUIT		DEFM	'  (Quit)',CR,0
 M_ATBOTM
 	DEFM	'I can''t create topics below this.',CR,0
 M_SUBUSED
@@ -181,22 +168,20 @@ M_MOVEIT
 M_KILLING
 	DEFM	'Killing # ',0
 M_MOVING
-	DEFM	'Moving  # ',0
+	DEFM	'Moving # ',0
 M_PAUSE	DEFM	'Hit N to see the next message, Q to quit',CR,0
 M_TRMPAUSE
-	DEFM	CR,'Hit N to continue, T to skip this topic, Q to quit',CR,0
+	DEFM	'Hit N to continue, T to skip this topic, Q to quit',CR,0
 M_APAUSE
 	DEFM	'Pause after each message? (Y/N/Q): ',0
-;
-M_NTOSKP
-	DEFM	'Hit <N> skip to the next message, Q to quit.',CR,0
+M_TOPT	DEFM	'Type ? to see all available options',CR,0
 ;
 M_EDWHLI
 	DEFM	'Edit which line? (CR to exit): ',0
 M_FILESAFE
-	DEFM	'Your file was safely saved.',CR,0
+	DEFM	'Your message was safely saved.',CR,0
 M_FILEFAIL
-	DEFM	'File saved but truncated by disk error.',CR,0
+	DEFM	'Message saved but truncated by disk error.',CR,0
 M_LONGFILE
 	DEFM	'File is too long. Limit it to <10k',CR,0
 M_WHATFILE
@@ -210,25 +195,30 @@ M_TOPIC2
 M_TOPIC3
 	DEFM	'Topic:   ',0
 M_READHELP
-	DEFM	CR,'The following keys are accepted by more:',CR
+	DEFM	CR,'The following keys are accepted:',CR
 	DEFM	'  <space>   Display the next page',CR
 	DEFM	'  <enter>   Display another line',CR
-	DEFM	'     N      Skip to the next message',CR
+	DEFM	'     A      read Again',CR
+	DEFM	'     N      Next message',CR
+	DEFM	'     R      Reply',CR
 	DEFM	'     Q      Quit',CR
 	DEFM	'     ?      Display this help message',CR
 	DEFM	0
 ;
 M_TRMHELP
-	DEFM	CR,'The following keys are accepted by more:',CR
+	DEFM	CR,'The following keys are accepted:',CR
 	DEFM	'  <space>   Display the next page',CR
 	DEFM	'  <enter>   Display another line',CR
-	DEFM	'     N      Skip to the next message',CR
-	DEFM	'     T      Skip to the next topic',CR
+	DEFM	'     A      read Again',CR
+	DEFM	'     N      Next message',CR
+	DEFM	'     R      Reply',CR
+	DEFM	'     T      next Topic',CR
 	DEFM	'     Q      Quit',CR
 	DEFM	'     ?      Display this help message',CR
 	DEFM	0
 ;
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;
 MENU_MAIN
 	DEFW	MU_MAIN
 	DEFW	CL_MAIN
@@ -301,6 +291,7 @@ CL_OPT		DEFM	'1234',0
 CL_QUEST	DEFM	'LECAS',0
 ;
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;
 MFD_DATA
 	DEFM	'General',CR
 	DC	16-8,0		;Pad out to 16 chars
@@ -325,14 +316,12 @@ ADD_AND
 MASK_DATA
 	DEFB	00H,0E0H,0FCH,0FFH
 ;
-M_LINE		DEFB	0
+M_LINE		DEFB	0	;Editing printed line number
 CHAR_FLAG	DEFB	0
-NOWRAP		DEFB	0
 NETMSG		DEFB	0
 TOPIC_BELOW	DEFB	0
 SUB_CNT		DEFB	0
 TOPIC_CNT	DEFB	0
-;;TAG_POSN	DEFB	0
 TEMP1		DEFB	0
 TEMP2		DEFB	0
 ;
@@ -381,8 +370,9 @@ INT_TOP		DEFB	0
 ;
 TEMP_TOPIC	DEFB	0
 ;
-LINES		DEFB	0
+LINES		DEFB	0	;Nr of lines in entered message
 ;
+MSGQ_BUFF	DC	5,0
 IN_BUFF		DC	81,0
 TOPNAM_BUFF	DC	33,0
 NAME_BUFF	DC	81,0
@@ -400,7 +390,6 @@ TRIES		DEFB	0
 ;
 PAUSE		DEFB	0
 TXT_RBA		DEFB	0,0,0	;low/mid/high
-START_RBA	DEFB	0,0,0
 ;
 MSG_FOUND	DEFB	0
 BACKWARD	DEFB	0
@@ -451,9 +440,14 @@ MSG_TOPIC					;**
 		DEFS	MAX_MSGS		;**
 ;**************************************************
 ;
-HDR_B	DEFS	256
-TOP_B	DEFS	256
-FILE_BUF DEFS	256
+B_FROM		DEFS	81	;Useful for replying
+B_TO		DEFS	81	;"
+B_DATE		DEFS	81	;"
+B_SUBJ		DEFS	81	;"
+;
+HDR_B		DEFS	256
+TOP_B		DEFS	256
+FILE_BUF	DEFS	256
 ;
 TEXT_BUF
 	NOP
