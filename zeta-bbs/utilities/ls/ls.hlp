@@ -1,0 +1,17 @@
+3ST Start of help on LS
+
+    Usage:   LS [wildcard]
+
+    LS will display a list of all files on Zeta's disks to
+its standard output.
+
+    The optional 'wildcard' parameter, if given, is a wildcard
+using the characters '*' and '?' and ordinary characters where
+only filenames matching the wildcard will be displayed.
+
+    For example:
+
+ls *              displays all filenames
+ls *.C            only filenames ending in .C
+ls D*             only filenames commencing in D
+
