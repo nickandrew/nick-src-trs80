@@ -1,4 +1,4 @@
-;@(#) mail2.asm: mail code file #2, on 08 Apr 89
+;@(#) mail2.asm: mail code file #2, on 26 Jun 89
 ;
 KILL_CMD
 	CALL	GET_CHAR
