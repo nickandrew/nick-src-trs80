@@ -1,0 +1,7 @@
+Usage: shell
+
+        The Zeta Shell is a command processor. A little like the MS-DOS command.com, a little like Unix's sh. Shell's primary function is to let you type full-line commands which are then executed. The list of commands which can be executed by the shell can be obtained with the CMDS command.
+
+        Shell has some inbuilt commands also.  The most important of these is EXIT, which terminates the Shell and returns to the previously executing program. Shell may execute itself re-entrantly.
+
+0

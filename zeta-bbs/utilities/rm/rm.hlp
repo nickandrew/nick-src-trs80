@@ -1,0 +1,15 @@
+
+RM
+--
+
+    RM kills files from disk. Usage is (as in Unix):
+
+          rm [-i] files ...
+
+    The '-i' option is interactive. The name of the file will
+be displayed in a prompt, to which you enter the single key
+response of either 'y' or 'n' ... 'y' will remove the file
+from the directory.
+
+    Currently RM is only usable by the sysop.
+

@@ -1,0 +1,27 @@
+3ST Scrub help
+                    SCRUB
+                   -------
+
+   Scrub is a command which strips bit 7 from files given as
+input, and writes the changed file to its standard output.
+
+   This is most useful to convert wordstar files from
+"document mode" into standard Ascii format. Scrub can also
+convert into standard Trs-80 text file format by use of the
+'-c' option.
+
+
+   Usage is:   scrub [-c] files ...
+
+   Scrub will concatenate and convert multiple files.
+
+   To get the output from Scrub into a file, "TEMPFILE" do
+
+                 scrub myfile.txt @>
+
+   Scrub accepts a single option '-c', which toggles a flag.
+When the flag is set Scrub will convert CRLF in the input to
+CR, and recognize a control-Z (^Z) as an EOF marker for each
+input file. Hence, to convert a file from CP/M format into
+Trs-80 text file format do "scrub -c filename >".
+
