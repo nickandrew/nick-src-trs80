@@ -3,47 +3,31 @@
           Help on the "GREP" command - 17-Jun-87
           --------------------------------------
 
-   GREP is a standard Unix (and now Zeta) command to search
-through a file for a given string, and to print out any lines
-containing an occurrence of that string.
+   GREP is a standard Unix (and now Zeta) command to search through a file for a given string, and to print out any lines containing an occurrence of that string.
 
  Usage is:   GREP   string   filename
 
-  Where 'filename' is any valid filename, and 'string' is a
-(possibly quoted) text string. Spaces must separate the GREP
-command name from the string, and also separate the string
-from the filename. If it is desired to include spaces as part
-of the search string, the following format may be used:
+  Where 'filename' is any valid filename, and 'string' is a (possibly quoted) text string. Spaces must separate the GREP command name from the string, and also separate the string from the filename. If it is desired to include spaces as part of the search string, the following format may be used:
+
          GREP  'string'  filename
- where 'string' is a string with spaces enclosed in single
-quotes. If a single quote is required, the construct   \'
-(ie. <BACKSLASH><QUOTE>) will place a single quote into the
-string to be searched for.
+ where 'string' is a string with spaces enclosed in single quotes. If a single quote is required, the construct   \' (ie. <BACKSLASH><QUOTE>) will place a single quote into the string to be searched for.
 
    Some examples of GREP usage follow:
 
 
      GREP generation letter.txt
-         Finds all occurrences of the word 'Generation' in
-         the file LETTER.TXT. Upper & Lower case considered
-         identical for string comparison.
+         Finds all occurrences of the word 'Generation' in the file LETTER.TXT. Upper & Lower case considered identical for string comparisons.
 
      GREP 'viatel.txt' filelist.zms
-         Searches Zeta's "list of files" for the filename
-         'viatel.txt' and prints out the name, date,
-         description and location on disk.
+         Searches Zeta's "list of files" for the filename 'viatel.txt' and prints out the name, date, description and location on disk.
 
      GREP ';' vt4.asm
-         Prints out any lines in the file VT4.ASM which
-         contain semicolons.
+         Prints out any lines in the file VT4.ASM which contain semicolons.
 
      GREP 'main menu' augur.bbs
-         Prints out each time the words MAIN MENU appear in
-         that file
+         Prints out each time the words MAIN MENU appear in that file
 
      GREP may-87 filelist.zms
-         Prints a list of all files uploaded to Zeta during
-         the month of May '87.
-
+         Prints a list of all files uploaded to Zeta during the month of May '87.
 
 0

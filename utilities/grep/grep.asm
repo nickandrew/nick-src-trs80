@@ -1,19 +1,11 @@
 ;grep: Search for a string of chars in a file.
 ;usage: grep pattern filename
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	ASCII
 ;
-	ORG	PROG_START
-	DEFW	BASE
-	DEFW	THIS_PROG_END
-	DEFW	TERMINATE
-	DEFW	TERMINATE
-;End of program load info.
-;
-	COM	'<GREP 1.1e 03-Jun-87>'
-	ORG	BASE+100H
+	COM	'<GREP 1.1e 03-Jun-87 30-Dec-87>'
+	ORG	5300H
 ;
 START	LD	SP,START
 	LD	A,(HL)
@@ -96,7 +88,7 @@ MOVE_2
 ;Extract filespec.
 	LD	HL,FCB_IN_NAME
 	LD	DE,FCB_IN
-	CALL	EXTRACT
+	CALL	DOS_EXTRACT
 	LD	A,130		;can't extract
 	JR	NZ,FILE_ERROR
 ;Now try to open file.
@@ -110,7 +102,6 @@ MOVE_2
 FILE_ERROR
 	PUSH	AF
 	LD	HL,M_GREP
-	LD	DE,$2
 	CALL	MESS_0
 	LD	HL,FCB_IN_NAME
 	CALL	MESS_0
@@ -123,15 +114,14 @@ FILE_ERROR
 	OR	80H
 	CALL	DOS_ERROR
 	POP	AF
-	JP	TERMINATE
+	JP	DOS
 ;
 ;
 USAGE
 	LD	HL,M_USAGE
-	LD	DE,$2
 	CALL	MESS_0
 	LD	A,1
-	JP	TERMINATE
+	JP	DOS
 ;
 OPEN_1
 				;setup pointers.
@@ -148,7 +138,7 @@ NEXT_LINE
 	JR	NZ,FILE_ERROR
 ;end!
 	LD	A,0
-	JP	TERMINATE
+	JP	DOS
 ;
 NEXT_1
 	LD	HL,LINE_BUFF
@@ -179,7 +169,6 @@ COMP_4
 FOUND
 	POP	HL
 	LD	HL,LINE_BUFF
-	LD	DE,$2
 FOUN_1	LD	A,(HL)
 	OR	A
 	JR	Z,FOUN_4
@@ -305,8 +294,38 @@ READ_4B
 	LD	(ERROR_CODE),A
 	JR	READ_3
 ;
+STD_OUT
+	PUSH	DE
+	CALL	0033H
+	POP	DE
+	RET
 ;
-*GET	ROUTINES
+MESS_0	LD	A,(HL)
+	OR	A
+	RET	Z
+	CALL	STD_OUT
+	INC	HL
+	JR	MESS_0
+;
+;CI_CMP: Case independent    CP (hl),(de) for Z,NZ
+	IFREF	CI_CMP
+CI_CMP
+	LD	A,(DE)
+	XOR	(HL)
+	RET	Z
+	CP	20H
+	RET	NZ
+	LD	A,(HL)
+	RES	5,A	;UC/LC bit
+;;	DEC	A	;now 40 to 59h
+	CP	41H
+	RET	C
+	CP	5AH	;59h='Z'=Zero Flag.
+	RET	NC
+	CP	A
+	RET
+;
+	ENDIF	;ci_cmp
 ;
 EOS		DEFB	0
 ERROR_CODE	DEFB	0
