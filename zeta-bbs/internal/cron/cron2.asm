@@ -1,0 +1,109 @@
+;cron2: Other routines for cron
+;Last updated: 14-Jan-88
+;
+_GETYEAR
+	LD	A,(4044H)
+	LD	L,A
+	LD	H,0
+	RET
+;
+_GETMONTH
+	LD	A,(4046H)
+	LD	L,A
+	LD	H,0
+	RET
+;
+_GETDAY
+	LD	A,(4045H)
+	LD	L,A
+	LD	H,0
+	RET
+;
+_GETHOUR
+	LD	A,(4043H)
+	LD	L,A
+	LD	H,0
+	RET
+;
+_GETMINUT
+	LD	A,(4042H)
+	LD	L,A
+	LD	H,0
+	RET
+;
+_TOUPPER
+	LD	HL,2
+	ADD	HL,SP
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	LD	A,E
+	EX	DE,HL
+	LD	H,0
+	CP	'a'
+	RET	C
+	CP	'z'+1
+	RET	NC
+	AND	05FH
+	LD	L,A
+	RET
+;
+_SAVEPOS
+	LD	HL,2
+	ADD	HL,SP
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	LD	HL,FD_FCBPTR
+	ADD	HL,DE
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	PUSH	DE
+	POP	IX
+	LD	A,(IX+5)
+	LD	(POSBUF_L),A
+	LD	A,(IX+10)
+	LD	(POSBUF_M),A
+	LD	A,(IX+11)
+	LD	(POSBUF_H),A
+	LD	HL,0
+	RET
+;
+_SETPOS
+	LD	HL,2
+	ADD	HL,SP
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	LD	HL,FD_FCBPTR
+	ADD	HL,DE
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	LD	A,(POSBUF_L)
+	LD	C,A
+	LD	A,(POSBUF_M)
+	LD	L,A
+	LD	A,(POSBUF_H)
+	LD	H,A
+	CALL	DOS_POS_RBA
+	LD	HL,EOF
+	RET	NZ
+	LD	HL,0
+	RET
+;
+_SYSTEM
+	LD	HL,2
+	ADD	HL,SP
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	EX	DE,HL
+	CALL	CALL_PROG
+	RET
+;
+POSBUF_L	DEFB	0
+POSBUF_M	DEFB	0
+POSBUF_H	DEFB	0
+;
