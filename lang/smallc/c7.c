@@ -15,12 +15,30 @@ dbltest(val1, val2)
 int     val1[], val2[];
         {
 
+	char *ptr;
+	int  hierpos;
+	if (ptr=val2[LVSYM])
+		if (ptr[IDENT+val2[LVHIER]] != VARIABLE)
+			return 0;
+
+	if (ptr=val1[LVSYM]) {
+		hierpos=val1[LVHIER];
+		if (ptr[IDENT+hierpos]==VARIABLE)
+			return 0;
+		if (ptr[IDENT+hierpos+1]==ARRAY
+		  ||ptr[IDENT+hierpos+1]==VARIABLE)
+			if (ptr[TYPE]==CINT) return 1;
+			else return 0;
+		else return 1;
+	}
+			
         if (val1[2] != CINT)
                 return (0);
 
         if (val2[2])
                 return (0);
 
+	fprintf(stderr,"* dbltest: val1 not in sym tab\n");
         return (1);
 }
 
@@ -32,46 +50,81 @@ result(lval, lval2)
 int     lval[], lval2[];
         {
 
-        if ((lval[2] != 0) & (lval2[2] != 0))   {
-                lval[2] = 0;
-        }
-        else if (lval2[2])      {
-                lval[0] = lval2[0];
-                lval[1] = lval2[1];
-                lval[2] = lval2[2];
+	char *ptr1,*ptr2;
+	ptr1=lval[LVSYM];
+	ptr2=lval2[LVSYM];
+	if (ptr1 && ptr2) {
+		if ((ptr1[IDENT+lval[LVHIER]] == POINTER)
+	          & (ptr2[IDENT+lval2[LVHIER]] == POINTER))
+			lval[LVPTYPE] = 0;
+	}
+        else if (ptr2) {
+		if (ptr2[IDENT+lval2[LVHIER]]==POINTER)      {
+                        lval[LVSYM] = lval2[LVSYM];
+                        lval[LVSTYPE] = lval2[LVSTYPE];
+                        lval[LVPTYPE] = lval2[LVPTYPE];
+                        lval[LVHIER] = lval2[LVHIER];
+                }
         }
 }
 
-step(oper, lval)
+int step(oper, lval)
 int     lval[];
 int     (*oper)();
         {
 
-        if (lval[1])    {
-                if (lval[5])    {
-                        push();
-                        rvalue(lval);
-                        (*oper)(lval[2] >> 2);
-                        pop();
-                        store(lval);
-                        return;
-                }
-                else    {
-                        move();
-                        lval[5] = 1;
-                }
+	char *ptr;
+	int  incval,hierpos;
+
+	incval = lval[LVPTYPE] >> 2;
+	if (ptr=lval[LVSYM]) {
+		hierpos=lval[LVHIER];
+		fprintf(stderr,"step: hierpos = %d\n",hierpos);
+		if (ptr[IDENT+hierpos]==POINTER) {
+			if (ptr[IDENT+hierpos+1]!=VARIABLE
+			  ||ptr[TYPE]==CINT)
+				incval = SINT;
+			else
+				incval = SCHAR;
+		} else if (ptr[IDENT+hierpos]==VARIABLE) {
+			incval = 1;
+		} else {
+			error("Must be a pointer or a variable");
+			return;
+		}
+	fprintf(stderr,"step: adjusting by %d\n",incval);
+	} else fprintf(stderr,"step: No symbol table entry\n");
+
+        if (lval[LVSTYPE]==0) {
+        	rvalue(lval);
+        	(*oper)(incval);
+        	store(lval);
+		return incval;
+	}
+        if (lval[5])    {
+                push();
+                rvalue(lval);
+                (*oper)(incval);
+                pop();
+                store(lval);
+                return incval;
+        }
+        else    {
+                move();
+                lval[5] = 1;
         }
 
         rvalue(lval);
-        (*oper)(lval[2] >> 2);
+        (*oper)(incval);
         store(lval);
+	return incval;
 }
 
 store(lval)
 int     lval[];
         {
 
-        if (lval[1])
+        if (lval[LVSTYPE])
                 putstk(lval);
         else
                 putmem(lval);
@@ -81,7 +134,7 @@ rvalue(lval)
 int     lval[];
         {
 
-        if ((lval[0] != 0) & (lval[1] == 0))
+        if ((lval[LVSYM] != 0) & (lval[LVSTYPE] == 0))
                 getmem(lval);
         else
                 indirect(lval);
@@ -90,7 +143,7 @@ int     lval[];
 test(label, parens)
 int     label, parens;
         {
-        int     lval[8];
+        int     lval[LVALUE];
         char    *before, *start;
 
         if (parens)
@@ -112,10 +165,10 @@ int     label, parens;
                 needtoken(")");
 
 
-        if (lval[3])    {
+        if (lval[LVCONST])    {
                 clearstage(before, 0);
 
-                if (lval[4])
+                if (lval[LVCONVL])
                         return;
 
                 jump(label);
@@ -188,15 +241,14 @@ constant(lval)
 int     lval[];
         {
 
-        lval = lval + 3;
-        *lval = 1;
+        lval[LVCONST] = 1;
 
-        if (number(++lval))
+        if (number(&lval[LVCONVL]))
                 immed();
-        else if (pstr(lval))
+        else if (pstr(&lval[LVCONVL]))
                 immed();
-        else if (qstr(lval))    {
-                *(lval - 1) = 0;
+        else if (qstr(&lval[LVCONVL]))    {
+                lval[LVCONST] = 0;
                 immed();
                 printlabel(litlab);
                 outbyte('+');
@@ -204,13 +256,13 @@ int     lval[];
         else
                 return (0);
 
-        outdec(*lval);
+        outdec(lval[LVCONVL]);
         nl();
         return (1);
 }
 
 number(val)
-int     val[];
+int     *val;
         {
         int     k, minus;
 
@@ -234,8 +286,8 @@ int     val[];
         if (minus)
                 k = (-k);
 
-        val[0] = k;
-        return (1);
+        *val = k;
+        return 1;
 }
 
 address(ptr)
@@ -248,7 +300,7 @@ char    *ptr;
 }
 
 pstr(val)
-int     val[];
+int     *val;
         {
         int     k;
 
@@ -261,19 +313,19 @@ int     val[];
                 k = (k & 255) * 256 + (litchar() & 255);
 
         ++lptr;
-        val[0] = k;
+        *val = k;
         return (1);
 }
 
 qstr(val)
-int     val[];
+int     *val;
         {
         char    c;
 
         if (match(quote) == 0)
                 return (0);
 
-        val[0] = litptr;
+        *val = litptr;
 
         while (ch != '"')       {
                 if (ch == 0)
@@ -313,6 +365,11 @@ litchar()       {
         gch();
 
         if (ch == 'n')  {
+                gch();
+                return (13);    /* CR or NL */
+        }
+
+        if (ch == 'r')  {
                 gch();
                 return (13);    /* CR */
         }

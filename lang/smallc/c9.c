@@ -3,6 +3,9 @@
 **
 **      Copyright 1982 J. E. Hendrix
 **
+**	Lacking the peephole() routine ... that will go in a
+**	stand-alone optimiser called peephole.
+**
 */
 
 #include        "cc.h"
@@ -11,10 +14,8 @@
 **      add primary and secondary registers (result in primary)
 */
 
-add()
-        {
-
-        ol("dad d");
+add()	{
+        ol("ADD\tHL,DE");
 }
 
 /*
@@ -24,7 +25,7 @@ add()
 sub()
         {
 
-        call("ccsub");
+        call("CCSUB");
 }
 
 /*
@@ -34,7 +35,7 @@ sub()
 mult()
         {
 
-        call("ccmult");
+        call("CCMULT");
 }
 
 /*
@@ -45,7 +46,7 @@ mult()
 div()
         {
 
-        call("ccdiv");
+        call("CCDIV");
 }
 
 /*
@@ -68,7 +69,7 @@ mod()
 or()
         {
 
-        call("ccor");
+        call("CCOR");
 }
 
 /*
@@ -79,7 +80,7 @@ or()
 xor()
         {
 
-        call("ccxor");
+        call("CCXOR");
 }
 
 /*
@@ -89,7 +90,7 @@ xor()
 and()
         {
 
-        call("ccand");
+        call("CCAND");
 }
 
 /*
@@ -99,7 +100,7 @@ and()
 lneg()
         {
 
-        call("cclneg");
+        call("CCLNEG");
 }
 
 /*
@@ -111,7 +112,7 @@ lneg()
 asr()
         {
 
-        call("ccasr");
+        call("CCASR");
 }
 
 /*
@@ -123,7 +124,7 @@ asr()
 asl()
         {
 
-        call("ccasl");
+        call("CCASL");
 }
 
 /*
@@ -133,7 +134,7 @@ asl()
 neg()
         {
 
-        call("ccneg");
+        call("CCNEG");
 }
 
 /*
@@ -143,22 +144,25 @@ neg()
 com()
         {
 
-        call("cccom");
+        call("CCCOM");
 }
 
 /*
-**      increment primary register by one object of whatever size
+**      increment primary register by 'n'
+**      decrement primary register by 'n'
 */
 
 inc(n)
 int     n;
         {
 
-        for (;;)        {
-                ol("inx h");
-
-                if (--n < 1)
-                        break;
+	while (n>0) {
+		ol("INC\tHL");
+		--n;
+	}
+	while (n<0) {
+		ol("DEC\tHL");
+		++n;
         }
 }
 
@@ -171,7 +175,7 @@ int     n;
         {
 
         for (;;)        {
-                ol("dcx h");
+                ol("DEC\tHL");
 
                 if (--n < 1)
                         break;
@@ -185,7 +189,7 @@ int     n;
 eq()
         {
 
-        call("cceq");
+        call("CCEQ");
 }
 
 /*
@@ -196,9 +200,9 @@ eq0(label)
 int     label;
         {
 
-        ol("mov a,h");
-        ol("ora l");
-        ot("jnz ");
+        ol("LD\tA,H");
+        ol("OR\tL");
+        ot("JP\tNZ,");
         printlabel(label);
         nl();
 }
@@ -210,7 +214,7 @@ int     label;
 ne()
         {
 
-        call("ccne");
+        call("CCNE");
 }
 
 /*
@@ -221,9 +225,9 @@ ne0(label)
 int     label;
         {
 
-        ol("mov a,h");
-        ol("ora l");
-        ot("jz ");
+        ol("LD\tA,H");
+        ol("OR\tL");
+        ot("JP\tZ,");
         printlabel(label);
         nl();
 }
@@ -235,7 +239,7 @@ int     label;
 lt()
         {
 
-        call("cclt");
+        call("CCLT");
 }
 
 /*
@@ -246,9 +250,9 @@ lt0(label)
 int     label;
         {
 
-        ol("xra a");
-        ol("ora h");
-        ot("jp ");
+        ol("XOR\tA");
+        ol("OR\tH");
+        ot("JP\tP,");   /* this right?? Jump if positive?? */
         printlabel(label);
         nl();
 }
@@ -260,7 +264,7 @@ int     label;
 le()
         {
 
-        call("ccle");
+        call("CCLE");
 }
 
 /*
@@ -271,12 +275,12 @@ le0(label)
 int     label;
         {
 
-        ol("mov a,h");
-        ol("ora l");
-        ol("jz .+8");
-        ol("xra a");
-        ol("ora h");
-        ot("jp ");
+        ol("LD\tA,H");
+        ol("OR\tL");
+        ol("JP\tZ,$+8");
+        ol("XOR\tA");
+        ol("OR\tH");
+        ot("JP\tP,");
         printlabel(label);
         nl();
 }
@@ -288,7 +292,7 @@ int     label;
 gt()
         {
 
-        call("ccgt");
+        call("CCGT");
 }
 
 /*
@@ -299,13 +303,13 @@ gt0(label)
 int     label;
         {
 
-        ol("xra a");
-        ol("ora h");
-        ot("jm ");
+        ol("XOR\tA");
+        ol("OR\tH");
+        ot("JP\tM,");
         printlabel(label);
         nl();
-        ol("ora l");
-        ot("jz ");
+        ol("OR\tL");
+        ot("JP\tZ,");
         printlabel(label);
         nl();
 }
@@ -317,7 +321,7 @@ int     label;
 ge()
         {
 
-        call("ccge");
+        call("CCGE");
 }
 
 /*
@@ -328,9 +332,9 @@ ge0(label)
 int     label;
         {
 
-        ol("xra a");
-        ol("ora h");
-        ot("jm ");
+        ol("XOR\tA");
+        ol("OR\tH");
+        ot("JP\tM,");
         printlabel(label);
         nl();
 }
@@ -342,7 +346,7 @@ int     label;
 ult()
         {
 
-        call("ccult");
+        call("CCULT");
 }
 
 /*
@@ -353,7 +357,7 @@ ult0(label)
 int     label;
         {
 
-        ot("jmp ");
+        ot("JP\t"); /* always succeeds */
         printlabel(label);
         nl();
 }
@@ -366,7 +370,7 @@ int     label;
 ule()
         {
 
-        call("ccule");
+        call("CCULE");
 }
 
 /*
@@ -376,7 +380,7 @@ ule()
 ugt()
         {
 
-        call("ccugt");
+        call("CCUGT");
 }
 
 /*
@@ -386,119 +390,5 @@ ugt()
 uge()
         {
 
-        call("ccuge");
-}
-
-peephole(ptr)
-char    *ptr;
-        {
-
-        while (*ptr)    {
-                if (streq(ptr, "\tlxi h,0\n\tdad sp\n\tcall ccgint"))   {
-                        if (streq(ptr + 31, "xchg;;"))  {
-                                pp2();
-                                ptr = ptr + 38;
-                        }
-                        else    {
-                                pp1();
-                                ptr = ptr + 30;
-                        }
-                }
-                else if (streq(ptr, "\tlxi h,2\n\tdad sp\n\tcall ccgint"))      {
-                        if (streq(ptr + 31, "xchg;;"))  {
-                                pp3(pp2);
-                                ptr = ptr + 38;
-                        }
-                        else    {
-                                pp3(pp2);
-                                ptr = ptr + 30;
-                        }
-                }
-                else if (streq("\t.text\n\t.data\n"))   {
-                        ptr = ptr + 14;
-                }
-                else if (optimize)      {
-                        if (streq(ptr, "\tdad sp\n\tcall ccgint"))      {
-                                ol("call ccdsgi");
-                                ptr = ptr + 21;
-                        }
-                        else if (streq(ptr, "\tdad d\n\tcall ccgint"))  {
-                                ol("call ccddgi");
-                                ptr = ptr + 20;
-                        }
-                        else if (streq(ptr, "\tdad sp\n\tcall ccgchar"))        {
-                                ol("call ccdsgc");
-                                ptr = ptr + 22;
-                        }
-                        else if (streq(ptr, "\tdad d\n\tcall ccgchar")) {
-                                ol("call ccddgc");
-                                ptr = ptr + 21;
-                        }
-                        else if (streq(ptr,
-"\tdad sp\n\tmov d,h\n\tmov e,l\n\tcall ccgint\n\tinx h\n\tcall ccpint"))               {
-                                ol("call ccinci");
-                                ptr = ptr + 59;
-                        }
-                        else if (streq(ptr,
-"\tdad sp\n\tmov d,h\n\tmov e,l\n\tcall ccgint\n\tdcx h\n\tcall ccpint"))               {
-                                ol("call ccdeci");
-                                ptr = ptr + 59;
-                        }
-                        else if (streq(ptr,
-"\tdad sp\n\tmov d,h\n\tmov e,l\n\tcall ccgchar\n\tinx h\n\tmov a,l\n\tstax d"))                {
-                                ol("call ccincc");
-                                ptr = ptr + 64;
-                        }
-                        else if (streq(ptr,
-"\tdad sp\n\tmov d,h\n\tmov e,l\n\tcall ccgchar\n\tdcx h\n\tmov a,l\n\tstax d"))                {
-                                ol("call ccdecc");
-                                ptr = ptr + 64;
-                        }
-                        else if (streq(ptr, "\tdad d\n\tpop d\n\tcall ccpint")) {
-                                ol("call ccddpdpi");
-                                ptr = ptr + 27;
-                        }
-                        else if (streq(ptr, "\tdad d\n\tpop d\n\tmov a,l\n\tstax d"))   {
-                                ol("call ccddpdpc");
-                                ptr = ptr + 31;
-                        }
-                        else if (streq(ptr, "\tpop d\n\tcall ccpint"))  {
-                                ol("call ccpdpi");
-                                ptr = ptr + 20;
-                        }
-                        else if (streq(ptr, "\tpop d\n\tmov a,l\n\tstax d"))    {
-                                ol("call ccpdpc");
-                                ptr = ptr + 24;
-                        }
-
-                        /* additional optimizing logic goes here */
-                        else
-                                cout(*ptr++, output);
-                }
-                else
-                        cout(*ptr++, output);
-        }
-}
-
-pp1()
-        {
-
-        ol("pop h");
-        ol("push h");
-}
-
-pp2()
-        {
-
-        ol("pop d");
-        ol("push d");
-}
-
-pp3(pp)
-int     (*pp)();
-        {
-
-        ol("pop b");
-        (*pp)();
-        ol("push b");
+        call("CCUGE");
 }

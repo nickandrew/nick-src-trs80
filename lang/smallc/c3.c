@@ -41,8 +41,9 @@ illname()
 multidef(sname)
 char    *sname;
         {
-
-        error("already defined");
+	char string[32];
+	sprintf(string,"%s already defined",sname);
+        error(string);
 }
 
 needtoken(str)
@@ -63,7 +64,12 @@ findglb(sname)
 char    *sname;
         {
 
-        if (search(sname, STARTGLB, SYMMAX, ENDGLB, NUMGLBS, NAME))
+       if (search(sname,
+		STARTGLB,
+		SYMMAX,
+		ENDGLB,
+		NUMGLBS,
+		NAME))
                 return (cptr);
 
         return (0);
@@ -87,11 +93,13 @@ char    *sname;
         return (0);
 }
 
-addsym(sname, id, typ, value, lgptrptr, class)
-char    *sname, id, typ;
+addsym(sname, idarray, type, value, lgptrptr, class)
+char    *sname, type;
+char	idarray[];
 int     value, *lgptrptr, class;
         {
 
+	int	i;
         if (lgptrptr == &glbptr)        {
                 if (cptr2 = findglb(sname))
                         return (cptr2);
@@ -110,8 +118,9 @@ int     value, *lgptrptr, class;
                 cptr = *lgptrptr;
         }
 
-        cptr[IDENT] = id;
-        cptr[TYPE] = typ;
+	for (i=0;i<HIER_LEN;++i)
+		cptr[IDENT+i] = idarray[i];
+        cptr[TYPE] = type;
         cptr[CLASS] = class;
         putint(value, cptr + OFFSET, OFFSIZE);
         cptr3 = cptr2 = cptr + NAME;
@@ -148,7 +157,7 @@ getint(addr, len)
 char    *addr;
 int     len;
         {
-        short   i;
+        int i;
 
         i = *(addr + --len);
 
@@ -234,7 +243,7 @@ printlabel(label)
 int     label;
         {
 
-        outstr(".");
+        outstr("$?");
         outdec(label);
 }
 
@@ -246,7 +255,9 @@ alpha(c)
 char    c;
         {
 
-        return (((c >= 'a') & (c <= 'z')) | ((c >= 'A') & (c <= 'Z')) | (c == '_'));
+    return (  ((c >= 'a') & (c <= 'z'))
+	    | ((c >= 'A') & (c <= 'Z'))
+	    | (c == '_'));
 }
 
 /*

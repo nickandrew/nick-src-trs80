@@ -15,6 +15,8 @@ char    exbuff[32];             /* external name buffer */
 
 header()
         {
+	ol("COM\t'<small c compiler output>'");
+	outstr("*MOD\n");
 }
 
 /*
@@ -24,7 +26,7 @@ header()
 trailer()
         {
 
-        ol(".end");
+        ol("END");
 }
 
 /*
@@ -36,14 +38,17 @@ char    *s;
         {
         char    *p;
 
-        p = &exbuff;
+        p = exbuff;
 
         *p++ = '_';
 
-        while (*p++ = *s++)
-                ;
+        while (*s) {
+		if (*s>='a' && *s<='z') *p++ = (*s++ & 95);
+		else *p++ = *s++;
+        }
+	*p++ = 0;
 
-        return (&exbuff);
+        return (exbuff);
 }
 
 /*
@@ -67,9 +72,9 @@ external(name)
 char    *name;
         {
 
-        ot(".globl ");
-        outstr(exname(name));
-        nl();
+/*      outstr(";\textrn\t");	*/
+/*      outstr(exname(name));	*/
+/*      nl();			*/
 }
 
 /*
@@ -80,10 +85,25 @@ indirect(lval)
 int     lval[];
         {
 
-        if (lval[1] == CCHAR)
-                call("ccgchar");
-        else
-                call("ccgint");
+    char *ptr;
+    ptr=lval[LVSYM];
+
+    if (ptr!=0) {
+	fprintf(stderr,"indirect: hierpos = %d\n",lval[LVHIER]);
+	if (ptr[lval[LVHIER]+IDENT] != VARIABLE) {
+	    call("CCGINT");
+	} else {
+		if (ptr[TYPE]==CCHAR)
+			call("CCGCHAR");
+		else	call("CCGINT");
+	}
+	return;
+    } else
+        fprintf(stderr,"* indirect: no link to symbol table\n");
+
+    if (lval[LVSTYPE] == CCHAR)
+        call("CCGCHAR");
+    else call("CCGINT");
 }
 
 /*
@@ -95,17 +115,19 @@ int     lval[];
         {
         char    *sym;
 
-        sym = lval[0];
+        sym = lval[LVSYM];
 
-        if ((sym[IDENT] != POINTER) & (sym[TYPE] == CCHAR))     {
-                ot("lda ");
+        if ((sym[IDENT] != POINTER) && (sym[TYPE] == CCHAR)) {
+                ot("LD\tA,(");
                 outstr(exname(sym + NAME));
+		outstr( ")" );
                 nl();
-                call("ccsxt");
+                call("CCSXT");
         }
-        else    {
-                ot("lhld ");
+        else {
+                ot("LD\tHL,(");
                 outstr(exname(sym + NAME));
+		outstr( ")" );
                 nl();
         }
 }
@@ -119,7 +141,7 @@ char    *sym;
         {
 
         const(getint(sym + OFFSET, OFFSIZE) - csp);
-        ol("dad sp");
+        ol("ADD\tHL,SP");
 }
 
 /*
@@ -131,16 +153,19 @@ int     lval[];
         {
         char    *sym;
 
-        sym = lval[0];
+        sym = lval[LVSYM];
 
         if ((sym[IDENT] != POINTER) & (sym[TYPE] == CCHAR))     {
-                ol("mov a,l");
-                ot("sta ");
+                ol("LD\tA,L");
+                ot("LD\t(");
+                outstr(exname(sym + NAME));
+		outstr( "),A" );
         }
-        else
-                ot("shld ");
-
-        outstr(exname(sym + NAME));
+        else    {
+                ot("LD\t(");
+                outstr(exname(sym + NAME));
+		outstr( "),HL" );
+        }
         nl();
 }
 
@@ -152,12 +177,23 @@ putstk(lval)
 int     lval[];
         {
 
-        if (lval[1] == CCHAR)   {
-                ol("mov a,l");
-                ol("stax d");
-        }
-        else
-                call("ccpint");
+    char *ptr;
+    ptr=lval[LVSYM];
+
+    if (ptr!=0) {
+	fprintf(stderr,"putstk: hierpos = %d\n",lval[LVHIER]);
+	if (ptr[lval[LVHIER]+IDENT] == POINTER) {
+	    call("CCPINT");
+	    return;
+	}
+    } else
+        fprintf(stderr,"putstk: no link to symbol table\n");
+
+    if (lval[LVSTYPE] == CCHAR) {
+        ol("LD\tA,L");
+        ol("LD\t(DE),A");
+    } else 
+        call("CCPINT");
 }
 
 /*
@@ -167,8 +203,8 @@ int     lval[];
 move()
         {
 
-        ol("mov d,h");
-        ol("mov e,l");
+        ol("LD\tD,H");
+        ol("LD\tE,L");
 }
 
 /*
@@ -178,7 +214,7 @@ move()
 swap()
         {
 
-        ol("xchg;;");   /* peephole() uses trailing ";;" */
+        ol("EX\tDE,HL");   /* peephole() uses trailing ";;" */
 }
 
 /*
@@ -189,7 +225,7 @@ swap()
 immed()
         {
 
-        ot("lxi h,");
+        ot("LD\tHL,");
 }
 
 /*
@@ -200,7 +236,7 @@ immed()
 immed2()
         {
 
-        ot("lxi d,");
+        ot("LD\tDE,");
 }
 
 /*
@@ -210,7 +246,7 @@ immed2()
 push()
         {
 
-        ol("push h");
+        ol("PUSH\tHL");
         csp = csp - BPW;
 }
 
@@ -223,10 +259,12 @@ int     lval[];
 char    *start;
         {
 
-        if (lval[5])
-                pop();  /* secondary was used */
-        else
-                unpush(start);
+/*        if (lval[5])			*/
+/*                pop(); 		*/ /* secondary was used */
+/*        else				*/
+/*                unpush(start);	*/
+
+	pop();
 }
 
 /*
@@ -239,7 +277,7 @@ char    *dest;
         int     i;
         char    *sour;
 
-        sour = "\txchg;;";      /* peephole() uses trailing ";;" */
+        sour = "\tex\tde,hl\n";      /* peephole() uses trailing ";;" */
 
         while (*sour)
                 *dest++ = *sour++;
@@ -248,7 +286,7 @@ char    *dest;
 
         while (--sour > dest)   {
                 /* adjust stack references */
-                if (streq(sour, "\tdad sp"))    {
+                if (streq(sour, "\tadd hl,sp"))    {
                         --sour;
                         i = BPW;
 
@@ -273,7 +311,7 @@ char    *dest;
 pop()
         {
 
-        ol("pop d");
+        ol("POP\tDE");
         csp = csp + BPW;
 }
 
@@ -284,7 +322,7 @@ pop()
 swapstk()
         {
 
-        ol("xthl");
+        ol("EX\t(SP),HL");
 }
 
 /*
@@ -294,7 +332,7 @@ swapstk()
 sw()
         {
 
-        call("ccswitch");
+        call("CCSWITCH");
 }
 
 /*
@@ -305,7 +343,7 @@ call(sname)
 char    *sname;
         {
 
-        ot("call ");
+        ot("CALL\t");
         outstr(sname);
         nl();
 }
@@ -317,7 +355,7 @@ char    *sname;
 ret()
         {
 
-        ol("ret");
+        ol("RET");
 }
 
 /*
@@ -328,10 +366,10 @@ callstk()
         {
 
         immed();
-        outstr(".+5");
+        outstr("$+5");
         nl();
         swapstk();
-        ol("pchl");
+        ol("JP\t(HL)");
         csp = csp + BPW;
 }
 
@@ -343,7 +381,7 @@ jump(label)
 int     label;
         {
 
-        ot("jmp ");
+        ot("JP\t");
         printlabel(label);
         nl();
 }
@@ -356,9 +394,9 @@ testjump(label)
 int     label;
         {
 
-        ol("mov a,h");
-        ol("ora l");
-        ot("jz ");
+        ol("LD\tA,H");
+        ol("OR\tL");
+        ot("JP\tZ,");
         printlabel(label);
         nl();
 }
@@ -385,9 +423,9 @@ int     size;
         {
 
         if (size == 1)
-                ot(".byte ");
+                ot("DEFB\t");
         else
-                ot(".word ");
+                ot("DEFW\t");
 }
 
 /*
@@ -397,7 +435,7 @@ int     size;
 point()
         {
 
-        ol(".word .+2");
+        ol("DEFW\t$+2");
 }
 
 /*
@@ -417,12 +455,12 @@ int     newsp, save;
         if (k >= 0)     {
                 if (k < 7)      {
                         if (k & 1)      {
-                                ol("inx sp");
+                                ol("INC\tSP");
                                 k--;
                         }
 
                         while (k)       {
-                                ol("pop b");
+                                ol("POP\tBC");
                                 k = k - BPW;
                         }
 
@@ -433,12 +471,12 @@ int     newsp, save;
         if (k < 0)      {
                 if (k > -7)     {
                         if (k & 1)      {
-                                ol("dcx sp");
+                                ol("DEC\tSP");
                                 k++;
                         }
 
                         while (k)       {
-                                ol("push b");
+                                ol("PUSH\tBC");
                                 k = k + BPW;
                         }
 
@@ -450,8 +488,8 @@ int     newsp, save;
                 swap();
 
         const(k);
-        ol("dad sp");
-        ol("sphl");
+        ol("ADD\tHL,SP");
+        ol("LD\tSP,HL");
 
         if (save)
                 swap();
@@ -466,7 +504,7 @@ int     newsp, save;
 doublereg()
         {
 
-        ol("dad h");
+        ol("ADD\tHL,HL");
 }
 
 /*
@@ -476,7 +514,7 @@ doublereg()
 dataseg()
         {
 
-        ol(".data");
+/*      outstr(";\tDSEG\n");	*/
 }
 
 /*
@@ -486,5 +524,5 @@ dataseg()
 textseg()
         {
 
-        ol(".text");
+/*      outstr(";\tCSEG\n");	*/
 }

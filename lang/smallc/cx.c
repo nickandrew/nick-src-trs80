@@ -28,6 +28,7 @@ char
         *cptr,                  /* work ptrs to any char buffer */
         *cptr2,
         *cptr3,
+	typearr[HIER_LEN],	/* Type hierarchy array */
         msname[NAMESIZE],       /* macro symbol name array */
         ssname[NAMESIZE];       /* static symbol name array */
 
@@ -50,7 +51,7 @@ int
         oper,                   /* address of binary operator function */
         ch,                     /* current character of line being scanned */
         nch,                    /* next character of line being scanned */
-        declared,               /* # of local bytes declared, else -1 when done */
+        declared,            /* # of local bytes declared, else -1 when done */
         iflevel,                /* #if... nest level */
         skiplevel,              /* level at which #if... skipping started */
         nxtlab,                 /* next avail label */
@@ -65,7 +66,7 @@ int
         input,                  /* fd # for input file */
         input2,                 /* fd # for "include" file */
         output,                 /* fd # for output file */
-        files,                  /* non-zero if file list specified on cmd line */
+        files,                 /* non-zero if file list specified on cmd line*/
         filearg,                /* current file arg index */
         glbflag,                /* non-zero if internal globals */
         ctext,                  /* non-zero to intermix c-source */

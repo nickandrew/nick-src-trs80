@@ -270,6 +270,9 @@ doswitch()
         swnex = swptr = swnext;
 
         addwhile(wq);
+	/* copy WQLOOP value from last while/switch so continue within
+	   switch statement works */
+	wq[WQLOOP] = *(wqptr - WQSIZ + WQLOOP);
         needtoken("(");
         doexpr();
         needtoken(")");
@@ -372,12 +375,14 @@ dolabel()
 addlabel()
         {
 
+	char	labtype[HIER_LEN];
+	labtype[0]=LABEL;
         if (cptr = findloc(ssname))     {
                 if (cptr[IDENT] != LABEL)
                         error("not a label");
         }
         else
-                cptr = addsym(ssname, LABEL, LABEL, getlabel(), &locptr, LABEL);
+                cptr=addsym(ssname,labtype,LABEL,getlabel(),&locptr,LABEL);
 
         return (getint(cptr + OFFSET, OFFSIZE));
 }

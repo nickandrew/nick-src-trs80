@@ -6,7 +6,7 @@
 **      Macro Definitions
 */
 
-#include        <stdio.h>
+#include <stdio.h>
 
 /*
 **      machine dependent parameters
@@ -15,19 +15,25 @@
 #define BPW     2       /* bytes per word */
 #define LBPW    1       /* log2(BPW) */
 #define SBPC    1       /* stack bytes per character */
+#define SCHAR   1       /* Size of character in bytes */
+#define SINT    2       /* Size of plain integer */
+#define SSHORT  1       /* One-byte short */
 
 /*
 **      symbol table format
 */
 
+/*	IDENT = char array length 4 of type hierarchy */
+#define HIER_LEN	4
+
 #define IDENT   0
-#define TYPE    1
-#define CLASS   2
-#define OFFSET  3
-#define NAME    5
+#define TYPE    5
+#define CLASS   6
+#define OFFSET  7
+#define NAME    9
 #define OFFSIZE (NAME-OFFSET)
-#define SYMAVG  10
-#define SYMMAX  14
+#define SYMAVG  14
+#define SYMMAX  18
 
 /*
 **      symbol table parameters
@@ -36,10 +42,24 @@
 #define NUMLOCS         100
 #define STARTLOC        symtab
 #define ENDLOC          (symtab + (NUMLOCS * SYMAVG))
-#define NUMGLBS         500
+#define NUMGLBS         200
 #define STARTGLB        ENDLOC
 #define ENDGLB          (ENDLOC + ((NUMGLBS - 1) * SYMMAX))
-#define SYMTBSZ         8000    /* NUMLOCS * SYMAVG + NUMGLBS * SYMMAX */
+#define SYMTBSZ         5000	/* NUMLOCS * SYMAVG + NUMGLBS * SYMMAX */
+
+/*
+**	Lvalue array format (first 5 integers of 9)
+*/
+
+/* 	LVALUE	= Length of array */
+#define LVALUE	9
+
+#define LVSYM		0
+#define LVSTYPE		1
+#define LVPTYPE		2
+#define LVCONST		3
+#define LVCONVL		4
+#define LVHIER		8	/* Position of Lvalue in type hierarchy */
 
 /*
 **      System wide name size (for symbols)
@@ -49,7 +69,7 @@
 #define NAMEMAX         8
 
 /*
-**      possible entries for "IDENT"
+**      possible entries for "IDENT[n]"
 */
 
 #define LABEL           0
@@ -178,6 +198,7 @@ extern char
         *cptr,                  /* work ptrs to any char buffer */
         *cptr2,
         *cptr3,
+	typearr[HIER_LEN],	/* Hierarchy of types */
         msname[NAMESIZE],       /* macro symbol name array */
         ssname[NAMESIZE];       /* static symbol name array */
 
@@ -216,7 +237,7 @@ extern int
         input,                  /* fd # for input file */
         input2,                 /* fd # for "include" file */
         output,                 /* fd # for output file */
-        files,                  /* non-zero if file list specified on cmd line */
+        files,                  /* non-zero if filelist specified on cmdline*/
         filearg,                /* current file arg index */
         glbflag,                /* non-zero if internal globals */
         ctext,                  /* non-zero to intermix c-source */

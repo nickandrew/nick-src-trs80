@@ -11,7 +11,8 @@ int     sargc;
 char    **sargv;
 
 main(argc, argv)
-int     argc, *argv;
+int     argc;
+char	*argv[];
         {
 
         sargc = argc;
@@ -70,20 +71,17 @@ parse()
         {
 
         while (eof == 0)        {
-                if (amatch("extern", 6))
+                if (match("#asm"))		doasm();
+                else if (match("#include"))	doinclude();
+                else if (match("#define"))	addmac();
+                else if (amatch("extern", 6))
                         dodeclare(EXTERNAL);
-                else if (dodeclare(STATIC))
-                        ;
-                else if (match("#asm"))
-                        doasm();
-                else if (match("#include"))
-                        doinclude();
-                else if (match("#define"))
-                        addmac();
-                else
-                        newfunc();
-
+                else dodeclare(STATIC); /* must include function def'n */
                 blanks();
+
+/*              else if (dodeclare(STATIC)) ;
+                else error("Need function or declaration");  */
+
         }
 }
 
@@ -128,8 +126,9 @@ int     size, count;
         if (count <= 0)
                 return;
 
-        ot(".blkb ");
+        ot("DC\t");
         outdec(count * size);
+	outstr(",0");
         nl();
 }
 
@@ -169,17 +168,17 @@ char    **argv;
                 case 'l':
                 case 'L':
                         listfp = stdout;
-                        continue;
+                        break;
 
                 case 'm':
                 case 'M':
                         monitor = YES;
-                        continue;
+                        break;
 
                 case 'o':
                 case 'O':
                         optimize = YES;
-                        continue;
+                        break;
 
                 default:
                         sout("usage: cc [file] ... [-m] [-l] [-o]\n", stderr);
@@ -236,8 +235,8 @@ setops()
         op2[05] = ule;  op[05] = le;    /* heir9 */
         op2[06] = uge;  op[06] = ge;
         op2[07] = ult;  op[07] = lt;
-        op2[08] = ugt;  op[08] = gt;
-        op2[09] =       op[09] = asr;   /* heir10 */
+        op2[ 8] = ugt;  op[ 8] = gt;
+        op2[ 9] =       op[ 9] = asr;   /* heir10 */
         op2[10] =       op[10] = asl;
         op2[11] =       op[11] = add;   /* heir11 */
         op2[12] =       op[12] = sub;
@@ -246,7 +245,7 @@ setops()
         op2[15] =       op[15] = mod;
 }
 
-char    *
+char    *            /* it can't handle explicitly typed functions */
 fgets(lp, max, fp)
 char    *lp;
 int     max, fp;

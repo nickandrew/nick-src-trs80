@@ -5,7 +5,7 @@
 **
 */
 
-#include        "cc.h"
+#include "cc.h"
 
 /*
 **      open an include file
@@ -14,9 +14,17 @@
 doinclude()
         {
 
+	char filename[80];
+	int  i;
+	char *j;
         blanks();
 
-        if ((input2 = fopen(lptr, "r")) == NULL)        {
+	j=lptr;		/* handle <name> and "name" */
+	if (*j=='"' || *j=='<') ++j;
+	for (i=0;(*j!='>' && *j!='"');++i)
+	   filename[i]= *j++;
+	filename[i]=0;
+        if ((input2 = fopen(filename, "r")) == NULL)        {
                 input2 = EOF;
                 error("open failure on include file");
         }
@@ -25,71 +33,63 @@ doinclude()
 }
 
 /*
-**      test for global declarations
+**   Do global declarations and new functions
 */
 
 dodeclare(class)
 int     class;
         {
 
+	int ftype;
         if (amatch("char", 4))  {
-                declglb(CCHAR, class);
-                ns();
-                return (1);
+                ftype=declglb(CCHAR, class);
         }
         else if ((amatch("int", 3)) | (class == EXTERNAL))      {
-                declglb(CINT, class);
-                ns();
-                return (1);
-        }
+                ftype=declglb(CINT, class);
+        } else	{	/* class==STATIC, must be function following */
+		ftype=declglb(CINT, class);
+	}
 
-        return (0);
+	if (ftype==FUNCTION && class==STATIC)
+		newfunc();
+	else
+		ns();
+
+        return;
 }
 
 /*
-**      declare a static variable
+**      declare a static (global) variable or function etc...
 */
 
-declglb(type, class)
+int declglb(type, class)
 int     type, class;
         {
-        int     k, j;
+        int     k;
+	char	firsttype;
+	int	size;
+
+	if (type==CCHAR) size=SCHAR;
+	else size=SINT;
 
         for (;;)        {
-                if (endst())
-                        return;
 
-                if (match("*")) {
-                        j = POINTER;
-                        k = 0;
-                }
-                else    {
-                        j = VARIABLE;
-                        k = 1;
-                }
-
-                if (symname(ssname, YES) == 0)
-                        illname();
-
-                if (findglb(ssname))
-                        multidef(ssname);
-
-                if (match("()"))
-                        j = FUNCTION;
-                else if (match("["))    {
-                        k = needsub();
-                        j = ARRAY;
-                }
+		declparse(typearr,&k,YES,YES,class);
+		firsttype=typearr[0];
+		if (firsttype==POINTER)
+			size=SINT;
 
                 if (class == EXTERNAL)
                         external(ssname);
                 else
-                        j = initials(type >> 2, j, k);
+                        typearr[0] = initials(size,firsttype,k);
 
-                addsym(ssname, j, type, k, &glbptr, class);
+                addsym(ssname, typearr, type, k, &glbptr, class);
 
-                if (match(",") == 0)
-                        return;
+		if (firsttype==FUNCTION && class==STATIC)
+			return firsttype;
+		if (match(",")) continue;
+		if (endst()) return firsttype;
         }
 }
 
@@ -97,10 +97,10 @@ int     type, class;
 **      declare local variables
 */
 
-declloc(typ)
-int     typ;
+declloc(type)
+int     type;
         {
-        int     k, j;
+        int	k;
 
         if (noloc)
                 error("not allowed with goto");
@@ -109,44 +109,24 @@ int     typ;
                 error("must declare first in block");
 
         for (;;)        {
-                for (;;)        {
-                        if (endst())
-                                return;
 
-                        if (match("*"))
-                                j = POINTER;
-                        else
-                                j = VARIABLE;
+		declparse(typearr,&k,YES,NO,AUTOMATIC);
 
-                        if (symname(ssname, YES) == 0)
-                                illname();
+		if (typearr[0] == VARIABLE)
+			if (type==CINT) k = SINT;
+			else k = SBPC;
+		else
+			if ((typearr[1]!=VARIABLE)
+			  ||(typearr[0]==POINTER)
+			  ||(type==CINT))
+				k *= SINT; 
+			else k *= SBPC;
 
-                        k = BPW;
-
-                        if (match("[")) {
-                                k = needsub();
-
-                                if (k)  {
-                                        j = ARRAY;
-
-                                        if (typ == CINT)
-                                                k = k << LBPW;
-                                }
-                                else
-                                        j = POINTER;
-                        }
-                        else if (match("()"))
-                                j = FUNCTION;
-                        else if ((typ == CCHAR) & (j == VARIABLE))
-                                k = SBPC;
-
-                        declared = declared + k;
-                        addsym(ssname, j, typ, csp - declared, &locptr, AUTOMATIC);
-                        break;
-                }
-
-                if (match(",") == 0)
-                        return;
+                declared = declared + k;
+		fprintf(stderr,"Declloc: %s, size %d\n",ssname,k);
+                addsym(ssname,typearr,type,csp-declared,&locptr,AUTOMATIC);
+                if (match(",")) continue;
+		if (endst()) return;
         }
 }
 
@@ -158,6 +138,10 @@ initials(size, ident, dim)
 int     size, ident, dim;
         {
         int     savedim;
+
+	if (ident==FUNCTION) {	/* can't initialize a function */
+		return ident;
+	}
 
         litptr = 0;
 
@@ -183,7 +167,7 @@ int     size, ident, dim;
                         init(size, ident, &dim);
         }
 
-        if ((dim == -1) & (dim == savedim))     {
+        if ((dim == -1) && (dim == savedim))     {
                 stowlit(0, size = BPW);
                 ident = POINTER;
         }
@@ -201,11 +185,11 @@ init(size, ident, dim)
 int     size, ident;
 int     *dim;
         {
-        int     value;
+        int	value;
 
         if (qstr(&value))       {
                 if ((ident == VARIABLE) | (size != 1))
-                        error("must assign to char pointer or array");
+			error("must assign to char pointer or array");
 
                 *dim = *dim - (litptr - value);
 
@@ -246,72 +230,29 @@ needsub()       {
 /*
 **      begin a function
 **
-**      called from "parse" and tries to make a function
+**      called from "dodeclare" and tries to make a function
 **      out of the following text
 **
-**      Patched per P. L. Woods (DDJ #52)
 */
 
 newfunc()
         {
         char    *ptr;
+	char	functype[HIER_LEN];
 
         nogo = noloc = lastst = litptr = 0;
+	functype[0]=FUNCTION;
+	functype[1]=VARIABLE;	/* its not really a variable of course */
         litlab = getlabel();
-        locptr = STARTLOC;
         textseg();
 
         if (monitor)
                 lout(line, stderr);
 
-        if (symname(ssname, YES) == 0)  {
-                error("illegal function or declaration");
-                kill();
-                return;
-        }
-
-        if (ptr = findglb(ssname))      {
-                if (ptr[IDENT] != FUNCTION)
-                        multidef(ssname);
-                else if (ptr[OFFSET] == FUNCTION)
-                        multidef(ssname);
-                else
-                        ptr[OFFSET] = FUNCTION;
-        }
-        else
-                addsym(ssname, FUNCTION, CINT, FUNCTION, &glbptr, STATIC);
-
-        if (match("(") == 0)
-                error("no open paren");
+        addsym(ssname, functype, CINT, FUNCTION, &glbptr, STATIC);
 
         entry();
-        locptr = STARTLOC;
-        argstk = 0;
-
-        while (match(")") == 0) {
-                if (symname(ssname, YES))       {
-                        if (findloc(ssname))
-                                multidef(ssname);
-                        else    {
-                                addsym(ssname, 0, 0, argstk, &locptr, AUTOMATIC);
-                                argstk = argstk + BPW;
-                        }
-                }
-                else    {
-                        error("illegal argument name");
-                        junk();
-                }
-
-                blanks();
-
-                if (streq(lptr, ")") == 0)      {
-                        if (match(",") == 0)
-                                error("no comma");
-                }
-
-                if (endst())
-                        break;
-        }
+	/* formal parameters already known */
 
         csp = 0;
         argtop = argstk;
@@ -351,48 +292,36 @@ newfunc()
 **      Rewritten per P. L. Woods (DDJ #52)
 */
 
-doargs(t)
-int     t;
+doargs(type)
+int     type;
         {
-        int     j, legalname;
+        int     i, k, legalname;
         char    c, *argptr;
 
         for (;;)        {
-                if (argstk == 0)
-                        return;
+                if (argstk == 0) return;
 
-                if (match("*"))
-                        j = POINTER;
-                else
-                        j = VARIABLE;
+		declparse(typearr, &k, NO, NO,AUTOMATIC);
+		/* k (length)  unused. NO,     <- no array bounds needed */
+		/*                       , NO  <- don't search globals   */
 
-                if ((legalname = symname(ssname, YES)) == 0)
-                        illname();
+		/* an array passed as a parameter must be considered a   */
+		/* pointer instead. The rules for indexing a ptr differ  */
 
-                if (match("[")) {
-                        while (inbyte() != ']')
-                                if (endst())
-                                        break;
+		if (typearr[0]==ARRAY) typearr[0]=POINTER;
 
-                        j = POINTER;
-                }
+                if (argptr = findloc(ssname))   {
+			for (i=0;i<HIER_LEN;++i)
+				argptr[IDENT+i]=typearr[i];
+                        argptr[TYPE] = type;
+                        putint(argtop - getint(argptr+OFFSET,OFFSIZE),
+			       argptr + OFFSET, OFFSIZE);
+                } else {
+                        error("not an argument");
+		}
 
-                if (legalname)  {
-                        if (argptr = findloc(ssname))   {
-                                argptr[IDENT] = j;
-                                argptr[TYPE] = t;
-                                putint(argtop - getint(argptr + OFFSET, OFFSIZE), argptr + OFFSET, OFFSIZE);
-                        }
-                        else
-                                error("not an argument");
-                }
-
-                argstk = argstk - BPW;
-
-                if (endst())
-                        return;
-
-                if (match(",") == 0)
-                        error("no comma");
+                argstk = argstk - BPW;	/* argument chars conv to ints */
+		if (match(",")) continue;
+                if (endst()) return;
         }
 }

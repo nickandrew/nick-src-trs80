@@ -319,8 +319,10 @@ char    *before, *start;
         if (stagenext = before)
                 return;
 
-        if (start)
-                peephole(start);
+        if (start) {
+		fflush(stderr);
+                fputs(start,output);	/* was peephole(start); */
+	}
 }
 
 outdec(number)
@@ -367,10 +369,10 @@ char    ptr[];
 }
 
 outstr(ptr)
-char    ptr[];
+char    *ptr;
         {
 
-        while (*ptr >= ' ')
+        while (*ptr != 0)
                 outbyte(*ptr++);
 }
 
@@ -573,7 +575,8 @@ char    *list;
                 op[opsize] = 0;
 
                 if (opsize = streq(lptr, op))
-                        if ((*(lptr + opsize) != '=') & (*(lptr + opsize) != *(lptr + opsize - 1)))
+                        if ((*(lptr + opsize) != '=')
+			  & (*(lptr + opsize) != *(lptr + opsize - 1)))
                                 return (1);
 
                 if (*list)      {

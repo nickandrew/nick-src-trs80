@@ -8,14 +8,15 @@
 #include        "cc.h"
 
 /*
-**      lval[0] - symbol table address - 0 for constant
-**      lval[1] - type of indirect obj to fetch - 0 for static
-**      lval[2] - type of pointer or array - 0 for others
-**      lval[3] - true if constant expression
-**      lval[4] - value of constant expression
-**      lval[5] - true if secondary register altered
-**      lval[6] - function address of highest/last binary operator
-**      lval[7] - stage address of "oper 0" code - 0 otherwise
+**      lval[0] LVSYM   - symbol table address - 0 for constant
+**      lval[1] LVSTYPE - type of indirect obj to fetch - 0 for static
+**      lval[2] LVPTYPE - type of pointer or array - 0 for others
+**      lval[3] LVCONST - true if constant expression
+**      lval[4] LVCONVL - value of constant expression
+**      lval[5]         - true if secondary register altered
+**      lval[6]         - function address of highest/last binary operator
+**      lval[7]         - stage address of "oper 0" code - 0 otherwise
+**      lval[8] LVHIER  - Position of Lvalue within type hierarchy
 */
 
 /*
@@ -24,7 +25,7 @@
 
 skim(opstr, testfunc, dropval, endval, heir, lval)
 char    *opstr;
-int     testfunc, dropval, endval, heir, lval[];
+int     (*testfunc)(), dropval, endval, heir, lval[];
         {
         int     k, hits, droplab, endlab;
 
@@ -50,7 +51,7 @@ int     testfunc, dropval, endval, heir, lval[];
                         postlabel(droplab);
                         const(dropval);
                         postlabel(endlab);
-                        lval[1] = lval[2] = lval[3] = lval[7] = 0;
+                        lval[LVSTYPE] = lval[LVPTYPE] = lval[LVCONST] = lval[7] = 0;
                         return (0);
                 }
                 else
@@ -69,8 +70,8 @@ int     (*testfunc)();
 
         if (k)
                 rvalue(lval);
-        else if (lval[3])
-                const(lval[4]);
+        else if (lval[LVCONST])
+                const(lval[LVCONVL]);
 
         (*testfunc)(exit1);
 }
@@ -83,7 +84,7 @@ plunge(opstr, opoff, heir, lval)
 char    *opstr;
 int     opoff, heir, lval[];
         {
-        int     k, lval2[8];
+        int     k, lval2[LVALUE];
 
         k = plunge1(heir, lval);
 
@@ -118,7 +119,7 @@ int     (*heir)();
         setstage(&before, &start);
         k = (*heir)(lval);
 
-        if (lval[3])
+        if (lval[LVCONST])
                 clearstage(before, 0);
 
         return (k);
@@ -138,31 +139,31 @@ int     (*oper)(), (*oper2)(), (*heir)();
         lval[5] = 1;
         lval[7] = 0;
 
-        if (lval[3])    {
+        if (lval[LVCONST])    {
                 if (plunge1(heir, lval2))
                         rvalue(lval2);
 
-                if (lval[4] == 0)
+                if (lval[LVCONVL] == 0)
                         lval[7] = stagenext;
 
-                const2(lval[4] << dbltest(lval2, lval));
+                const2(lval[LVCONVL] << dbltest(lval2, lval));
         }
         else    {
                 push();
                 if (plunge1(heir, lval2))
                         rvalue(lval2);
 
-                if (lval2[3])   {
-                        if (lval2[4] == 0)
+                if (lval2[LVCONST])   {
+                        if (lval2[LVCONVL] == 0)
                                 lval[7] = start;
 
                         if (oper == add)        {
                                 csp = csp + 2;
                                 clearstage(before, 0);
-                                const2(lval2[4] << dbltest(lval, lval2));
+                                const2(lval2[LVCONVL] << dbltest(lval, lval2));
                         }
                         else    {
-                                const(lval2[4] << dbltest(lval, lval2));
+                                const(lval2[LVCONVL] << dbltest(lval, lval2));
                                 smartpop(lval2, start);
                         }
                 }
@@ -184,13 +185,13 @@ int     (*oper)(), (*oper2)(), (*heir)();
         }
 
         if (oper)       {
-                if (lval[3] = lval[3] & lval2[3])       {
-                        lval[4] = calc(lval[4], oper, lval2[4]);
+                if (lval[LVCONST] = lval[3] & lval2[LVCONST])       {
+                        lval[LVCONVL] = calc(lval[4], oper, lval2[LVCONVL]);
                         clearstage(before, 0);
                         lval[5] = 0;
                 }
                 else    {
-                        if ((lval[2] == 0) & (lval2[2] == 0))   {
+                        if ((lval[LVPTYPE] == 0) & (lval2[LVPTYPE] == 0))   {
                                 (*oper)();
                                 lval[6] = oper;
                         }
@@ -201,7 +202,7 @@ int     (*oper)(), (*oper2)(), (*heir)();
                 }
 
                 if (oper == sub)        {
-                        if ((lval[2] == CINT) & (lval2[2] == CINT))     {
+                        if ((lval[LVPTYPE] == CINT) & (lval2[LVPTYPE] == CINT))     {
                                 swap();
                                 const(1);
                                 asr();
@@ -256,14 +257,14 @@ int     left, oper, right;
 expression(const, val)
 int     *const, *val;
         {
-        int     lval[8];
+        int     lval[LVALUE];
 
         if (heir1(lval))
                 rvalue(lval);
 
-        if (lval[3])    {
+        if (lval[LVCONST])    {
                 *const = 1;
-                *val = lval[4];
+                *val = lval[LVCONVL];
         }
         else
                 *const = 0;
@@ -272,12 +273,12 @@ int     *const, *val;
 heir1(lval)
 int     lval[];
         {
-        int     k, lval2[8], oper;
+        int     k, lval2[LVALUE], oper;
 
         k = plunge1(heir3, lval);
 
-        if (lval[3])
-                const(lval[4]);
+        if (lval[LVCONST])
+                const(lval[LVCONVL]);
 
         if (match("|="))
                 oper = or;
@@ -309,7 +310,7 @@ int     lval[];
                 return (0);
         }
 
-        if (lval[1])    {
+        if (lval[LVSTYPE])    {
                 if (oper)       {
                         push();
                         rvalue(lval);
