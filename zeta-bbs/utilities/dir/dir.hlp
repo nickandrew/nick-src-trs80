@@ -4,25 +4,18 @@
 
    "Dir" prints a directory of files on one of Zeta's disks.
 
-The drive number defaults to drive 1, which is for download
-files.
+The drive number defaults to drive 1, which is for download files.
 
 'n'     (a number) means use that drive. 0 through 2.
 'A'     means print file size as well in vertical format.
 '.ext'  means print only files with that 1-3 letter extension.
-
-5
 
   For disk rotation information use "help" without arguments.
 
 A option
 --------
 
-   Using the A option results in an output containing
-filename, end of file, logical record length, number of
-records, granules, extents followed by various status flags.
-
-5
+   Using the A option results in an output containing filename, end of file, logical record length, number of records, granules, extents followed by various status flags.
 
 The output looks like:
 
@@ -30,45 +23,22 @@ Filename            Eof    Lrl   Recs Grans Exts  SIUEC....UAL
 MYFILE.TXT         28/035  256     29     6    2  ...........0
 ATC.COM            12/000  256     12     3    1  ..U......U.5
 
-   The first field is the filename. The second is the end
-of file (EOF) represented as a count of complete 256 byte
-records followed by a slash and a count of bytes used in the
-last sector of the file (0-255).
+   The first field is the filename. The second is the end of file (EOF) represented as a count of complete 256 byte records followed by a slash and a count of bytes used in the last sector of the file (0-255).
 
-5
+   Most fields are not important to using Zeta. The LRL field (3rd field) is one such. The next field is the count of records in total (29). The next field states how many units of disk space the file occupies, in Granules. 1 Gran = 1.25k. The following field is unimportant, detailing how many contiguous disk space allocations the file has.
 
-   Most fields are not important to using Zeta. The LRL field
-(3rd field) is one such. The next field is the count of
-records in total (29). The next field states how many units
-of disk space the file occupies, in Granules. 1 Gran = 1.25k.
-The following field is unimportant, detailing how many
-contiguous disk space allocations the file has.
-
-   The last field shown here as "SIUEC......UA0" represents
-binary flags which may or may not be set. If not set, the
-corresponding position will be replaced by a dot '.'
-
-5
+   The last field shown here as "SIUEC......UA0" represents binary flags which may or may not be set. If not set, the corresponding position will be replaced by a dot '.'
 
 S flag: System file. Unimportant to users.
 I flag: Invisible file. Not normally shown on directories.
-U flag: Updated. Usually since last backup, so this field
-        may be useful to users to find new or changed files.
+U flag: Updated. Usually since last backup, so this field may be useful to users to find new or changed files.
 E flag: File extension (when writing) forbidden. Unimportant.
-C flag: File contracition forbidden. Unimportant.
+C flag: File contraction forbidden. Unimportant.
 
- 2nd U flag:  The file has whats called an "Update password".
-        Passwords are assigned to certain Zeta & system files
-to provide file & user security. If a file has a "U" but not
-an "A" password, you may be able to view its contents but not
-alter them in any way.
-
-5
+ 2nd U flag:  The file has whats called an "Update password". Passwords are assigned to certain Zeta & system files to provide file & user security. If a file has a "U" but not an "A" password, you may be able to view its contents but not alter them in any way.
 
 A flag:  The file has an access password.
 
-L :  This is a protection level, from 0 to 7. 5 = read,
-     6 = execute, 7 = lock.  Not usually important to users.
-
+L :  This is a protection level, from 0 to 7. 5 = read, 6 = execute, 7 = lock.  Not usually important to users.
 
 0
