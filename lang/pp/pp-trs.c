@@ -225,7 +225,7 @@ char *cp;
    i=0;
    while ((i<NAMELEN) && (*cp!=delim) && (!white(*cp)))
       file[i++]= (*(cp++));
-   if (i=NAMELEN) error("Include filename too long\n");
+   if (i==NAMELEN) error("Include filename too long\n");
    file[i]=0;
    fname=file;
    if (is_trs80 && !strcmp(file,"stdio.h")) fname="STDIO/CSH";
