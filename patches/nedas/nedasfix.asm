@@ -1,17 +1,13 @@
-;Nedasfix/asm: By Nick Andrew (to make Nedas 4.2b).
-; Ver 1.2, 14-Sep-84.
+;Nedasfix/asm: By Nick Andrew (to make Nedas 4.2c).
+; Ver 1.3, 28-Jan-85.
 ;
 ;Patch number one:
-; This is a patch for NEDAS to fix up a problem
-;with handling of Fcb Eof and Next values.
-; Specifically, when Nedas 4.1b read a file created
-;by Edtasm/Edtasm+ or a file which does not finish on
-;a sector boundary Nedas will either:
-;   Read the file a sector short, or
-;   Replace one byte of the text with 1AH.
+; This is a patch to allow NEDAS to read Edtasm type
+;files properly - the original problem was due to a
+;Newdos/80 <--> Ldos incompatibility.
 ;
 	ORG	5D65H		;Version Number.
-	DEFM	'2b'		;1b-->2b.
+	DEFM	'2c'
 ;
 	ORG	58F4H		;Patch start addr.
 	LD	IY,(56CAH)	;IY=FCB addr.
@@ -33,14 +29,6 @@
 	NOP
 ;
 ;
-;  What the above code does is check if the next byte
-;to be read is past EOF.
-; If so, then return a 1AH byte to hopefully tell Nedas
-;to stop reading. If that doesn't work then Nedas will
-;return with some sort of error.
-;
-; Previously, the code would return a 1AH byte a full
-;sector before the end of the file was reached ALWAYS.
 ;  The reason Nedas worked on its own files was because
 ;it wrote full sectors. The FCB EOF value will = 00H
 ;always and the original code in the patch area jumped
@@ -48,13 +36,13 @@
 ;for non-RBA format FCBs.
 ;
 ;*
-;Patch number 2: To fix bad page formatting when
-;Listing text onto the printer. May not be
-;necessary for all computers/printers.
-	ORG	4028H
-	DEFB	66	;Page Length.
-	DEFB	0	;Line number at start.
+;Patch number 2: To stop Nedas page formatting.
+; Is used for Epson compatible printers with auto
+;skip over perforation.
+;
+	ORG	5BB6H
+	RET		;was RET NZ.
+;
 	END	5800H
 ;
-;/* Patches written by Nick Andrew, 14-Sep-84 */
-;
+;/* Patches written by Nick Andrew, 28-Jan-85 */
