@@ -1,12 +1,21 @@
 ;zorkboot: Zork 1 boot sector.
-;
+;last changed 15-Feb-86
 H41FE	EQU	$-2
+;
+;Entry point for zork1:......
 H4200	LD	SP,H4200
+;
+;if Zeta... check if person is allowed to play.
+	IF	ZETA
+	CALL	MAY_I_PLAY
+	ENDIF
+;
 	LD	A,2
 	LD	(H42EF),A
 	XOR	A	;But I made it DI.
 	LD	(H42EE),A
 	JP	H42F6	;was call h42d7
+;
 	CALL	H42BD
 	LD	HL,4300H	;no label!!
 	LD	(H42F0),HL
