@@ -9,15 +9,7 @@ SOURCES=	catalogs comm file-transfer games \
 		maintain network treeboard utilities
 
 all:
-	@echo "Try make VERSION=1.x directories"
-	@echo "Or make VERSION=1.x packages"
-
-directories:
-	for i in $(SOURCES) ; do \
-		cd $$i ; \
-		$(MAKE) VERSION=$(VERSION) NAME=$(NAME) package ; \
-		cd .. ; \
-	done
+	@echo "Try make VERSION=1.x packages"
 
 packages:
 	for i in $(SOURCES) ; do \
