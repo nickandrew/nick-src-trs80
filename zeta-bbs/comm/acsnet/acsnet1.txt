@@ -1,0 +1,131 @@
+>LM=1 RM=80 TM=1 BM=10 PL=10
+Detailed description of interfacing programs
+--------------------------------------------
+
+(1)  On the Gould
+
+    At the highest level, news and mail will be handled separately.
+
+News:  Tony is/will be writing a program to place new news in a given directory. The filenames will be 5-character integers commencing 00000 and wrapping around from 99999 to 00000 again. A control file will specify the highest article number placed in the directory (the last news item), the highest number transferred to Zeta. Some other controls may be optional such as retention periods for news already handled however in general files will be removed as soon as they are successfully transferred to Zeta.
+
+       The news file format will be straight Ascii text with option to huffman-compress the data later on for transmission speed. Information fields about the news appear at the start of the file, designated keywords. A typical news header is:
+
+
+The news handler on Zeta may safely ignore most of the fields and concentrate on "Newsgroups:", "From:" and "Subject:".
+
+
+Mail:  Mail will be concatenated into a single file. The ACSnet mail handler should be in a position to concatenate new mail items into the file without data garbling, however I am still skeptical of this so this is only tentative.
+
+My server program on the Gould
+------------------------------
+
+     It appears the Gould modem can be used for dial out only, and Tony tells me new modems could be some time, so I'll assume the program on the Gould to be the one to initiate the connection.
+
+Every morning it will run, and perform the following actions:
+
+  - Ensure there is mail or news, by checking
+      - the last news item number in the control file
+      - the size of the mail file
+
+  - If there is no mail or news then terminate.
+      (what about reverse direction mail?? hmm...)
+
+  - Call Zeta and establish connection
+      This will involve:
+
+      - Dialling out & establishing a physical (layer 0) connection.
+      - Logging onto Zeta (with a name such as ACSnet).
+        Error free connection is impossible at this point
+        since humans on modems must be able to login too!
+
+      Zeta will start up the ACSnet interface program &
+      perform a short handshaking sequence, which will
+      probably encompass each end sending a count of how many
+      items of each sort it needs to transmit.
+
+  - Sending news items one at a time, with a short handshaking
+    between each
+
+  - Sending a batch of mail (ditto on the handshaking)
+
+  - Receiving news items to go to the news handler as new news
+    to distribute over ACSnet / uucp.
+
+  - Receiving batched outgoing (from Zeta) mail items.
+
+  - Terminating the connection with Zeta
+
+  - Invoking the mail and news handlers if there is any
+    outgoing mail/news from Zeta (probably asynchronously).
+
+  - Itself terminating.
+
+Note:  I don't know how the news handler will avoid retransmitting outgoing news from Zeta. If it can't be accomplished its not really an overhead since the volume of outgoing messages would be low anyway.
+
+
+
+
+
+(2)  On Zeta
+
+     Zeta's program(s) would mirror-image the gould's actions as far as possible.
+
+     Zeta runs a program when no user is logged on called ANSWER. It loops waiting for a modem call or at certain times of the day starts up other programs to clean up or poll a Fidonet daily.
+
+     When a call arrives, ANSWER determines if it is Fidonet or human through detection of a control character. A Fidonet call causes other programs to commence, which first transfer incoming mail, then incoming files, using Xmodem-CRC. Then outgoing mail is transmitted if there is any, and the remotely calling Fidonet hangs up.
+
+     For a call by the Gould, it will need to logon, giving a password. The Gould "zeta logon" routine will need to have some heuristics to determine when to send name and password. Various changeable messages are printed, but when ready to accept a login name Zeta sends a string similar to "Enter your FULL NAME : ". The Gould should detect this string or near replica (could be transmission line noise here!) & send name, then password.
+
+     Zeta will then detect the name is not a usual human caller, and execute the ACSnet interface program, and commence to talk.
+
+
+
+
+Other
+-----
+
+   File transfers will be done with Xmodem-CRC, already working on Zeta as "xmf". The Gould will use "rb" and "sb", Z-modem programs for Unix written by Chuck Forsberg. I know xmf works fairly well with rb/sb from using it on Runx, however their implementation seems to force some character translation which is death on wheels to huffman-compressed text. A study of the source on the Gould showed that the translation should not have occurred on Runx given the command line string I was using ... I've already recompiled rb/sb on the Gould and its no hassle to surgically remove the whole routine which does character translation.
+
+
+
+   Handshaking (or command-response) will be accomplished by a small packet-sending scheme with simplified coding and error correction.  Both this and the Xmodem file transfer will be a transport layer in themselves. Consider the ISO OSI model, where application, presentation and session models are squeezed into one layer (the server program). Below this the model splits into two "Transport/Network/Data Link" layers, one for handshaking, one for arbitrary large amounts of data (files). The model then reconnects at the physical layer because both the split links use the same physical data path, of course not both at the same time.
+
+   As far as I'm aware this still fits in with the spirit of the ISO model, because there will be a very clear interface between the top half of the model and the bottom half. In fact, I'll spell it out now.
+
+Handshaking will be instigated via the function call:
+
+       int sendhs(message,length);
+       int recvhs(buffer,&length);
+       char *message, buffer[256];
+       int  length;
+
+   The functions will return 0 for success, some other value for error, and timeouts, error correction etc. will be handled internally.
+
+File transfer will be done via:
+
+       int filesend(pathname);
+       int filerecv(pathname);
+       char *pathname;
+
+   Same comments as above apply to these calls, also that they assume nothing about how the data is sent (we assume only one communications link ... in Unix, it'll be /dev/tty).
+
+
+More on Zeta
+------------
+
+     Zeta uses more restricted filenames than Unix and the numbering of the news articles on the Gould should not force Zeta to number each article identically. Zeta will use the filename format "Xnnnnn/NWS" for its article "nnnnn". Mail will be unbatched in Zeta's corresponding unbatch phase after the Gould terminates connection. News will be left asis.
+
+     Zeta News handler
+     -----------------
+
+     Zeta has a well-developed message system already handling local mail, Fidonet mail, and Echomail. It is so well developed that its overburdened and should be split into several parts. News, from the user point of view, will be completely separate from the other facilities, yet such facilities will be inbuilt as "reply via mail". The news system will therefore deal directly with the news files as received from the Gould whenever a user requests to read news. Little processing other than determining which file to read and ignoring boring headers is required.
+
+     Zeta mail handler
+     -----------------
+
+     The mail received into one file will be "re-batched" into the format used by Zeta's usual message system. That will require address transformation and deletion of certain headers and reversing of "quoting" transformations which I believe is done by ACSnet to delineate each message. Once rebatched the mail file may be either archived or deleted ... my experience with Fidonet is that its all very well having an archived copy of every message ever received but the limit of archiving should be kept to about the last months' data.
+
+--------------------------------------------------------------
+
+  ... And thats about it for the time being. I can't do further work without some concrete activity on the Gould involving either (1) Comms link, or (2) exact file formats.
+
