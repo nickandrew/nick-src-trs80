@@ -1,0 +1,21 @@
+3ST Upload help
+
+Help on "Upload" command, 04-Aug-86
+-----------------------------------
+
+   UPLOAD lets you upload to Zeta without using any of the
+accepted file transfer protocols (xmodem,exmodem or kermit).
+
+   It should really be frowned upon, because non-protocol
+related uploading and downloading is prone to undetected
+errors. BUT, if you have one of these tiny little computers
+which don't have xmodem programs to suit, then you can use
+Upload.
+
+   Type: "Upload filename" and upload will prompt you to ready
+your file for output. Start sending the characters down the
+line. Zeta will beep when it needs to save to disk, and beep
+again when finished. Hit a control-D, (^D, 04H) when your file
+has finished sending and Upload will close the file and exit
+to the shell.
+
