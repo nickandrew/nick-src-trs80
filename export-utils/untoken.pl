@@ -4,6 +4,7 @@
 my $buffer;
 
 my %map = (
+	0x80 => 'END',
 	0x81 => 'FOR',
 	0x82 => 'RESET',
 	0x83 => 'SET',
@@ -63,7 +64,7 @@ my %map = (
 	0xb9 => 'CLOAD',
 	0xba => 'CSAVE',
 	0xbb => 'NEW',
-	0xbc => 'TAB',
+	0xbc => 'TAB(',
 	0xbd => 'TO',
 	0xbe => 'FN',
 	0xbf => 'USING',
@@ -153,30 +154,69 @@ while (length($buffer) >= 6) {
 
 	last if ($unknown == 0);
 	my $s;
+	my $m;
 
-	foreach my $c (split(//, $text)) {
+	my $t = new TokenizedLine($text);
+	my $c;
+	my $state = -1;
+
+	while (defined ($c = $t->getc())) {
+		my $class = $t->class($c);
 		my $o = ord($c);
 
-		if ($o >= 32 && $o < 128) {
-			$s .= $c;
-			next;
+		if ($state == -1) {
+			# Beginning of line, no prior space
+			$m .= '-1';
+		} elsif ($state == 0) {
+			# Space, just print another
+			$m .= '0';
+		} elsif ($state == 1) {
+			# Ascii, just print it
+			$m .= '1';
+			if ($class == 2) {
+				# Put a space before the token
+				$s .= ' ';
+			} elsif ($class == 5) {
+				$s .= ' ';
+			}
+		} elsif ($state == 2) {
+			# Put a space after last token
+			$m .= '2';
+			if ($class == 3) {
+				# No space
+			} elsif ($class == 0) {
+				# No space
+			} else {
+				$s .= ' ';
+			}
+		} elsif ($state == 3) {
+			# No space after (
+			$m .= '3';
+		} elsif ($state == 4) {
+			$m .= '4';
+			if ($class == 3) {
+				$s .= ' ';
+			}
+		} elsif ($state == 5) {
+			$m .= '5';
+			if ($class != 6) {
+				$s .= ' ';
+			}
+		} elsif ($state == 6) {
+			$m .= '6';
+			if ($class == 1) {
+				$s .= ' ';
+			}
 		}
 
-		if ($o < 32) {
-			$s .= sprintf(" 0x%02x ", $o);
-			next;
-		}
+		$s .= $t->convert($c);
+		$m .= $t->convert($c);
 
-		if (exists $map{$o}) {
-			$s .= $map{$o};
-			next;
-		}
-
-		# Otherwise, blurgh!
-		$s .= sprintf(" 0x%02x ", $o);
+		$state = $class;
 	}
 
 	printf "%05d   %s\n", $lineno, $s;
+	printf "%05d | %s\n", $lineno, $m;
 
 	my $i = 4 + length($text) + 1;
 	$buffer = substr($buffer, $i);
@@ -230,21 +270,28 @@ sub getc {
 	return $c;
 }
 
-# Return character class: 0 = space, 1 = ascii, 2 = token, 3 = '(', or undef
+# Return character class:
+# 0 = space, 1 = ascii, 2 = token, 3 = '(', 4 = [+-*/^=],
+# 5 = [<], 6 = [>] or undef
 
 sub class {
 	my $self = shift;
-
-	my $c = $self->peek();
+	my $c = shift;
 
 	return undef if (!defined $c);
 
-	if ($c == ' ') {
+	if ($c eq ' ') {
 		return 0;
-	} elsif (ord($c) > 0x7f) {
-		return 2;
 	} elsif ($c eq '(') {
 		return 3;
+	} elsif ($c =~ /[+*\/^=-]/) {
+		return 4;
+	} elsif ($c eq "\xd6") {
+		return 5;
+	} elsif ($c eq "\xd4") {
+		return 6;
+	} elsif (ord($c) > 0x7f) {
+		return 2;
 	}
 
 	return 1;
@@ -256,9 +303,14 @@ sub convert {
 
 	my $o = ord($c);
 
+	if ($o >= 0x20 && $o <= 0x7e) {
+		return $c;
+	}
+
 	if (exists $map{$o}) {
 		return $map{$o};
 	}
 
-	return $c;
+	# Otherwise, blurgh!
+	return sprintf(" 0x%02x ", $o);
 }
