@@ -1,5 +1,5 @@
-;xmodem1: Xmf source code file 1
-;Last updated: 22-Aug-87
+;xmodem1: Xmodem source code file 1
+;Last updated: 05 Aug 89
 ;
 START	LD	SP,START
 ;
@@ -38,8 +38,8 @@ XL_02	LD	A,(HL)		;check value of flag
 	JR	Z,SET_OVERWRITE
 	CP	'T'		;Telink mode
 	JR	Z,SET_TELINK
-	CP	'E'
-	JR	Z,SET_EXMODEM
+	CP	'D'
+	JR	Z,SET_DEBUG
 ;flag unknown. bypass rest of flags
 	CALL	BYP_WORD
 	JR	XL_01
@@ -49,9 +49,10 @@ FLAGS_RESET
 	LD	(B_TYPE),A
 	XOR	A
 	LD	(QUIET),A
-	LD	(CRCMODE),A
+;;	LD	(CRCMODE),A
 	LD	(OVERWRITE),A
 	LD	(NOLOG),A
+	LD	(DEBUG_FLAG),A
 	RET
 ;
 SET_DIRECTION
@@ -91,20 +92,20 @@ SET_TELINK
 	INC	HL
 	JR	XL_02
 ;
-SET_EXMODEM
+SET_DEBUG
 	LD	A,1
-	LD	(EX_FLAG),A
+	LD	(DEBUG_FLAG),A
 	INC	HL
-	JP	XL_02
+	JR	XL_02
 ;
 ;Jump to XFER_FINI when no more args to process.
 XFER_FINI
 	LD	A,(TELINK)
 	OR	A
-	JR	Z,XE_1
+	JR	Z,XE_1		;If not in Telink mode
 	LD	A,(B_TYPE)
 	CP	'R'
-	JP	Z,TELINK_RECV
+	JP	Z,TELINK_RECV	;Now go to receive part
 XE_1
 	XOR	A
 	JP	EXIT_EXMF
@@ -123,18 +124,20 @@ XFER_FILE
 NEW_ARG
 	LD	HL,(NEWARG)
 	LD	(ARG),HL
-	JP	XFER_LOOP
+	JP	XFER_LOOP	;Process next argument
+;
+;Copy string at HL into B_FILE buffer
 ;
 SET_FILENAME
 	LD	DE,B_FILE
 	LD	B,22
 XF_01	LD	A,(HL)
 	CP	CR
-	JR	Z,XF_02
+	JR	Z,XF_02		;CR can end the string
 	CP	' '
-	JR	Z,XF_02
+	JR	Z,XF_02		;Space can end the string
 	OR	A
-	JR	Z,XF_02
+	JR	Z,XF_02		;Null can end the string
 	LD	(DE),A
 	INC	DE
 	INC	HL
@@ -146,7 +149,7 @@ XF_02	XOR	A
 XFER_INIT
 	CALL	CONFIG
 	LD	A,10
-	LD	(MAX_TOREAD),A	;Quick startup, SENDING
+	LD	(MAX_TOREAD),A	;Quick startup when sending
 ;
 	XOR	A
 	LD	(BLK_RCV),A
@@ -158,6 +161,8 @@ XFER_INIT
 	LD	(EOFB),A
 	LD	HL,BIG_BUFF
 	LD	(AID),HL
+;
+;Zero the data buffer
 	LD	B,128
 	LD	HL,DATABUF
 	XOR	A
@@ -171,6 +176,7 @@ BYP_SP	LD	A,(HL)
 	RET	NZ
 	INC	HL
 	JR	BYP_SP
+;
 BYP_WORD
 	LD	A,(HL)
 	CP	CR
@@ -228,6 +234,10 @@ NP_04	LD	(HL),0
 	JP	EXIT_EXMF
 ;
 NO_TRANSFER
+	LD	HL,M_HUH	;Dumb sounding Hunh?
+	LD	DE,$2
+	CALL	MESS_0
+;
 	LD	A,0
 EXIT_EXMF
 	PUSH	AF
@@ -244,6 +254,8 @@ LOG_CLOSE
 	CALL	DOS_CLOSE
 	RET
 ;
+;Check the arguments passed are valid ones
+;
 CHK_USAGE
 	LD	A,(HL)
 	CP	CR
@@ -257,7 +269,7 @@ CU_01	LD	A,(HL)
 	RET	Z
 	CP	'-'
 	JR	Z,CU_02
-	CALL	BYP_WORD
+	CALL	BYP_WORD	;Bypass a filename
 	JR	CU_01
 CU_02	INC	HL
 CU_02A	LD	A,(HL)
@@ -272,6 +284,8 @@ CU_02A	LD	A,(HL)
 	CP	'O'		;Overwrite existing file
 	JR	Z,CU_03
 	CP	'T'		;Telink mode
+	JR	Z,CU_03
+	CP	'D'		;Debug mode
 	JR	Z,CU_03
 	JP	USAGE
 CU_03	INC	HL
@@ -293,6 +307,7 @@ USAGE
 	CP	1		;send to interactive
 	RET
 ;
+;Send a null terminated string to the display
 ;
 VDU_PUTS
 VP_01
@@ -341,24 +356,37 @@ LOG_OPEN
 START2
 	CALL	LOG_OPEN
 ;*-*
-	LD	HL,B_DATE	;log date
-	CALL	X_TODAY		;Use nice date format
-	LD	HL,B_TIME
-	CALL	446DH
+	LD	DE,DMY_BUF
+	CALL	GETDATE
+	LD	DE,HMS_BUF
+	CALL	GETTIME
 ;
-	LD	HL,B_DATE
+	LD	DE,DMY_BUF
+	CALL	DMY_ASCII
+	LD	DE,HMS_BUF
+	CALL	HMS_ASCII
+;
+	LD	HL,DMY_STRING
 	CALL	LOG_2
+	LD	A,' '
+	LD	DE,FCB_LOG
+	CALL	$PUT
+	LD	HL,HMS_STRING
+	CALL	LOG_2
+	LD	A,' '
+	LD	DE,FCB_LOG
+	CALL	$PUT
 ;
 ;Log users name.
 	LD	HL,(USR_NAME)
 	LD	DE,FCB_LOG
 	CALL	MESS_NOCR
+;
 	LD	A,' '
 	CALL	$PUT
+;
 	LD	HL,B_TYPE	;Log S|R and filename.
 	CALL	LOG_2
-	LD	A,CR
-	CALL	$PUT
 ;
 	CALL	SCREEN_SETUP	;setup host screen.
 ;
@@ -376,8 +404,8 @@ START2
 	LD	HL,B_FILE
 	LD	DE,FCB_1
 	CALL	EXTRACT
-	JR	Z,RECV_0
-;If bad extract
+	JR	Z,RECV_0	;If extract worked
+;
 	LD	HL,M_ERROR
 	CALL	LOG_2
 	LD	HL,M_BDFL
@@ -393,7 +421,7 @@ RECV_0
 	LD	HL,BUFF_1
 	LD	B,0
 	CALL	DOS_OPEN_EX	;Should fail.
-	JP	Z,EXISTS
+	JR	Z,EXISTS
 	CP	18H		;de_fnid
 	JR	Z,GETDESC
 	PUSH	AF
@@ -402,18 +430,13 @@ RECV_0
 	POP	AF		;unknown error on initial
 	JP	DOSERR		;file open, receive.
 ;
-;ask for description.
+;ask for description. NO thanks.
 GETDESC
-	LD	A,(QUIET)
-	OR	A
-	JR	NZ,NODESC	;none if quiet
-;
-NODESC
 	LD	HL,BUFF_1	;open new file for recv.
 	LD	DE,FCB_1
-	LD	B,0H
+	LD	B,0
 	CALL	DOS_OPEN_NEW
-	JR	Z,AEZ
+	JR	Z,EXIST_2
 	PUSH	AF		;error opening RECV file
 	LD	HL,M_ERROR
 	CALL	LOG_2
@@ -438,7 +461,7 @@ EXISTS				;recv file exists
 	JR	Z,EXIST_1
 	LD	A,(PRIV_1)
 	BIT	IS_SYSOP,A
-	JR	NZ,AEZ		;allow overwrite
+	JR	NZ,EXIST_2	;allow overwrite
 EXIST_1
 	LD	HL,M_SENDEX
 	CALL	LOG_2
@@ -448,7 +471,8 @@ EXIST_1
 	LD	A,2
 	JP	EXIT_EXMF
 ;
-AEZ	LD	HL,M_RRDY	;file is now open OK.
+EXIST_2
+	LD	HL,M_RRDY	;file is now open OK.
 	CALL	QUIET_0
 ;delay a bit. Not if quiet though.
 	LD	A,(QUIET)
@@ -464,45 +488,49 @@ AEZ	LD	HL,M_RRDY	;file is now open OK.
 ;
 	CALL	POSS_ABRT
 ;
-RCV_LP	CALL	GET_BLK		;get block
+RCV_LP	CALL	GET_BLK		;receive data block
 	JR	C,RCV_OK	;if EOT
+;
 	XOR	A
-	LD	(FIRST_BLK),A
+	LD	(FIRST_BLK),A	;Next won't be first
 	CALL	POSS_ABRT
-	CALL	WRITE_BLK	;Store
+	CALL	WRITE_BLK	;Store in mem/disk
 	CALL	INC_SNT		;inc send block number
+;
 	LD	A,(BLK_SNT)
 	CALL	BLK_NUMB
 	CALL	SEND_ACK
 	JR	RCV_LP
 ;
 ;******* Start of Exmodem mods *******
-RCV_OK	PUSH	AF
+RCV_OK
+	PUSH	AF
+	LD	HL,M_R_EOT
+	CALL	VDU_PUTS
 	CALL	AGR		;save all blocks
 				;fixup EOF in FCB....
 	POP	AF
 	CP	ENQ
 	JR	NZ,ROK_3
-	LD	A,ACK
-	CALL	PUT_BYTE
 ;
-	LD	HL,M_R_ENQ	;signal enq ACK
-	CALL	VDU_PUTS
-	LD	HL,M_S_ACK
-	CALL	VDU_PUTS
-;
-	LD	B,10		;wait for EOFB
-	CALL	GET_BYTE
-	JR	C,ROK_4
-	LD	(EOFB),A
-	LD	B,1
-	CALL	GET_BYTE
-	JR	C,ROK_4
-	CPL
-	LD	B,A
-	LD	A,(EOFB)
-	CP	B
-	JR	C,ROK_4
+;;	CALL	SEND_ACK
+;;	LD	HL,M_R_ENQ	;signal enq ACK
+;;	CALL	VDU_PUTS
+;;	LD	HL,M_S_ACK
+;;	CALL	VDU_PUTS
+;;
+;;	LD	B,10		;wait for EOFB
+;;	CALL	GET_BYTE
+;;	JR	C,ROK_4
+;;	LD	(EOFB),A
+;;	LD	B,1
+;;	CALL	GET_BYTE
+;;	JR	C,ROK_4
+;;	CPL
+;;	LD	B,A
+;;	LD	A,(EOFB)
+;;	CP	B
+;;	JR	C,ROK_4
 ROK_1
 	LD	A,(EOFB)
 	AND	7FH
@@ -522,12 +550,25 @@ ROK_2
 	OR	80H
 	LD	(FCB_1+8),A
 	JR	ROK_5
+;
+;Char was not an ENQ so treat as ordinary Xmodem
+;code in process of being fixed...
 ROK_3
 	LD	A,128
 	LD	(EOFB),A
-	JR	ROK_1
+	LD	A,(EOFB)
+	AND	7FH
+	JR	Z,ROK_5
+	LD	B,A
+	LD	A,(FCB_1+8)
+	AND	80H
+	JR	Z,ROK_2
+	LD	A,B
+	LD	(FCB_1+8),A
+	JR	ROK_5
+;
 ROK_4
-	CALL	LOAD_NAK
+	LD	A,NAK
 	CALL	PUT_BYTE
 ;
 	LD	HL,M_S_NAK
@@ -545,6 +586,8 @@ ROK_5
 	CALL	QUIET_0
 	RET			;go for next file.
 ;
+;Send either a C or a NAK as the initial NAK.
+;
 INITIAL_NAK
 	LD	A,(CRCMODE)
 	OR	A
@@ -553,15 +596,6 @@ INITIAL_NAK
 	LD	A,CRCNAK
 INAK_1
 	CALL	PUT_BYTE
-	RET
-;
-LOAD_NAK
-	LD	A,(CRCMODE)
-	OR	A
-	LD	A,NAK
-;;	RET	Z
-	RET
-	LD	A,CRCNAK
 	RET
 ;
 ;Modem-7 receive filename gathering.
@@ -636,7 +670,7 @@ M7R_MR3
 	JR	Z,M7R_2
 	JP	M7R_MR0
 ;
-;Fix the filename so its standard.
+;Fix the filename so it is standard.
 M7R_2
 	LD	HL,M7_FIELD
 	LD	DE,B_FILE
@@ -672,6 +706,10 @@ M7R_2D
 	SCF
 	RET
 ;
+;-------------------------------
+;Send routine ...
+;-------------------------------
+;
 SEND
 	LD	HL,B_FILE
 	LD	DE,FCB_1	;extract
@@ -689,16 +727,15 @@ SEND_1	LD	HL,BUFF_1	;File buffer.
 	LD	DE,FCB_1	;FCB Address.
 	LD	B,0H		;LRL=256.
 	CALL	DOS_OPEN_EX
-	JR	Z,AFF		;If file found
+	JR	Z,SEND_2	;If file found
 ;Check if not existing.
 	CP	18H		;de_fnid
 	JR	NZ,IS_ERROR
 ;Special stuff....
-	LD	HL,M_RECVNO
+	LD	HL,M_FNID
 	CALL	LOG_2
 	LD	HL,M_FNID
-	LD	DE,$2
-	CALL	MESS_0
+	CALL	QUIET_0
 	LD	A,20
 	CALL	SEC10
 	RET			;loop to next file.
@@ -710,7 +747,7 @@ IS_ERROR
 	POP	AF
 	JP	DOSERR
 ;
-AFF				;check file access.
+SEND_2				;check file access.
 	LD	A,(FCB_1+1)	;must have read or better
 	AND	7
 	CP	6		;0=all,...6=exec,7=lock
@@ -740,53 +777,52 @@ AFF_2
 ;
 	CALL	CONFIG
 ;
-	LD	E,100		;wait 100 seconds.
+	LD	E,80		;wait 80 seconds.
 	CALL	INIT_AHC	;wait for NAK, CAN or 'C'
 ;
-SND_LP	CALL	READ_BLK	;get block data
+SND_LP
+	CALL	READ_BLK	;get block data
 	JR	C,S_E_I		;if no blks to send
 	CALL	INC_SNT		;inc sending block number
 ;
 	XOR	A
 	LD	(NNAKS),A	;zero NAK count
 ;
-AFH	CALL	SEND_HDR	;print No & send header
+SLP_1	CALL	SEND_HDR	;print No & send header
 	CALL	SEND_BLK
 	CALL	SEND_CHECK
-	CALL	AFX		;wait for ack,nak,can
-	JR	C,AFH
+	CALL	WAIT_RESP	;wait for ack,nak,can
+	JR	C,SLP_1
 	JR	SND_LP
 ;
 S_E_I
 ;
-	LD	A,(EX_FLAG)
-	OR	A
-	JR	Z,SND_EOT	;Not '-e' exmodem
+	JR	SND_EOT		;Not '-e' exmodem
 ;
-	LD	HL,M_S_ENQ
-	CALL	VDU_PUTS
-	LD	A,ENQ
-	CALL	PUT_BYTE	;send exmodem ENQ?
-	CALL	AFX		;ack/nak/can check.
-	JR	C,SND_EOT_FIRST	;if NAK or timeout.
-	LD	HL,M_R_ACK
-	CALL	VDU_PUTS
-	LD	A,(FCB_1+8)
-	AND	7FH
-	JR	NZ,SEI_1
-	OR	80H
-SEI_1	LD	(EOFB),A
-	CALL	PUT_BYTE
-	LD	A,(EOFB)
-	CPL
-	CALL	PUT_BYTE
-	CALL	AFX		;ack/nak/can check
-	JR	C,S_E_I
+;;	LD	HL,M_S_ENQ
+;;	CALL	VDU_PUTS
+;;	LD	A,ENQ
+;;	CALL	PUT_BYTE	;send exmodem ENQ?
+;;	CALL	WAIT_RESP	;ack/nak/can check.
+;;	JR	C,SND_EOT_FIRST	;if NAK or timeout.
+;;	LD	HL,M_R_ACK
+;;	CALL	VDU_PUTS
+;;	LD	A,(FCB_1+8)
+;;	AND	7FH
+;;	JR	NZ,SEI_1
+;;	OR	80H
+;;SEI_1	LD	(EOFB),A
+;;	CALL	PUT_BYTE
+;;	LD	A,(EOFB)
+;;	CPL
+;;	CALL	PUT_BYTE
+;;	CALL	WAIT_RESP	;ack/nak/can check
+;;	JR	C,S_E_I
 ;
-	LD	HL,M_EXMODEM
-	CALL	VDU_PUTS
+;;	LD	HL,M_EXMODEM
+;;	CALL	VDU_PUTS
 ;
-	JR	S_E_2	;OK....
+;;	JR	S_E_2	;OK....
 ;
 SND_EOT_FIRST
 ;;	LD	HL,M_NAK
@@ -802,7 +838,7 @@ SND_EOT_0
 	LD	A,EOT
 	CALL	PUT_BYTE
 	CALL	POSS_ABRT
-	CALL	AFX		;wait for ack,nak,can
+	CALL	WAIT_RESP	;wait for ack,nak,can
 	JR	NC,S_E_2	;if ACK.
 	LD	A,(NNAKS)
 	INC	A
@@ -819,107 +855,4 @@ S_E_3
 	CALL	QUIET_0
 	RET			;go for more
 ;
-GET_BLK	XOR	A
-	LD	(NNAKS),A	;No of NAKs sent
-AFL	LD	B,10	 	;wait 10 sec for SOH
-	CALL	GET_BYTE
-	JP	C,SEND_NAK	;if no char recvd
-	CALL	POSS_ABRT
-	OR	A
-	JR	Z,AFL		;ignore padding zeroes.
-	CP	SOH
-	JR	Z,AFO		;Block header seen
-	CP	16H		;SYN
-	JP	Z,TL_HDR
-	CP	CAN
-	JP	Z,SNDR_CANCELS	;the sender cancels it.
-	CP	EOT
-	SCF	
-	RET	Z		;scf & ret if EOT
-;******* Start of Exmodem mods *******
-	CP	ENQ
-	SCF
-	RET	Z		;scf & ret if ENQ
-;******* End of Exmodem mods *******
-	JP	SEND_NAK
-;
-AFO	LD	B,1H		;try to get block number
-	CALL	GET_BYTE
-	JP	C,SEND_NAK
-	LD	(BLK1),A
-	LD	B,1		;get inverse.
-	CALL	GET_BYTE
-	JP	C,SEND_NAK
-	CPL	
-	LD	D,A
-	LD	A,(BLK1)
-	CP	D
-	JP	NZ,SEND_NAK
-;
-	LD	(BLK_RCV),A	;block # being received.
-	LD	HL,DATABUF
-	LD	B,128
-AFQ	PUSH	BC
-	LD	B,1
-	CALL	GET_BYTE
-	POP	BC
-	JP	C,SEND_NAK	;if no char recvd
-	LD	(HL),A
-	INC	HL
-	DJNZ	AFQ
-;
-	LD	A,(CRCMODE)
-	OR	A
-	JR	NZ,TRY_R_CRC
-;Get, calculate, and compare an 8 bit checksum.
-	LD	B,1H
-	CALL	GET_BYTE	;recv checksum
-	JP	C,SEND_NAK
-	LD	(CHECKSUM),A
-	CALL	CALC_SUM
-	LD	D,A
-	LD	A,(CHECKSUM)
-	CP	D
-	JR	Z,CHECK_SEQ
-	JP	SEND_NAK
-;
-TRY_R_CRC
-	LD	B,1
-	CALL	GET_BYTE
-	JP	C,SEND_NAK	;if none
-	LD	(CRC_LOW+1),A
-	LD	B,1
-	CALL	GET_BYTE
-	JP	C,SEND_NAK
-	LD	(CRC_LOW),A	;backwards! msb first!
-	CALL	CALC_CRC
-	LD	DE,(CRC_LOW)
-	OR	A
-	SBC	HL,DE		;compare HL to (crc_low)
-	JP	NZ,SEND_NAK	;if wrong
-	JR	CHECK_SEQ
-;
-CHECK_SEQ
-	LD	A,(BLK_RCV)	;block just received
-	LD	B,A
-	LD	A,(BLK_SNT)	;previous last block OK
-	CP	B
-	JR	Z,AFR		;if same ACK & discard
-	INC	A
-	CP	B
-	JP	NZ,AGC		;abort if out of sequence
-	RET			;store & ACK later.
-;
-AFR	CALL	SEND_ACK	;send ACK
-	JP	GET_BLK		;throw away.
-;
-TL_HDR
-	LD	B,131
-TLH_1
-	PUSH	BC
-	LD	B,1
-	CALL	GET_BYTE
-	POP	BC
-	DJNZ	TLH_1
-	CALL	SEND_ACK
-	JP	GET_BLK
+;End of xmodem1
