@@ -1,51 +1,34 @@
-
+      DIRECT: Add, List, and Unpack directories.
 
 ********************************************************
 * Direct/doc:  Documentation for DIRECT                *
-* Environment: Trs-80 Model I/III Newdos-80       OR   *
-*              Unix System V                      OR   *
-*              Trs-80 Colour Computer running OS-9     *
+* Environment: Trs-80 Model I Newdos-80, 48K ram, OR   *
+*              Unix System V                           *
 *                                                      *
-* Version:     1.3   09-Aug-86 (Unix/OS9/Trs-80)       *
+* Version:     1.0   10-Oct-85 (Unix) 11-Mar-85 (Trs)  *
 * Assembler:   Nedas (Trs-80 version only)             *
-* Language:    Generic C     (Unix/OS9)                *
-*              Z80 Assembler (Trs-80 1/3)              *
+* Language:    C (Unix Version)   Z80 (Trs-80 version) *
 *                                                      *
 * Program:     (C) 1986 by Zeta Microcomputer Software *
 *              Released into public domain 11-Mar-86   *
-*                                                      *
 *  If you like this program and you are an honest      *
 * person then you may consider sending a donation to   *
 * the author at P.O Box 177, Riverstone NSW 2765.      *
-* Recommended amount: $5     <--- freeware.            *
+* Recommended amount: $5                               *
 *                                                      *
+* This program is compatible with DIRECT.C for Unix.   *
 ********************************************************
 
                Documentation for DIRECT
                ------------------------
 
-The version released with this document is Version 1.3
+    Direct is a machine-independant program which allows
+groups of related files to be easily archived for future
+use, or transferred en-masse rather than individually.
 
-    Direct is a program which allows groups of related
-files to be easily archived for future use, or transferred
-en-masse rather than individually.
-
-    The program itself may or may not be portable, but the
-file format used is defined to be identical for all types of
-computers, hence "direct format" files are compatible with any
-copy of DIRECT, on any given machine.
-
-    In particular, NO file conversions are performed in any
-way. Trs-80 and Unix/OS9 both consider files to be character
-streams hence exact End-of-files are used. CP/M and related
-systems consider files to be chunks of 128 byte sectors and in
-such cases DIRECT considers them as character streams however
-the true EOF cannot be determined closer than 128 bytes hence
-an EOF is stored which is an exact multiple of 128 bytes.
-
-    Direct manipulates two "DIRECT format" files,
+    Direct lets you setup two "directory format" files,
 one with a suffix of DAT and the other with a suffix of
-DIR, in which you can pack any number of regular files,
+DIR, in which you can pack any number of regular files
 where each file stored has a machine independant name and
 also a short description of the file contents therein.
 
@@ -53,140 +36,96 @@ also a short description of the file contents therein.
 say 4K at a time or 1.25K at a time, DIRECT saves disk space
 because files are packed with minimum space lost.
 
-    For archiving related files, or storing whole packages,
-DIRECT is invaluable because you can store many different
-directory files on the one disk without getting confused
-about which file belongs to which package.
+    For archiving related programs or whole packages, DIRECT
+is invaluable because you can store many different directory
+files on the one disk without getting confused as to which
+of the constituent files belongs to which package.
 
     For file transfer privately or over a BBS then Direct is
 also invaluable because you can transfer a whole package at
-a time without missing out on any crucial files, and using
-Direct to pack files for transfer is also faster than
-transferring the files individually.
+a time without missing out on any crucial files, and its also
+faster than transferring the files individually.
 
-    You get space for a short description of each file
-contained in the twin files, which saves you wondering about
-just what it is.
-
+    You get space for a short description of each file in a
+"directory" file, which saves you wondering about just what
+it is.
 
                  The package as supplied...
                  --------------------------
 
-DIRECT is distributed as source code only. At the time of
-writing, source exists for the following systems:
+DIRECT is distributed as source code. At the time of writing,
+source exists for the following systems:
+
+   - Unix. (System-V).               DIRECT.C
+     Nearly a generic C program except that it needs lseek(),
+system(), creat() and a few others. If your 'C' has most of
+these then you can run DIRECT.C with a few modifications.
 
 
 
-- Unix (SysV) and COCO (OS9)      DIRECT.C
-
-     The code is generic but it uses several system calls
-     which may not exist on all systems. The calls are to:
-     strncpy(), strncmp(), creat(), rewind(),
-     fseek(), ftell(), and system().
-
-     The IMPORTANT calls are fseek(), ftell(), rewind().
-     You can write the others yourself, and ignore system().
-
-
-     This version is verified working on Unix Sys-V, and also
-     on the Trs-80 Colour Computer running OS-9 and 'C'
-     compiler.
-
-
-- Trs-80 Model I Newdos-80 48K.   DIRECT/ASM
-
+   - Trs-80 Model I Newdos-80 48K.   DIRECT/ASM
      Requires assembly with Nedas or equivalent assembler.
-     May work on other models, or other Doses (except for '!'
-     command, "dos command escape").
+     May work on other models, or other Doses.
 
 
-For all machines:
      Along with the DIRECT source code supplied is this
-     documentation file DIRECT/DOC (or DIRECT.DOC)
+documentation file DIRECT/DOC or DIRECT.DOC
+
+     The author of this program runs Zeta Rtrs on
+(02) 627-4177 and you may leave a message there if you have
+any enquiries.
 
 
-          Instructions for operating Direct
-          ---------------------------------
+             How to work Direct
+             ------------------
 
-The version released with this document is Version 1.3
-(C/UNIX/OS9 and Trs-80 versions), which support 6 commands
-as follows:
+The version currently released with this document is Version
+1.0  which supports 6 commands as follows:
 
-          The 'S' (open direct "twin files") command.
-
-     'S': Set which "directory" the program will use.
+     'S': Set which "directory" file the program will use.
           Usage is:      S example
 
                     No suffix allowed on the filename.
                     Uses twin files EXAMPLE.DIR & EXAMPLE.DAT
-                        (Trs: EXAMPLE/DIR & EXAMPLE/DAT)
+                          (or EXAMPLE/DIR & EXAMPLE/DAT)
+     If the files don't already exist then you will be
+prompted for a description of the intended contents of that
+'directory file'.
 
-     If the files (example.dir & example.dat) don't already
-exist then you will be prompted for a short description of
-the intended contents of that 'directory file'
-
-(for example:)
-
-% direct
-Direct version 1.3, 09-Aug-86
-Direct 1.3 >S mysource
-Directory file nonexistant!
-Create it? y
-Description?  My latest 'C' source code
-Direct 1.3 >
-
-
-
-          The 'A' (add file) command
 
      'A': Add a new file to the "directory" file.
           Usage is:      A machinefilename [directfilename]
 
-    Machinefilename is the name of the file on your disks
-which you want to store in the twin "direct files".
     Directfilename is optional. It defaults to the same
-as Machinefilename. Thats the filename which will be stored
-in the twin "direct files".
+as Machinefilename.
 
     Directfilename is a string of 1 to 14 characters. Its
-machine independant. Upper and lower case are distinct.
-    Machinefilename is a valid filename for your machine.
-It is (of course) dependant on your machine.
+machine independant. Machinefilename is a valid filename for
+your machine. It is (of course) dependant on your machine.
 
-
-          The 'X' (Exit to dos) command
 
      'X': Exit from Direct.
           Usage is:      X
-          Any open files are closed.
+                    Any open files are closed.
 
 
-          The 'E' (extract a file from twin files) command
-
-     'E': Extract a subfile from the "directory" file.
+     'E': Extract a file from the "directory" file.
           Usage is:      E directfilename
-          You are prompted for the Machinefilename.
+                    You are prompted for the Machinefilename.
 
-          The 'L' (list twin files) command
-
-     'L': List subfiles in the current direct "twin files".
+     'L': List entries in the currently open "directory" file.
 
 
-          The '!' (execute a dos command) command
-
-     '!': Perform any valid Newdos-80 dos command.
+     '!': Command escape.
           Usage is: !commandline
-          Supported only on Unix/OS9 and Newdos-80 Direct.
+
+        Currently supported only on Unix and Newdos-80 Direct.
 
 
           End of DIRECT documentation
           ---------------------------
 
-Any enquiries may be directed to Nick Andrew, via any of:
-
-     Sydtrug, Sydney Trs-80 Users Group
-              P.O Box 297, Padstow, NSW 2211
-or   via modem on Zeta Rtrs, (02) 627-4177
-or   via ACSnet, to zeta@runx.oz
-or   personally, at P.O Box 177, Riverstone NSW 2765.
-
+(PS: If you just downloaded this file from a BBS and find
+    there are 127 Zero bytes at the end of it then you should
+    be using Extended Xmodem (Exmodem). Full details on Zeta.)
+---------------------------------
