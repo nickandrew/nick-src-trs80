@@ -8,6 +8,13 @@ CR	EQU	0DH
 	COM	'<Newdos-80, Converts pascal-80 files to Ascii>'
 	ORG	5300H
 START	LD	SP,START
+	LD	A,(HL)
+	CP	CR
+	JR	NZ,NO_USG
+	LD	HL,M_USAGE
+	CALL	4467H
+	JP	DOS
+NO_USG
 	LD	DE,PAS_FCB
 	CALL	DOS_EXTRACT
 	LD	DE,TXT_FCB
@@ -91,6 +98,10 @@ END_PAS	LD	DE,PAS_FCB
 	CALL	DOS_CLOSE
 	JP	NZ,DOS_ERROR
 	JP	DOS
+;
+M_USAGE
+	DEFM	'Pasconv: Convert Pascal-80 source to Ascii',0AH
+	DEFM	'Usage: pasconv infile outfile',CR,0
 ;
 PAS_FCB	DC	32,0
 TXT_FCB	DC	32,0
