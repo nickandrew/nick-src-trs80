@@ -1,0 +1,33 @@
+00100   M = 100
+00110   MA = M
+00120   W=0 : RED=0 : B=1 : L=0
+00130   REM
+00140   IF M > 5 THEN GOTO 170
+00150      PRINT "went bust - maximum cash was ";MA
+00160      STOP
+00170   IF M < 200 THEN GOTO 200
+00180      PRINT "won our money"
+00190      STOP
+00200   REM
+00210   REM
+00220   IF (M > (100+L)) THEN B=INT( (M-(100+L))) : GOTO 230
+00225   B=INT((100+L)-M)
+00230   IF B > INT(M/2) THEN B = INT(M/2)
+00240   IF B=0 THEN B=1
+00250   PRINT"money ";M;" bet ";B;
+00260   R = RND(37)-1
+00270   IF R=0 THEN GOTO 310
+00280   IF (R>18) AND RED=0 THEN GOTO 310
+00290   IF (R<19) AND RED=1 THEN GOTO 310
+00300   GOTO 350
+00310      M = M - B
+00320      PRINT" - lost - ";
+00330      W=0
+00340   GOTO 380
+00350      M = M + INT(B * 0.95 + 0.5)
+00360      PRINT" + WON! + ";
+00370      W=1
+00380   PRINT " money after: ";M
+00385   L=L+2
+00390   IF M > MA THEN MA = M
+00400   GOTO 140
