@@ -1,0 +1,150 @@
+;fscache.asm	filesystem disk cache code
+;
+*GET	CONST
+*GET	FSCONST
+*GET	FSBUF
+;
+;8079
+;get_block: Called HL=dev, DE=block, A=only_search
+GET_BLOCK
+	LD	(DEV),HL
+	LD	(BLOCK),DE
+	LD	(ONLY_SEARCH),A
+;
+	LD	A,E	;low order block number
+	AND	NR_BUF_HASH-1
+	LD	E,A
+	LD	D,0
+	LD	HL,BUF_HASH
+	ADD	HL,DE
+	ADD	HL,DE
+	LD	(BP),HL
+;
+;8100
+	LD	HL,(GB_DEV)
+	LD	DE,NO_DEV
+	OR	A
+	SBC	HL,DE
+	JR	Z,GB_03
+;
+GB_01	LD	HL,(BP)
+	LD	DE,NIL_BUF
+	OR	A
+	SBC	HL,DE
+	JR	Z,GB_03
+;
+	LD	HL,(BP)
+	LD	DE,B_BLOCKNR	;Check bp->b_blocknr == block
+	ADD	HL,DE
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	LD	HL,(BLOCK)
+	OR	A
+	SBC	HL,DE
+	JR	NZ,GB_02
+;
+	LD	HL,(BP)
+	LD	DE,B_DEV
+	ADD	HL,DE
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	LD	HL,(DEV)
+	OR	A
+	SBC	HL,DE
+	JR	NZ,GB_02
+;
+;8104
+	LD	HL,(BP)
+	LD	DE,B_COUNT
+	ADD	HL,DE
+	LD	A,(HL)
+	OR	A
+	JR	NZ,GB_01A
+	LD	DE,(BUFS_IN_USE)
+	INC	HL
+	LD	(BUFS_IN_USE),DE
+GB_01A
+	INC	(HL)
+	LD	HL,(BP)
+	RET			;8106
+GB_02
+	LD	HL,(BP)
+	LD	DE,B_HASH
+	ADD	HL,DE
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	LD	(BP),DE
+	JR	GB_01		;around the while
+GB_03
+;
+;8117
+	LD	HL,(BUFS_IN_USE)
+	LD	DE,NR_BUFS
+	OR	A
+	SBC	HL,DE
+	LD	HL,M_ABIU	;8117
+;	ld	de,nr_bufs
+	CALL	Z,FS_PANIC
+;
+	LD	HL,(BUFS_IN_USE)
+	INC	HL
+	LD	(BUFS_IN_USE),HL
+;
+	LD	HL,(FRONT)
+	LD	(BP),HL
+;
+GB_04
+	LD	HL,(BP)		;8120
+	LD	DE,B_COUNT
+	ADD	HL,DE
+	LD	A,(HL)
+	OR	A
+	JR	NZ,GB_05
+;
+	LD	HL,(BP)
+	LD	DE,B_NEXT
+	ADD	HL,DE
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	LD	A,D
+	OR	E
+	JR	Z,GB_05
+;
+	LD	(BP),DE
+	JR	GB_04
+;
+GB_05
+	LD	HL,(BP)
+	LD	A,H
+	OR	L
+	JR	Z,GB_06		;panic message
+	LD	DE,B_COUNT
+	ADD	HL,DE
+	LD	A,(HL)
+	OR	A
+	JR	Z,GB_07		;no message
+GB_06
+	LD	HL,M_NFB	;8121
+	LD	DE,NO_NUM
+	CALL	PANIC
+;
+GB_07
+	LD	HL,(BP)
+	LD	DE,B_BLOCKNR
+	ADD	HL,DE
+	LD	E,(HL)
+	LD	A,E
+	AND	NR_BUF_HASH-1
+	LD	D,0
+	LD	HL,BUF_HASH
+	ADD	HL,DE
+	ADD	HL,DE
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	LD	(PREV_PTR),DE
+;8125

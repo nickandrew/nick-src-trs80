@@ -1,0 +1,20 @@
+;fsbuf.asm	filesystem buffers
+;
+;7550
+;
+B__DATA		EQU	0
+B__DIR		EQU	0
+B__IND		EQU	0
+B__INODE	EQU	0
+B__INT		EQU	0
+;
+B_NEXT		EQU	1024	;based on BLOCK_SIZE
+B_PREV		EQU	1026
+B_HASH		EQU	1028
+B_BLOCKNR	EQU	1030
+B_DEV		EQU	1032
+B_DIRT		EQU	1033	;1 byte device number
+B_COUNT		EQU	1034
+;
+NIL_BUF		EQU	0
+;
