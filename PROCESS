@@ -1,0 +1,46 @@
+Process for handling TRS-80 files ...
+
+1. Go through archives in disk sequence
+   --> Finished
+
+	1a. Split disk contents into logical groupings
+
+	1b. Convert to unix format.
+
+	1c. Remove all non-source code. asm files which are built from C
+	are removed also. Keep documentation and the like
+
+	1d. Find duplicate versions in combined directory, decide on order
+	and save in CVS oldest to newest.
+
+2. Rearrange Trs80 CVS tree into a more logical grouping of packages
+
+3. Look for related files from the disks, such as:
+
+	3a. .HLP files from zeta-bbs
+	3b. Documentation
+	3c. Anything else related to the package
+
+4. Look for object files on disk for which there is no source equivalent
+
+	4a. Disassemble them (using emulator I guess!)
+	4b. Add disassembled sources to CVS
+
+5. Go through all the "library" code, figure out latest or greatest
+   version, and commit to CVS.
+
+5. Decide on a distribution grouping of directories into packages,
+   and write Makefiles to create the packages recursively
+
+6. Write website level documentation (indexes, HTML) for the packages
+   and put it all online.
+
+7. Go back through the disks looking for non-source documents which are
+   worth preserving, such as:
+
+	7a. Email logs
+	7b. Letters, written correspondence
+	7c. Financial records
+
+   These things don't need CVS control, but I should have some kind of
+   archiving standard. Probably by date.
