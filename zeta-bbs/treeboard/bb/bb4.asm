@@ -1,17 +1,16 @@
-;BB4: Message entry, 14-Feb-88
+;BB4: Message entry, 13-Dec-88
 ;
 ;Message entry
 ENTER_CMD
 	CALL	GET_CHAR
-	LD	C,A
-;;	CALL	IF_VISITOR
-;;	JP	NZ,NO_PERMS
-	LD	A,C
 	CALL	TO_UPPER_C
 	CP	'F'
 	JP	Z,FROM_FILE
 	CP	CR
 	JP	NZ,BADSYN
+;
+;;	CALL	IF_VISITOR
+;;	JP	NZ,NO_PERMS
 ;
 ;Set highest allowable address.
 	LD	HL,(HIMEM)
@@ -27,12 +26,18 @@ ENTER_CMD
 ;
 	CALL	CHECK_MAX	;# of msgs in total
 ;
+	CALL	PRT_TOPIC_STAT	;Local or Echomail
+;
 	CALL	SETUP_MEM	;Date & sender name
 	CALL	GET_NAME	;local & networking.
 	JP	NZ,MAIN
+	CALL	SET_DEST_NAME	;Into memory
 ;
-EC_01	CALL	GET_TOPIC
-	JR	NZ,EC_01
+EC_01
+	LD	A,(MY_TOPIC)
+	LD	(HDR_TOPIC),A
+;;	CALL	GET_TOPIC
+;;	JR	NZ,EC_01
 ;
 	CALL	ADD_DATE	;Add date to text_buff
 	CALL	GET_SUBJ	;Add a subject
@@ -48,12 +53,16 @@ FROM_FILE
 	CP	CR
 	JP	NZ,BADSYN
 ;
+	CALL	IF_VISITOR
+	JP	NZ,NO_PERMS
+;
 	LD	HL,M_ENTER
 	CALL	MESS
 	CALL	CHECK_MAX
 	CALL	SETUP_MEM
 	CALL	GET_NAME
 	JP	NZ,MAIN
+	CALL	SET_DEST_NAME
 ;
 FF_00A
 	CALL	GET_TOPIC
@@ -120,10 +129,9 @@ FF_06
 	JP	MAIN
 ;
 SETUP_MEM
-	XOR	A
-	LD	(NETMSG),A	;Not a net message yet.
 	LD	(LINES),A	;No lines in it.
 	CALL	INIT_HDR	;zero all bytes of it.
+;
 	XOR	A
 	LD	(HDR_FLAG),A
 ;
@@ -915,45 +923,86 @@ GEN_01
 	LD	HL,NAME_BUFF
 	LD	A,(HL)
 	CP	CR
-	JP	Z,GEN_07	;Quitting
+	JP	Z,RET_NZ	;Quitting
 GEN_04
 ;
-;Check for network address.
-GEN_05	LD	A,(HL)
-	CP	CR
-	JR	Z,GEN_06
-	OR	A
-	JR	Z,GEN_06
-	INC	HL
-	CP	'@'
-	JR	NZ,GEN_05
+GEN_05	LD	A,(HL)		;Check for network address
+	JR	GEN_06
+;;	CP	CR
+;;	JR	Z,GEN_06	;No network address
+;;	OR	A
+;;	JR	Z,GEN_06	;No network address
+;;	INC	HL
+;;	CP	'@'
+;;	JR	NZ,GEN_05
+;
+;@ seen, so this address is an ACSnet or Fidonet address.
+	LD	A,(NETMSG)
+	CP	1
+	JR	NZ,GEN_05A	;Allow it
+	LD	HL,M_NONET
+	CALL	MESS
+	JR	GEN_01		;Disallow @ if echomail topic
+;
+GEN_05A
 ;has a network address appended. This is (NET_BIT).
 	LD	A,(PRIV_1)
 	BIT	GRA_ENET,A	;Network message entry
 	JP	Z,NO_PERMS
 ;
-	LD	A,1
+	LD	A,(HL)
+	CP	'['		;Start of Fidonet address
+	JR	Z,GEN_05B
+	CP	'0'
+	JR	C,GEN_05C	;Must be acsnet (looks wonky though)
+	CP	'9'+1
+	JR	NC,GEN_05C	;Must be acsnet
+GEN_05B
+	LD	A,2		;Fidonet ...@[xxx/xxx] or ...@xxx/xxx
 	LD	(NETMSG),A
+	JR	GEN_05D
+GEN_05C
+	LD	A,3
+	LD	(NETMSG),A
+GEN_05D
 	LD	HL,HDR_FLAG
 	SET	FM_NETMSG,(HL)
 	LD	HL,0FFFEH
 	LD	(HDR_RCVR),HL	;to network id.
 ;
-	LD	DE,NAME_BUFF
-	CALL	SET_DEST_NAME
-	CALL	ASK_PRIV
+	CALL	ASK_PRIV	;Ask private for both nets
+	CP	A
 	RET
 ;
+;A destination has been entered without a network address
 GEN_06
+	LD	A,(NETMSG)
+	CP	1
+	JR	NZ,GEN_06A	;this is not an echomail topic
+;
+	LD	HL,HDR_FLAG	;This is an echomail topic
+	SET	FM_NETMSG,(HL)
+	RES	FM_NETSENT,(HL)	
+	LD	A,(PRIV_1)
+	BIT	GRA_ENET,A
+	JP	Z,NO_PERMS	;Cannot enter into echomail topic
+	JR	GEN_06B
+;
+GEN_06A
 	LD	A,(PRIV_1)
 	BIT	GRA_ELOC,A
 	JP	Z,NO_PERMS
 ;
+GEN_06B
 ;check if name is registered.
 	LD	HL,NAME_BUFF
 	CALL	CHK_USERS
 	LD	HL,(US_NUM)
 	JP	Z,TO_KNOWN	;Name is in userfile
+;
+	LD	A,(NETMSG)
+	CP	1
+	JR	Z,TO_UNKNOWN	;Is echomail, so do not enforce name
 ;
 	LD	HL,M_DESTSTR
 	CALL	MESS
@@ -963,26 +1012,21 @@ GEN_06
 	LD	HL,M_DESTSTR2
 	CALL	MESS
 	JP	GEN_01		;Name not in userfile
-GEN_07	XOR	A
-	CP	1
+;
+TO_UNKNOWN
+	LD	HL,0FFFEH
+	LD	(HDR_RCVR),HL
 	RET
 ;
 TO_KNOWN
 	LD	(HDR_RCVR),HL
-;
-;Don't ask for private if message is to All (uid=ffff)
-	LD	A,H
-	AND	L
-	CP	0FFH
-	CALL	NZ,ASK_PRIV
-	RET	NZ		;if quit.
-;
-;To a known user so use name stored in userfile.
-	LD	DE,UF_NAME
-	CALL	SET_DEST_NAME
+	LD	HL,UF_NAME
+	LD	DE,NAME_BUFF
+	CALL	STRCPY
 	RET
 ;
 SET_DEST_NAME
+	LD	DE,NAME_BUFF
 	LD	HL,(MEM_PTR)
 SDN_01	LD	A,(DE)
 	CP	CR
@@ -1009,11 +1053,19 @@ ASK_PRIV
 	CP	'N'
 	RET	Z
 	CP	'Q'
-	JP	Z,GEN_07
+	JP	Z,RET_NZ
 	LD	HL,HDR_FLAG
 	SET	FM_PRIVATE,(HL)
 	CP	A
 	RET
+;
+HMS_H	DEFB	0
+HMS_M	DEFB	0
+HMS_S	DEFB	0
+;
+DMY_D	DEFB	0
+DMY_M	DEFB	0
+DMY_Y	DEFB	0
 ;
 ADD_DATE
 	LD	HL,HDR_TIME
@@ -1035,7 +1087,10 @@ ADD_DATE
 	INC	HL
 	LD	A,(HL)
 	LD	(DMY_Y),A
-	CALL	DMY_ASC		;use stored date.
+;
+	LD	DE,DMY_D
+	CALL	DMY_ASCII
+	LD	HL,DMY_STRING
 	LD	DE,(MEM_PTR)
 	CALL	STRCPY
 	EX	DE,HL
@@ -1045,7 +1100,9 @@ ADD_DATE
 	INC	HL
 	LD	(MEM_PTR),HL
 ;
-	CALL	HMS_ASC
+	LD	DE,HMS_H
+	CALL	HMS_ASCII
+	LD	HL,HMS_STRING
 	LD	DE,(MEM_PTR)
 	CALL	STRCPY
 	LD	A,CR
@@ -1206,6 +1263,7 @@ IB_03
 	CP	1
 	RET
 ;
+;Check to be sure that there are less than 1020 messages.
 CHECK_MAX
 	LD	HL,(N_MSG)
 	LD	DE,MAX_MSGS-4
@@ -1251,5 +1309,27 @@ SAVE_ERROR
 	LD	HL,M_SAVEERR
 	CALL	MESS
 	JP	MAIN
+;
+PRT_TOPIC_STAT
+	LD	A,(MY_TOPIC)
+	CALL	TOP_INT
+	CALL	TOP_ADDR
+	LD	DE,19
+	ADD	HL,DE
+	LD	A,(HL)
+	AND	1
+	JR	NZ,PTS_01
+;
+	XOR	A
+	LD	(NETMSG),A
+	LD	HL,M_TOPLOC
+	JR	PTS_02
+PTS_01
+	LD	A,1
+	LD	(NETMSG),A
+	LD	HL,M_TOPECHO
+PTS_02
+	CALL	MESS
+	RET
 ;
 ;End of bb4
