@@ -11,6 +11,7 @@ UNOFF	LD	SP,UNOFF
 	PUSH	HL
 	CALL	SIGNON
 	POP	HL
+	PUSH	HL
 	CALL	OPEN1	;Insert Source & open file/cmd.
 	CALL	GETFIL	;Read in file.
 	CALL	GETADD	;Get Eof etc...
@@ -19,9 +20,9 @@ UNOFF	LD	SP,UNOFF
 	LD	HL,DUMMY	;Dummy end-file.
 	LD	BC,5
 	LDIR
-	CALL	OFFSET	;Offset block starts >=(Lmorig)
+	CALL	OFFSET
 	POP	HL
-	CALL	OPEN2	;Insert Dest. & open file/orm.
+	CALL	OPEN2	;Insert Dest. & open file/ori.
 	CALL	WRITFL	;Write out file.
 	CALL	CLOSFL
 	JP	DOS
@@ -99,7 +100,7 @@ EXECBK	LD	(HL),A
 	LD	(EOF),HL
 	RET
 GETADD	LD	HL,(EOF)
-	LD	DE,142H
+	LD	DE,142H	;13eh
 	OR	A
 	SBC	HL,DE
 	LD	(STAPCH),HL
@@ -247,6 +248,7 @@ WRITE1	PUSH	BC
 ;
 FCB	DEFS	32
 BUFFER	DEFS	256
+	DC	64,0
 BUFF2	DEFW	0
 	DEFW	0
 ;
