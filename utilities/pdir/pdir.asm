@@ -1,5 +1,5 @@
 ;pdir/asm: do a printer oriented 'DIR I P'
-; Ver 1.3 on 29-Dec-84
+; Ver 1.4 on 29-Dec-84
 ;
 	ORG	5200H
 START	LD	A,(HL)
@@ -19,8 +19,21 @@ KEY	CALL	0049H
 	CP	0DH	;New Line
 	JR	Z,PD_1
 	CP	' '	;Spacebar
-	JR	NZ,KEY
-	JR	PD_2
+	JR	Z,PD_2
+	SUB	'0'
+	CP	4
+	JR	NC,KEY
+	PUSH	AF
+	CALL	445BH
+	JP	NZ,4409H
+	LD	HL,MESS_2
+	CALL	4467H
+	POP	AF
+	ADD	A,'0'
+	CALL	0033H
+	LD	A,0DH
+	CALL	0033H
+	JP	KEY
 PD_1	CALL	PAGE_THROW
 PD_2	XOR	A
 	CALL	490AH
@@ -157,7 +170,8 @@ SECS	DEFB	0
 SECTOR	DEFB	0
 CHARS	DEFB	0
 ;
-MESS	DEFM	'Super Directory 1.3 by Nick Andrew',0DH
+MESS	DEFM	'Super Directory 1.4 by Nick Andrew',0DH
+MESS_2	DEFM	'Now using drive ',03H
 ;
 ;
 	END	START
