@@ -1,0 +1,234 @@
+;kermit-trs80
+;started 10/10/83
+;updated 04/01/84
+;by Stan Barber
+;based on CP/M-80 Kermit
+	ORG	7000H	;GET OUT OF WAY OF DOS OVERLAYS
+; Symbolic Definitions for some ASCII characters
+;
+BELL	EQU	07O	;ASCII BEL (Control-G)
+CTRLC	EQU	03O	;ASCII ETX (Control-C)
+TAB	EQU	11O	;ASCII Tab (Control-I)
+LF	EQU	12O	;ASCII Line Feed (CTRL-J)
+FF	EQU	14O	;ASCII Form Feed (CTRL-L)
+CR	EQU	15O	;ASCII Carriage Return (CTRL-M)
+XON	EQU	21O	;The the ASCII character used for XON
+XOFF	EQU	23O	;The the ASCII character used for XOFF
+ESC	EQU	33O	;ASCII ESCape
+SUBT	EQU	32O	;ASCII SUB (CTRL-Z)
+DEL	EQU	177O	;ASCII DELete (rubout)
+RESET	EQU	0E8H		;reset uart
+BAUDST	EQU	0E9H		;set baud rate
+MNPORT	EQU	0EBH		;RS232 data port
+MNPRTS	EQU	0EAH		;RS232 STATUS PORT
+OUTPUT	EQU	40H
+INPUT	EQU	80H
+DEFESC	EQU	31		;<CLEAR> key on key board
+DBAUD	EQU	55H		;Default baud rate (300)
+MAXPKT  EQU	'~'-' '+2O	; Maximum size of a packet.
+MAXTRY	EQU	05O		; Default number of retries on a packet.
+IMXTRY	EQU	20O		; Default number of retries send initiate.
+DRPSIZ	EQU	5EH		; Default receive packet size.
+DSPSIZ	EQU	20H		; Default send packet size.
+DSTIME	EQU	08H		; Default send time out interval.
+DRTIME	EQU	05H		; Default receive time out interval.
+DSPAD	EQU	00H		; Default send padding.
+DRPAD	EQU	00H		; Default receive padding.
+DSPADC	EQU	00H		; Default send padding char.
+DRPADC	EQU	00H		; Default receive padding char.
+DSEOL	EQU	CR		; Default send EOL char.
+DREOL	EQU	CR		; Default receive EOL char.
+DSQUOT	EQU	'#'		; Default send quote char.
+DRQUOT	EQU	'#'		; Default receive quote char.
+DSCHKT	EQU	'1'		; Default checksum type
+PAREVN	EQU	00H		; Even parity.
+PARMRK	EQU	03H		; Mark parity.
+PARNON	EQU	06H		; No parity.
+PARODD	EQU	09H		; Odd parity.
+PARSPC	EQU	0CH		; Space parity.
+DEFPAR	EQU	PARNON		; Default parity.
+IBMPAR	EQU	PARMRK		; IBM COMTEN's parity.
+SOH	EQU	01H		; Start of header char.
+BUFSIZ	EQU	0
+DIASW	EQU	01H		; Default is diagnostics on.
+CMKEY	EQU	01H		; Parse a keyword.
+CMIFI	EQU	02H		; Parse an input file spec (can be wild).
+CMOFI	EQU	03H		; Parse an output file spec.
+CMCFM	EQU	04H		; Parse a confirm.
+CMTXT	EQU	05H		; Parse text.
+CMIFIN	EQU	10H		; Parse an input file spec (but no
+;dos calls (all preceeded by @)
+@GET	EQU	13H	;get a byte from a file
+@PUT	EQU	1BH	;put a byte in a file
+@KBD	EQU	2BH	;scan keyboard and return
+@DSP	EQU	33H	;put a character on screen
+@PRT	EQU	3BH	;put a character on the printer
+@KEYIN	EQU	40H	;get a line from keyboard
+@KEY	EQU	49H	;wait for key from keyboard
+@EXIT	EQU	402DH	;normal exit to dos
+@ABORT	EQU	4030H	;abnormal exit to dos
+@CMNDI	EQU	4405H	;execute command =>HL
+@ERROR	EQU	4409H	;print dos error
+@FSPEC	EQU	441CH	;process filespec
+@INIT	EQU	4420H	;initialize a file
+@OPEN	EQU	4424H	;open existing file
+@CLOSE	EQU	4428H	;close open file
+@KILL	EQU	442CH	;kill open file
+@VER	EQU	443CH	;write a sector with verify
+START	LD	(OLDSP),SP
+	LD	SP,STACK
+	CALL	MDMRST
+	XOR	A		;ZERO A
+	LD	(FCB),A		;SET FILE CLOSED FLAG
+	LD	DE,VERSIO
+	CALL	PRTSTR
+	CALL	KERMIT
+	JP	EXIT1
+MDMRST	LD	A,(SPEED)
+	OUT	(RESET),A
+	OUT	(BAUDST),A
+	LD	A,108
+	OUT	(MNPRTS),A
+	RET
+CMBLNK	PUSH	DE
+	LD	DE,CLRTOP
+	CALL	PRTSTR
+	POP	DE
+QUIT:	RET
+CONOUT	PUSH	DE
+	PUSH	HL
+	PUSH	BC
+	PUSH	AF
+	CALL 	@DSP
+	POP	AF
+	POP	BC
+	POP	HL
+	POP	DE
+	RET
+PRTSTR	LD	A,(DE)
+	CP	'$'
+	RET	Z
+	CALL	CONOUT
+	INC	DE
+	JR	PRTSTR
+CONIN	PUSH	DE
+	CALL	@KBD
+	POP	DE
+	RET
+KERMIT	LD	DE,FCB
+	LD	A,(DE)
+	BIT	7,A	;WAS FILE OPEN?
+	CALL	NZ,@CLOSE	;CLOSE IT IF IT WAS
+	LD	DE,KERM
+	CALL	PROMPT
+	LD	DE,COMTAB
+	LD	HL,TOPHLP
+	LD	A,CMKEY
+	CALL	COMND
+	JP	KERMT2
+	LD	HL,KERMTB
+	LD	C,A
+	LD	B,0
+	ADD	HL,BC
+	JP	(HL)
+KERMTB	JP	TELNET
+	JP	EXIT
+	JP	HELP
+	JP	LOG
+	JP	READ
+	JP	SEND
+	JP	SETCOM
+	JP	SHOW
+	JP	STATUS
+	JP	FINISH
+	JP	LOGOUT
+	JP	BYE
+	JP	DIR
+	JP	ERA
+KERMT2	LD	DE,ERMES1
+	CALL	PRTSTR
+	JP	KERMIT
+KERMT3	LD	DE,ERMES3
+	CALL	PRTSTR
+	JP	KERMIT
+SETPAR	PUSH	HL
+	PUSH	BC
+	LD	HL,PARITY
+	LD	C,(HL)
+	LD	B,0
+	LD	HL,PARJMP
+	ADD	HL,BC
+	JP	(HL)
+PARJMP	JP	EVEN
+	JP	MARK
+	JP	NONE
+	JP	ODD
+	JP	SPACE
+NONE	JP	PARRET
+EVEN	AND	7FH
+	JP	PE,PARRET
+	OR	80H
+	JP	PARRET
+MARK	OR	80H
+	JP	PARRET
+ODD	AND	7FH
+	JP	PO,PARRET
+	OR 	80H
+	JP	PARRET
+SPACE	AND	7FH
+PARRET	POP	BC
+	POP	HL
+	RET
+OUTCHR	PUSH	DE
+OUTCHR1	IN	A,(MNPRTS)
+	AND	OUTPUT
+	JR	Z,OUTCHR1
+	LD	A,E
+	CALL	SETPAR
+	OUT	(MNPORT),A
+	POP	DE
+	RET
+INCHR	IN	A,(MNPRTS)
+	AND	INPUT
+	JR	NZ,INCHR2
+	CALL	CONIN
+	OR	A
+	JR	Z,INCHR
+	CP	CR
+	JR	NZ,INCHR4
+	RET
+INCHR4	CP	1AH	;CONTROL-Z?
+	JR	Z,INCHR5
+	CP	18H	;CONTROL-X?
+	JR	NZ,INCHR
+INCHR5	ADD	A,20H
+	LD	(CZSEEN),A
+	RET
+INCHR2	IN	A,(MNPORT)
+	LD	B,A
+	LD	A,(PARITY)
+	CP	PARNON
+	LD	A,B
+	JP	Z,RSKP
+	AND	7FH
+	JP	RSKP
+EXIT	LD	A,CMCFM
+	CALL	COMND
+	JP	KERMT3
+EXIT1	LD	DE,FCB
+	LD	A,(FCB)
+	BIT	7,A
+	CALL	NZ,@CLOSE	;JUST IN CASE
+	LD	SP,(OLDSP)
+	JP	@EXIT
+HELP	LD	DE,TOPHLP
+	CALL	PRTSTR
+	JP	KERMIT
+*GET 	COMND/SRC	;COMMAND PARSER
+*GET	KILLDIR/SRC	;KILL AND DIR COMMANDS
+*GET	MORE/SRC	;MOST OF THE NON PROTOCOL RELATED COMMANDS
+*GET	GET/SRC		;RECEIVE PROTOCOL
+*GET	SEND/SRC	;SEND PROTOCOL
+*GET	XFER/SRC	;PROTOCOL COMMON CODE
+*GET 	KERSTR/SRC	;STRINGS
+	END	START

@@ -1,0 +1,20 @@
+This implementation of the Kermit protocol was done by Stan Barber at Rice
+University (sob@RICE).  It is compatable with all DOS's available for the TRS80
+Model I or Model III (and the Model 4 running in Model III mode).  It has been
+checked out under the following DOS's: TRSDOS 2.3 (Model I), TRSDOS 1.3 (Model
+III), NEWDOS/80 V 2.0, LDOS 5.1.3, DOS+ 3.5 and VTOS 3.0 (Model I).
+
+The files are as follows:
+
+TRS80 Name         Distribution Name     Description
+
+ COMND/SRC          TRSCMD.SRC            Command parser
+ GET/SRC            TRSGET.SRC            RECEIVE & GET command               
+ KERMIT/SRC         TRSMIT.SRC            Main source module, calls in others
+ KERSTR/SRC         TRSSTR.SRC            Strings & storage area
+ KILLDIR/SRC        TRSKD.SRC             Source for KILL & DIR commands
+ MORE/SRC           TRSMORE.SRC           Source for misc commands
+ SEND/SRC           TRSSEND.SRC           Source for SEND command
+ XFER/SRC           TRSXFER.SRC           Source common to RECEIVE & SEND
+ KERMIT/DOC         TRSMIT.DOC            User Guide manual chapter
+ KERMAKE/BAS        TRSMAKE.BAS           Basic program to create binaries
