@@ -1,7 +1,7 @@
 ;doscalls: dos type equates.
 *LIST OFF
 ; Doscalls/asm: Equates for Newdos/80 System calls.
-; Date: 21-Sep-85. Model I.
+; Date: 04-Dec-85. Model I.
 ;
 ; Also common Dos error messages & numbers.
 ;
@@ -30,8 +30,8 @@ DOS_POS_EOF	EQU	4448H	;position to END
 DOS_POS_RBA	EQU	444EH	;position to RBA
 DOS_POWERUP	EQU	445BH	;spin drive
 DOS_EXTEND	EQU	4473H	;add deflt extnsn
-DOS_READ_BYTE	EQU	0013H	;read byte from dev
-DOS_WRIT_BYTE	EQU	001BH	;write byte
+$GET		EQU	0013H	;read byte from dev
+$PUT		EQU	001BH	;write byte
 DOS_ENQUEUE	EQU	4410H	;enqueue INT rtn
 ;
 ; Dos Errors.
