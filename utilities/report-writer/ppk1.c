@@ -1,49 +1,82 @@
-/*
- * PPK Ass #1 - Nick Andrew
- * Student # 8425464
- * 03-Sep-85
- * 11-Nov-85: Modified for Alcor 'C'
- */
+/***********************************************************
+ * PPK Ass #1 - Nick Andrew   [ zeta@runx, nick@zeta ]     *
+ *                                                         *
+ * This program prints a report from a file of varied      *
+ *  format.                                                *
+ * Ver  1.0  03-Sep-85: For Unix                           *
+ *      1.1  11-Nov-85: Modified for Alcor 'C'             *
+ *      1.2  23-Aug-86: Remodified for Unix,            YES*
+ *                      Added '$' field type,           ???*
+ *                      Refined style,                   NO*
+ *                      Added selective record deletion, NO*
+ *                      Added value summing for '$'.     NO*
+ *                                                         *
+ ***********************************************************/
 
-#define SORTIN "temp1/f"             
-#define SORTOUT "temp2/f"
+#define SORTIN "temp1.f"        /* sort files            */
+#define SORTOUT "temp2.f"
 #define MAXFLDS (100)           /* Maximum No. of fields */
+#define VERSION "1.2  23-Aug-86"
 
 #include <stdio.h>              /* Get standard routines */
+char toupper();
+int  chkcond();
 
-FILE *config, *src, *dest, *temp1, *temp2;
-char *heading,*today,*usecr;
+FILE *config,  *src,   *dest, *temp1, *temp2;
+char *heading, *today, *usecr;
 
 int sortdat[MAXFLDS],printdat[MAXFLDS],mwidth[MAXFLDS];
-int numflds,numsort,numprint,lines,sortlen,page;
-int sumwidth,columns,spacing,linpage;
+int numflds, numsort,numprint,lines,sortlen,page;
+int sumwidth,columns,spacing, linpage;
 
 struct       {
-               char *tname,*dataptr,*display;
-               int  flength;
-               char needed,prneed,srneed,delim,numer;
+               char *tname;     /* Short field name tag     */
+               char *dataptr;   /*                          */
+               char *display;   /*                          */
+               int  flength;    /*                          */
+               char delcond;    /* ' '||'A'||'O'            */
+               char isvalid;    /* 1==Valid monetary value  */
+               char ysum;       /* 1==summing desired for $ */
+               char needed;     /*                          */
+               char prneed;     /*                          */
+               char delim;      /* 0 or eofield delimiter   */
+               char rjust;      /* 1==Numeric (R. justify)  */
+               char ftype;      /* Sstring,Nnumeric,$money  */
+               long moneyval;   /* '$': amount $x100        */
+               long moneysum;   /* '$': sum of values       */
+	       char exists;     /* 1==Field was given ($/N) */
              } fieldat[MAXFLDS];
 
 
 main(argc,argv)
 int argc; char *argv[];
 {
-
-   intro();                              
-   getconf(argv[1],(argc>1));            
-   copy();                               
-   dosort();                             
-   dorprt();                             
-   printf("PPK1: Normal Termination\n");
+   int  i;
+   intro();
+   getconf(argv[1],(argc>1));
+   copy();
+   dosort();
+   dorprt();
+   printf("PPK1: Normal termination\n");
+   for (i=1;i<=numflds;i++) {
+      if (fieldat[i].ftype=='$') {
+	 if (1 || fieldat[i].ysum) {
+	    printf("Sum of %s is %ld\n",
+		   fieldat[i].tname,
+		   fieldat[i].moneysum);
+	 }
+      }
+   }
 }
 
 intro()
 {
    printf("PPK Assignment 1 - Nick Andrew\n");
+   printf("Report generator, Version %s\n",VERSION);
 }
 
 /* Get input file configuration and output format data
- * off either standard input (keyboard) or from a file.
+ * from either standard input (keyboard) or from a file.
  */
 getconf(confil,flag)
 char *confil;
@@ -55,61 +88,97 @@ int  flag;
 
    /* Use either an opened file or standard input */
    config=(flag ? openup(confil,"r") : stdin);
-   prompt(flag,"Please enter source filename: ");
+
+   prompt(flag,"Enter input filename: ");
    if (!fscanf(config,"%s",string))
       error("PPK1: Config file empty!\n");
    src=openup(string,"r");
-   prompt(flag,"Please enter output filename: ");
+
+   prompt(flag,"Enter report filename: ");
    fscanf(config,"%s",string);
    dest=openup(string,"w");
+
    /* check for correct config file */
    if (flag && (fscanf(config," %c",&c),c!='*'))
       printf("PPK1: Error in config file!\n");
+
    prompt(flag,"Enter a heading for this report: ");
    heading=getstring(config);       /* get heading string */
    printf("Heading is %s\n",heading);
+
    prompt(flag,"Use how many columns? (80/132): ");
    fscanf(config,"%d",&columns);
+
    prompt(flag,"How many lines per page (66): ");
    fscanf(config,"%d",&linpage);
-   prompt(flag,"CRs in source file? Y/N: ");
+
+   prompt(flag,"CRs in source file? (Y/N): ");
    fscanf(config," %c",&c);
    c=toupper(c);
    if ((c!='Y')&&(c!='N')) error("PPK1: Invalid CR info!\n");
    usecr=(c=='Y');   /* Set flag depending on value of c */
+
    prompt(flag,"<S>ingle or <D>ouble or <T>riple spaced? ");
    fscanf(config," %c",&c);
    c=toupper(c);
    spacing=(1*(c=='S')+2*(c=='D')+3*(c=='T'));  /* S=1, D=2, T=3 */
-                        /* Expect format info from this point */
+
+                      /* Expect format info from this point */
    numflds=0;
    while (!feof(config))
       {
       /* loop for each field name to build dict */
-      prompt(flag,"Enter source file field name, '*' to finish: ");
+      prompt(flag,"Enter input file field name, '*' to finish: ");
       fscanf(config,"%s",string);
       if (string[0]=='*') break; /* break out of the loop */
 
-      fieldat[++numflds].tname=calloc(strlen(string)+1,sizeof(char));
+      fieldat[++numflds].tname =
+         calloc(strlen(string)+1,sizeof(char));
       strcpy(fieldat[numflds].tname,string);
-      fieldat[numflds].needed=0;
-                     /* read the integer field length */
+      fieldat[numflds].needed=fieldat[numflds].rjust=0;
+      fieldat[numflds].delcond=' ';
+ 
+      /* read the integer field length */
       prompt(flag,"Enter maximum field length: ");
       fscanf(config,"%d",&fieldat[numflds].flength);
-      prompt(flag,"Enter <A> Ascii or <N> Numeric field: ");
+
+      prompt(flag,"Enter <S> String, <N> Numeric, <$> Monetary: ");
       fscanf(config," %c",&c);
       c=toupper(c);
-      fieldat[numflds].numer=(c=='N');
-      prompt(flag,"Enter delimiter char or CR if none: ");
+      if (c!='S' && c!='N' && c!='$')
+         error("PPK1: Invalid field type, must be S/N/$\n");
+      fieldat[numflds].ftype=c;
+
+      if (c=='N') {
+         prompt(flag,"Enter <L> Left or <R> Right justify: ");
+         fscanf(config," %c",&c);
+         c=toupper(c);
+         fieldat[numflds].rjust=(c=='R');
+      }
+
+      if (fieldat[numflds].ftype=='$') {
+	 fieldat[numflds].moneysum=0l;
+	 prompt(flag,"Enter Y for summing or N for none: ");
+	 fscanf(config," %c",&c);
+	 c=toupper(c);
+	 fieldat[numflds].ysum=(c=='Y');
+	 prompt(flag,"Enter 'N' none or 'O' or conditional: ");
+	 fscanf(config," %c",&c);
+	 c=toupper(c);
+	 if (c=='N') c=' ';
+	 fieldat[numflds].delcond=c;
+      }
+
+      prompt(flag,"Enter field delimiter char or CR if none: ");
       if (!flag) do c=getc(config); while (c!='\n');
-                            /* bypass white space */
+         /* bypass white space */
       do c=getc(config); while (c==' ');
       if (c=='\n') c=0;     /* no delimiter */
-      if (c==0x5c)          /* read an octal number */
-         { int oct;
-           fscanf(config,"%3o",&oct);
-           c=(char) oct;
-         }
+      if (c==0x5c) {        /* read an octal number */
+         int oct;
+         fscanf(config,"%3o",&oct);
+         c=(char) oct;
+      }
       fieldat[numflds].delim=c;
       }
 
@@ -149,20 +218,27 @@ int  flag;
       prompt(flag,"Enter a display heading for this field: ");
       fieldat[i].display=getstring(config);
       }
-   /* print out each sort field and each print field */
+
    printf("Sort fields defined:\n");
    for (i=1;i<=numsort;i++)
       printf("%s, ",fieldat[sortdat[i]].tname);
+
    printf("\nPrint fields defined:\n");
    for (i=1;i<=numprint;i++)
       printf("%s, ",fieldat[printdat[i]].tname);
-   printf("\n");
+   putchar('\n');
    }
 
-dosort()         /* Use UNIX sort program to accomplish sort */
-{
-/* copy temp file 1 to temp file 2 */
+
+dosort() {
+char cmd[80];
+   if (numsort) {
+	 /* sort temp file 1 to temp file 2 */
+      system(sprintf(cmd,"sort -o %s %s",SORTOUT,SORTIN));
+   } else    /* or if no sort fields */
+      system(sprintf(cmd,"cp %s %s",SORTIN,SORTOUT));
 }
+
 
 /* Copy variable length input file fields to fixed format
  * sort input file.
@@ -171,9 +247,9 @@ copy()
 {
    int field,i,j,records=0;
    char c,del,*ptr;
-                               /* Open temp file */
+      /* Open temp file */
    temp1=openup(SORTIN,"w");
-                               /* Read source until EOF */
+      /* Read source until EOF */
    while (c=getc(src),!feof(src))
       {
       ungetc(c,src);
@@ -186,31 +262,48 @@ copy()
           */
          if (!del) getfix(src,ptr,fieldat[field].flength);
               else getvar(src,ptr,fieldat[field].flength,del);
-         if (fieldat[field].numer)
-            { /* fix numeric value - right justify */
+
+	 fieldat[field].isvalid=1;
+
+         if (fieldat[field].rjust) /* 1== right justify */
+            {
             int integer;
             sscanf(ptr,"%d",&integer);
             sprintf(ptr,"%*d",fieldat[field].flength,integer);
             }
-         if (fieldat[field].needed) fieldat[field].dataptr=ptr;
-            else                    cfree(ptr);
+ 
+         if (fieldat[field].ftype=='$') { /* $x.xx field */
+            if (moneyrd(ptr,&fieldat[field].moneyval)) {
+               sprintf(ptr,"%*ld",fieldat[field].flength,
+                                  fieldat[field].moneyval);
+               fieldat[field].moneysum += fieldat[field].moneyval;
+	    }
+	    else fieldat[field].isvalid=0;
          }
-                       /* Output all the sort fields first */
+
+         if (fieldat[field].needed)
+               fieldat[field].dataptr=ptr;
+         else  cfree(ptr);
+         }
+
+         /* Output all the sort fields first */
       for (field=1;field<=numsort;field++)
          fprintf(temp1,"%s",fieldat[sortdat[field]].dataptr);
-                       /* Followed by all the print fields */
-      for (field=1;field<=numsort;field++)
+
+         /* Followed by all the print fields */
+      for (field=1;field<=numprint;field++)
          fprintf(temp1,"%s",fieldat[printdat[field]].dataptr);
+
       if (usecr) c=getc(src); /* if CR at end of record discard it */
       putc('\n',temp1);       /* Put CR at end of sort line */
-      records=records+1;      /* Count input becords */
+      records=records+1;      /* Count input records */
                               /* Free all space used to store
                                *     fields now           */
 
       for (i=1;i<=numflds;i++)
          if (fieldat[i].needed) cfree(fieldat[i].dataptr);
       }
-   fclose(temp1);;
+   fclose(temp1);
    if (!records) error("PPK1: Source file empty!\n");
    printf("%d records read off source file\n",records);
 }
@@ -261,7 +354,8 @@ FILE *file;
       }
    while (i<en) ptr[i++]=' ';  /* blank pad resultant field */
    ptr[i]=0;
-                             /* ignore field width overflow */
+
+      /* ignore field width overflow */
    while (c!=delim && !feof(file)) c=getc(file);
    if (feof(file)) error("PPK1: EOF unexpected!\n");
 }
@@ -272,25 +366,31 @@ dorprt()
    int i,j;
    page=lines=sortlen=sumwidth=0;
    for (i=1;i<=numflds;i++)
+      /* preallocate required storage */
       if (fieldat[i].prneed)
-         /* Preallocate required storage */
-         fieldat[i].dataptr=calloc(fieldat[i].flength+1,sizeof(char));
+         fieldat[i].dataptr =
+            calloc(fieldat[i].flength+1,sizeof(char));
+
    /* Calculate length of sort fields prepended */
    for (i=1;i<=numsort;i++)
        sortlen += fieldat[sortdat[i]].flength;
+
    for (i=1;i<=numprint;i++)
       {
       j=printdat[i];
-      mwidth[i]=max(fieldat[j].flength,strlen(fieldat[j].display));
+      mwidth[i]=max(fieldat[j].flength,
+                    strlen(fieldat[j].display));
       sumwidth+=mwidth[i];
       }
+
    temp2=openup(SORTOUT,"r");
    while (c=getc(temp2),!feof(temp2))   /* Check for EOF */
       {
-      ungetc(c,temp2);     /* Undo illogical UNIX EOF check */
-      if (!lines) ffeed(); /* Formfeed output if lines=0    */
-      getfields();         /* Get all input fields          */
-      writrecd();          /* write formatted output        */
+      ungetc(c,temp2);            /* Undo illogical UNIX EOF check */
+      getfields();                /* Get all input fields          */
+      if (chkcond()) {
+	 writrecd();    /* write formatted output      */
+      }
       if (lines>(linpage-14)) lines=0;
       }
    fclose(temp2);                       /* close files  */
@@ -304,6 +404,7 @@ char *string;
    if (!flag) printf(string);
 }
 
+
 /* Get all print fields off the
  * sorted temporary file.
  */
@@ -311,15 +412,27 @@ getfields()
 {
    int i,j,field,records=0;
    char *ptr;
+
    /* disregard sort fields */
    for (i=0;i<sortlen;i++) getc(temp2);
+
    /* read a field at a time */
-   for (i=1;i<=numprint;i++)
-      {
+   for (i=1;i<=numprint;i++) {
       j=printdat[i];   /* Note now fields are FIXED length */
       getfix(temp2,fieldat[j].dataptr,fieldat[j].flength);
+      fieldat[j].isvalid=1;
+
+      if (fieldat[j].ftype=='$') {
+            /* interpret monetary fields as long int */
+         if (1==(sscanf(fieldat[j].dataptr," %ld",
+                &fieldat[j].moneyval))) {
+            moneywr(fieldat[j].dataptr,fieldat[j].moneyval,
+                    fieldat[j].flength);
+	 }
+	 else fieldat[j].isvalid=0;
       }
-   getc(temp2);    /*discard newline character */
+   }
+   getc(temp2);    /* discard newline character */
 }
 
 /* Write a formatted detail line
@@ -329,12 +442,13 @@ writrecd()
 {
    int i;
    char c;
-   for (i=1;i<=numprint;i++)
-      {
+      if (!lines) ffeed(); /* Formfeed output if lines=0    */
+   for (i=1;i<=numprint;i++) {
       /* Print centered field within heading or vice versa */
       center(0,fieldat[printdat[i]].dataptr,mwidth[i]);
       calcspc(i);
-      }
+   }
+
    /* Single, double or triple spaced output */
    for (i=1;i<=spacing;i++) putc('\n',dest);
    lines+=spacing;
@@ -345,13 +459,14 @@ ffeed()
 {
    int stdspc,i;
    putc('\f',dest);
+
    /* stdspc is spaces from start to heading for centering */
    stdspc=((columns-strlen(heading))/2);
    fprintf(dest,"Page %3d",++page);  /* page number */
    spaces(dest,stdspc-8);
    fprintf(dest,"%s",heading);       /* heading string */
    spaces(dest,stdspc-24);
-   fprintf(dest,"%s","Sat 11 Nov 1985 15:25\n");
+   fprintf(dest,"%s","Sat 23 Aug 1986 23:59\n");
    center(1,heading,columns);
    fprintf(dest,"\n\n\n");
    for (i=1;i<=numprint;i++)
@@ -430,3 +545,63 @@ int width,flag;
 max(a,b)  int a,b;
 { return( a>b ? a : b); }
 
+/* toupper() function */
+char toupper(c)
+char c;
+{
+   if (c>='a' && c<='z') c-='a'-'A';
+   return c;
+}
+
+
+/* moneyrd: moneyrd(string,long)
+ * read in a monetary value into a long of format
+ *           [$]nnnn.nn
+ */
+int moneyrd(str,mlong)
+char *str;
+long *mlong;
+{
+   long l1,l2;
+   int  i;
+   i=sscanf(str,"%ld . %ld ",&l1,&l2);
+   if (i!=2) return 0;
+   *mlong=l1*100 + l2;
+   return 1;
+}
+
+/* moneywr: moneywr(string,long,length)
+ * write a monetary value in form nnnnn.nn and padded to
+ * correct length
+ */
+moneywr(string,mlong,mlen)
+char *string;
+long mlong;
+int  mlen;
+{
+   long l1;
+   int  i;
+   l1=mlong/100;
+   i=mlong-(l1*100);
+   sprintf(string,"%*ld.%d%d",mlen-3,l1,(i/10),(i-10*(i/10)));
+}
+
+/* chkcond() - check that if any 'O'r fields are set then
+ *   at least one must have a value.
+ */
+
+int chkcond() {
+   int  i,j;
+   char orseen=0,orflag=0;
+   for (i=1;i<=numprint;i++) {
+      j=printdat[i];
+      if (fieldat[j].ftype=='$' &&
+	  fieldat[j].delcond=='O') {
+	  orseen=1;
+	  orflag=orflag||(fieldat[j].isvalid);
+      }
+   }
+
+   if (orseen) return orflag;
+   return 1; /* default is to print anyway */
+}
