@@ -1,4 +1,5 @@
 ;DIRECT: Add, List, and Unpack directories.
+;
 ;********************************************************
 ;* Direct/asm:  Source code for DIRECT.                 *
 ;* Environment: Trs-80 Model I Newdos-80, 48K ram.      *
@@ -6,9 +7,15 @@
 ;*       DIRECT/DOC       Documentation for DIRECT      *
 ;*       DOSCALLS/ASM     Dos routines definition.      *
 ;*                                                      *
+;* Version:     1.3, 09-Aug-86                          *
 ;* Assembler:   Nedas.                                  *
 ;* Program:     (C) 1986 by Zeta Microcomputer Software *
 ;*              Released into public domain 11-Mar-86   *
+;*							*
+;* Updates:						*
+;*	1.3   09-Aug-86. I/O buffering added for speed  *
+;*	                 Several compatibility changes  *
+;*							*
 ;*  If you like this program and you are an honest      *
 ;* person then you may consider sending a donation to   *
 ;* the author at P.O Box 177, Riverstone NSW 2765.      *
@@ -21,13 +28,20 @@
 ;
 CR	EQU	0DH
 ETX	EQU	03H
+BASE	EQU	5200H
+TERMINATE	EQU	DOS
+CALL_PROG	EQU	DOS_CALL
 ;
 	COM	'<Direct - directory file processor>'
-	COM	'<Version 1.0 of 11-Mar-86>'
-	COM	'<Env: Model I Newdos-80 48K>'
+	COM	'<Version 1.3  of 09-Aug-86>'
+	COM	'<Trs-80 Model I Newdos-80 48K>'
 ;
-	ORG	5300H
+	ORG	BASE+100H
+;
 START	LD	SP,START
+	LD	HL,M_SIGNON
+	CALL	MESS
+;
 MAIN	CALL	PROMPT
 	LD	HL,IN_BUFF
 	LD	A,(HL)
@@ -63,7 +77,7 @@ BAD_ERROR
 ;
 CALL_DOS
 	CALL	NEXT_SPACE
-	CALL	DOS_CALL
+	CALL	CALL_PROG
 	JP	MAIN
 ;
 NEXT_SPACE
@@ -78,13 +92,19 @@ NEXT_SPACE
 MESS	LD	A,(HL)
 	OR	A
 	RET	Z
-	CALL	0033H
+	CALL	PUTCHAR
 	INC	HL
 	JR	MESS
+;
+PUTCHAR
+	CALL	0033H
+	RET
 ;
 TO_UPPER
 	CP	'a'
 	RET	C
+	CP	'z'+1
+	RET	NC
 	AND	5FH
 	RET
 ;
@@ -93,7 +113,7 @@ PROMPT	LD	HL,M_PROMPT
 	LD	HL,IN_BUFF
 	LD	B,60
 	CALL	40H
-	JP	C,DOS
+	JP	C,EXIT
 	CALL	STR_CLEAN
 	RET
 ;
@@ -143,7 +163,7 @@ SET_DIR
 	POP	HL
 	LD	DE,DIRECTORY
 	CALL	DOS_EXTRACT
-	JP	NZ,BAD_ERROR
+	JP	NZ,USAGE
 	CALL	OPEN_DIR	;Open DIR & DAT files
 	JR	NZ,NEW_DIR
 	JP	MAIN
@@ -151,7 +171,11 @@ SET_DIR
 NEW_DIR
 	CP	18H		;File not in directory.
 	JP	NZ,BAD_ERROR
+;
 	LD	HL,M_NONEX
+	CALL	MESS
+;
+	LD	HL,M_CREA
 	CALL	ASK
 	CP	'Y'
 	JP	NZ,MAIN
@@ -162,6 +186,22 @@ NEW_DIR
 ;
 ;Open XX/DIR and XX/DAT files...
 OPEN_DIR
+	LD	HL,DIRECTORY
+OD_0A	LD	A,(HL)
+	OR	A
+	JR	Z,OD_0C
+	CP	ETX
+	JR	Z,OD_0C
+	CP	CR
+	JR	Z,OD_0C
+	CP	'/'
+	JR	Z,OD_0B
+	INC	HL
+	JR	OD_0A
+OD_0B	LD	HL,M_NOSLASH
+	CALL	MESS
+	JP	MAIN
+OD_0C
 	LD	HL,DIRECTORY
 	LD	DE,DIR_DIR
 	CALL	DOS_EXTRACT
@@ -225,10 +265,10 @@ M_USAGE	DEFM	CR,'Command usage is:',CR
 	DEFM	'<Escape>:  !command',CR,CR,0
 ;
 M_PROMPT
-	DEFM	'Direct 1.0 >',0
+	DEFM	'Direct 1.3 >',0
 M_NONEX
-	DEFM	'DIRECTory file non-existant!',CR
-	DEFM	'Create it? ',0
+	DEFM	'DIRECTory file non-existant!',CR,0
+M_CREA	DEFM	'Create it? ',0
 M_WHERE	DEFM	'Write to which file? ',0
 ;
 TXT_DIR	DEFM	'DIR'
@@ -236,7 +276,8 @@ TXT_DAT	DEFM	'DAT'
 ;
 EXIT
 	CALL	CLOSE_DIR
-	JP	DOS
+	XOR	A
+	JP	TERMINATE
 ;
 CLOSE_DIR
 	LD	A,(IS_OPEN)
@@ -294,10 +335,11 @@ CREATE_DIR
 ;Ask for description...
 CD_1	LD	HL,M_DESC
 	CALL	MESS
-	LD	HL,D_DESCR
+	LD	HL,IN_BUFF
 	LD	B,40
 	CALL	40H
 	JP	C,CD_1
+	CALL	SET_DESC
 ;Write record...
 	LD	DE,DIR_DIR
 	LD	HL,BUFF2_DIR
@@ -320,8 +362,7 @@ M_DESC	DEFM	'Description? ',0
 LIST_DIR
 	LD	A,(IS_OPEN)
 	OR	A
-	LD	A,26H	;File not Open
-	JP	Z,BAD_ERROR
+	JP	Z,NOT_OPEN
 	LD	DE,DIR_DIR
 	CALL	DOS_REWIND
 	JP	NZ,BAD_ERROR
@@ -348,7 +389,7 @@ LD_2
 LD_3	LD	A,(HL)
 	CP	ETX
 	RET	Z
-	CALL	33H
+	CALL	PUTCHAR
 	LD	A,(HL)
 	INC	HL
 	CP	CR
@@ -364,8 +405,7 @@ DIRL_DE	DC	42,0
 ADD_DIR
 	LD	A,(IS_OPEN)
 	OR	A
-	LD	A,26H
-	JP	Z,BAD_ERROR
+	JP	Z,NOT_OPEN
 	CALL	NEXT_SPACE
 	PUSH	HL
 	LD	DE,FILE
@@ -408,14 +448,22 @@ AD_4
 ;Get description....
 	LD	HL,M_DESC
 	CALL	MESS
-	LD	HL,D_DESCR
+	LD	HL,IN_BUFF
 	LD	B,40
 	CALL	40H
 	JR	C,AD_4
+	CALL	SET_DESC
 ;
 ;Posn DAT file to eof. Record EOF.
 	LD	DE,DIR_DAT
 	CALL	DOS_POS_EOF
+;
+;Setup output buffer...
+	LD	HL,START_BUFFER
+	LD	(OUT_POS),HL
+	LD	HL,DIR_DAT
+	LD	(BUFFERED_FILE),HL
+;
 	LD	A,(DIR_DAT+8)
 	LD	(D_START+0),A
 	LD	A,(DIR_DAT+12)
@@ -440,27 +488,37 @@ AD_4
 ;Assume that stuff above is correct. Write file
 ;byte by byte to DAT file.
 AD_5	LD	DE,FILE
-	CALL	$GET
+	CALL	$GET		;**** Patch Place ****
 	JR	NZ,AD_6
-	LD	DE,DIR_DAT
-	CALL	$PUT
+;
+;Buffered write to xxx/DAT file.
+	PUSH	HL
+	PUSH	BC
+	CALL	OUTPUT_FILE
+	POP	BC
+	POP	HL
+;
 	JP	NZ,BAD_ERROR
 	JR	AD_5
 AD_6	CP	1CH
 	JR	Z,AD_7
 	CP	1DH
 	JR	Z,AD_7
+	PUSH	AF
+	CALL	OUTPUT_FLUSH
+	POP	AF
 	JP	BAD_ERROR
-AD_7	JP	MAIN
+AD_7
+	CALL	OUTPUT_FLUSH
+	JP	MAIN
 ;
 EXT_DIR
 ;Extract...
 	LD	A,(IS_OPEN)
 	OR	A
-	LD	A,26H
-	JP	Z,BAD_ERROR
+	JP	Z,NOT_OPEN
 	CALL	NEXT_SPACE
-	JP	NZ,BAD_CMD
+	JP	NZ,USAGE
 	LD	(STR_1),HL
 	LD	DE,DIR_DIR
 	CALL	DOS_REWIND
@@ -493,13 +551,15 @@ ED_3A	LD	A,(HL)
 	CP	' '
 	JR	NZ,ED_1
 ;Found! Where to, lady?
-ED_4	LD	HL,M_WHERE
+ED_4
+	LD	HL,M_WHERE
 	CALL	MESS
 	LD	HL,IN_BUFF
 	LD	B,20
 	CALL	40H
 	JR	C,ED_4
 	LD	HL,IN_BUFF
+ED_4B
 	LD	DE,FILE
 	CALL	DOS_EXTRACT
 	JP	NZ,BAD_ERROR
@@ -508,6 +568,12 @@ ED_4	LD	HL,M_WHERE
 	LD	B,0
 	CALL	DOS_OPEN_NEW
 	JP	NZ,BAD_ERROR
+;Set buffer pointer to the start of the buffer.
+	LD	HL,START_BUFFER
+	LD	(OUT_POS),HL
+	LD	HL,FILE
+	LD	(BUFFERED_FILE),HL
+;
 ;Position DAT file.
 	LD	A,(D_START+0)
 	LD	C,A
@@ -536,15 +602,84 @@ ED_5	LD	A,H
 	JR	NZ,ED_6
 	DEC	HL
 ED_6	LD	DE,DIR_DAT
-	CALL	$GET
+	CALL	$GET		;**** Patch Place ****
 	JP	NZ,BAD_ERROR
-	LD	DE,FILE
-	CALL	$PUT
+	PUSH	HL
+	PUSH	BC
+	CALL	OUTPUT_FILE
+	POP	BC
+	POP	HL
 	JP	NZ,BAD_ERROR
 	JR	ED_5
-ED_7	LD	DE,FILE
+ED_7
+	CALL	OUTPUT_FLUSH
+	LD	DE,FILE
 	CALL	DOS_CLOSE
 	JP	NZ,BAD_ERROR
 	JP	MAIN
+;
+NOT_OPEN
+	LD	HL,M_NOTOPEN
+	CALL	MESS
+	JP	MAIN
+;
+SET_DESC
+	LD	HL,IN_BUFF
+	LD	DE,D_DESCR
+SDE_1	LD	A,(HL)
+	OR	A
+	RET	Z
+	CP	CR
+	RET	Z
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	JR	SDE_1
+;
+OUTPUT_FILE
+	PUSH	AF
+	LD	HL,(OUT_POS)
+	LD	DE,END_BUFFER
+	OR	A
+	SBC	HL,DE
+	CALL	Z,OUTPUT_FLUSH
+	LD	HL,(OUT_POS)
+	POP	AF
+	LD	(HL),A
+	INC	HL
+	LD	(OUT_POS),HL
+	CP	A
+	RET
+;
+OUTPUT_FLUSH
+	LD	HL,START_BUFFER
+OF_1	PUSH	HL
+	LD	DE,(OUT_POS)
+	OR	A
+	SBC	HL,DE
+	POP	HL
+	JR	Z,OF_2
+	LD	A,(HL)
+	LD	DE,(BUFFERED_FILE)
+	INC	HL
+	CALL	$PUT
+	JR	Z,OF_1
+	JP	BAD_ERROR
+OF_2	LD	HL,START_BUFFER
+	LD	(OUT_POS),HL
+	CP	A
+	RET
+;
+M_SIGNON
+	DEFM	'Direct version 1.3, 09-Aug-86',CR,0
+M_NOTOPEN
+	DEFM	'File not open. <S>et a file first.',CR,0
+M_NOSLASH
+	DEFM	'No filename extension is allowed or required',CR,0
+;
+OUT_POS	DEFW	START_BUFFER
+BUFFERED_FILE	DEFW	0
+START_BUFFER	DEFW	0
+END_BUFFER	EQU	START_BUFFER+1000H
 ;
 	END	START
