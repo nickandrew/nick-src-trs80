@@ -1,0 +1,67 @@
+>LM=1 RM=80 TM=1 BM=60 PL=60
+
+>C=Y
+Compiler Documentation
+----------------------
+>C=N
+
+     Putting the documentation in the compiler as comments is infeasible at this time so I'll just describe the more interesting features in this document.
+
+     The lexical analyser and low level scan needed minor changes to accommodate separate compilation (the Amdahl's response time was poor, so faster compiles helped {remember the source is in C}), also some small changes to rationalise error handling (since the compiler needs to know a bit about what LA is doing), and some other small changes where it wasn't specified in the notes that LA should return class, code and level for reasons 2 through 5.
+
+     The compiler is of basic design identical to the pseudocode given, except for error handling. It has two inputs, firstly the original syntax graph stored in tabular form, secondly the source program. There are 4 output files, first is the compiler listing, second is the Assembly code listing (which is included with the listings for test programs), third the binary file output, and lastly the diagnostic output (not included, if you desperately want to see 80k of trace, look in /com/student/zeta/l_p/t[123].run). The assembly code output contains (positive) integer data, and string mnemonics for the various opcodes. It also contains a line detailing whereabouts a value was "stored" later (ie when the compiler figures out where the "jump over" for a false conditional should go). This line being printed after the poked location is not a problem in the assembly listing. The raw binary data is stored in a large array which is flushed to disk whenever (if) it fills.
+
+     Assembly code checking.
+
+     The Assembly output has been checked for correctness and the test programs given test all (or nearly all) the paths of the syntax graph (certainly all the major routes, all the statements, and some hefty testing of precedence within expressions). The outputs are annotated to prove their correctness by inspection against the appropriate source listing.
+
+>C=Y
+Error Handling
+>C=N
+
+     Error handling is done on two levels, lexical analyser errors and compiler errors.
+
+     A function "lacheck()" examines the output from LA, and if there is an error it reports it and tries to make the input look valid to the compiler. Usually this is done by setting the class of the received token equal to the (terminal) goal the compiler is trying to find. So if the compiler is looking for a predeclared global variable and there is an undeclared name in the input stream the lacheck reports "undeclared" but lets the compiler believe that a global was found.
+
+     The second error handling function is "expected()" which is called before the compiler attempts to process a terminal goal [ie: just before the statement IF (goal==class || goal==EMPTY)].
+
+     If Expected does not find an error condition it returns a zero value and the compiler proceeds. If there was an error condition which could not be "fixed" by Expected, then that will be flagged by errflag, and a "fatal error" reported.  If on the other hand Expected does determine an error will occur (given the current token class, current goal and a knowledge of which combinations of those mean error and which mean "try something else"), then Expected attempts to fix the error by any or all of the following type of actions:
+
+   - Adjusting the goal stack
+   - Changing the input token to something else
+   - Changing the current goal
+   - Reprocessing goals until the error condition goes away.
+   - Assuming a different input token
+
+   If Expected can fix the error really easily it simply returns a zero value, so the rest of the compiler thinks everything's hunky dory. Of course, error messages are always output, nothing is ever "corrected" without an error message appearing, but one part of the compiler need not know what the other part has already done to make it all seem legal.
+
+   If Expected has more trouble fixing the error, it will return a 1 or 2 value, which stops the current goal from being processed and makes the compiler loop to the top (ie: to the WHILE def[goal]<>null).
+
+   A 1 value means the compiler is to loop immediately. Note that when the compiler loops like this, it gets a second chance at error recovery. The goal stack is a complex entity and is best touched as little as possible to repair the error noticed.
+
+   A 2 value returned from Expected means the compiler is to loop also but first to process the current goal until a "successor" is found (or if the successor of a parent etc..). This lets any given goal be processed to completion as if it were recognised, without having to muck around with tokens at all. Its used, for example, when a BEGIN is expected and something else was read. The current goal is forced to success without touching the token already read, and the compiler then loops with goal = the successor of begin (stseq, 6 or 22).
+
+   The next token may or may not be read when the compiler loops depending on the circumstances. Some errors may take several loops through the Expected routine (generating appropriate diagnostics) before they are finally exorcised.
+
+     Now to the nitty gritty ...
+
+   Expected but unfound tokens such as BEGIN, PROG, DO, and THEN are assumed to be in the input, even if missing, and their successor goals have to worry about whatever the current input was.
+
+   Important tokens like ENDPRG and ENDFN when required usually mean that the source is lacking a semicolon separator so the relevant stseq is re-entered until ENDPRG or ENDFN appears. If an ENDPRG or ENDFN appears in the input stream (so long as its not in a really ridiculous place), it is NEVER ignored and nested WHILEs and IFs are terminated (with appropriate "expected ENDIF" type messages) until the stack returns to a state where ENDPRG or ENDFN is required. This means the compiler re-syncs at the end of a function if there is an IF-ENDIF etc type mismatch.
+
+   Less important tokens like ENDDO and ENDIF, when seen in the wrong place (ie instead of a statement) cause some inner blocks to be terminated. An ENDDO inside an IF-ENDIF might mean the ENDIF was missing so this is assumed and if there was a WHILE outside that then that is also terminated. Its always better to jump out of such a structure because of the re-entry described above. Excess ENDIFs and ENDDOs can be handled easier that way.
+
+   Excess semicolons and missing semicolons are handled by the same code as described above as "incidental" messages.
+
+   The common error which is transposing ":=" and "=" is handled in all cases (that is, assignments and logical expressions) with the appropriate message.
+
+   Other errors within expressions are handled by breaking out of the sub-expression we are in (ie: pop stack until a 40, 44, 51, 74, 76, 92, 96 or 98 seen) and hoping for the best.
+
+   Attempted assignment to formal parameters is detected and punished with an explicit message and the class of current token is fudged to "local variable" (since this is where the attempt was detected).
+
+   Errors where a semicolon was found when a statement was expected (eg: 2 stmts in a row or difficulty syncing on invalid expression) causes the offending semicolon to be ignored.
+
+   Other errors could be almost anything so we ignore the token, whatever it was (its probably not anything important since its not a statement or variable or ENDDO, ENDIF, ELSE, ENDFN, ENDPRG ...) and we hope for the best, carefully looping back again to let the next token in the input be subject to the error correction.
+
+     And thats about it, as far as errors go. I don't think the compiler can loop at all because it always tries to go UP the goal tree not downwards, and when its in an absolute quandary it will ignore the current token & proceed to the next. The Error program listings will show just how well it handles many common errors, and I think it handles them quite well.
+
