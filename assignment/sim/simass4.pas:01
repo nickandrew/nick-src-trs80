@@ -1,0 +1,153 @@
+{ Simulation Assignment 4/5            Nick Andrew 8425464 }
+{ Testing the effectiveness of 3 methods of audit sampling }
+
+program simass4(input,output);
+
+const
+   credit   = 1;
+   debit    = 2;
+   numcrs   = 1520;
+   numdbs   = 1560;
+
+var
+                { T sub 0.025,N or 1.96 if N>50 }
+   tdist      : array[1..5] of real;
+                { number of items to sample }
+   tosample   : array[1..5] of integer;
+                { true if item in error }
+   iserror    : array[1..2,1..1600] of boolean;
+                { value of items in error only }
+   actuals    : array[1..2,1..1600] of real;
+                { count of $1, $10, $100 cr/db etc }
+   numcrdb    : array[1..2,1..6] of integer;
+                { values 1, 10, 100, 1000 etc...   }
+   stated     : array[1..6] of real;
+                { start offset of $1, $10 class etc.. }
+   startoff   : array[1..2,1..6] of integer;
+
+
+
+procedure init;
+var  r   : real;
+     i,j : integer;
+begin
+   numcrdb[credit,1] := 400;
+   numcrdb[credit,2] := 400;
+   numcrdb[credit,3] := 400;
+   numcrdb[credit,4] := 200;
+   numcrdb[credit,5] := 100;
+   numcrdb[credit,6] := 20;
+
+   numcrdb[debit,1]  := 300;
+   numcrdb[debit,2]  := 300;
+   numcrdb[debit,3]  := 300;
+   numcrdb[debit,4]  := 500;
+   numcrdb[debit,5]  := 150;
+   numcrdb[debit,6]  := 10;
+
+
+   for j:=1 to 2 do begin
+      startoff[j,1] := 1;    { arrays start at 1 }
+      for i:=2 to 6 do
+         startoff[j,i] := startoff[j,i-1] + numcrdb[j,i-1]
+   end;
+
+   tdist[1]  := 2.26;        { sample size = 10 }
+   tdist[2]  := 2.00;        { sample size = 50 }
+   for i:=2 to 6 do
+      tdist[2]  := 1.96;     { sample size > 50 }
+
+   tosample[1]  := 10;
+   tosample[2]  := 50;
+   tosample[3]  := 100;
+   tosample[4]  := 500;
+   tosample[5]  := 1000;
+
+   for i:=credit to debit do
+      for j:=1 to 1600 do
+         iserror[i,j] := false;
+
+   r := 1.0;
+   for i:=1 to 6 do begin
+      stated[i] := r;
+      r := r * 10.00
+   end;
+
+
+
+end;
+
+function log10(value : real) : real;
+begin
+   log10 := ln(value) / ln(10.0)
+end;
+
+{ get a normally distributed random value }
+function getnorm(value : real) : real;
+var   stddev : real;
+      r1, r2, n1 : real;
+
+begin
+   stddev := 0.5 * sqrt(value);
+   r1 := rndr;
+   r2 := rndr;
+   n1 := sqrt(-2.0 * ln(r1)) * cos(2 * 3.14159 * r2);
+   getnorm := n1 * sqrt(stddev) + value
+end;
+
+function getstated (which,crdb : integer) : real;
+var  i : integer;
+     f : boolean;
+begin
+   i := 1;
+   f := false;
+   while not f do begin
+      if (which <= numcrdb[crdb,i]) then begin
+         getstated := stated[i];
+         f := true;
+      end else begin
+         i := i + 1;
+         which := which - numcrdb[crdb,i];
+      end;
+   end;
+end;   { function getstated }
+
+function getactual(which,crdb:integer) : real;
+begin
+    if (not iserror[crdb,which])
+       then getactual := getstated(which,crdb)
+       else getactual := actuals[crdb,which]
+end;
+
+procedure generate;   { generate the actual values }
+var  i , j     : integer;
+     class     : integer;
+     r         : real;
+     proberr   : real;
+begin
+
+   for j:=1 to 2 do begin
+      for class:=1 to 6 do begin
+         proberr := 0.5 / log10(stated[class]+1);
+         for i:=startoff[j,class] to
+                startoff[j,class]+numcrdb[j,class]-1 do begin
+            if (rndr < proberr) then begin
+               iserror[j,i] := true;
+               actuals[j,i] := getnorm(stated[class])
+            end { if }
+         end { for each item }
+      end { for each class }
+   end { for credits & debits }
+end;
+
+begin  { main program }
+
+   init;  { initialise arrays etc }
+   generate;  { generate actual values }
+{
+   for sampnum:=1 to 5 do
+      randomsample(tosample[sampnum]);
+      dollarvalue(tosample[sampnum])
+   end;
+}
+end.

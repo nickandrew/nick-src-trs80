@@ -1,0 +1,121 @@
+program simass1(input,output,indata,randm);
+const students = 500;
+      problems = 50;
+
+type  stype = record
+                 norp:  (normal,problem);
+                 arrtime: real;
+                 time1: real;
+                 time2: real;
+              end;
+
+var stud: array[1..students] of stype;
+    i,j   : integer;
+    time  : real;
+   indata : file of stype;
+    randm : text;
+
+procedure normdist(studentnumber:integer);
+const  lambda = 0.532;
+begin
+    (* generate appropriate service time for a normal    *)
+    (* student (ie: exponential distribution, L = 0.53)  *)
+
+    stud[studentnumber].time1 := -ln(rndr)/lambda;
+    stud[studentnumber].time2 := 0.0;
+
+end;
+
+procedure probdist(studentnumber:integer);
+var unirandom : real;
+    empirical : real;
+
+begin
+    (* generate appropriate first and second service    *)
+    (* times for a problem student.                     *)
+    (* First service time is uniform on (0,1)           *)
+    (* Second service time is empirical from data given *)
+
+    stud[studentnumber].time1 := rndr;   (* uniform *)
+
+    unirandom := rndr;
+
+    if (0.00 <= unirandom) and (unirandom < 0.16) then begin
+        empirical := 0  + 5 * (unirandom - 0.00) / 0.16;
+    end;
+
+    if (0.16 <= unirandom) and (unirandom < 0.60) then begin
+        empirical := 5  + 5 * (unirandom - 0.16) / 0.44;
+    end;
+
+    if (0.60 <= unirandom) and (unirandom < 0.88) then begin
+        empirical := 10 + 5 * (unirandom - 0.60) / 0.28;
+    end;
+
+    if (0.88 <= unirandom) and (unirandom < 0.96) then begin
+        empirical := 15 + 5 * (unirandom - 0.88) / 0.08;
+    end;
+
+    if (0.96 <= unirandom) and (unirandom <=1.00) then begin
+        empirical := 20 + 10 * (unirandom - 0.96) / 0.04;
+    end;
+
+    stud[studentnumber].time2 := empirical;
+end;
+
+function interarrival(lambda:real):real;
+begin
+
+    (* pick a poisson distributed interarrival time *)
+    interarrival := -ln(rndr)/lambda;
+
+end;
+
+(*------------------------------------------------------*)
+
+
+begin (* simulation assignment 2 randoms generator *)
+
+    for i:=1 to students do stud[i].norp := normal;
+
+    (* pick 50 or 100 problem students *)
+    i:=0;
+    while (i<problems) do begin
+        j:=rnd(students);
+        if (stud[j].norp = normal) then begin
+            stud[j].norp := problem;
+            i:= i+1;
+        end;
+    end;
+
+    (* pick 500 inter-arrival times hence arrival times *)
+    time := 0.0;
+    for i:=1 to students do begin
+        time := time + interarrival(2.0);
+        if (time>250.0) then time:=250.0;
+        stud[i].arrtime := time;
+    end;
+
+    (* figure out service time(s) for each student      *)
+    for i:=1 to students do begin
+        if (stud[i].norp = normal)
+            then normdist(i)
+            else probdist(i);
+    end;
+
+    (* write all this data to an output file *)
+    (* for input to queue simulator program  *)
+   writeln(randm,'Student  Arrives  Type  Serve1   Serve2 ');
+   writeln(randm,'-------  -------  ----  -------  -------');
+    for i:=1 to students do begin
+        write(indata,stud[i]);
+        write(randm,i:7,'  ',stud[i].arrtime:7:3,'  ');
+        if (stud[i].norp = normal)
+            then write(randm,'norm  ')
+            else write(randm,' PROB ');
+        write(randm,stud[i].time1:7:3,stud[i].time2:9:3);
+        writeln(randm);
+    end;
+
+    (* finished *)
+end.

@@ -1,0 +1,40 @@
+>LM=1 RM=80 PL=10 BM=10
+Part 1 - Discussion of statistical analysis of outputs
+
+ Output from a stochastic simulation is itself stochastic. That is, each output (such as maximum queue length and mean waiting time) has a distribution, mean, and variance.
+
+ As a result, outputs must be analysed using statistical methods to determine their true distribution. Note that this requires the simulation to be run multiple times.
+
+ The requirements of Assignment 2 regarding simulation runs did not take into account the stochastic nature of the results obtained, hence each simulation (ie: same parameters) was required to be run only once. An analysis of the random number generator should be required, since this has a marked effect upon results obtained.
+
+++.....Graph...here.....++++++++++++++++++++++++++++++
+
+ Multiple runs of a simulation is one answer to determining the distribution and mean of an output. This requires gross computing resources though, if an accurate distribution is to be obtained, but is often prohibitive due to time constraints.
+
+ Another method of providing accurate output is to increase the length of the simulation severalfold. This is good when subsequent calculations within the simulation are fairly independent from prior calculations, and especially when the simulation reaches some sort of "steady state" - the output values obtained from the simulation represent the mean of the true output distributions.
+
+ However in a queueing situation such as that of Assignment 2, subsequent events tend to be AUTOCORRELATED with previous events. Autocorrelation means that prior values of a random variable have an influence on subsequent values. It happens in the queueing system because a sequence of quick arrivals or slow arrivals has a marked effect on subsequent events.
+
+ Determining the number of times to run a given simulation such as the first in Assignment 2 is a difficult problem. To craft a rule of thumb, a simulation should be run at least 3 times. All outputs should be plotted on graphs, and according to the spread of each output, more runs should be done to form a distribution. When the distribution looks accurate, stop and calculate the "mean" outputs.
+
+ Hypothesis testing is a well established means of verifying certain conditions within predefined levels of accuracy. When related to statistical analysis of output, hypothesis testing may be used, as follows:
+
+ Assume that an initial sample size of Ro has been observed; that is, the simulator initially makes Ro independent replications. In practice, Ro is 2 or larger, but at least 4 or 5 is recommended. The Ro replications will be used to obtain an initial estimate, S2.0, of the population variance sigma.2. ALPHA is the confidence interval. To meet the criteria, a sample size R must be chosen such that
+
+ (Equation 11.23b)
+
+and given THETA-HAT as the mean of the R outputs, THETA can be determined within the interval:
+
+ (Equation 11.25)
+
+------------------------------------------------------------
+
+Part 2 - Discussion of statistical design of experiments
+
+ The statistical design of experiments allows conclusions to be made regarding suitable FACTORS for a simulation. These factors are: decision variables, structural assumptions, and parameters of random variables.
+
+ Assignment 2 had faulty experimental design in that the decision variables and structural assumptions weren't stated unambiguously.
+
+ Also, for sampling of the service time distributions, the grouping of data into classes tended to obscure the empirical distribution. That is, there weren't enough discrete classes. This made it more difficult to determine the real distributions.
+
+ Doing some statistical calculations involving determining the effects of factors on output would lead to the ability to streamline the simulation so performance levels can be optimised, without the need for many repeats of the runs.

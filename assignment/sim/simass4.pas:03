@@ -1,0 +1,519 @@
+{ Simulation Assignment 4/5           Nick Andrew, 8425464 }
+{ Testing the effectiveness of 3 methods of audit sampling }
+
+program simass4(input,output);
+
+const
+   credit    = 1;
+   debit     = 2;
+   numcrs    = 1520;
+   numdbs    = 1560;
+
+var
+                 { T sub 0.025,N-1 or 1.96 if N>50 }
+   tdist       : array[1..5] of real;
+                 { number of items to sample }
+   tosample    : array[1..5] of integer;
+                 { true if item in error }
+   iserror     : array[1..2,1..1600] of boolean;
+                 { value of items in error only }
+   actuals     : array[1..2,1..1600] of real;
+                 { count of $1, $10, $100 cr/db etc }
+   numcrdb     : array[1..2,1..6] of integer;
+                 { values 1, 10, 100, 1000 etc...  }
+   stated      : array[1..6] of real;
+                 { start offset of $1, $10 class etc... }
+   startoff    : array[1..2,1..6] of integer;
+                 { probability of any value in a class being in error }
+   proberr     : array[1..6] of real;
+
+                 { run1..2,credit..debit, (1,10,100,1000) }
+   stratsize   : array[1..2,1..2,1..4] of integer;
+
+   seed        : real;
+   sampnum     : integer;   { 1st,2nd, ... run through the sampling }
+   sumstated   : real;
+   sumactual   : real;
+   sumerror2   : real;   { sum of (error^2) }
+   sumcrdberr2 : real;   { sum of (error^2) for both cr and db }
+   confint2    : real;   { confidence interval for both cr & db }
+   sumscrdb    : real;   { sum of stated credits & debits }
+   sumacrdb    : real;   { sum of actual credits & debits }
+
+
+function rndr : real;
+   begin
+   seed := 125.0 * (seed + 1.0);
+   seed := seed -8192.0 * trunc(seed/8192);
+   rndr := (seed + 0.5) / 8192;
+end;
+
+function xrand( r:integer) : integer;
+begin
+   xrand := round(rndr * (r-1)) + 1
+end;
+
+
+procedure init;
+var  r   : real;
+     i,j : integer;
+begin
+   readln(seed);
+
+   numcrdb[credit,1] := 400;
+   numcrdb[credit,2] := 400;
+   numcrdb[credit,3] := 400;
+   numcrdb[credit,4] := 200;
+   numcrdb[credit,5] := 100;
+   numcrdb[credit,6] := 20;
+
+   numcrdb[debit,1] := 300;
+   numcrdb[debit,2] := 300;
+   numcrdb[debit,3] := 300;
+   numcrdb[debit,4] := 500;
+   numcrdb[debit,5] := 150;
+   numcrdb[debit,6] := 10;
+
+   for j:=1 to 2 do begin
+      startoff[j,1] := 1;     { arrays start at 1 }
+      for i:=2 to 6 do
+         startoff[j,i] := startoff[j,i-1] + numcrdb[j,i-1]
+   end;
+
+   tdist[1]  := 2.26;         { sample size = 10 }
+   tdist[2]  := 2.00;         { sample size = 50 }
+   for i:=3 to 5 do           { samples 100, 500, 1000 }
+      tdist[i] := 1.96;
+
+   tosample[1] := 10;
+   tosample[2] := 50;
+   tosample[3] := 100;
+   tosample[4] := 500;
+   tosample[5] := 1000;
+
+   for i:=credit to debit do
+      for j:=1 to 1600 do
+         iserror[i,j] := false;
+
+   stated[1] := 1.0;
+   stated[2] := 10.0;
+   stated[3] := 100.0;
+   stated[4] := 1000.0;
+   stated[5] := 10000.0;
+   stated[6] := 100000.0;
+
+   proberr[1] := 1.0 / 2.0;    { 0.5 / (log(value) + 1) }
+   proberr[2] := 1.0 / 4.0;    { etc...                 }
+   proberr[3] := 1.0 / 6.0;
+   proberr[4] := 1.0 / 8.0;
+   proberr[5] := 1.0 /10.0;
+   proberr[6] := 1.0 /12.0;
+
+   { first run, credits }
+   stratsize[1,1,1] := 0;   { $1 }
+   stratsize[1,1,2] := 0;   { $10 }
+   stratsize[1,1,3] := 13;  { $100 }
+   stratsize[1,1,4] := 13;  { $1000 }
+
+   { first run, debits }
+   stratsize[1,2,1] := 0;
+   stratsize[1,2,2] := 0;
+   stratsize[1,2,3] := 23;
+   stratsize[1,2,4] := 23;
+
+   { second run, credits }
+   stratsize[2,1,1] := 4;
+   stratsize[2,1,2] := 4;
+   stratsize[2,1,3] := 245;
+   stratsize[2,1,4] := 245;
+
+   { second run, debits }
+   stratsize[2,2,1] := 3;
+   stratsize[2,2,2] := 3;
+   stratsize[2,2,3] := 345;
+   stratsize[2,2,4] := 345;
+
+end; { initialise }
+
+
+
+
+{ get a normally distributed random value }
+function getnorm(item : real) : real;
+var  stddev : real;
+     r1, r2, n1 : real;
+begin
+
+   stddev := 0.5 * sqrt(item);
+   r1 := rndr;
+   r2 := rndr;
+   n1 := sqrt(-2.0 * ln(r1)) * cos(2* 3.14159 * r2);
+   getnorm := n1 * sqrt(stddev) + item
+end;
+
+
+
+
+function getstated (which,crdb : integer) : real;
+var   i : integer;
+      f : boolean;
+begin
+   i := 1;
+   f := false;
+   while not f do begin
+      if (which <= numcrdb[crdb,i]) then begin
+         getstated := stated[i];
+         f := true
+      end else begin
+         which := which - numcrdb[crdb,i];
+         i := i + 1;
+      end
+   end
+end;    { function getstated }
+
+
+
+
+
+function getactual(which,crdb : integer) : real;
+begin
+   if (not iserror[crdb,which])
+      then getactual := getstated(which,crdb)
+      else getactual := actuals[crdb,which]
+end;
+
+
+
+
+
+
+procedure generate;    { generate the actual values }
+var  i , j       : integer;
+     class       : integer;
+     r           : real;
+begin
+
+   for j:=credit to debit do begin
+      for class:=1 to 6 do begin
+         for i:=startoff[j,class] to
+                startoff[j,class] + numcrdb[j,class] - 1 do begin
+            if (rndr < proberr[class]) then begin
+               iserror[j,i] := true;
+               actuals[j,i] := getnorm(stated[class])
+            end { if }
+         end { for each item }
+      end {for each class}
+   end {for credits & debits}
+end;
+
+
+
+
+procedure initsamp;
+begin
+   sumstated := 0.0;
+   sumactual := 0.0;
+   sumerror2 := 0.0;
+end;
+
+
+
+
+
+procedure updsamp(crdb,which : integer);
+var   items, itema : real;
+begin
+   items := getstated(which,crdb);
+   sumstated := sumstated + items;
+
+   itema := getactual(which,crdb);
+   sumactual := sumactual + itema;
+   sumacrdb  := sumacrdb + itema;
+   sumscrdb  := sumscrdb + items;
+
+   sumerror2 := sumerror2 + (itema - items)*(itema-items);
+   sumcrdberr2 := sumcrdberr2 + sumerror2;
+
+end;
+
+
+
+
+
+
+procedure printsumm(sampsize,big_n : integer; confint : real);
+begin
+   write(sampsize:7);
+   write(sumactual:14:2);
+   write(sumstated:15:2);
+   write(confint:16:4);
+   writeln;
+end;
+
+
+
+
+
+procedure randomsample(samplesize : integer);
+var  i, j : integer;
+    which : integer;
+  confint : real;
+begin
+   sumcrdberr2 := 0.0;
+   sumscrdb := 0.0;
+   sumacrdb := 0.0;
+   initsamp;         { initialise all update variables for sample run}
+   writeln('        Sampled    Sum Actual     Sum Stated      Confidence');
+
+   write('Credits ');
+   for i:=1 to samplesize do begin
+      which := xrand(numcrs);
+      updsamp(credit,which)
+   end;
+
+   confint := sqrt(sumerror2 / tosample[sampnum])
+              * numcrs * tdist[sampnum];
+   printsumm(tosample[sampnum],numcrs,confint);
+
+   write('Debits  ');
+   initsamp;         { initialise again }
+
+   for i:=1 to samplesize do begin
+      which := xrand(numdbs);
+      updsamp(debit,which)
+   end;
+
+   confint := sqrt(sumerror2 / tosample[sampnum])
+              * numdbs * tdist[sampnum];
+   printsumm(tosample[sampnum],numdbs,confint);
+
+   { output the stats for both credits & debits }
+
+   write('CR & DB ');
+   write(tosample[sampnum]*2:7);
+   write(sumacrdb:14:2);
+   write(sumscrdb:15:2);
+   confint2:=sqrt(sumcrdberr2 / (2*tosample[sampnum]))
+             * (numcrs + numdbs) * tdist[sampnum];
+   write(confint2:16:4);
+   writeln;
+end;
+
+
+
+
+
+{ pick the number of a credit item such that pr(N=i)
+  is proportional to value(i)
+}
+
+function pickdvcr : integer;
+var  r : integer;
+     p : integer;
+begin
+
+   { pick a random variable in the range 1..3244400 }
+   { ie, the sum of all the credits }
+
+   repeat
+      r := 10000*(xrand(325)-1) + 100*(xrand(100)-1)
+           + xrand(100)-1
+   until (r>=1) and (r<=3244400);
+
+   if r <= 400
+        then p := r
+   else if r <= 4400
+        then p := 1+trunc((r-401)/10)
+   else if r <= 44400
+        then p := 1+trunc((r-4401)/100)
+   else if r <= 244400
+        then p := 1+trunc((r-44401)/1000)
+   else if r <= 1244400
+        then p := 1+trunc((r-244401)/10000)
+   else      p := 1+trunc((r-1244401)/100000);
+
+   write('Picked credit item',p:5);
+   pickdvcr := p
+end;
+
+
+
+
+
+{ pick the number of a debit item such that pr(N=i)
+  is proportional to value(i)
+}
+
+function pickdvdb : integer;
+var  r : integer;
+     p : integer;
+begin
+
+   { pick a random variable in the range 1..3033300 }
+   { ie, the sum of all the debits }
+
+   repeat
+      r := 10000*(xrand(304)-1) + 100*(xrand(100)-1)
+           + xrand(100)-1
+   until (r>=1) and (r<=3033300);
+
+   if r <= 300
+        then p := r
+   else if r <= 3300
+        then p := 1+trunc((r-301)/10)
+   else if r <= 33300
+        then p := 1+trunc((r-3301)/100)
+   else if r <= 533300
+        then p := 1+trunc((r-33301)/1000)
+   else if r <= 2033300
+        then p := 1+trunc((r-533301)/10000)
+   else      p := 1+trunc((r-2033301)/100000);
+
+   write('Picked debit item',p:5);
+   pickdvcr := p
+end;
+
+
+
+
+
+
+procedure dollarvalue(samplesize : integer);
+var  i, j : integer;
+    which : integer;
+  confint : real;
+begin
+
+   sumcrdberr2 := 0.0;
+   sumscrdb := 0.0;
+   sumacrdb := 0.0;
+   initsamp;   {initialise all update variables for sample run}
+   writeln('        Sampled    Sum Actual     Sum Stated      Confidence');
+
+   write('Credits ');
+   for i:=1 to samplesize do begin
+      which := pickdvcr;
+      updsamp(credit,which)
+   end;
+
+   confint := sqrt(sumerror2 / tosample[sampnum])
+              * numdbs * tdist[sampnum];
+   printsumm(tosample[sampnum],numcrs,confint);
+
+   write('Debits  ');
+   initsamp;         { initialise again }
+
+   for i:=1 to samplesize do begin
+      which := pickdvdb;
+      updsamp(debit,which)
+   end;
+
+   confint := sqrt(sumerror2 / tosample[sampnum])
+              * numdbs * tdist[sampnum];
+   printsumm(tosample[sampnum],numdbs,confint);
+
+   write('CR & DB ');
+   write(tosample[sampnum]*2:7);
+   write(sumacrdb:14:2);
+   write(sumscrdb:15:2);
+   confint2:=sqrt(sumcrdberr2 / (2*tosample[sampnum]))
+             * (numcrs + numdbs) * tdist[sampnum];
+   write(confint2:16:4);
+   writeln;
+end;
+
+
+
+
+
+procedure stratified(runno : integer);
+var  i,j : integer;
+ sampled : integer;
+ confint : real;
+ twosamp : integer;
+   which : integer;
+begin
+   sumcrdberr2 := 0.0;
+   sumscrdb := 0.0;
+   sumacrdb := 0.0;
+
+   initsamp;  { initialise all update variables for sample run}
+   writeln('        Sampled    Sum Actual     Sum Stated      Confidence');
+
+   write('Credits ');
+   sampled := 0;
+   for i:=1 to 4 do begin     { for $1, $10, $100, $1000 class }
+      for j:=1 to stratsize[runno,credit,i] do begin
+
+         { pick an item within that class at random }
+         which := startoff[credit,i]
+                  + xrand(numcrdb[credit,i]) - 1;
+         sampled := sampled + 1;
+         updsamp(credit,which)
+
+      end;    { sample N of them }
+   end;       { for classes 1..4 }
+
+   confint := sqrt(sumerror2 / sampled)
+              * numcrs * 1.96;
+   printsumm(sampled,numcrs,confint);   {credits only}
+
+   write('Debits  ');
+   twosamp := sampled;
+   sampled := 0;
+   initsamp;         { initialise again }
+
+   for i:=1 to 4 do begin     { for $1, $10, $100, $1000 class }
+      for j:=1 to stratsize[runno,debit,i] do begin
+         { pick an item within that class at random }
+         which := startoff[debit,i]
+                  + xrand(numcrdb[debit,i]) - 1;
+         sampled := sampled + 1;
+         updsamp(debit,which)
+      end;    { sample N of them }
+   end;       { for classes 1..4 }
+
+   confint := sqrt(sumerror2 / sampled)
+              * numdbs * 1.96;
+   printsumm(sampled,numdbs,confint);   {debits only}
+
+   twosamp := twosamp + sampled;
+
+   write('CR & DB ');
+   write(twosamp:7);
+   write(sumacrdb:14:2);
+   write(sumscrdb:15:2);
+   confint2:=sqrt(sumcrdberr2 / twosamp)
+             * (numcrs + numdbs) * 1.96;
+   write(confint2:16:4);
+   writeln;
+
+end;
+
+begin {main program}
+
+   init;                 { initialise arrays etc}
+   generate;             { generate actual values}
+
+   for sampnum:=1 to 5 do begin
+      writeln;
+      writeln('Sample run ',sampnum:1,' for ',tosample[sampnum]:5,' samples.');
+
+      writeln;
+      writeln('Random sampling');
+      randomsample(tosample[sampnum]);
+
+      writeln;
+      writeln('Dollar value sampling for',tosample[sampnum]:5,' samples.');
+      dollarvalue(tosample[sampnum]);
+
+   end;
+
+   writeln;
+   writeln('Stratified sampling for SE=100000/N');
+   stratified(1);
+
+   writeln('Stratified sampling for SE=10000/N');
+   stratified(2);
+
+end.
