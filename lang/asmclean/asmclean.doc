@@ -1,0 +1,14 @@
+Documentation for Asmclean
+--------------------------
+
+    Asmclean is a small program which neatens up source files
+for Nedas/Edas. It removes the colons from label definitions
+and adjusts all comments (which did not start at the start of
+the line) to start in a particular column so the comments all
+line up. Null lines are replaced by lines containing only a
+semicolon for comment.
+
+    Asmclean was compiled with Alcor C, but should compile
+clean on any reasonably standard C compiler.
+
+                                  Nick Andrew.
