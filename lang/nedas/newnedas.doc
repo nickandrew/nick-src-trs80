@@ -1,0 +1,95 @@
+Newdos Edas 4.2c command summary
+--------------------------------
+
+Prepared by Nick Andrew, 28-Jan-85.
+
+ Nedas obeys the following commands:
+
+Cmd    Usage           Function
+-------------------------------
+A      see below       Assemble source code
+B      B or B402D      Back to Dos or Jump to hex address
+C      ?               Copy lines?
+D      D120 or D#,*    Delete lines
+E      E120 or E#      Edit line from memory
+F      Fstring or F    Find a string
+H      H120 or H#,*    Print lines on printer with line #s.
+I      I100,10 or I    Insert lines
+K      Kfilespec       Kill file off disk (default /ASM)
+L      Lfilespec or L  Load file
+M      ?               Move lines?
+N      N100,10 or N    Renumber lines
+O      O               Print memory usage?
+P      P100,200 or P   Print out source lines on VDU
+R      R100,10 or R    Replace current line & insert
+S      S               Swap source u/l case conversion
+T      T10,70 or T#,*  Type source to printer no line #s.
+U      U               Memory usage?
+W      see below       Write file to disk
+X      X               Kill assembler portion of nedas
+------------------------------------------------------
+Other commands:
+<UP-ARROW>             Move up a line
+<DN-ARROW>             Move down a line
+1 or (number)          Unknown!
+------------------------------------------------------
+Format of the A (Assemble) command:
+Usage: A filespec/cmd filespec/ref switches
+Switches may be any of:
+      -CI  write an object file with no control information
+           (core image)
+      -IM  assemble straight to memory
+      -XR  write a cross reference file for this assembly
+      -LP  list onto printer
+      -WS  print a symbol table after assembly
+      -NC  dont print false conditional blocks
+      -WO  ???
+      -NE  dont list all bytes made using DEFM etc..
+      -WE  wait on any errors
+      -NH  no header
+      -NO  ???
+      -NL  do not list the source code during assembly
+      -NM  do not list expansion of macros
+-------------------------------------------------------
+Format of the WRITE command
+Usage: W(switches)filespec
+ie.   W+!00$#filename/ext
+Switches and their affect:
+   +   Write header record on source
+   #   Write source including line numbers
+   $   write line numbers with bit 7 on
+   !xx use XX (hex) as file terminating character.
+------------------------------------------------------
+
+Additional Pseudo-Ops available in Nedas:
+-----------------------------------------
+COM            Put a comment block in the object file
+IFDEF          True if a symbol is defined
+IFNDEF         True if a symbol is not defined
+IFREF          True if a symbol has been referenced
+PAGE           Do a page throw on a listing pass (assemble)
+TITLE          Print a title or titles?
+IFEQ           True if the two parameters are equal
+IFGT           True if Param1 > Param2 ?
+IFLT           True if Param1 < Param2 ?
+IFNE           True if Param1 <> Param2
+IFEQ$          Like IFEQ except for strings
+IFGT$          Like IFGT except for strings
+IFLT$           ""  IFLT
+IFNE$           ""  IFNE
+SUBTTL         ?
+SPACE          ?
+IF             start a conditional block.
+ELSE           used between IF and ENDIF
+ENDIF          end a conditional block
+LORG           ?
+ERR            ?
+DC num1,byte   the same as num1 occurrences of BYTE
+DW             same as DEFW
+-------------------------------------------------------
+Column 1 pseudo-ops:
+*MOD           define a new code segment
+*LIST ON/OFF   turn listing pass on/off
+*GET filename  include source file into assembly
+*SEARCH fname  search object library for undefined symbols
+-------------------------------------------------------
