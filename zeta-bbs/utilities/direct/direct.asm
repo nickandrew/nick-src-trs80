@@ -19,7 +19,7 @@
 ;* This program is compatible with DIRECT.C for Unix.   *
 ;********************************************************
 ;
-*GET	DOSCALLS		;Include DOSCALLS.ASM
+*GET	DOSCALLS
 *GET	EXTERNAL
 *GET	ASCII
 ;
