@@ -1,6 +1,6 @@
 3ST Start of XMF help
 
-   XMODEM command ... xmodem/crc file transfers. 24-Feb-87
+   XMODEM command ... xmodem/crc file transfers. 07-May-89
 
           ** Don't type in the square brackets!! **
 
@@ -22,20 +22,15 @@ Options:
              CRC on Sending is set automatically.
 
 
-If you use the command "xmodem" with no parameters you will be
-prompted for send or receive, then filename.
+If you use the command "xmodem" with no parameters you will be prompted for send or receive, then filename.
 
 
 
-   Failure to send any file successfully means XMODEM will
-ignore any further command-line options (more files).
+   Failure to send any file successfully means XMODEM will ignore any further command-line options (more files).
 
 
-   Use the "dir" command to find out which files are online.
-today, and download the catalogues to find files which suit
-your needs.
+   Use the "dir" command to find out which files are online, and download the catalogues to find files which suit your needs.
 
-    Non-members may use XMODEM for the purpose of acquiring
-certain files only.
+    Non-members may use XMODEM for the purpose of acquiring certain files only.
 
 0
