@@ -1,3 +1,4 @@
+;killdir/src
 ;get a directory for a drive
 DIR	LD	HL,(402DH)	;intercept the @exit
 	LD	(ARGBLK),HL	;vector

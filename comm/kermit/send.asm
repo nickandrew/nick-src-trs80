@@ -1,3 +1,4 @@
+;send/asm.
 ;	SEND COMMAND
 SEND	PUSH	BC
 	PUSH	HL
@@ -80,10 +81,12 @@ SEND8	CP	'A'		;ARE WE IN THE SEND "ABORT" STATE?
 SEND9	LD	DE,INFMS4	;ANYTHING ELSE IS EQUIVALENT TO "ABORT".
 	CALL	FINMES
 	JP	KERMIT
+;
 ;	SEND ROUTINES
 ;	SEND INITIATE
+;********************************************************
 SINIT	LD	A,(NUMTRY)	;GET THE NUMBER OF TRIES.
-	CP	IMXTRY		;HAVE WE REACHED THE MAXIMUM NUMBER OF TRIES?
+	CP	IMXTRY		;REACHED THE MAXIMUM NUMBER OF TRIES?
 	JP	M,SINIT2
 	LD	DE,ERMS14
 	CALL	ERROR3		;DISPLAY ERMSG
@@ -94,8 +97,14 @@ SINIT2	INC	A		;INCREMENT IT.
 	LD	(CURCHK),A	;FOR STARTUP
 	LD	A,(CHKTYP)	;GET OUR DESIRED BLOCK CHECK TYPE
 	LD	(INICHK),A
+;
+;This place is where you would want to set up the
+;values for the defaults in the send initiate packet.
+;
 	LD	HL,DATA		;GET A POINTER TO OUR DATA BLOCK.
+;******              ***********************************
 	CALL	RPAR		;SET UP THE PARAMETER INFORMATION.
+;****** ^^^^^^^^^^^^ ***********************************
 	LD	(ARGBLK+1),A	;SAVE THE NUMBER OF ARGUMENTS.
 	LD	A,(NUMPKT)	;GET THE PACKET NUMBER.
 	LD	(ARGBLK),A
@@ -119,7 +128,9 @@ SINIT2	INC	A		;INCREMENT IT.
 	LD	(NUMPKT),HL
 	LD	A,(ARGBLK+1)	;GET THE NUMBER OF PIECES OF DATA.
 	LD	HL,DATA		;POINTER TO THE DATA.
+;******              ***********************************
 	CALL	SPAR		;READ IN THE DATA.
+;****** ^^^^^^^^^^^^ ***********************************
 	LD	A,(NUMTRY)	;GET THE NUMBER OF TRIES.
 	LD	(OLDTRY),A	;SAVE IT.
 	XOR	A
@@ -167,8 +178,11 @@ SFILE1	INC	A		;INCREMENT IT.
 	LD	B,0		;NO CHARS YET.
 	LD	C,0
 SFIL11	LD	A,B
-	CP	8H		;IS THIS THE NINTH CHAR?
-	JP	NZ,SFIL12	;IF NOT PROCEED.
+;Mod by nick. remove klugdy '.' insertion after char 8.
+	JP	SFIL12
+;
+;;	CP	8H		;IS THIS THE NINTH CHAR?
+;;	JP	NZ,SFIL12	;IF NOT PROCEED.
 SFL11A	LD	A,'.'		;GET A DOT.
 	LD	HL,(DATPTR)
 	LD	(HL),A		;PUT THE CHAR IN THE DATA PACKET.
@@ -188,7 +202,7 @@ SFIL12	INC	B		;INCREMENT THE COUNT.
 	CP	'!'		;IS IT A GOOD CHARACTER?
 	JP	M,SFIL13
 	LD	HL,(DATPTR)
-	CP	'/'
+	CP	'/'		;extension?
 	JP	Z,SFL11A
 	CP	':'		;drive spec?
 	JR	Z,SFIL13

@@ -1,121 +1,192 @@
-;kermit-trs80	(kermit/asm)
-;based on CP/M-80 Kermit
-;started	10/10/83
-;updated	04/01/84	by Stan Barber
+;Kermit-Trs80	(kermit/asm)
+;originally based on CP/M-80 Kermit V3.5
+;started	10-Oct-83
+;updated	04-Jan-84	by Stan Barber
 ;updated    	29-Nov-85	by Nick Andrew.
 ;Next Update	23-Mar-86	by Nick Andrew.
+;Next Update	30-Jul-86	by Nick Andrew.
 ;
-;Changed by Nick Andrew 29-Nov-85/23-Mar-86 for:
+;Changed by Nick Andrew 29-Nov-85 for:
 ;  - Different RS232 interfaces
+;Change on 30-Jul-86 for:
+;  - Use of proper 8bit quote '&' if necessary
+;    NECESSARY :- Only if PARITY <> NONE.
+;  - Use of repeat quote '~' (soon ... not yet)
+;  - Rationalised default values
+;  - Removing most of the MASSIVE bugs of the old version
+;  - Removed file contents conversion
+;    File content conversion can easily be done on the
+;    host or slave systems... and can be much more
+;    sophisticated than Kermit could ever achieve.
 ;
-;Version for:	  YES   1) Trs-80 Model I
+;
+;Version for:	  YES   1) Trs-80 Model I/III
 ;		  YES   2) System-80
 ;		  YES   3) 8251 USART	(Zeta Rtrs)
-;		  NO    4) ACIA		(Aterm)
+;		  YES   4) ACIA		(Aterm)
+;		  NO	5) Trs-80 Model III only
 ;
 ;
-;Flags: 1=Active, 0=Inactive
-F_TRS80		EQU	0
-F_SYS80		EQU	0
-F_ZETA		EQU	1
-F_ATERM		EQU	0
+;Flags: 1=Active, 0=Inactive. Only one to be set.
+F_TRS80	EQU	0		;model 1 or 3
+F_SYS80	EQU	0		;System-80
+F_ZETA	EQU	1		;Zeta Rtrs
+F_ATERM	EQU	0		;6850 ACIA ala Axle
 ;
-;Rs-232 configuration port info
-	IF	F_TRS80
+;
+;Rs-232 port information for all machine types.
+	IF	F_TRS80		;trs-80
 RESET	EQU	0E8H		;reset uart
-BAUDST	EQU	0E9H		;set baud rate
-MNPORT	EQU	0EBH		;RS232 data port
-MNPRTS	EQU	0EAH		;RS232 STATUS PORT
-OUTPUT	EQU	40H
-INPUT	EQU	80H
-;More descriptive flags...
+BAUDOUT	EQU	0E9H		;set baud rate
 RDDATA	EQU	0EBH
 WRDATA	EQU	0EBH
 RDSTAT	EQU	0EAH
 WRSTAT	EQU	0EAH
-DAV	EQU	7
-CTS	EQU	6
-	ENDIF	;f_trs80
+DAV	EQU	7		;Bit value of INPUT
+CTS	EQU	6		;Bit value of OUTPUT
+	ENDIF			;f_trs80
 ;
-	IF	F_ZETA		;8251 USART
-RESET	EQU	01H		;nowhere
-BAUDST	EQU	01H		;nowhere
+	IF	F_ZETA		;8251 Usart viz Zeta
 RDSTAT	EQU	0F9H		;Read Status
 WRSTAT	EQU	0F9H		;Write Command
 RDDATA	EQU	0F8H		;Read Data
 WRDATA	EQU	0F8H		;Write Data
 CTS	EQU	0		;Output bit pattern
 DAV	EQU	1		;Input bit pattern
-INPUT	EQU	2		;2 to power 1
-OUTPUT	EQU	1		;2 to power 0
-	ENDIF	;f_zeta
+	ENDIF			;zeta
 ;
-	IF	F_SYS80
+	IF	F_SYS80		;sys80
 RESETP	EQU	0F8H		;Port for reset.
 RESETB	EQU	04H		;Byte for reset.
 RDDATA	EQU	0F8H		;Read Data
 WRDATA	EQU	0F9H		;Write Data
 RDSTAT	EQU	0F9H		;Read Status
 WRSTAT	EQU	00H		;Not Used.
-OUTPUT	EQU	80H
-INPUT	EQU	01H
-DAV	EQU	0
+DAV	EQU	0		;(NOT.DAV actually)
 CTS	EQU	7
-	ENDIF	;f_sys80
-;End of RS232 changes
+	ENDIF			;sys80
+;
+	IF	F_ATERM		;aterm
+BAUDOUT	EQU	0E9H		;set baud rate
+RDDATA	EQU	0EBH
+WRDATA	EQU	0EBH
+RDSTAT	EQU	0EAH
+WRSTAT	EQU	0EAH
+DAV	EQU	0		;Bit value of INPUT
+CTS	EQU	1		;Bit value of OUTPUT
+	ENDIF			;aterm
+;
+;End of RS232 port info
 ;
 ;
 ;Comments at beginning of command file so EVERYBODY
 ;knows which version of KERMIT they are listing.
 ;
 	IF	F_TRS80
-	COM	'<Kermit 23-Mar-86 for Trs-80 M1>'
+	COM	'<Kermit 30-Jul-86 for Trs-80 M1/3>'
 	ENDIF
 	IF	F_SYS80
-	COM	'<Kermit 23-Mar-86 for System-80>'
+	COM	'<Kermit 30-Jul-86 for System-80>'
 	ENDIF
 	IF	F_ZETA
-	COM	'<Kermit 23-Mar-86 for Zeta Rtrs>'
+	COM	'<Kermit 30-Jul-86 for Zeta>'
 	ENDIF
 	IF	F_ATERM
-	COM	'<Kermit 23-Mar-86 for Aterm & ACIA>'
+	COM	'<Kermit 30-Jul-86 for Aterm>'
 	ENDIF
 ;
 ;
-	ORG	7000H	;GET OUT OF WAY OF DOS OVERLAYS
+	ORG	7000H		;GET OUT OF WAY OF DOS OVERLAYS
 ;
-;Symbolic Definitions for some ASCII characters
+;Symbol Definitions for some ASCII characters
 ;
-BELL	EQU	07O	;ASCII BEL (Control-G)
-CTRLC	EQU	03O	;ASCII ETX (Control-C)
-TAB	EQU	11O	;ASCII Tab (Control-I)
-LF	EQU	12O	;ASCII Line Feed (CTRL-J)
-FF	EQU	14O	;ASCII Form Feed (CTRL-L)
-CR	EQU	15O	;ASCII Carriage Return (CTRL-M)
-XON	EQU	21O	;The the ASCII character used for XON
-XOFF	EQU	23O	;The the ASCII character used for XOFF
-ESC	EQU	33O	;ASCII ESCape
-SUBT	EQU	32O	;ASCII SUB (CTRL-Z)
-DEL	EQU	177O	;ASCII DELete (rubout)
+SOH	EQU	01H		;Start of header char.
+BELL	EQU	7		;ASCII BEL (Control-G)
+CTRLC	EQU	3		;ASCII ETX (Control-C)
+TAB	EQU	9		;ASCII Tab (Control-I)
+LF	EQU	0AH		;ASCII Line Feed (CTRL-J)
+FF	EQU	0CH		;ASCII Form Feed (CTRL-L)
+CR	EQU	0DH		;ASCII Carriage Return (CTRL-M)
+XON	EQU	21O		;The ASCII character used for XON
+XOFF	EQU	23O		;The ASCII char used for XOFF
+ESC	EQU	33O		;ASCII ESCape
+SUBT	EQU	32O		;ASCII SUB (CTRL-Z)
+DEL	EQU	7FH		;ASCII DELete (rubout)
 ;
 DEFESC	EQU	31		;<CLEAR> key on key board
 DBAUD	EQU	55H		;Default baud rate (300)
-MAXPKT  EQU	'~'-' '+2O	;Maximum size of a packet.
-MAXTRY	EQU	05O		;Default number of retries on a packet.
-IMXTRY	EQU	20O		;Default number of retries send initiate.
-DRPSIZ	EQU	5EH		;Default receive packet size.
-DSPSIZ	EQU	20H		;Default send packet size.
-DSTIME	EQU	08H		;Default send time out interval.
-DRTIME	EQU	05H		;Default receive time out interval.
-DSPAD	EQU	00H		;Default send padding.
-DRPAD	EQU	00H		;Default receive padding.
-DSPADC	EQU	00H		;Default send padding char.
-DRPADC	EQU	00H		;Default receive padding char.
-DSEOL	EQU	CR		;Default send EOL char.
-DREOL	EQU	CR		;Default receive EOL char.
-DSQUOT	EQU	'#'		;Default send quote char.
-DRQUOT	EQU	'#'		;Default receive quote char.
-DSCHKT	EQU	'1'		;Default checksum type
+;
+;Our defaults. These are the defaults this copy of Kermit
+;likes to use for transfers. Labels should not be called
+;'S'end or 'R'eceive ... this is misleading.
+;
+;The following parameters are valid independant of what
+;the other system thinks:
+;    - Length of pad string REQUIRED BY US
+;    - Pad character REQUIRED BY US
+;    - EOL char REQUIRED BY US
+;    - Quote char WE WILL SEND out
+;    - Maximum packet size WE CAN READ
+;    - Period YOU should wait before timing ME out
+;
+;Following parameters must match the other side exactly
+;or the protocol default is taken for both sides:
+;    - Packet check type '1' or '2' or '3'
+;
+;Following parameters must be given values (other than
+;the default) BY BOTH SIDES if they are to be used,
+;otherwise NEITHER side may use them.
+;    - Repeat quoting character    '~'
+;
+;8'th bit quoting (ie. with '&') is done:
+;    on SEND :- only if PARITY<>NONE
+;    on RECV :- only if PARITY<>NONE
+;
+;I hope that explains the default values etc...
+;
+;Protocol defaults for variables ... DO NOT CHANGE.
+;These are the default values imposed upon us by the
+;protocol ie. if the other side doesn't tell us
+;explicitly what its values are for each field then
+;we use the values given below.
+PDPSIZ	EQU	5EH		;Send packet max size
+PDPAD	EQU	00H		;Send padding
+PDPADCH EQU	00H		;No pad char
+PDEOL	EQU	CR		;Carriage return
+PDQUOTE	EQU	'#'		;ordinary quote
+PDQUOTE8 EQU	' '		;no 8bit quoting
+PDCHK	EQU	'1'		;1-char checksum
+PDQUOTER EQU	' '		;no repeat quoting
+;
+;End of kermit protocol defaults.
+;
+MAXTRY	EQU	10H		;Default No. of retries on a packet.
+IMXTRY	EQU	10H		;Default number of retries send initiate.
+DSCHKT	EQU	'3'		;Block check we like
+;
+;
+DRPSIZ	EQU	PDPSIZ		;Default Recv packet size
+DSPSIZ	EQU	PDPSIZ		;Default send packet size
+DSTIME	EQU	20		;Default send timeout sec
+DRTIME	EQU	20		;Default recv timeout sec
+;
+DSPAD	EQU	PDPAD		;Default send padding.
+DRPAD	EQU	PDPAD		;Default receive padding.
+DSPADC	EQU	PDPADCH		;Default send pad char.
+DRPADC	EQU	PDPADCH		;Default recv pad char.
+;
+DSEOL	EQU	PDEOL		;Default send EOL char.
+DREOL	EQU	PDEOL		;Default recv EOL char.
+DSQUOT	EQU	PDQUOTE		;Default send quote char.
+DRQUOT	EQU	PDQUOTE		;Default recv quote char.
+;
+DSQUOTE8  EQU	PDQUOTE8	;Default quote8 (none!)
+DRQUOTE8  EQU	PDQUOTE8	;Default quote8 (none!)
+DSQUOTER  EQU	PDQUOTER	;Default repeat quote
+DRQUOTER  EQU	PDQUOTER	;Default repeat quote
+;
+;
+;Parity related fields
 PAREVN	EQU	00H		;Even parity.
 PARMRK	EQU	03H		;Mark parity.
 PARNON	EQU	06H		;No parity.
@@ -123,9 +194,10 @@ PARODD	EQU	09H		;Odd parity.
 PARSPC	EQU	0CH		;Space parity.
 DEFPAR	EQU	PARNON		;Default parity.
 IBMPAR	EQU	PARMRK		;IBM COMTEN's parity.
-SOH	EQU	01H		;Start of header char.
+;
 BUFSIZ	EQU	0
 DIASW	EQU	01H		;Default is diagnostics on.
+;
 CMKEY	EQU	01H		;Parse a keyword.
 CMIFI	EQU	02H		;Parse an input file spec (can be wild).
 CMOFI	EQU	03H		;Parse an output file spec.
@@ -133,23 +205,23 @@ CMCFM	EQU	04H		;Parse a confirm.
 CMTXT	EQU	05H		;Parse text.
 CMIFIN	EQU	10H		;Parse an input file spec (but no
 ;dos calls (all preceeded by @)
-@GET	EQU	13H	;get a byte from a file
-@PUT	EQU	1BH	;put a byte in a file
-@KBD	EQU	2BH	;scan keyboard and return
-@DSP	EQU	33H	;put a character on screen
-@PRT	EQU	3BH	;put a character on the printer
-@KEYIN	EQU	40H	;get a line from keyboard
-@KEY	EQU	49H	;wait for key from keyboard
-@EXIT	EQU	402DH	;normal exit to dos
-@ABORT	EQU	4030H	;abnormal exit to dos
-@CMNDI	EQU	4405H	;execute command =>HL
-@ERROR	EQU	4409H	;print dos error
-@FSPEC	EQU	441CH	;process filespec
-@INIT	EQU	4420H	;initialize a file
-@OPEN	EQU	4424H	;open existing file
-@CLOSE	EQU	4428H	;close open file
-@KILL	EQU	442CH	;kill open file
-@VER	EQU	443CH	;write a sector with verify
+@GET	EQU	13H		;get a byte from a file
+@PUT	EQU	1BH		;put a byte in a file
+@KBD	EQU	2BH		;scan keyboard and return
+@DSP	EQU	33H		;put a character on screen
+@PRT	EQU	3BH		;put a character on the printer
+@KEYIN	EQU	40H		;get a line from keyboard
+@KEY	EQU	49H		;wait for key from keyboard
+@EXIT	EQU	402DH		;normal exit to dos
+@ABORT	EQU	4030H		;abnormal exit to dos
+@CMNDI	EQU	4405H		;execute command =>HL
+@ERROR	EQU	4409H		;print dos error
+@FSPEC	EQU	441CH		;process filespec
+@INIT	EQU	4420H		;initialize a file
+@OPEN	EQU	4424H		;open existing file
+@CLOSE	EQU	4428H		;close open file
+@KILL	EQU	442CH		;kill open file
+@VER	EQU	443CH		;write a sector with verify
 ;
 START	LD	(OLDSP),SP
 	LD	SP,STACK
@@ -160,32 +232,43 @@ START	LD	(OLDSP),SP
 	CALL	PRTSTR
 	CALL	KERMIT
 	JP	EXIT1
+;
 MDMRST
 	IF	F_TRS80
-	LD	A,(SPEED)		;trs80
-	OUT	(RESET),A		;trs80
-	OUT	(BAUDST),A		;trs80
-	LD	A,108			;trs80
-	OUT	(MNPRTS),A		;trs80
-	ENDIF	;f_trs80
+	LD	A,(SPEED)	;trs80
+	OUT	(RESET),A	;trs80
+	OUT	(BAUDOUT),A	;trs80
+	LD	A,108		;trs80
+	OUT	(MNPRTS),A	;trs80
+	ENDIF			;f_trs80
 ;
 	IF	F_ZETA
-	LD	A,82H			;zeta
-	LD	(WRSTAT),A		;zeta
-	LD	A,40H			;zeta
-	LD	(WRSTAT),A		;zeta
-	LD	A,0EH			;zeta
-	LD	(WRSTAT),A		;zeta
-	LD	A,05H			;zeta
-	LD	(WRSTAT),A		;zeta
-	ENDIF	;f_zeta
+	LD	A,82H		;zeta
+	LD	(WRSTAT),A	;zeta
+	LD	A,40H		;zeta
+	LD	(WRSTAT),A	;zeta
+	LD	A,0EH		;zeta
+	LD	(WRSTAT),A	;zeta
+	LD	A,05H		;zeta
+	LD	(WRSTAT),A	;zeta
+	ENDIF			;zeta
 ;
 	IF	F_SYS80
-	LD	A,RESETB		;sys80
-	OUT	(RESETP),A		;sys80
-	ENDIF	;f_sys80
+	LD	A,RESETB	;sys80
+	OUT	(RESETP),A	;sys80
+	ENDIF			;sys80
+;
+	IF	F_ATERM
+	LD	A,03H		;aterm
+	OUT	(WRSTAT),A	;aterm
+	LD	A,15H		;aterm
+	OUT	(WRSTAT),A	;aterm
+	LD	A,(SPEED)	;aterm
+	OUT	(BAUDOUT),A	;aterm
+	ENDIF
 ;
 	RET
+;
 CMBLNK	PUSH	DE
 	LD	DE,CLRTOP
 	CALL	PRTSTR
@@ -206,9 +289,12 @@ CONOUT	PUSH	DE
 PRTSTR	LD	A,(DE)
 	CP	'$'
 	RET	Z
+	OR	A
+	RET	Z
 	CALL	CONOUT
 	INC	DE
 	JR	PRTSTR
+;
 CONIN	PUSH	DE
 	CALL	@KBD
 	POP	DE
@@ -252,6 +338,7 @@ KERMT2	LD	DE,ERMES1
 KERMT3	LD	DE,ERMES3
 	CALL	PRTSTR
 	JP	KERMIT
+;
 SETPAR	PUSH	HL
 	PUSH	BC
 	LD	HL,PARITY
@@ -284,24 +371,30 @@ PARRET	POP	BC
 ;Character sending routines
 OUTCHR	PUSH	DE
 OUTCHR1
-	IN	A,(RDSTAT)		;********
-	BIT	CTS,A			;********
+	IN	A,(RDSTAT)
+	BIT	CTS,A
 	JR	Z,OUTCHR1
 	LD	A,E
 	CALL	SETPAR
-	OUT	(WRDATA),A		;********
+	OUT	(WRDATA),A
 	POP	DE
 	RET
 INCHR
-	IN	A,(RDSTAT)		;********
-	BIT	DAV,A			;********
-	JR	NZ,INCHR2
+	IN	A,(RDSTAT)
+	BIT	DAV,A
+;
+;System-80 DAV bit is inverted to the others.
+	IF	F_SYS80
+	JR	Z,INCHR2	;sys80
+	ELSE
+	JR	NZ,INCHR2	;trs80,Zeta,Aterm
+	ENDIF
+;
 	CALL	CONIN
 	OR	A
 	JR	Z,INCHR
 	CP	CR
-	JR	NZ,INCHR4
-	RET
+	RET	Z
 INCHR4	CP	1AH		;CONTROL-Z?
 	JR	Z,INCHR5
 	CP	18H		;CONTROL-X?
@@ -310,14 +403,15 @@ INCHR5	ADD	A,20H
 	LD	(CZSEEN),A
 	RET
 INCHR2
-	IN	A,(RDDATA)			;********
+	IN	A,(RDDATA)
 	LD	B,A
 	LD	A,(PARITY)
 	CP	PARNON
 	LD	A,B
 	JP	Z,RSKP
-	AND	7FH
+	AND	7FH	;if par used, make 7 bits.
 	JP	RSKP
+;
 EXIT	LD	A,CMCFM
 	CALL	COMND
 	JP	KERMT3
@@ -331,13 +425,13 @@ HELP	LD	DE,TOPHLP
 	CALL	PRTSTR
 	JP	KERMIT
 ;
-*GET	COMND/ASM	;COMMAND PARSER
-*GET	KILLDIR/ASM	;KILL AND DIR COMMANDS
-*GET	MORE/ASM	;MOST OF THE NON PROTOCOL RELATED
-			;commands.
-*GET	GET/ASM		;RECEIVE PROTOCOL
-*GET	SEND/ASM	;SEND PROTOCOL
-*GET	XFER/ASM	;PROTOCOL COMMON CODE
-*GET	KERSTR/ASM	;STRINGS
+*GET	COMND/ASM		;COMMAND PARSER
+*GET	KILLDIR/ASM		;KILL AND DIR COMMANDS
+*GET	MORE/ASM		;MOST OF THE NON PROTOCOL RELATED
+				;commands.
+*GET	GET/ASM			;RECEIVE PROTOCOL
+*GET	SEND/ASM		;SEND PROTOCOL
+*GET	XFER/ASM		;PROTOCOL COMMON CODE
+*GET	KERSTR/ASM		;STRINGS
 ;
 	END	START

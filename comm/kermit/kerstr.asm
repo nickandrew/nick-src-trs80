@@ -1,10 +1,10 @@
-;kerstr/src.
-; Pure storage.
+;kerstr/asm.
+;Pure storage.
 OUTLN2	DB	CR,'Number of packets:'
 	DB	CR,'Number of retries:'
 	DB	CR,'File name:$'
-KERM	DB	'Kermit-TRS80'
-KERM1	DB	'>$'		
+KERM	DB	'Kermit Trs-80'
+KERM1	DB	'>$'
 ;DELPR:	DB	'Delete it? $'
 CRLF	DB	CR,'$'
 ERMES1	DB	CR,'?Unrecognized command$'
@@ -62,13 +62,13 @@ SETHLP	DB	CR,'BAud (rate)'
 	DB	CR,'DEBugging mode (to display packets)'
 ;	DB	CR,'DEFault-disk (to receive data)'
 	DB	CR,'Escape (character during CONNECT)'
-	DB	CR,'File-mode (for outgoing files)'
+	DB	CR,'File-mode (obsolete)'
 	DB	CR,'Ibm (parity and turn around handling)'
 	DB	CR,'Local-echo (half/duplex)'
 	DB	CR,'PArity (for communication line)'
 	DB	CR,'POrt (to communicate on)'
 	DB	CR,'PRinter (to print terminal session)'
-;*	DB      CR,LF,'RECEIVE (parameter)'	;Not currently i}plemented
+;*	DB      CR,LF,'RECEIVE (parameter)'	;Not currently implemented
 ;*	DB      CR,LF,'SEND (parameter)'	;Ditto
 	DB	CR,'Vt52-emulation'
 	DB	CR,'Warning (for filename conflicts)'
@@ -115,16 +115,16 @@ PEVNST	DB	'even$'
 SPEDST	DB	'Line Speed: $'
 BAUST	DB	' Baud',CR,'$'
 OUTLIN	DB	28,31,CR,'$'
-VERSIO	DM	'Kermit-80 V 3.5 (TRS-80 Model 1/3)',CR,'$'
+VERSIO	DM	'Kermit-80 V 4.0 (TRS-80/Sys80 Model 1/3)',CR,'$'
 DELSTR	DB	10O,' ',10O,'$'
 CLRSPC	DB	' ',8,'$'
 CLRLIN	DB	29,30,'$'
-SCRNP	DB	28,26,26,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,'$'	;place for packets
-SCRNRT	DB	28,26,26,26,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,'$'	;place for retries
-SCRST	DB	28,'$'	;place for complete
-SCRFLN	DB	28,26,26,26,26,25,25,25,25,25,25,25,25,25,25,25,'$'	;place for filename
-SCRERR	DB	28,26,26,26,26,26,26,'$'		;location for errors
-SCREND	DB	28,26,26,26,26,26,26,26,26,26,26,26,26,'$'	;location of last line
+SCRNP	DB	28,26,26,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,'$';place for packets
+SCRNRT	DB	28,26,26,26,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,'$';place for retries
+SCRST	DB	28,'$'		;place for complete
+SCRFLN	DB	28,26,26,26,26,25,25,25,25,25,25,25,25,25,25,25,'$';place for filename
+SCRERR	DB	28,26,26,26,26,26,26,'$';location for errors
+SCREND	DB	28,26,26,26,26,26,26,26,26,26,26,26,26,'$';location of last line
 RPPOS	DB	28,26,26,26,26,26,26,26,31,'RPack: $'
 SPPOS	DB	28,26,26,26,26,26,26,26,26,26,26,31,'SPack: $'
 TA	DB	1BH,'$',0,0	;cursor up
@@ -152,25 +152,25 @@ TK	DB	1EH,'$'		;clear  to end of line
 ;
 ;	---> Note this command table is in alphabetic order.
 ;
-COMTAB	DB	10H			;Number of entries (currently 16.)
+COMTAB	DB	10H		;Number of entries (currently 16.)
 	DB	03H,'BYE$',21H,21H
 	DB	07H,'CONNECT$',00H,00H
 	DB	03H,'DIR$',24H,24H
 	DB	03H,'ERA$',27H,27H
 	DB	04H,'EXIT$',03H,03H
 	DB	06H,'FINISH$',1BH,1BH
-	DB	03H,'GET$',0CH,0CH	;Same as RECEIVE
+	DB	03H,'GET$',0CH,0CH;Same as RECEIVE
 	DB	04H,'HELP$',06H,06H
-	DB	04H,'KILL$',27H,27H	;SAME AS ERA
+	DB	04H,'KILL$',27H,27H;SAME AS ERA
 	DB	03H,'LOG$',09H,09H
 	DB	06H,'LOGOUT$',1EH,1EH
 	DB	07H,'RECEIVE$',0CH,0CH
-	DB	04H,'SEND$',0FH,0FH	
+	DB	04H,'SEND$',0FH,0FH
 	DB	03H,'SET$',12H,12H
 	DB	04H,'SHOW$',15H,15H
 	DB	06H,'STATUS$',18H,18H
 SETTAB	DB	0CH		;Number of entries (currently 12.)
-	DB	04H,'BAUD$',21H,21H	;Data keys to SETJTB positions.
+	DB	04H,'BAUD$',21H,21H;Data keys to SETJTB positions.
 	DB	10H,'BLOCK-CHECK-TYPE$',18H,18H
 	DB	09H,'DEBUGGING$',27H,27H
 ;*	DB	0CH,'DEFAULT-DISK$',24H,24H
@@ -267,13 +267,13 @@ VTFLG	DB	1		;VT52 emulation flag (default on).
 FLWFLG	DB	1		;file warning flag (default on)
 IBMFLG	DB	0		;IBM flag (default off).
 CPMFLG	DB	0		;File was created by DOS
-DBFLG	DB	0		;debugging flag (default off)
+DBFLG	DB	DIASW		;debugging flag.
 PRTFLG	DB	0		;printer flag (default off)
 PARITY	DB	DEFPAR		;Parity.
 ESCCHR	DB	DEFESC		;Storage for the escape character.
 CHRCNT	DS	1		;Number of chars in the file buffer.
 FILCNT	DS	1		;Number of chars left to fill.
-PORT	DS	1		;port for commuications
+PORT	DS	1		;port for communications
 OUTPNT	DS	2		;Position in packet.
 BUFPNT	DS	2		;Position in file buffer.
 FCBPTR	DS	2		;Position in FCB.
@@ -284,21 +284,34 @@ CBFPTR	DS	2		;Position in character buffer.
 PKTPTR	DS	2		;Poistion in receive packet.
 SIZE	DS	1		;Size of data from gtchr.
 SPEED	DB	DBAUD		;baud rate
+;
+;*** My & your defaults .... ***
+;
 SPSIZ	DB	DSPSIZ		;Send packet size.
-RPSIZ	DB	DRPSIZ		;Receive packet size.
 STIME	DB	DSTIME		;Send time out.
-RTIME	DB	DRTIME		;Receive time out.
 SPAD	DB	DSPAD		;Send padding.
-RPAD	DB	DRPAD		;Receive padding.
 SPADCH	DB	DSPADC		;Send padding char.
-RPADCH	DB	DRPADC		;Receive padding char.
 SEOL	DB	DSEOL		;Send EOL char.
-REOL	DB	DREOL		;Receive EOL char.
 SQUOTE	DB	DSQUOT		;Send quote char.
+SQUOTE8	DEFB	DSQUOTE8	;Send 8'th bit quote
+SQUOTER	DEFB	DSQUOTER	;Send repeat quote
+;
+RPSIZ	DB	DRPSIZ		;Receive packet size.
+RTIME	DB	DRTIME		;Receive time out.
+RPAD	DB	DRPAD		;Receive padding.
+RPADCH	DB	DRPADC		;Receive padding char.
+REOL	DB	DREOL		;Receive EOL char.
 RQUOTE	DB	DRQUOT		;Receive quote char.
+RQUOTE8	DEFB	DRQUOTE8	;Receive quote8
+RQUOTER	DEFB	DRQUOTER	;Receive quoter
+;
+;
+BIT7_FLAG	DEFB	0	;Receive prior quoted B7.
+;
 CHKTYP	DB	DSCHKT		;Checksum type desired
 CURCHK	DB	DSCHKT		;Current checksum type
 INICHK	DB	DSCHKT		;Agreed upon checksum type
+;
 CZSEEN	DS	1		;Flag that control-Z was typed
 MFNPTR	DW	MFNBUF		;multiple file processing buffer
 PKTNUM	DS	1		;Packet number.
@@ -326,3 +339,4 @@ KFCB	DS	50		;kill file fcb
 BUFF	DS	256		;file buffer
 LBUFF	DS	256		;log file buffer
 ARGBLK	DS	20H		;Used for subroutine arguments.
+;
