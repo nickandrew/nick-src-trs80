@@ -1,4 +1,4 @@
-;Fortyhex: Rewrite of routine at 0040H except
+;Fortyhex.lib: Rewrite of routine at 0040H except
 ;uses standard devices (not 33H) and CAN terminate
 ;the string with a null rather than CR.
 ;Last modified on 20-Jan-87 for no-echo.
@@ -44,6 +44,8 @@ _40H_CR
 	LD	(HL),0
 	ELSE
 	LD	(HL),CR
+	INC	HL
+	LD	(HL),0
 	ENDIF
 ;
 	PUSH	AF
