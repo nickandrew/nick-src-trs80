@@ -1,4 +1,4 @@
-/*  Direct.c: Add, List and Unpack 'directory files'.      */
+/*  Direct.c: Add, List and Unpack 'directory files'.       */
  /***********************************************************
  * Direct.c:    Source code for DIRECT.                     *
  * Environment: Unix System V                           OR  *
@@ -9,12 +9,14 @@
  *       STDIO.H          On your own system                *
  *                                                          *
  * Language:    C                                           *
- * Version:     1.3  09-Aug-86                              *
+ * Version:     1.3a 18-Oct-86                              *
  * Program:     (C) 1986 by Zeta Microcomputer Software     *
  *              Released to Public Domain 11-Mar-86         *
  * Updates:                                                 *
  *  1.2   02-Aug-86: Added description in 'S' command.      *
  *  1.3   09-Aug-86: Added version title on execution.      *
+ *  1.3a  18-Oct-86: Closed open file to add, renamed so    *
+ *                   it did not conflict with function name *
  *                                                          *
  *                                                          *
  *   If you like this program and you are an honest person  *
@@ -30,11 +32,11 @@
 
 int  is_open;
 FILE *fpdir,*fpdat;
-char cmd[60],*cp,fname[80],*fcp;
+char cmd[80],*cp,fname[80],*fcp;
 
 
-#define VERSION      "1.3"
-#define VERDATE      "09-Aug-86"
+#define VERSION      "1.3a"
+#define VERDATE      "18-Oct-86"
 #define FILELEN      16
 #define DESCLEN      42
 
@@ -94,7 +96,7 @@ main() {
 
 prompt() {
    printf("Direct %s> ",VERSION);
-   if (gets(cmd)==NULL)
+   if (fgets(cmd,80,stdin)==NULL)
       doexit();
 }
 
@@ -227,7 +229,7 @@ list() {
 addfile() {
    char sysfn[80],dirfn[FILELEN],buffer[BUFSIZ],desc[DESCLEN];
    char *dcp,*addfn;
-   FILE *addfile;
+   FILE *a_file;
    int  i,nitems;
    long flen,fend,ftell();
    cp++;
@@ -246,19 +248,20 @@ addfile() {
    *fcp=0;
    addfn=(*dirfn ? dirfn : sysfn);
    printf("Adding %s\n",addfn);
-   if ((addfile=openup(sysfn,"r"))==NULL) return;
+   if ((a_file=openup(sysfn,"r"))==NULL) return;
    fseek(fpdir,0L,2);
    fseek(fpdat,0L,2);
    fend=ftell(fpdat);
-   fseek(addfile,0L,2);
-   flen=ftell(addfile);
-   rewind(addfile);
+   fseek(a_file,0L,2);
+   flen=ftell(a_file);
+   rewind(a_file);
 
    /* Setup data about this entry */
 
    /* Firstly lengths */
    if (flen == 0L) {
       printf("File %s is empty!!\n",addfn);
+      fclose(a_file);
       return;
    }
 
@@ -272,6 +275,7 @@ addfile() {
 
    if (fend != 0L) {
       printf("%s.dir file is too long!\n",fname);
+      fclose(a_file);
       return;
    }
 
@@ -283,6 +287,7 @@ addfile() {
       fend /= 256;
    if (fend != 0L) {
       printf("Add file %s is too long!\n",sysfn);
+      fclose(a_file);
       return;
    }
 
@@ -303,9 +308,10 @@ addfile() {
       directory.description[i++]=' ';
 
    /* Copy all of sysfn to end of fpdat */
-   while (nitems=fread(buffer,1,BUFSIZ,addfile)) {
+   while (nitems=fread(buffer,1,BUFSIZ,a_file)) {
       if (fwrite(buffer,1,nitems,fpdat)!=nitems) {
          printf("Can't add file to %s.dat file\n",fname);
+         fclose(a_file);
          return;
       }
    }
@@ -313,8 +319,10 @@ addfile() {
    /* Write entry to '.dir' file */
    if (fwrite(&directory,sizeof(directory),1,fpdir)!=1) {
       printf("Can't add entry to %s.dir file\n",fname);
+      fclose(a_file);
       return;
    }
+   fclose(a_file);
 }
 
 syscall() {
@@ -350,14 +358,14 @@ extract() {
    while (!white(*cp) && *cp && i++ < FILELEN)
       *(fcp++)= *(cp++);
    while (i<FILELEN) dirfn[i++]=' ';
-
+   
    dirfn[i]=0;
    rewind(fpdir);
    while (fread(&directory,sizeof(directory),1,fpdir)==1) {
       if (!strncmp(directory.filename,dirfn,FILELEN)) {
          strncpy(filestr,directory.filename,FILELEN);
          strncpy(descstr,directory.description,DESCLEN);
-         printf("%s %s\n",filestr,descstr);
+         printf("'%s' %s\n",filestr,descstr);
          printf("Write to which file? ");
          if (gets(dest)==NULL) doexit();
          if ((fpdest=openup(dest,"w"))==NULL) return;
@@ -397,4 +405,11 @@ extract() {
       }
    }
    printf("No matching file in %s\n",fname);
+}
+
+char tolower(c)
+char c;
+{
+   if (c>='A' && c<='Z') c+='a'-'A';
+   return c;
 }
