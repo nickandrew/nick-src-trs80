@@ -1,0 +1,57 @@
+C234567890
+      PROGRAM DB
+      INTEGER ACTION,ERRCOD,SNAME(8),LSTART
+      COMMON ERRCOD,LSTART
+      CALL PRINT('This is DB, at your service...',30)
+      CALL SETUP
+   10 CALL MENU(ACTION)
+      GO TO (20,30,40,50,60,70,80,90,100),ACTION
+C     - Insert a new article into the tree.
+   20 CALL TYPEIN
+      IF (ERRCOD) 10,25,10
+   25 CALL PRINT('I now need to create directory',30)
+      CALL PRINT('links for your article.',23)
+C     CALL NEWLKS
+      GO TO 10
+C     - Delete an article.
+   30 WRITE (1,103)
+  103 FORMAT ('+Input article # to delete: ')
+      READ (1,104) NUMBER
+  104 FORMAT (I5)
+      CALL DELART(NUMBER)
+      IF (ERRCOD) 10,35,10
+   35 CALL DELLKS(NUMBER)
+      GO TO 10
+   50 CALL PRINT('Now printing tree representation:',33)
+      CALL PTREE
+      GO TO 10
+   60 CALL FRESPC
+      CALL WAITKB
+      GO TO 10
+  100 WRITE (1,2005)
+      READ  (1,1006) INUM
+ 2005 FORMAT ('+LOOK AT WHICH ARTICLE: ')
+ 1006 FORMAT (I5)
+      CALL PRTART(INUM)
+      GO TO 10
+C     - SEARCH STRUCTURE
+   40 CALL PRINT('SEARCH TREE STRUCTURE',21)
+      CALL WAITKB
+      CALL SEARCH
+      GO TO 10
+   70 CALL PRINT('MODIFY TREE STRUCTURE',21)
+      CALL WAITKB
+      CALL WALK
+      GO TO 10
+   80 CALL PRINT('CREATE NEW MASTER ENTRY',23)
+      WRITE (1,2007)
+      READ (1,1008) SNAME
+ 2007 FORMAT('+ENTER NAME OF NEW MASTER ENTRY: ')
+ 1008 FORMAT (8A2)
+      CALL CRMAST(SNAME)
+      IF (ERRCOD) 10,85,10
+   85 CALL PRINT('NOW MODIFY MASTER STRUCTURE.',28)
+      GO TO 70
+   90 CALL FINISH
+      CALL PRINT('Bye from DB...',14)
+      END

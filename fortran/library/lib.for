@@ -1,0 +1,169 @@
+C234567890
+C LIBRARY2/EDT: LIBRARY OF FUNCTION AND SUBROUTINE
+C                SUBPROGRAMS
+C SUBROUTINES: CLS$,CURS$,INVER$,GRA$$,PASS$$,HKEY$
+C              WAIT$,
+C FUNCTIONS:   HI$,LO$,LEN$,CMP$
+      SUBROUTINE CLS$
+      I$1=28
+      I$2=31
+      WRITE (1,1) I$1,I$2
+1     FORMAT ('+',2(A2))
+      RETURN
+      END
+      SUBROUTINE CURS$(X,Y)
+      INTEGER X,Y
+      IF (X-63) 2,4,4
+2     IF (Y-15) 3,3,4
+4     X=0
+      Y=0
+3     I$3=15360+Y*64+X
+      I$4=I$3/256
+      I$5=I$3-256*I$4
+      CALL POKE(16416,I$5)
+      CALL POKE(16417,I$4)
+      RETURN
+      END
+      SUBROUTINE INVER$(KEY$)
+      INTEGER KEY$
+      IF (KEY$.EQ.'ON') GO TO 5
+      IF (KEY$.EQ.'OF') GO TO 6
+      WRITE (1,100) KEY$
+100   FORMAT('+BAD INVERSE CODE: ',A2,'.')
+      RETURN
+5     I$6=PEEK(16445).OR.16
+      CALL POKE(16445,I$6)
+      CALL OUT(255,I$6)
+      RETURN
+6     I$6=PEEK(16445).AND.239
+      CALL POKE(16445,I$6)
+      CALL OUT(255,I$6)
+      RETURN
+      END
+      SUBROUTINE GRA$$(X,Y,FUNC$)
+      INTEGER X,Y
+      INTEGER FUNC$
+      I$7=Y/3
+      I$8=Y-3*I$7
+      I$9=X/2
+      I$10=X-2*I$9
+      I$11=15360+I$7*64+I$9
+      I$12=2*I$8+I$10
+      IF (FUNC$.EQ.'SE') GO TO 8
+      IF (FUNC$.EQ.'RE') GO TO 9
+      IF (FUNC$.EQ.'PO') GO TO 10
+      RETURN
+8     I$13=PEEK(I$11)
+      IF ((I$13.AND.128).EQ.128) GO TO 11
+      I$13=128
+11    I$13=I$13.OR.(2**I$12)
+      CALL POKE(I$11,I$13)
+      RETURN
+9     I$13=PEEK(I$11)
+      IF ((I$13.AND.128).EQ.128) GO TO 12
+      I$13=128
+12    I$13=I$13.AND.(255-2**I$12)
+      CALL POKE(I$11,I$13)
+      RETURN
+10    I$13=PEEK(I$11)
+      Y=I$13
+      X=0
+      IF ((Y.AND.(128+2**I$12)).NE.(128+2**I$12))GO TO 13
+      X=1
+13    RETURN
+      END
+      SUBROUTINE PASS$$(I$IN,I$OUT)
+      INTEGER PASSWD(3),PASS(3)
+      DATA PASSWD/'QU','AS','AR'/
+      I$OUT=0
+      IF (I$IN.NE.1) GO TO 14
+      WRITE(1,15)
+      READ (1,16) PASS
+15    FORMAT ('+ENTER PASSWORD:')
+16    FORMAT (6A2)
+      DO 17 I$CO=1,3
+      IF (PASS(I$CO).NE.PASSWD(I$CO)) I$OUT=1
+17    CONTINUE
+14    RETURN
+      END
+      INTEGER FUNCTION LO$(I$15)
+      LO$=I$15.AND.255
+      RETURN
+      END
+      INTEGER FUNCTION HI$(I$16)
+      R$1=FLOAT(I$16)
+      IF (R$1) 18,18,19
+18    R$1=R$1+65536.0
+19    HI$=INT(R$1/256.0)
+      RETURN
+      END
+      SUBROUTINE HKEY$
+20    I$17=PEEK(Z'38FF')
+      IF (I$17) 20,23,20
+23    I$17=PEEK(Z'38FF')
+      IF (I$17) 21,23,21
+21    RETURN
+      END
+      SUBROUTINE WAIT$(SEC$)
+      INTEGER SEC$
+      DO 22 I$18=1,SEC$
+      DO 22 I$19=1,10000
+22    CONTINUE
+      RETURN
+      END
+      SUBROUTINE SCRN$(BUFF$,KEY$)
+      INTEGER BUFF$(16,32),KEY$
+      DO 24 I$LINE=1,16
+      DO 24 I$X=1,32
+      I$POS=15360+64*(I$LINE-1)+2*(I$X-1)
+      I$20=I$POS+1
+      IF (KEY$.EQ.1) GO TO 23
+      I$21=LO$(BUFF$(I$LINE,I$X))
+      I$22=HI$(BUFF$(I$LINE,I$X))
+      CALL POKE(I$POS,I$21)
+      CALL POKE(I$20,I$22)
+      GO TO 24
+23    BUFF$(I$LINE,I$X)=PEEK(I$POS)+256*PEEK(I$20)
+24    CONTINUE
+      RETURN
+      END
+      INTEGER FUNCTION LEN$(STRING,I$DIM)
+      INTEGER COUNT,STRING
+      DIMENSION STRING(I$DIM)
+      COUNT=I$DIM
+10    I$WORD=STRING(COUNT)
+      IF (HI$(I$WORD).NE.32) GO TO 30
+      IF (LO$(I$WORD).NE.32) GO TO 40
+      COUNT=COUNT-1
+      IF (COUNT.NE.0) GO TO 10
+      LEN$=0
+      RETURN
+30    LEN$=COUNT*2
+      RETURN
+40    LEN$=COUNT*2-1
+      RETURN
+      END
+      INTEGER FUNCTION CMP$(STR1,STR2,I$DIM)
+      DIMENSION STR1(I$DIM),STR2(I$DIM)
+      INTEGER STR1,STR2,I$DIM,COUNT,LEN1,LEN2
+      LEN1=LEN$(STR1,I$DIM)
+      LEN2=LEN$(STR2,I$DIM)
+      LEN3=LEN1-LEN2
+      IF (LEN1.EQ.LEN2) GO TO 10
+      CMP$=ISIGN(1,LEN3)
+      RETURN
+10    DO 20 COUNT=1,I$DIM
+      I$1=STR1(COUNT)
+      I$2=STR2(COUNT)
+      IF (LO$(I$1).EQ.LO$(I$2)) GO TO 12
+      ILO=LO$(I$1)-LO$(I$2)
+      CMP$=ISIGN(1,ILO)
+      RETURN
+12    IF (HI$(I$1).EQ.HI$(I$2)) GO TO 20
+      ILO=HI$(I$1)-HI$(I$2)
+      CMP$=ISIGN(1,ILO)
+      RETURN
+20    CONTINUE
+      CMP$=0
+      RETURN
+      END

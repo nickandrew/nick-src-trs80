@@ -1,0 +1,25 @@
+C234567890
+      PROGRAM SETUP
+      INTEGER STRING(16)
+      CALL OPEN(5,'DISKFREE ',6)
+      DO 10 I=1,20
+      J=77
+      WRITE (5,100) J
+  100 FORMAT (' ',I5)
+   10 CONTINUE
+      ENDFILE 5
+      CALL OPEN(5,'COMMENTS ',33)
+      DO 20 I=1,32
+   20 STRING(I)='  '
+      WRITE (5,110) STRING
+  110 FORMAT (' ',16A2)
+      ENDFILE 5
+      CALL OPEN(5,'DELETED ',6)
+      J=1
+      K=0
+      WRITE (5,120) J
+  120 FORMAT (' 'I5)
+      DO 30 I=1,100
+   30 WRITE (5,120) K
+      ENDFILE 5
+      END
