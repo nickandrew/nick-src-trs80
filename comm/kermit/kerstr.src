@@ -1,3 +1,4 @@
+;kerstr/src.
 ; Pure storage.
 OUTLN2:	DB	CR,'Number of packets:'
 	DB	CR,'Number of retries:'
@@ -184,40 +185,34 @@ SETTAB:	DB	0CH		; Number of entries (currently 12.)
 ;*	DB	04H,'SEND$',0CH,0CH	; Ditto
 	DB	0EH,'VT52-EMULATION$',1BH,1BH
 	DB	07H,'WARNING$',0FH,0FH
-
 STSNTB:	DB	02H
 	DB	08H,'PAD-CHAR$',00H,00H
 	DB	07H,'PADDING$',03H,03H
-
 BLKTAB:	DB	03H
 	DB	14H,'1-CHARACTER-CHECKSUM$','1','1'
 	DB	14H,'2-CHARACTER-CHECKSUM$','2','2'
 	DB	15H,'3-CHARACTER-CRC-CCITT$','3','3'
-
 PARTAB:	DB	05H		; Five entries.
 	DB	04H,'EVEN$',PAREVN,PAREVN
 	DB	04H,'MARK$',PARMRK,PARMRK
 	DB	04H,'NONE$',PARNON,PARNON
 	DB	03H,'ODD$',PARODD,PARODD
 	DB	05H,'SPACE$',PARSPC,PARSPC
-
 ONTAB:	DB	02H		; Two entries.
 	DB	02H,'ON$',01H,01H
 	DB	03H,'OFF$',00H,00H
-
 TYPTAB:	DB	03H		;Three entries
 	DB	05H,'ASCII$',01H,01H
 	DB	06H,'BINARY$',02H,02H
 	DB	07H,'DEFAULT$',00H,00H
-
 PRTTAB:	DB	01H		; Only one port known at this point
 	DB	08H,'STANDARD$'
-	DW	MNPORT,MNPORT
-
+;;;	DW	MNPORT,MNPORT			;********
+	DEFW	RDDATA,RDDATA			;********
+				;what the hell for??
 YESTAB:	DB	02H		; Two entries.
 	DB	02H,'NO$',00H,00H
 	DB	03H,'YES$',01H,01H
-
 CMER00:	DB	CR,'?Program error:  Invalid COMND call$'
 CMER01:	DB	CR,'?Ambiguous$'
 CMER02:	DB	CR,'?Illegal input file spec$'
@@ -241,9 +236,7 @@ SPDTAB:	DB	10H			;16 entries
 	DB	04H,'9600$',0EEH,0EEH
 	DB	05H,'19200$',0FFH,0FFH
 	; Impure data
-
 ; COMND storage
-
 CMSTAT:	DS	1		; What is presently being parsed.
 CMAFLG:	DS	1		; Non-zero when an action char has been found.
 CMCCNT:	DS	1		; Non-zero if a significant char is found.
@@ -272,7 +265,6 @@ ECOFLG:	DB	0		; Local echo flag (default off).
 ESCFLG:	DB	0		; Escape flag (start off).
 VTFLG:	DB	1		; VT52 emulation flag (default on).
 FLWFLG:	DB	1		;file warning flag (default on)
-
 IBMFLG:	DB	0		; IBM flag (default off).
 CPMFLG:	DB	0		; File was created by DOS
 DBFLG:	DB	0		;debugging flag (default off)

@@ -1,9 +1,89 @@
-;kermit-trs80
-;started 10/10/83
-;updated 04/01/84
-;by Stan Barber
+;kermit-trs80	(kermit/src)
 ;based on CP/M-80 Kermit
+;started	10/10/83
+;updated	04/01/84	by Stan Barber
+;updated    	29-Nov-85	by Nick Andrew.
+;Next Update	23-Mar-86	by Nick Andrew.
+;
+;Changed by Nick Andrew 29-Nov-85/23-Mar-86 for:
+;   - Different RS232 interfaces
+;
+;Version for:	  YES   1) Trs-80 Model I
+;		  YES   2) System-80
+;		  YES   3) 8251 USART	(Zeta Rtrs)
+;		  NO    4) ACIA		(Aterm)
+;
+;
+;Flags: 1=Active, 0=Inactive
+F_TRS80		EQU	0
+F_SYS80		EQU	0
+F_ZETA		EQU	1
+F_ATERM		EQU	0
+;
+;Rs-232 configuration port info
+	IF	F_TRS80
+RESET	EQU	0E8H		;reset uart
+BAUDST	EQU	0E9H		;set baud rate
+MNPORT	EQU	0EBH		;RS232 data port
+MNPRTS	EQU	0EAH		;RS232 STATUS PORT
+OUTPUT	EQU	40H
+INPUT	EQU	80H
+;More descriptive flags...
+RDDATA	EQU	0EBH
+WRDATA	EQU	0EBH
+RDSTAT	EQU	0EAH
+WRSTAT	EQU	0EAH
+DAV	EQU	7
+CTS	EQU	6
+	ENDIF	;f_trs80
+;
+	IF	F_ZETA		;8251 USART
+RESET	EQU	01H		;nowhere
+BAUDST	EQU	01H		;nowhere
+RDSTAT	EQU	0F9H		;Read Status
+WRSTAT	EQU	0F9H		;Write Command
+RDDATA	EQU	0F8H		;Read Data
+WRDATA	EQU	0F8H		;Write Data
+CTS 	EQU	0		;Output bit pattern
+DAV	EQU	1		;Input bit pattern
+INPUT	EQU	2		;2 to power 1
+OUTPUT	EQU	1		;2 to power 0
+	ENDIF	;f_zeta
+;
+	IF	F_SYS80
+RESETP	EQU	0F8H		;Port for reset.
+RESETB	EQU	04H		;Byte for reset.
+RDDATA	EQU	0F8H		;Read Data
+WRDATA	EQU	0F9H		;Write Data
+RDSTAT	EQU	0F9H		;Read Status
+WRSTAT	EQU	00H		;Not Used.
+OUTPUT	EQU	80H
+INPUT	EQU	01H
+DAV	EQU	0
+CTS	EQU	7
+	ENDIF	;f_sys80
+;End of RS232 changes
+;
+;
+;Comments at beginning of command file so EVERYBODY
+;knows which version of KERMIT they are listing.
+;
+	IF	F_TRS80
+	COM	'<Kermit 23-Mar-86 for Trs-80 M1>'
+	ENDIF
+	IF	F_SYS80
+	COM	'<Kermit 23-Mar-86 for System-80>'
+	ENDIF
+	IF	F_ZETA
+	COM	'<Kermit 23-Mar-86 for Zeta Rtrs>'
+	ENDIF
+	IF	F_ATERM
+	COM	'<Kermit 23-Mar-86 for Aterm & ACIA>'
+	ENDIF
+;
+;
 	ORG	7000H	;GET OUT OF WAY OF DOS OVERLAYS
+;
 ; Symbolic Definitions for some ASCII characters
 ;
 BELL	EQU	07O	;ASCII BEL (Control-G)
@@ -17,12 +97,7 @@ XOFF	EQU	23O	;The the ASCII character used for XOFF
 ESC	EQU	33O	;ASCII ESCape
 SUBT	EQU	32O	;ASCII SUB (CTRL-Z)
 DEL	EQU	177O	;ASCII DELete (rubout)
-RESET	EQU	0E8H		;reset uart
-BAUDST	EQU	0E9H		;set baud rate
-MNPORT	EQU	0EBH		;RS232 data port
-MNPRTS	EQU	0EAH		;RS232 STATUS PORT
-OUTPUT	EQU	40H
-INPUT	EQU	80H
+;
 DEFESC	EQU	31		;<CLEAR> key on key board
 DBAUD	EQU	55H		;Default baud rate (300)
 MAXPKT  EQU	'~'-' '+2O	; Maximum size of a packet.
@@ -75,6 +150,7 @@ CMIFIN	EQU	10H		; Parse an input file spec (but no
 @CLOSE	EQU	4428H	;close open file
 @KILL	EQU	442CH	;kill open file
 @VER	EQU	443CH	;write a sector with verify
+;
 START	LD	(OLDSP),SP
 	LD	SP,STACK
 	CALL	MDMRST
@@ -84,17 +160,38 @@ START	LD	(OLDSP),SP
 	CALL	PRTSTR
 	CALL	KERMIT
 	JP	EXIT1
-MDMRST	LD	A,(SPEED)
-	OUT	(RESET),A
-	OUT	(BAUDST),A
-	LD	A,108
-	OUT	(MNPRTS),A
+MDMRST
+	IF	F_TRS80
+	LD	A,(SPEED)		;trs80
+	OUT	(RESET),A		;trs80
+	OUT	(BAUDST),A		;trs80
+	LD	A,108			;trs80
+	OUT	(MNPRTS),A		;trs80
+	ENDIF	;f_trs80
+;
+	IF	F_ZETA
+	LD	A,82H			;zeta
+	LD	(WRSTAT),A		;zeta
+	LD	A,40H			;zeta
+	LD	(WRSTAT),A		;zeta
+	LD	A,0EH			;zeta
+	LD	(WRSTAT),A		;zeta
+	LD	A,05H			;zeta
+	LD	(WRSTAT),A		;zeta
+	ENDIF	;f_zeta
+;
+	IF	F_SYS80
+	LD	A,RESETB		;sys80
+	OUT	(RESETP),A		;sys80
+	ENDIF	;f_sys80
+;
 	RET
 CMBLNK	PUSH	DE
 	LD	DE,CLRTOP
 	CALL	PRTSTR
 	POP	DE
 QUIT:	RET
+;
 CONOUT	PUSH	DE
 	PUSH	HL
 	PUSH	BC
@@ -105,6 +202,7 @@ CONOUT	PUSH	DE
 	POP	HL
 	POP	DE
 	RET
+;
 PRTSTR	LD	A,(DE)
 	CP	'$'
 	RET	Z
@@ -115,6 +213,7 @@ CONIN	PUSH	DE
 	CALL	@KBD
 	POP	DE
 	RET
+;
 KERMIT	LD	DE,FCB
 	LD	A,(DE)
 	BIT	7,A	;WAS FILE OPEN?
@@ -131,6 +230,7 @@ KERMIT	LD	DE,FCB
 	LD	B,0
 	ADD	HL,BC
 	JP	(HL)
+;
 KERMTB	JP	TELNET
 	JP	EXIT
 	JP	HELP
@@ -145,6 +245,7 @@ KERMTB	JP	TELNET
 	JP	BYE
 	JP	DIR
 	JP	ERA
+;
 KERMT2	LD	DE,ERMES1
 	CALL	PRTSTR
 	JP	KERMIT
@@ -179,17 +280,21 @@ SPACE	AND	7FH
 PARRET	POP	BC
 	POP	HL
 	RET
+;
+;Character sending routines
 OUTCHR	PUSH	DE
-OUTCHR1	IN	A,(MNPRTS)
-	AND	OUTPUT
+OUTCHR1
+	IN	A,(RDSTAT)		;********
+	BIT	CTS,A			;********
 	JR	Z,OUTCHR1
 	LD	A,E
 	CALL	SETPAR
-	OUT	(MNPORT),A
+	OUT	(WRDATA),A		;********
 	POP	DE
 	RET
-INCHR	IN	A,(MNPRTS)
-	AND	INPUT
+INCHR
+	IN	A,(RDSTAT)		;********
+	BIT	DAV,A			;********
 	JR	NZ,INCHR2
 	CALL	CONIN
 	OR	A
@@ -204,7 +309,8 @@ INCHR4	CP	1AH	;CONTROL-Z?
 INCHR5	ADD	A,20H
 	LD	(CZSEEN),A
 	RET
-INCHR2	IN	A,(MNPORT)
+INCHR2
+	IN	A,(RDDATA)			;********
 	LD	B,A
 	LD	A,(PARITY)
 	CP	PARNON
@@ -224,11 +330,14 @@ EXIT1	LD	DE,FCB
 HELP	LD	DE,TOPHLP
 	CALL	PRTSTR
 	JP	KERMIT
+;
 *GET 	COMND/SRC	;COMMAND PARSER
 *GET	KILLDIR/SRC	;KILL AND DIR COMMANDS
-*GET	MORE/SRC	;MOST OF THE NON PROTOCOL RELATED COMMANDS
+*GET	MORE/SRC	;MOST OF THE NON PROTOCOL RELATED
+			;commands.
 *GET	GET/SRC		;RECEIVE PROTOCOL
 *GET	SEND/SRC	;SEND PROTOCOL
 *GET	XFER/SRC	;PROTOCOL COMMON CODE
 *GET 	KERSTR/SRC	;STRINGS
+;
 	END	START
