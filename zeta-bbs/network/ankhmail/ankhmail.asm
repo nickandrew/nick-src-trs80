@@ -1,29 +1,37 @@
 ;Ankhmail : Process files received from Fidonet
 ;
-ZETA	EQU	1
+ZETA		EQU	1
+DEBUGF		EQU	0	;Function call debugging
+DEBUGG		EQU	0	;Loop at start debug
+SYSOPONLY	EQU	1	;Only the Sysop may run
+REDIRDIS	EQU	1	;1 to disable redirection
+STACKSIZE	EQU	100H	;Size of the stack
 ;
-*GET	DOSCALLS
+*GET	DOSCALLS:0
 ;
 	IF	ZETA
 *GET	EXTERNAL.HDR
 *GET	ASCII.HDR
 ;
-	COM	'<Ankhmail 1.1b 26-Nov-88>'
+	COM	'<Ankhmail 1.2  12 Apr 90>'
 	ORG	PROG_START
 	DEFW	BASE
 	DEFW	THIS_PROG_END
 	DEFW	0
 	DEFW	0
 ;End of program load info.
-	ORG	BASE+100H
+	ORG	BASE+STACKSIZE
 	ELSE
-	ORG	5200H
+	ORG	5200H+STACKSIZE
 ;
 	ENDIF
 ;
-;;*GET	DEBUG:1
+	IF	DEBUGF
+*GET	DEBUGF
+	ELSE
 DEBUG	MACRO	#$STR
 	ENDM
+	ENDIF
 ;
 START
 	IF	ZETA
@@ -35,13 +43,15 @@ START1	DEC	HL
 ;
 	LD	SP,START	;There is plenty of stack
 	LD	(_CMDLINE),HL	;Save cmd line pointer
-	LD	HL,1		;Disable redirection
+	LD	HL,REDIRDIS	;Disable redirection
 	LD	(_NOREDIR),HL
 ;
+	IF	SYSOPONLY
 	LD	A,(PRIV_1)
 	BIT	IS_SYSOP,A
 	LD	A,0
 	JP	Z,TERMINATE
+	ENDIF
 ;
 	ELSE
 ;
@@ -50,17 +60,28 @@ START1	DEC	HL
 ;
 	ENDIF
 ;
-*GET	CINIT:1
-*GET	CALL:1
+	IF	DEBUGG
+DB_LOOP
+	JP	DB_LOOP
+	ENDIF
+;
+*GET	CINIT
+*GET	CALL
 ;
 *GET	ANKHMAI1
 ;
 *GET	ARCSUBS
-;;*GET	ATOI
-;;*GET	CTYPE
+*GET	ATOI		;Requires ctype
+*GET	CTYPE		;Required by atoi
 *GET	FTELL
 ;;*GET	FWRITE
+;;*GET	GETOPT
+;;*GET	GETTIME
+;;*GET	GETW
 ;;*GET	INDEX
+;;*GET	PNUMB
+;;*GET	SAVEPOS
+;;*GET	STRCHR
 *GET	STRCMP
 ;;*GET	STRLEN
 *GET	SYSTEM
