@@ -1,7 +1,7 @@
-; trail/asm: Remove trailing tab from Disassem created
+; trail2/asm: Remove trailing tab from Disassem created
 ; files.
 ;
-; Version 1.0 on 22-Dec-84. Written by Nick Andrew.
+; Version 1.1 on 06-Feb-85. Written by Nick Andrew.
 ;
 ; Edtasm source files created by Newdos Disassem package
 ; contain a trailing tab on lines containing NOPs etc..
@@ -17,6 +17,10 @@ START	LD	DE,FCB_INP
 	CALL	DOS_EXTRACT
 	LD	DE,FCB_OUT
 	CALL	DOS_EXTRACT
+;
+	LD	HL,INBK_END
+	LD	(GET_NEXT),HL
+;
 	LD	HL,BUF_INP
 	LD	DE,FCB_INP
 	LD	B,0
@@ -48,7 +52,7 @@ EXIT	LD	A,1AH
 ;
 GET_LINE
 	LD	DE,FCB_INP
-	CALL	0013H
+	CALL	GET_ONE
 	JP	NZ,DOS_ERROR
 	CP	1AH
 	RET	Z
@@ -57,7 +61,7 @@ GET_LINE
 	INC	HL
 GL_1	PUSH	HL
 	LD	DE,FCB_INP
-	CALL	0013H
+	CALL	GET_ONE
 	JP	NZ,DOS_ERROR
 	POP	HL
 	LD	(HL),A
@@ -66,6 +70,47 @@ GL_1	PUSH	HL
 	JR	NZ,GL_1
 	OR	A
 	RET
+;
+GET_ONE
+	LD	HL,(GET_NEXT)
+	LD	DE,INBK_END
+	RST	18H	;cp hl,de
+	JR	Z,REREAD
+	LD	A,(HL)
+	INC	HL
+	LD	(GET_NEXT),HL
+	CP	A
+	RET
+REREAD
+	LD	HL,IN_BLOCK
+	LD	(GET_NEXT),HL
+	LD	B,20
+RD_LP	PUSH	BC
+	PUSH	HL
+	LD	DE,FCB_INP
+	CALL	DOS_READ_SECT
+	POP	DE
+	POP	BC
+	JR	NZ,ERR_CHK
+ERR_OK
+	PUSH	BC
+	LD	HL,BUF_INP
+	LD	BC,100H
+	LDIR
+	PUSH	DE
+	POP	HL
+	POP	BC
+	DJNZ	RD_LP
+	JR	GET_ONE
+;
+ERR_CHK	CP	1CH
+	JR	Z,ERR_OK
+	CP	1DH
+	JR	Z,ERR_OK
+	RET
+;
+;
+GET_NEXT DEFW	INBK_END
 ;
 TRAIL	DEC	HL
 	DEC	HL
@@ -97,5 +142,8 @@ FCB_INP	DEFS	32
 FCB_OUT	DEFS	32
 BUF_INP	DEFS	256
 BUF_OUT	DEFS	256
+;
+IN_BLOCK	DEFS	256*20
+INBK_END	NOP
 ;
 	END	START
