@@ -1,15 +1,13 @@
 /*
-**  @(#) ankhmail.h - Process Zeta's incoming files - 12 Apr 90
-**
-**  Process all incoming files, including:
-**
-**      Arcmail, Fidonews, Nodediffs
+**  @(#) ankhmail.h - Process Zeta's incoming files - 14 Aug 90
 **
 */
 
+#define PASSWORD	"/poof"
+
 /*  Command heads and tails */
 
-char    pktdis[]  = "packdis -r ";
+char    packone[]  = "packdis -r ";
 char	packstr[] = "packdis -pr";
 char    unarc1[]  = "unarc88 -xo ";
 char    copy[]    = "cp ";
@@ -18,8 +16,10 @@ char    drive1[]  = ":1 ";
 
 /*  Mask filenames to trigger processing */
 
-char    arc1mask[] = "A0000004.???";
+char    arc1mask[] = "A000FFFE.???";
 char    arc2mask[] = "A0000001.???";
+char    arc3mask[] = "BBB10004.???";
+
 char    fnewsmask[] = "FNEWS???.ARC";
 char    fidomask[] =  "FIDO???.NWS";
 char    ndiffmask[] = "NODEDIFF.???";
@@ -56,6 +56,8 @@ int     filepos,
 
 FILE    *inf,			/* list of received files */
 	*fp,			/* any file */
-	*pac;			/* list of packets*/
+	*pac;			/* list of packets */
 
 extern  int     chkwild(), arcnext();
+
+/* end of ankhmail.h */
