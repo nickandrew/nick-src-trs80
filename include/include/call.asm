@@ -1,9 +1,10 @@
-;Call/asm: Small C arithmetic & logical library.
-; Last modified: 23-Mar-87
+;Call.asm: Small C arithmetic & logical library.
+;Last updated: 31-Oct-87
 ;
+*LIST	OFF
 CCDDGC:
 	ADD	HL,DE
-	JP	CCGCHAR
+	JR	CCGCHAR
 ;
 CCDSGC:
 	INC	HL
@@ -493,10 +494,10 @@ CCLNEG1	LD	HL,0
 ;
 ;	 HL  =  switch value
 ;	(SP) -> switch table
-;		DefW	ADDR1, VALUE1
-;		DefW	ADDR2, VALUE2
+;		Defw	ADDR1, VALUE1
+;		Defw	ADDR2, VALUE2
 ;		...
-;		DefW	0
+;		Defw	0
 ;		[JP	default]
 ;		continuation
 ;
@@ -524,4 +525,5 @@ SWLOOP:
 SWEND:
 	JP	(HL)
 ;
+*LIST	ON
 ;End of call/asm
