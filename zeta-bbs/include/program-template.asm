@@ -1,0 +1,108 @@
+;ccc: THISPROG:
+;
+ZETA		EQU	0
+DEBUGF		EQU	1	;Function call debugging
+DEBUGG		EQU	1	;Loop at start debug
+SYSOPONLY	EQU	1	;Only the sysop may run
+REDIRDIS	EQU	1	;1 to disable redirection
+STACKSIZE	EQU	100H	;Size of the stack
+;
+*GET	DOSCALLS
+;
+	IF	ZETA
+*GET	EXTERNAL
+*GET	ASCII
+;
+	COM	'<THISPROG 1.0  dd-mmm-yy>'
+	ORG	PROG_START
+	DEFW	BASE
+	DEFW	THIS_PROG_END
+	DEFW	0
+	DEFW	0
+;End of program load info.
+	ORG	BASE+STACKSIZE
+	ELSE
+	ORG	5200H+STACKSIZE
+;
+	ENDIF
+;
+TOPSTACK			;The top of stack if zeta
+;
+	IF	DEBUGF
+*GET	DEBUGF
+	ELSE
+DEBUG	MACRO	#$STR
+	ENDM
+	ENDIF
+;
+START
+	IF	ZETA
+START1	DEC	HL
+	LD	A,(HL)
+	CP	' '
+	JR	NC,START1
+	INC	HL		;Pseudo start of cmd line
+;
+	LD	SP,TOPSTACK	;There is plenty of stack
+	LD	(_CMDLINE),HL	;Save cmd line pointer
+	LD	HL,REDIRDIS	;Disable redirection
+	LD	(_NOREDIR),HL
+;
+	IF	SYSOPONLY
+	LD	A,(PRIV_1)
+	BIT	IS_SYSOP,A
+	LD	A,0
+	JP	Z,TERMINATE
+	ENDIF
+;
+	ELSE
+;
+	LD	HL,(HIMEM)
+	LD	SP,HL
+;
+	ENDIF
+;
+	IF	DEBUGG
+DB_LOOP
+	JP	DB_LOOP
+	ENDIF
+;
+*GET	CINIT
+*GET	CALL
+;
+*GET	THISPROG1
+;
+;;*GET	BB7FUNC
+;;*GET	ATOI		;Requires ctype
+;;*GET	CTYPE		;Required by atoi
+;;*GET	FTELL
+;;*GET	FWRITE
+;;*GET	GETOPT
+;;*GET	GETTIME
+;;*GET	GETW
+;;*GET	INDEX
+;;*GET	PNUMB
+;;*GET	SAVEPOS
+;;*GET	STRCHR
+;;*GET	STRCMP
+;;*GET	STRLEN
+;;*GET	SYSTEM
+;;*GET	UNLINK
+;;*GET	WILD
+;
+	IF	ZETA
+*GET	ROUTINES
+*GET	LIBCZ
+	ELSE
+*GET	LIBC
+	ENDIF
+;
+_CMDLINE	DEFW	4318H
+_NOREDIR	DEFW	0
+_BRKSIZE	DEFW	$+2
+;
+	IF	ZETA
+THIS_PROG_END	EQU	$
+	ENDIF
+;
+	END	START

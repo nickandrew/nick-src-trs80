@@ -1,0 +1,82 @@
+;times.lib: Some routines for time handling.
+;Last updated 04-Dec-88
+;
+	IFREF	DMY_ASCII
+DMY_ASCII
+	LD	HL,DMY_STRING
+	CALL	$TWO_DIGIT
+	LD	(HL),' '
+	INC	HL
+	CALL	$MONTH_NAME
+	LD	(HL),' '
+	INC	HL
+	CALL	$TWO_DIGIT
+	LD	(HL),0
+	LD	HL,DMY_STRING
+	RET
+	ENDIF	;dmy_ascii
+;
+	IFREF	HMS_ASCII
+HMS_ASCII
+	LD	HL,HMS_STRING
+	CALL	$TWO_DIGIT
+	LD	(HL),':'
+	INC	HL
+	CALL	$TWO_DIGIT
+	LD	(HL),':'
+	INC	HL
+	CALL	$TWO_DIGIT
+	LD	(HL),0
+	LD	HL,HMS_STRING
+	RET
+	ENDIF	;hms_ascii
+;
+	IFREF	$TWO_DIGIT
+$TWO_DIGIT
+	LD	(HL),'0'-1
+	LD	A,(DE)
+$TD_01
+	INC	(HL)
+	SUB	10
+	JR	NC,$TD_01
+	INC	HL
+	ADD	A,'0'+10
+	LD	(HL),A
+	INC	HL
+	INC	DE
+	RET
+	ENDIF	;$two_digit
+;
+	IFREF	$MONTH_NAME
+$MONTH_NAME
+	LD	A,(DE)
+	INC	DE
+	DEC	A
+	CP	12
+	JR	C,$MN_01
+	LD	A,12
+$MN_01
+	LD	C,A
+	ADD	A,A
+	ADD	A,C
+	LD	C,A
+	LD	B,0
+	PUSH	DE
+	EX	DE,HL
+	LD	HL,$MN_DATA
+	ADD	HL,BC
+	LD	C,3
+	LDIR
+	EX	DE,HL
+	POP	DE
+	RET
+;
+$MN_DATA
+	DEFM	'JanFebMarAprMayJunJulAugSepOctNovDec***'
+;
+	ENDIF	;$month_name
+;
+DMY_STRING	DEFM	'dd mmm yy',0
+HMS_STRING	DEFM	'hh:mm:ss',0
+;
+;End of times.lib
