@@ -1,0 +1,43 @@
+             Synopsis of TreeBoard Project
+             -----------------------------
+
+         Nick Andrew, Zeta Microcomputer Software.
+                        19-Dec-85.
+
+   This project encompasses the creation, implementation, testing,
+debugging and sometime maintenance of a program
+which will encompass the concept of a Tree Structured message
+system (a TreeBoard) for the use of the DSP Computing Centre
+on their Busicom 186 MP/M-86 system.
+
+   The TreeBoard [The word 'TreeBoard' is (C)opyrighted by
+Zeta Microcomputer Software] system will have the following features:
+
+
+      - Public and Private Mail between system users
+
+      - Flexible Tree system of messages
+
+      - Unique dual-method input system (Single-key or Command-line)
+
+      - Upwards compatible with most RCP/M message systems
+
+      - Upwards compatible with TBBS  menu driven command entry
+
+      - Menu driven with normal/expert menus
+
+      - Can operate as either Tree or List as desired by user
+
+
+   Source code for the TreeBoard system will remain (C)opyright
+Zeta Microcomputer Software but will be licensed to DSP Computing
+Centre for their own use only - such as for further enhancements
+to the system.
+
+   Object code is for the sole use of DSP Computing Centre.
+
+
+                                           Nick Andrew,
+                                    Zeta Microcomputer Software
+                                            19-Dec-85.
+

@@ -1,0 +1,5 @@
+Null	equ	0
+break	equ	03h
+lf	equ	0ah
+cr	equ	0dh
+;

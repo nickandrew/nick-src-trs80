@@ -1,0 +1,34 @@
+file_create:
+	call	set_pointers
+;
+;parse filename into fcb....
+	mov	dx,fi_filblk
+	mov	pfcb,dx
+	mov	dx,fi_fcb
+	mov	pfcb+2,dx
+	mov	cl,152
+	mov	dx,offset pfcb
+	call	bdos
+	cmp	ax,0ffffh
+	jnz	file_create_1
+	cmp	ax,ax
+	ret
+;
+file_create_1:
+;
+	mov	dx,fi_fcb
+	mov	cl,22
+	call	bdos
+	cmp	ah,0
+	ret
+;
+;
+writ_zero:
+	call	set_pointers
+	mov	dx,fi_fcb
+	mov	cl,21
+	call	bdos
+	cmp	al,0
+	ret
+;
+;

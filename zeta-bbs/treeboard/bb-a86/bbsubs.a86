@@ -1,0 +1,329 @@
+;BBSUBS.A86: Subroutines for BB.
+; (C) 1985,6 Zeta Microcomputer Software
+;
+;
+menu:
+	mov	control,si
+	mov	al,options
+	and	al,fo_exp
+	jz	mu_0
+	add	si,4
+mu_0:
+	mov	bx,[si]
+	mov	si,bx
+mu_1:
+	mov	al,[si]
+	cmp	al,0
+	jnz	mu_2
+	mov	al,0		;end of menu. no key.
+	cmp	al,1
+	ret
+mu_2:
+	call	putc
+	call	getc
+	inc	si
+	cmp	al,0
+	jz	mu_1
+mu_3:
+	push	si
+	mov	si,control
+	add	si,2
+	mov	bx,[si]
+	cmp	al,'a'
+	jc	mu_3a
+	and	al,5fh		;to u/c
+mu_3a:
+	mov	si,bx
+mu_4:
+	mov	ah,[si]
+	cmp	ah,0
+	jz	mu_5
+	inc	si
+	cmp	ah,al
+	jnz	mu_4
+;
+;is equal so quit this menu.
+	pop	si
+	mov	in_buff,al
+	mov	al,cr
+	call	putc
+	mov	in_buff+1,al
+	mov	in_buff+2,0
+	mov	char_posn,offset in_buff
+	cmp	al,al
+	ret
+;
+;
+mu_5:
+	pop	si
+	jmp	mu_1
+;
+;
+get_string:
+	push	si
+	call	puts
+	mov	si,offset in_buff
+	mov	bl,32
+	call	h40h
+	mov	si,offset in_buff
+	mov	char_posn,si
+gts_2:
+	mov	al,[si]
+	inc	si
+	cmp	al,cr
+	jnz	gts_2
+	mov	byte ptr [si],0
+	pop	si
+	ret
+;
+get_char:
+	mov	si,char_posn
+	mov	al,[si]
+	cmp	al,0
+	jz	gc_1
+	inc	char_posn
+	cmp	al,';'
+	jnz	gc_1
+	mov	al,cr
+gc_1:
+	cmp	al,al
+	ret
+;
+if_char:
+	mov	si,char_posn
+	mov	al,[si]
+	cmp	al,0
+	jz	ic_1
+	cmp	al,al
+	ret
+ic_1:
+	cmp	al,1				;set NZ.
+	ret
+;
+;
+if_num:
+	cmp	al,'0'
+	jnc	in_0a
+	ret
+in_0a:
+	cmp	al,'9'+1
+	jc	in_1
+	or	al,al
+	ret
+in_1:
+	cmp	al,al
+	ret
+;
+;
+get_num:
+	mov	dx,0
+	call	if_num
+	jz	gn_1
+	ret
+gn_1:
+	sub	al,'0'
+	mov	ah,0
+	add	dx,ax
+	jc	o_flo
+;
+	push	dx
+	call	if_char
+	call	if_num
+	pop	dx
+	jnz	gn_3
+	push	dx
+	call	get_char
+	pop	dx
+	push	dx
+	pop	bx
+	add	dx,dx
+	jc	o_flo
+	add	dx,dx
+	jc	o_flo
+	add	dx,bx
+	jc	o_flo
+	add	dx,dx
+	jc	o_flo
+	jmp	gn_1
+gn_3:
+	cmp	al,al
+	ret
+o_flo:
+	mov	dx,0c000h
+	jmp	gn_1		;stops crash attempts.
+;
+;
+txt_get:
+	push	dx
+	mov	dx,offset txt_filblk
+	call	read
+	pop	dx
+	jnz	txt_get_1
+	ret
+txt_get_1:
+	jmp	error
+;
+txt_get_put_cr:
+	call	txt_get
+	push	ax
+	call	putc
+	pop	ax
+	cmp	al,cr
+	jnz	txt_get_put_cr
+	ret
+;
+;
+top_addr:
+	mov	cl,20
+	mul	cl
+	mov	si,offset topic_dat
+	add	si,ax
+	ret
+;
+to_upper:
+	mov	al,[si]
+	cmp	al,cr
+	jz	to_upper_1
+	cmp	al,0
+	jz	to_upper_1
+	cmp	al,3
+	jz	to_upper_1
+	inc	si
+	cmp	al,'a'
+	jc	to_upper
+	dec	si
+	and	al,5fh
+	mov	[si],al
+	inc	si
+	jmp	to_upper
+to_upper_1:
+	ret
+;
+yes_no:
+	push	si
+	mov	al,[si]
+	cmp	al,0
+	jz	yn_5
+	call	putc
+	call	getc
+	cmp	al,0
+	jnz	yn_2
+yn_1:	pop	si
+	inc	si
+	jmp	yes_no
+yn_2:
+	and	al,5fh
+	cmp	al,'Y'
+	jz	yn_3
+	cmp	al,'Q'
+	jz	yn_3
+	cmp	al,'N'
+	jnz	yn_1
+yn_3:
+	pop	si
+	mov	si,offset m_yes
+	cmp	al,'Y'
+	jz	yn_4
+	mov	si,offset m_no
+	cmp	al,'N'
+	jz	yn_4
+	mov	si,offset m_quit
+yn_4:
+	push	ax
+	call	puts
+	pop	ax
+	cmp	al,al
+	ret
+yn_5:
+	call	getc
+	and	al,5fh
+	cmp	al,'Y'
+	jz	yn_2
+	cmp	al,'N'
+	jz	yn_2
+	cmp	al,'Q'
+	jz	yn_2
+	jmp	yn_5
+;
+;
+text_posn:
+	mov	ch,byte ptr txt_rba
+	mov	bx,word ptr txt_rba+1
+	mov	dx,offset txt_filblk
+	call	pos_to_rba
+	jnz	text_posn_1
+	call	txt_get
+	cmp	al,0ffh
+	mov	al,1
+	jnz	text_posn_1
+	ret
+text_posn_1:
+	jmp	error
+;
+;
+sub_level:
+	mov	cl,0
+	and	al,0ffh
+	jz	sl_1
+	mov	cl,1
+	and	al,1fh
+	jz	sl_1
+	mov	cl,2
+	and	al,03h
+	jz	sl_1
+	mov	cl,3
+sl_1:
+	mov	ch,0
+	mov	dx,offset add_and
+	add	dx,cx
+	add	dx,cx
+	add	dx,cx
+	mov	si,dx
+	mov	bl,[si]
+	inc	si
+	mov	bh,[si]
+	inc	si
+	mov	ch,[si]
+	ret
+;
+sub_next:
+	mov	ch,al
+	add	al,bl
+	and	al,bh
+	stc
+	jnz	sub_next_1
+	ret
+sub_next_1:
+	mov	cl,al
+	mov	al,bh
+	xor	al,255	;cpl
+	and	al,ch
+	or	al,cl
+	ret
+;
+sub_nonex:
+	push	si
+	call	top_int
+	call	top_addr
+	mov	al,[si]
+	pop	si
+	cmp	al,0
+	ret
+;
+chk_char:
+	mov	cl,[si]
+	inc	si
+	mov	ch,0
+	cmp	al,'a'
+	jc	ckch_1
+	and	al,5fh
+ckch_1:
+	cmp	al,[si]
+	jz	ckch_2
+	inc	si
+	loop	ckch_1
+	mov	al,1
+	cmp	al,0
+ckch_2:
+	ret
+;

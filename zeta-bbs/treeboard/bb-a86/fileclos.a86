@@ -1,0 +1,40 @@
+;FileClos.A86: Close an open file.
+;(C) Zeta Microcomputer Software
+;
+;
+close:
+	call	set_pointers
+	mov	bx,fi_update
+	cmp	byte ptr [bx],0
+	jz	clos_001
+	call	write_out
+	jz	clos_001
+	ret
+;
+clos_001:
+	mov	di,80h				;dma addr.
+	mov	si,fi_eof
+	mov	cx,3
+	call	ldir
+	mov	bx,fi_fcb
+	add	bx,33
+	mov	byte ptr [bx],0
+	inc	bx
+	mov	byte ptr [bx],0
+	inc	bx
+	mov	byte ptr [bx],0
+	mov	cl,22h				;write random
+	mov	dx,fi_fcb
+	call	bdos
+	cmp	al,0
+	jz	clos_002
+	ret
+;
+clos_002:
+	mov	cl,b_close
+	mov	dx,fi_fcb
+	call	bdos
+	cmp	ah,0
+	ret
+;
+;

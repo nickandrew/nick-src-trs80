@@ -1,0 +1,543 @@
+;BBDATA.A86: Data for TreeBoard
+;
+;
+hdr_lrl		equ	16		;I hope!
+;
+;
+	dseg
+	org	100h
+;
+;
+;
+menu_main:
+		dw	mu_main
+		dw	cl_main
+		dw	mx_main
+mu_main:
+		db	'    What function do you want?',cr
+		db	'<R>  Read Messages           <S>  Scan Messages',cr
+		db	'<E>  Enter Message           <K>  Kill Messages',cr
+		db	'<L>  List subtopics          <C>  Create new subtopic',cr
+		db	'<M>  Move up or Down topics  <O>  Change/List Options',cr
+		db	'                             <X>  Exit to Dos',cr
+		db	'<D>  Delete the current topic',cr,0
+cl_main:
+		db	'RSEKLCMOXD',0
+mx_main:
+		db	'MAIN: (R,S,E,K,L,C,M,O,X,D) ',cr,0
+;
+;
+menu_ds1:
+		dw	mu_ds1
+		dw	cl_ds1
+		dw	mx_ds1
+;
+;
+mu_ds1:
+		db	'<A>  All Messages           <M>  Messages to ME',cr
+		db	'<U>  Unread Messages',cr
+		db	'<F>  Mail sent by ME       <CR>  Exit to function menu',cr
+		db	'OR: Enter a range eg. 1+  20-30  $-  etc...',cr,0
+cl_ds1:
+		db	'MUAF',cr,0
+mx_ds1:
+		db	'Msg Select (M,U,A,F,<CR> or range)',cr,0
+;
+;
+menu_opt:
+		dw	mu_opt
+		dw	cl_opt
+		dw	mx_opt
+mu_opt:
+		db	cr,'   Set your desired options..',cr
+		db	'<1>  Scan on only current topic',cr
+		db	'<2>  Scan on current topic and all beneath you',cr
+		db	'<3>  Normal user with long Menus',cr
+		db	'<4>  Expert user with short Menus',cr
+		db	'<CR> to exit to functions',cr,0
+cl_opt:
+		db	'1234',cr,0
+mx_opt:
+		db	'Options: (1,2,3,4,<CR>)',cr,0
+;
+;
+mfd_data	db	'GENERAL',cr,0,0,0,0,0,0,0,0
+		dw	2				;OWNER = SYSOP
+		db	0ffh,0
+;
+;
+menu_quest:
+		dw	mu_quest
+		dw	cl_quest
+		dw	mx_quest
+mu_quest:
+		db	'<L> List, <E> Edit, <C> Continue, <A> Abort, <S> Save',cr,0
+cl_quest:
+		db	'LECAS',0
+mx_quest:
+		db	'Msg: (L,E,C,A,S)',cr,0
+pmpt_quest:
+		db	'Select which? (L,E,C,A,S): ',0
+;
+m_lookmail:
+		db	cr,'Searching the tree for mail...',cr,0
+m_nomail:
+		db	'Sorry there''s no mail for you.',cr,0
+;
+m_readmail:
+		db	'Found mail! Read it now? (Y/N/Q): ',0
+m_killmail:
+		db	'Kill your incoming mail now? (Y/N/Q): ',0
+;
+char_flag		db	0
+blank			db	0
+dummy_read:
+dummy_kill:
+		db	';m',cr,0
+;
+m_nodltp:
+		db	'Sorry you can''t delete the uppermost topic!',cr,0
+m_notcrtr:
+		db	'Sorry you''re not the creator of this topic',cr,0
+m_tpntmt:
+		db	'Sorry this topic has messages.',cr,0
+m_actsub:
+		db	'Sorry this topic has sub-topics.',cr,0
+m_youatup:
+		db	'   You are at the uppermost level.',cr,0
+m_trsedit:
+		db	'Standard TRS-80/mbasic editing used, hit <CR> to finish.',cr,0
+m_maxlin:
+		db	'Sorry you''ve already filled the message.',cr,0
+;
+;
+m_line		db	0
+m_mvgup:
+		db	'OK Moving up...',cr,0
+m_ok:
+		db	'OK',cr,0
+;
+move_rnd:
+		db	8,'U1234567'
+;
+add_and:
+		db	020h,0e0h,000h
+		db	004h,01ch,000h
+		db	001h,003h,0e0h
+		db	000h,000h,0fch
+;
+m_iftag:
+		db	'Tag this message? (Y/N/Q): ',0
+m_curtpc:
+		db	'Your current topic is ',0
+m_upwrd:
+		db	'Looking up the tree:',cr,0
+m_upto:
+		db	'<U>  Move up to ',0
+m_dwnwrd:
+		db	'Looking Downwards:',cr,0
+m_nobelo:
+		db	'  NO Sub-Topics to this topic.',cr,0
+;
+topic_below	db	0
+sub_cnt		db	0
+topic_cnt	db	0
+tag_flag	db	0
+tag_posn	dw	0
+;
+m_atbotm:
+		db	'Sorry but you''re at the bottom of the tree.',cr
+		db	'I can''t create topics below this.',cr,0
+m_ccsysop:
+		db	'Sorry but only the Sysop can create new topics here.',cr
+		db	'Leave him a message if you wish a topic created.',cr,0
+m_subused:
+		db	'Sorry but the tree at this level is full.',cr
+		db	'I can''t create any new subtopics here.',cr,0
+m_gettpc:
+		db	'Name of sub-topic to create (<CR> to abort): ',0
+m_alrdytop:
+		db	'Sorry there is already a topic of that name here.',cr,0
+m_tpcmde:
+		db	'New sub-topic created successfully.',cr,0
+m_tpclng:
+		db	'Name too long. Limit it to 15 characters.',cr,0
+m_typein:
+		db	'Please type in your message now:',cr
+		db	'Enter two consecutive null lines to finish.',cr,0
+m_endwrn:
+		db	'** TWO lines to go!!',cr,0
+m_ifabrt:
+		db	'** Abort this message? (Y/N/Q): ',0
+m_disreg:
+		db	'OK but last line disregarded.',cr,0
+m_frcend:
+		db	'** End of message forced **',cr,0
+;
+null_line	db	0
+;
+m_intro:
+		db	'This is the Zeta Message program "TreeBoard",',cr
+		db	'Version 2.00  (C) Zeta Microcomputer Software.',cr
+		db	'This is a Tree-Structured system!',cr
+		db	'One moment please...',cr,0
+;
+pmpt_opt:
+		db	'Select an option: ',0
+kill_query	db	0
+;
+m_klqry:
+		db	'Ask before killing each message? (Y/N/Q): ',0
+m_killit:
+		db	'Kill this message? (Y/N/Q): ',0
+m_killing:
+		db	'Killing message number ',0
+;
+mask_data:
+		db	0,0e0h,0fch,0ffh
+;
+in_buff		rb	64
+name_buff	rb	64
+usn_buff:
+		rb	64
+outbuf:
+		rb	64
+;
+m_visbad:
+		db	cr,'You have been granted non-member access to this message system.',cr
+		db	'You can''t ENTER, KILL, CREATE or DELETE messages.',cr,0
+m_noperms:
+		db	'Sorry no permission for this command.',cr,0
+m_options:
+		db	cr,'   Your current options are:',cr,0
+m_curr:
+		db	'(1) All scans reference current topic only',cr,0
+m_lowr:
+		db	'(2) All scans work on this topic and all sub-topics',cr,0
+m_norm:
+		db	'(3) Normal (non Expert) menus',cr,0
+m_exp:
+		db	'(4) Expert (short) menus',cr,0
+;
+options		db	0
+;
+fo_curr		equ	1	;2**0
+fo_lowr		equ	2	;2**1
+fo_norm		equ	4	;2**2
+fo_exp		equ	8	;2**3
+;
+hash_byte	db	0
+us_num		dw	0
+usr_number	dw	0
+point		dw	0
+pointb		db	0
+scan_abort	db	0
+;
+m_withmsg:
+		db	' with ',0
+m_msgs:
+		db	' Msgs.',cr,0
+m_mesgs:
+		db	' Messages.',cr,0
+m_msg2:
+		db	'Msg # ',0
+m_lines:
+		db	' lines',0
+m_ntfryo:
+		db	' not your message to kill.',cr,0
+m_msgkld:
+		db	'Killed.',cr,0
+m_sysgot:
+		db	cr,'This system contains a total of ',0
+m_nkld:
+		db	'Killed messages comprise ',0
+;
+m_to:
+		db	' to ',0
+m_p:
+		db	'  (Private)',0
+m_space:
+		db	'  Topic: ',0
+m_spaces:
+		db	'   ',0
+m_no:
+		db	'  (No)',cr,0
+m_yes:
+		db	'  (Yes)',cr,0
+m_quit:
+		db	'  (Quit)',cr,0
+;
+char_posn	dw	0
+control		dw	0
+funcnm		dw	0
+function	dw	0
+scan_mask	db	0
+first_msg	dw	0
+last_msg	dw	0
+n_msg_top	dw	0
+a_top_1st	dw	0
+a_top_last	dw	0
+;
+pmpt_main:
+		db	'Enter command string: ',0
+m_badcmd:
+		db	'Unrecognised command.',cr,0
+m_where:
+		db	cr,'You are at topic ',0
+m_read:
+		db	cr,'     ** READing Messages **',cr,0
+m_scan:
+		db	cr,'     ** SCANning Messages **',cr,0
+m_kill:
+		db	cr,'     ** KILLing Messages **',cr,0
+m_tag:
+		db	cr,'     ** TAGging Messages **',cr,0
+m_enter:
+		db	cr,'     ** ENTERing Message **',cr,0
+pmpt_ds1:
+		db	'Enter selection or <CR> to exit: ',0
+m_unk:
+		db	'Unknown command.',cr,0
+;
+		db	'Topic>'
+topic:					;5k
+n_msg		dw	0
+n_kld_msg	dw	0
+eof_rba		db	0,0,0
+;space:
+		db	0,0,0,0,0,0,0,0,0
+topic_dat:
+		rb	4080			;=204 * 20.
+msg_topic:
+		rb	1024			;1 each msg.
+;
+;
+;
+m_bdrng:
+		db	'Bad message range.',cr,0
+;
+m_ntfnd:
+		db	cr,'** NO messages found **',cr,0
+;
+txt_filblk:
+		db	'msgtxt.zms',0
+		rb	32-11
+		rb	1024			;~~~
+hdr_filblk:
+		db	'msghdr.zms',0
+		rb	32-11
+		rb	1024
+top_filblk:
+		db	'msgtop.zms',0
+		rb	32-11
+		rb	1024
+usr_filblk:
+		db	'msgusr.zms',0
+		rb	32-11
+		rb	1024
+;
+init_ufile_string:
+		db	'00000',0,0
+;
+;
+txt_rba		db	0,0,0
+last_call	db	0,0,0
+msg_found	db	0
+backward	db	0
+a_msg_posn	dw	0
+msg_num		dw	0
+topic_mask	db	0ffh
+;
+;
+;
+this_msg_hdr:
+hdr_flag	db	0
+;flags....
+fm_killed	equ	1		;=2**0
+fm_private	equ	2		;=2**1
+fm_import	equ	4		;=2**2
+fm_rude		equ	8		;=2**3
+;
+hdr_lines	db	0
+hdr_rba		db	0,0,0
+hdr_date	db	0,0,0
+hdr_sndr	dw	0
+hdr_rcvr	dw	0
+hdr_topic	db	0
+hdr_time	db	0,0,0
+;
+;
+;
+m_msgnum:
+		db	'Message No ',0
+m_msgtop:
+		db	'Topic: ',0
+m_sndr:
+		db	'From ',0
+m_rcvr:
+		db	' to ',0
+m_date:
+		db	'Date: ',0
+m_subj:
+		db	' About:  ',0
+;
+my_topic	db	0
+my_level	db	0
+int_top		db	0
+temp_topic	db	0
+;
+m_whrto:
+		db	'Where to (number,<U>, or <CR> to abort): ',0
+m_nowat:
+		db	'Now at topic ',0
+m_under:
+		db	'Sub-topics under ',0
+m_willbe:
+		db	'Msg will be # ',0
+m_fortop:
+		db	' in topic ',0
+;
+lines		db	0
+mem_ptr		dw	0
+memt_ptr	dw	0
+edit_ptr	dw	0
+;
+m_whoto:
+		db	'Who to? (<CR> for ALL,''Q'' to quit): ',0
+m_whtsubj:
+		db	'What is the subject? ',0
+m_topicfull:
+		db	'This topic is full. If you wish to leave a message',cr
+		db	'then you must <M>ove to another topic.',cr,0
+m_brdfull:
+		db	'SORRY! The complete Message System is full.',cr
+		db	'I can''t handle any more messages.',cr,0
+m_deststr:
+		db	'Message addressed to ',0
+m_isok:
+		db	'Is this spelt correctly? (Y/N/Q): ',0
+m_all:
+		db	'ALL',cr,0
+m_private:
+		db	'Private message? (Y/N/Q): ',0
+;
+start_rba	db	0,0,0
+tries		db	0
+pause		db	0
+;
+m_pause:
+		db	'Hit <CR> to continue, ^C to abort',cr,0
+m_apause:
+		db	'Pause after each message? (Y/N/Q): ',0
+m_ntoskp:
+		db	'Hit <N> while msg being printer',cr
+		db	'to skip to the next message.',cr,0
+m_edwhli:
+		db	'Which line to edit? (CR to exit): ',0
+;
+m_undef:
+		db	'**ERROR - Undefined function called**',cr,0
+;
+m_bad_error:
+		db	'**ERROR: Fatal Error!',cr,0
+m_files_made:
+		db	'Files created. Run BB again!!',cr,0
+;
+;
+fi_filblk	dw	0
+fi_open		dw	0
+fi_update	dw	0
+fi_inmem	dw	0
+fi_fcb		dw	0
+fi_sector	dw	0
+fi_eof		dw	0
+fi_next		dw	0
+pfcb		dw	0
+		dw	0
+pos_low		db	0
+pos_mh		dw	0
+;
+tod_buff	dw	0
+		db	0
+		db	0
+		db	0
+;
+time_string	db	'HH:MM:SS',0
+;
+date_string	db	'dd-mmm-yy',0
+;
+january		db	'Jan'
+february	db	'Feb'
+march		db	'Mar'
+april		db	'Apr'
+may		db	'May'
+june		db	'Jun'
+july		db	'Jul'
+august		db	'Aug'
+september	db	'Sep'
+october		db	'Oct'
+november	db	'Nov'
+december	db	'Dec'
+;
+da		db	0
+mo		db	0
+yr		db	0
+;
+mmo		dw	0
+;
+reg_bx		dw	0
+reg_cx		dw	0
+reg_dx		dw	0
+reg_bp		dw	0
+reg_si		dw	0
+reg_di		dw	0
+;
+who_fcb		db	'AUTMP       ',0
+		db	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		db	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+;
+file_ptr	dw	0
+console		db	0
+;
+buff_start:
+		rb	128
+buff_end:
+;
+whobuff		db	0,0,0
+condig		db	0
+		db	0,0,0,0,0
+usname		db	0,0,0,0,0,0,0,0
+		rb	33
+		db	0
+;
+usr_name	rb	32
+		db	0
+;
+his_name	dw	0
+max_userid	dw	0
+temp_userid	dw	0
+;
+;
+m_whoerr:
+		db	'BB: Error - dunno who you are!!!',cr,0
+m_name_error:
+		db	'BB: Sorry cannot read names file.',cr,0
+m_edit_help:
+		db	'Help on editing keys:',cr
+		db	'---------------------',cr
+		db	'Space -> cursor right',cr
+		db	'Backspace ->    left',cr
+		db	'I -> Insert chars, end with <ESC>',cr
+		db	'D -> Delete char',cr
+		db	'L -> List rest of line',cr
+		db	'C -> Change char',cr
+		db	'X -> extend line',cr
+		db	'Prefix D or C with a number for multi chars',cr,0
+;
+;
+m_equit		db	'Quit.',cr,0
+;
+setdate		db	0
+;	
+text_buf	db	0		;end of data.
+;

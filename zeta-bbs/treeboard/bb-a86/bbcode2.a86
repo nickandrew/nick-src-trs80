@@ -1,0 +1,1140 @@
+;
+;BBCODE2.A86: BB file number 2
+;(C) 1985-6, Zeta Microcomputer Software...
+kill_cmd:	
+       	call	get_char
+	cmp	al,cr
+	jz	rnz_201
+	ret
+rnz_201:
+	mov	funcnm,offset m_kill
+	mov	function,offset killmessage
+	call	do_scan_1
+	ret
+;
+killmessage:
+	cmp	msg_found,0
+	jnz	kmsg_1
+	mov	kill_query,0
+	mov	si,offset m_klqry
+	call	yes_no
+	cmp	al,'N'
+	jz	kmsg_1
+	cmp	al,'Q'
+	jz	kmsg_q
+	mov	kill_query,1
+kmsg_1:
+	call	getc
+	cmp	al,break
+	jz	kmsg_q		;ensure msg to me or from me or me=sysop.
+	call	if_sysop
+	jz	kmsg_2
+	call	get_userid
+	cmp	dx,hdr_sndr
+	jz	kmsg_2
+	cmp	dx,hdr_rcvr
+	jz	kmsg_2
+	mov	si,offset m_msg2
+	call	puts
+	mov	dx,msg_num
+	call	print_numb
+	mov	si,offset m_ntfryo
+	call	puts
+	ret
+;
+kmsg_2:
+	call	text_posn
+	call	hdr_prnt
+	cmp	kill_query,0
+	jz	kmsg_3
+	mov	si,offset m_killit
+	call	yes_no
+	cmp	al,'Y'
+	jz	kmsg_3
+	cmp	al,'N'
+	jnz	kmsg_q
+	ret
+kmsg_q:
+	mov	scan_abort,1
+	ret
+kmsg_3:
+	mov	si,offset m_killing
+	call	puts
+	mov	dx,msg_num
+	call	print_numb
+	mov	al,cr
+	call	putc
+	call	getc				;chance to abort.
+	cmp	al,break
+	jz	kmsg_q
+	call	text_posn			;kill message...
+	or	hdr_flag,fm_killed
+	mov	dx,offset txt_filblk
+	call	write
+	jnz	kmsg_error			;zero flag in file.
+;
+;At this point the topic number should be changed to between 1 & 1Fh to
+;signal a killed message. This should happen everywhere:
+;  1: In the header of the TXT file
+;  2: In the HDR file
+;  3: In the TOP file  
+;  4: Memory contents changed to reflect new status.
+;
+	mov	ax,a_msg_posn
+	mov	cx,hdr_lrl
+	mul	cx
+	mov	bh,dl
+	mov	bl,ah
+	mov	ch,al
+	mov	dx,offset hdr_filblk
+	call	pos_to_rba
+	jnz	kmsg_error
+	mov	cx,hdr_lrl
+	mov	si,offset this_msg_hdr
+kmsg_3a:
+	mov	al,[si]
+	call	write
+	jnz	kmsg_error
+	inc	si
+	loop	kmsg_3a
+;
+;Update number of killed messages
+	inc	n_kld_msg
+	mov	dx,offset top_filblk
+	call	rewind
+	jz	kmsg_3b
+kmsg_error:
+	jmp	error
+kmsg_3b:
+	mov	si,offset topic
+	mov	cx,hdr_lrl
+kmsg_4:
+	mov	al,[si]
+	call	write
+	jnz	kmsg_error
+	inc	si
+	loop	kmsg_4
+;finished killing it. (ugh...)..
+	mov	si,offset m_msgkld
+	call	puts
+	ret
+;
+;
+enter_msg:					;allow msg entry.
+	mov	null_line,0
+	mov	lines,0
+	mov	dx,mem_ptr
+	mov	memt_ptr,dx
+	mov	si,offset m_typein
+	call	puts
+em_1:
+	call	enter_pmpt
+;
+	mov	si,mem_ptr	
+	mov	bl,76				;***** poss wrong... ***
+	call	h40h
+;
+	jc	em_brk
+	mov	al,[si]
+	cmp	al,cr
+	jz	em_null
+;
+	mov	null_line,0
+;
+em_2:
+	mov	al,[si]
+	inc	si
+	cmp	al,cr
+	jnz	em_2
+	mov	byte ptr [si],0
+	mov	mem_ptr,si
+	inc	lines
+	cmp	lines,64			;%%% max lines per message
+	jz	em_end
+	cmp	lines,62			;%%% max lines/msg - 2.
+	jnz	em_1
+;
+	mov	si,offset m_endwrn
+	call	puts
+	jmp	em_1
+;
+em_null:
+	inc	null_line
+	cmp	null_line,2
+	jnz	em_2
+	dec	mem_ptr
+	mov	si,mem_ptr				;take off last CR.
+	mov	byte ptr [si],0
+	dec	lines
+	cmp	lines,0
+	jz	no_lines
+em_3:
+	jmp	mesg_quest
+;
+no_lines:
+							;abort exit.
+	xor	al,al
+	cmp	al,1
+	ret
+;
+em_brk:							;abort question if break
+	mov	si,offset m_ifabrt
+	call	yes_no
+	cmp	al,'Y'
+	jz	no_lines				;ie. abort..
+	cmp	al,'Q'
+	jz	no_lines
+	mov	si,offset m_disreg
+	call	puts
+	jmp	em_1
+;
+em_end:
+	mov	si,offset m_frcend
+	call	puts
+	jmp	em_3
+;
+enter_pmpt:
+	mov	al,':'
+	call	putc
+	mov	al,' '
+	call	putc
+	ret
+;
+stats_msg:
+	mov	si,offset m_sysgot
+	call	puts
+	mov	dx,n_msg
+	call	print_numb
+	mov	si,offset m_mesgs
+	call	puts
+	mov	si,offset m_nkld
+	call	puts
+	mov	dx,n_kld_msg
+	call	print_numb
+	mov	si,offset m_mesgs
+	call	puts
+	ret
+;
+hdr_prnt:					;print a header.
+	mov	si,offset m_msg2
+	call	puts
+	mov	dx,msg_num
+	call	print_numb
+	mov	si,offset m_spaces
+	call	puts
+	mov	al,hdr_topic
+	call	topic_print
+;
+	call	txt_get
+	call	txt_get
+;
+	cmp	hdr_lines,10
+	jc	hpr_1
+	mov	si,offset m_spaces
+	call	puts
+	mov	al,'('
+	call	putc
+	mov	dl,hdr_lines
+	mov	dh,0
+	call	print_numb
+	mov	si,offset m_lines
+	call	puts
+	mov	al,')'
+	call	putc
+hpr_1:
+	mov	al,cr
+	call	putc
+;
+	mov	si,offset m_sndr
+	call	puts
+	call	txt_get_put_ncr
+;
+	mov	si,offset m_rcvr
+	call	puts
+	call	txt_get_put_ncr
+;
+	mov	al,hdr_flag
+	and	al,fm_private
+	jz	hpr_2
+	mov	si,offset m_p
+	call	puts
+hpr_2:
+	mov	al,cr
+	call	putc
+;
+	mov	si,offset m_date
+	call	puts
+	call	txt_get_put_ncr
+	mov	al,' '
+	call	putc
+;
+	call	asc_time				;*** change time in
+							;*** HDR_TIME to ascii
+	mov	si,offset time_string
+	mov	cx,8
+tmprt:	mov	al,[si]
+	call	putc
+	inc	si
+	loop	tmprt
+;
+	mov	si,offset m_subj
+	call	puts
+	call	txt_get_put_ncr
+;
+	mov	al,cr
+	call	putc
+	call	putc
+	ret
+;
+;
+txt_get_put_ncr:
+	call	txt_get
+	cmp	al,cr
+	jnz	txt_get_put_ncr_label_number_one
+	ret
+txt_get_put_ncr_label_number_one:
+	call	putc
+	jmp	txt_get_put_ncr
+;
+this_label_is_only_here_to_give_the_assembler_the_willies:
+	ret
+;
+mesg_quest:
+	mov	null_line,0
+	mov	si,offset menu_quest
+	call	menu
+	jz	mq_2
+mq_1:
+	mov	si,offset pmpt_quest
+	call	get_string
+mq_2:
+	call	get_char
+	cmp	al,cr
+	jz	mq_1
+	and	al,5fh				;to u/c
+	cmp	al,'A'
+	jz	mq_2b				;ie. abort.
+	cmp	al,'S'
+	jnz	mq_2a
+	ret
+mq_2a:
+	cmp	al,'C'
+	jz	contin
+	cmp	al,'L'
+	jz	m_list
+	cmp	al,'E'
+	jz	mesg_edit
+	jmp	mesg_quest
+mq_2b:
+	jmp	no_lines
+;
+contin:
+	cmp	lines,64			;%%% max lines per message
+	jz	contin_1
+	jmp	em_1
+contin_1:					;allow continue
+	mov	si,offset m_maxlin
+	call	puts
+	jmp	mesg_quest
+;
+m_list:
+	mov	si,memt_ptr
+	mov	m_line,1
+mls_1:
+	mov	al,[si]
+	cmp	al,0
+	jz	mesg_quest
+	push	si	
+	mov	dl,m_line
+	mov	dh,0
+	call	print_numb
+	mov	al,':'
+	call	putc
+	mov	al,' '
+	call	putc
+	pop	si
+mls_2:
+	push	si
+	mov	al,[si]
+	cmp	al,cr
+	jz	mls_3
+	call	putc
+	call	getc
+	cmp	al,break
+	jz	mls_3
+	pop	si
+	inc	si
+	jmp	mls_2
+;
+mls_3:
+	push	ax				;save condition of call
+	inc	m_line
+	mov	al,cr
+	call	putc
+	pop	ax
+	pop	si
+	inc	si
+	cmp	al,break
+	jnz	mls_1
+	jmp	mesg_quest
+;
+;
+mesg_edit:
+	call	get_char
+	cmp	al,cr
+	jnz	med_3a
+	call	if_char
+	jz	med_2
+med_1:
+	mov	si,offset m_edwhli
+	call	get_string				;ask which
+med_2:
+	call	get_char
+	cmp	al,cr
+	jnz	med_2a
+	jmp	mesg_quest
+med_2a:
+	call	get_num				;in DX
+	cmp	dh,0				;if dx>256
+	jnz	med_1
+	mov	al,lines
+	cmp	al,dl
+	jc	med_1
+	mov	si,memt_ptr
+	mov	dh,1
+med_3:
+	cmp	byte ptr [si],0
+	jnz	med_3a				;should never happen.
+	jmp	mesg_quest			;reason: # lines checked.
+med_3a:
+	cmp	dh,dl
+	jz	do_edit
+med_4:
+	mov	al,[si]
+	inc	si
+	cmp	al,cr
+	jnz	med_4
+	inc	dh
+	jmp	med_3
+;
+;
+do_edit:
+	mov	edit_ptr,si
+	mov	di,offset outbuf
+med_5:	mov	al,[si]
+	mov	[di],al
+	cmp	al,cr
+	jz	do_edit_2
+	inc	si
+	inc	di
+	jmp	med_5
+;
+do_edit_2:
+	mov	si,offset m_trsedit
+	call	puts
+;
+	call	x_start
+	jz	do_edit_2a
+	jmp	mesg_quest
+;
+;save message (edited line).
+do_edit_2a:
+;
+	mov	si,offset outbuf
+	mov	cl,0
+med_6:	mov	al,[si]
+	inc	cl
+	inc	si
+	cmp	al,0
+	jnz	med_6
+	dec	si
+	mov	byte ptr [si],cr
+;
+;cl=no. of chars including 0D? at end
+;
+	mov	si,edit_ptr
+med_7:	mov	al,[si]
+	call	putc
+	inc	si
+	cmp	al,cr
+	jnz	med_7
+;
+	mov	di,edit_ptr
+med_8:					;move rest of msg over edited line
+;
+	mov	al,[si]
+	mov	[di],al
+;
+	inc	si
+	inc	di
+	cmp	al,0
+	jnz	med_8
+;
+	dec	di			;di=0h byte at end of msg.
+	push	di			;push old eom
+;
+	mov	si,di
+	mov	di,edit_ptr
+	sub	si,di
+	inc	si			;si now length of rest or message
+	pop	di			;di=end of message
+;
+	push	si			;=length
+	xchg	si,di			;di=len,si=eom
+	push	si			;push eom
+	mov	ch,0
+	add	si,cx			;si=addr where new eom should be
+;
+	mov	mem_ptr,si
+	pop	di			;di=eom
+	pop	cx			;=length
+	xchg	si,di			;di=new eom, si=old eom
+;
+	call	lddr			;open space for edited line....
+;
+					;move out the OUTBUF line
+	mov	si,offset outbuf
+	mov	di,edit_ptr
+;
+med_9:	mov	al,[si]
+	mov	[di],al
+;
+	inc	si
+	inc	di
+	cmp	al,cr
+	jnz	med_9
+;
+	jmp	mesg_quest
+;
+reload:
+	mov	si,edit_ptr
+	mov	di,offset outbuf
+med_a:
+	mov	al,[si]
+	mov	[di],al
+	inc	si
+	inc	di
+	cmp	al,cr
+	jnz	med_a
+	dec	di
+	mov	al,0
+	mov	[di],al
+	ret
+;
+deltop_cmd:
+	mov	al,my_level
+	cmp	al,0
+	jnz	dc_1
+	mov	si,offset m_nodltp
+	call	puts
+	jmp	main
+dc_1:
+	call	if_sysop
+	jz	dc_2
+	mov	al,my_topic
+	call	top_int
+	call	top_addr
+	add	si,16
+	mov	bx,[si]
+	call	get_userid
+	cmp	dx,bx
+	jz	dc_2
+	mov	si,offset m_notcrtr
+	call	puts
+	jmp	main
+dc_2:
+	mov	dx,n_msg_top
+	cmp	dx,0
+	jz	dc_3
+;
+	mov	si,offset m_tpntmt		;topic not empty.
+	call	puts
+	jmp	main
+dc_3:
+dc_3a:
+	mov	al,my_topic
+	call	sub_level
+dc_4:	mov	al,my_topic
+	call	sub_next
+	jc	dc_6
+	push	ax
+	push	bx
+	call	top_int
+	call	top_addr
+	cmp	byte ptr [si],0
+	jnz	dc_5
+	pop	bx
+	pop	ax
+	jmp	dc_4
+dc_5:
+	pop	bx
+	pop	ax
+	mov	si,offset m_actsub
+	call	puts
+	jmp	main
+dc_6:
+	mov	al,my_topic
+	call	top_int
+	call	top_addr
+	mov	cx,20
+dc_7:
+	mov	byte ptr [si],0
+	inc	si
+
+	loop	dc_7
+;
+	mov	al,my_topic
+	call	top_int
+	mov	cl,20
+	mul	cl
+	add	ax,16				;16 byte offset!
+	mov	ch,al
+	mov	bl,ah
+	mov	bh,0
+	mov	dx,offset top_filblk
+	call	pos_to_rba
+	jz	dc_7b
+dc_7a:
+	jmp	error
+dc_7b:
+	mov	cx,20
+dc_8:
+	mov	al,0
+	call	write
+	jnz	dc_7a
+	loop	dc_8
+						;written!
+	mov	al,my_topic
+	call	topic_up
+	mov	my_topic,al
+	dec	my_level
+	call	info_setup
+	jmp	main
+;
+;
+check_mail:
+	mov	si,offset m_lookmail
+	call	puts
+	mov	cx,n_msg
+	cmp	cx,0
+	jz	ckml_2a
+	mov	dx,0
+ckml_1:
+	push	dx
+	push	cx
+;
+	mov	ax,dx
+	mov	cx,hdr_lrl
+	mul	cx
+	mov	ch,al
+	mov	bl,ah
+	mov	bh,dl
+	mov	dx,offset hdr_filblk
+	call	pos_to_rba
+	jz	ckml_1b
+ckml_1a:
+	jmp	error
+ckml_1b:
+	mov	si,offset this_msg_hdr
+	mov	cx,hdr_lrl
+ckml_1c:
+;
+	call	read
+	jnz	ckml_1a
+	mov	[si],al
+	inc	si
+	loop	ckml_1c
+	mov	al,hdr_flag
+;
+	and	al,fm_killed
+	jnz	ckml_2
+	mov	dx,hdr_rcvr
+	mov	ax,usr_number
+;
+	cmp	dx,ax
+	jz	ckml_3
+ckml_2:
+;
+	pop	cx
+	pop	dx
+	inc	dx
+	loop	ckml_1
+;
+ckml_2a:
+	mov	si,offset m_nomail
+	call	puts
+	jmp	main
+;
+ckml_3:
+	pop	ax
+	pop	ax
+	mov	si,offset m_readmail
+	call	yes_no
+	cmp	al,'Y'
+	jz	ckml_4
+	ret
+ckml_4:						;read your mail.
+	mov	si,offset dummy_read
+	mov	di,offset in_buff
+	mov	cx,4
+	call	ldir
+	mov	char_posn,offset in_buff
+	mov	my_topic,0			;setup flatten info.
+	mov	al,options
+	or	al,fo_lowr
+	and	al,255-fo_curr
+	mov	options,al
+	call	info_setup
+	call	read_cmd			;read my mail.
+	call	if_visitor
+	jz	chkm_fini			;stop her deleting it
+	mov	si,offset m_killmail
+	call	yes_no
+	cmp	al,'Y'
+	jnz	chkm_fini
+	mov	si,offset dummy_kill		;kill all your mail
+	mov	di,offset in_buff
+	mov	cx,4
+	call	ldir
+	mov	char_posn,offset in_buff
+	call	kill_cmd
+;
+;now reset everything.
+chkm_fini:
+	mov	my_topic,0
+	mov	al,options
+	and	al,255-fo_lowr
+	or	al,fo_curr
+	call	info_setup
+	ret					;finished read mail.
+;
+;
+create_cmd:
+	call	get_char
+	cmp	al,cr
+	jz	cc_0a
+	jmp	main
+cc_0a:
+	mov	al,my_level
+	cmp	al,3
+	jnz	cc_1
+	mov	si,offset m_atbotm
+	call	puts
+	jmp	main
+cc_1:
+	cmp	al,0
+	jnz	cc_2
+	call	if_sysop
+	jmp	cc_2
+;;	jz	cc_2
+	mov	si,offset m_ccsysop
+	call	puts
+	jmp	main
+cc_2:
+	mov	bh,7
+	mov	al,my_level
+	cmp	al,2
+	jnz	cc_4
+	mov	bh,3
+cc_4:
+	mov	bl,1
+cc_5:
+	push	bx
+	mov	al,my_topic
+	call	topic_down
+	mov	temp_topic,al
+	call	top_int
+	call	top_addr
+	cmp	byte ptr [si],0
+	jz	emp_top_fnd
+	pop	bx
+	inc	bl
+	dec	bh
+	jnz	cc_5
+	mov	si,offset m_subused
+	call	puts
+	jmp	main
+;
+emp_top_fnd:
+	pop	bx
+	call	if_char
+	jz	cc_7
+;
+cc_6:
+	mov	si,offset m_gettpc
+	call	get_string
+;
+cc_7:
+	mov	si,offset name_buff
+	mov	di,offset name_buff+1
+	mov	cx,15
+	mov	byte ptr [si],0
+	call	ldir
+	mov	si,offset name_buff
+	mov	bh,0
+cc_8:
+	push	si
+	call	get_char
+	pop	si
+	mov	[si],al
+	inc	si
+	inc	bh
+	cmp	al,cr
+	jnz	cc_8
+	mov	al,name_buff
+	cmp	al,cr
+	jnz	cc_8a
+	jmp	main
+cc_8a:
+	cmp	bh,17
+	jc	cc_lgok
+;
+	mov	si,offset m_tpclng
+	call	puts
+	jmp	main
+;
+cc_lgok:
+	mov	si,offset name_buff
+	call	to_upper			;check name against each
+						;other subtopic of this.
+	mov	bh,7
+	mov	al,my_level
+	cmp	al,2
+	jnz	cc_9
+	mov	bh,3
+cc_9:
+	mov	bl,1
+cc_10:
+	push	bx
+	mov	al,my_topic
+	call	topic_down
+	call	top_int
+	call	top_addr
+	mov	al,[si]
+	cmp	al,0
+	jz	cc_11
+	mov	di,offset name_buff
+	call	str_cmp
+	jz	cc_12
+;
+cc_11:
+	pop	bx
+	inc	bl
+	dec	bh
+	jnz	cc_10
+	jmp	cc_13				;ok to put in.
+;
+cc_12:
+	mov	si,offset m_alrdytop
+	call	puts
+	jmp	main
+;
+cc_13:
+;
+	mov	al,0
+	call	top_addr
+	mov	dx,si
+	call	print_numb
+	mov	al,','
+	call	print_numb
+;
+	mov	al,temp_topic
+	call	top_int
+	call	top_addr
+	mov	di,si
+	mov	si,offset name_buff
+	mov	cx,16
+	call	ldir
+	call	get_userid
+	mov	[di],dx
+	add	di,2
+	mov	byte ptr [di],0ffh		;topic permissions... unused.
+	inc	di
+	mov	byte ptr [di],00h		;no msgs here.
+						;Save into file.
+;
+	mov	al,'A'
+	call	putc
+;
+	mov	al,temp_topic
+	call	top_int
+	mov	cl,20
+	mul	cl
+	add	ax,16
+	mov	ch,al
+	mov	bl,ah
+	mov	bh,0
+	mov	dx,offset top_filblk
+	call	pos_to_rba
+	jz	cc_13b
+cc_13a:
+	jmp	error
+cc_13b:
+	mov	al,temp_topic
+	call	top_int
+	call	top_addr
+	mov	dx,offset top_filblk
+	mov	cx,20
+cc_14:
+	mov	al,[si]
+	call	write
+	jnz	cc_13a
+;
+	mov	al,'W'
+	call	putc
+;
+	inc	si
+	loop	cc_14
+;
+	mov	si,offset m_tpcmde
+	call	puts
+	jmp	main
+;
+tag_cmd:
+	call	get_char
+	cmp	al,cr
+	jz	tag_jz_1
+	jmp	main
+tag_jz_1:
+	mov	funcnm,offset m_tag
+	mov	function,offset tagmessage
+	mov	tag_flag,0
+	mov	tag_posn,offset text_buf
+	mov	text_buf,0
+	mov	text_buf+1,0
+	call	do_scan_1
+	jmp	main
+;
+tagmessage:
+	cmp	msg_found,0
+	jnz	tmsg_0		;dunno why I did this next bit!!
+tmsg_0:
+	call	text_posn
+	call	hdr_prnt
+;
+	mov	si,offset m_iftag
+	call	yes_no
+	cmp	al,'N'
+	jnz	tag_jnz_2
+	ret
+tag_jnz_2:
+	cmp	al,'Y'
+	jz	tmsg_1
+	mov	scan_abort,1
+	ret
+tmsg_1:
+	mov	dx,msg_num 
+	mov	si,tag_posn
+	mov	word ptr [si],dx
+	add	si,2
+	mov	word ptr [si],0
+	mov	tag_flag,1
+	ret
+;
+;
+fix_mfd:
+	mov	al,0
+	call	top_addr
+	cmp	byte ptr [si],0
+	jz	fmfd_0a
+	ret
+fmfd_0a:
+	mov	di,si
+	mov	si,offset mfd_data
+	mov	bx,20
+	call	ldir
+	mov	bx,0
+	mov	ch,16
+	mov	dx,offset top_filblk
+;
+	call	pos_to_rba
+	jz	fmfd_0b
+	jmp	error
+fmfd_0b:
+	mov	al,0
+	call	top_addr
+	mov	dx,offset top_filblk
+	mov	cx,20
+fmfd_1:
+;
+	mov	al,[si]
+	call	write
+	jz	fmfd_1a
+	jmp	error
+fmfd_1a:
+	inc	si
+	loop	fmfd_1
+;
+	ret
+;
+;
+;
+move2_cmd:
+	call	get_char
+	cmp	al,cr
+	jz	m2_000
+	jmp	main
+m2_000:
+	call	if_char
+	jnz	m2_0
+	jmp	m2_3
+;
+m2_0:						;print upper if any.
+	mov	si,offset m_upwrd
+	call	puts
+	cmp	my_level,0
+	jnz	m2_001
+	mov	si,offset m_youatup		;uppermost topic.
+	call	puts
+	jmp	m2_top
+m2_001:
+	mov	si,offset m_upto
+	call	puts
+	mov	al,my_topic
+	call	topic_up
+	call	topic_print
+	mov	al,cr
+	call	putc
+	call	getc
+	cmp	al,0
+	jz	m2_top
+	mov	si,offset move_rnd
+	call	chk_char			;is this correct usage???
+	jnz	m2_top
+	jmp	m2_4
+m2_top:
+	mov	si,offset m_dwnwrd
+	call	puts
+	mov	sub_cnt,0
+	mov	al,my_topic
+	call	sub_level
+	mov	al,my_topic
+	push	ax
+m2_1:
+	pop	ax
+	call	sub_next
+	jc	m2_2x
+	push	ax
+	push	bx
+	push	cx
+	call	sub_nonex
+	pop	cx
+	pop	bx
+	jz	m2_1
+;
+	mov	al,'<'				;print number for choice
+	call	putc
+	mov	al,sub_cnt
+	inc	al
+	mov	sub_cnt,al
+	add	al,'0'
+	call	putc
+	mov	al,'>'
+	call	putc
+	mov	al,' '
+	call	putc
+	call	putc
+;
+	pop	ax				;get AL back.
+	push	ax				;save it again
+	push	bx
+	push	cx
+	call	topic_print
+	mov	al,cr
+	call	putc
+	call	getc
+	cmp	al,0
+	jz	m2_nok
+	mov	si,offset move_rnd
+	call	chk_char
+	jnz	m2_nok
+	pop	cx
+	pop	bx
+	pop	dx				;throw away old AL...
+	jmp	m2_4
+;
+m2_nok:
+	pop	cx
+	pop	bx
+	jmp	m2_1
+;
+m2_2x:
+	cmp	sub_cnt,0
+	jnz	m2_2
+	mov	si,offset m_nobelo
+	call	puts
+m2_2:
+	call	getc
+	mov	si,offset move_rnd
+	call	chk_char
+	jz	m2_4
+	mov	si,offset m_whrto
+	call	get_string
+m2_3:
+	call	get_char
+m2_4:
+	cmp	al,0dh
+	jnz	m2_4a
+	jmp	main
+m2_4a:
+	call	if_num
+	jz	m2_6
+	and	al,5fh
+	cmp	al,'U'
+	jnz	m2_2
+;
+	cmp	my_level,0			;test if at top.
+	jnz	m2_4b
+	jmp	m2_0
+m2_4b:
+	mov	al,my_topic
+	call	topic_up
+	mov	my_topic,al
+	dec	my_level
+	mov	si,offset m_mvgup
+	call	puts
+m2_5:
+	call	set_mask
+	call	info_setup
+	jmp	main
+;
+m2_6:
+	cmp	al,'8'
+	jc	m2_6b
+m2_6a:
+	jmp	main
+m2_6b:
+	cmp	al,'0'
+	jz	m2_6a
+	sub	al,'0'
+	mov	sub_cnt,al
+	mov	al,my_topic			;try to go along underneath
+	call	sub_level			;until SUB_CNT exhausted.
+	mov	al,my_topic
+	push	ax
+m2_7:
+	pop	ax
+	call	sub_next
+	jnc	m2_7a
+	jmp	main
+m2_7a:
+	push	ax
+	push	bx
+	push	cx
+	call	sub_nonex
+	pop	cx
+	pop	bx
+	jz	m2_7
+	dec	sub_cnt
+	cmp	sub_cnt,0
+	jnz	m2_7
+;
+	mov	si,offset m_ok
+	call	puts
+	pop	ax
+	mov	my_topic,al
+	inc	my_level
+	jmp	m2_5
+;
+;
+;

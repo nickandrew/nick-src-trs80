@@ -1,0 +1,85 @@
+;
+;
+;Fileopen.A86: Code to open a file.
+;(C) Zeta Microcomputer Software...
+;
+;
+file_open:
+	call	set_pointers
+	mov	si,fi_open
+	mov	di,si
+	inc	di
+	mov	byte ptr [si],0
+	mov	cx,480
+	call	ldir				;zero all....
+;
+	mov	dx,fi_filblk
+	mov	pfcb,dx
+	mov	dx,fi_fcb
+	mov	pfcb+2,dx
+	mov	cl,b_parse			;parse filblk -> fcb
+	mov	dx,offset pfcb
+	call	bdos
+	cmp	ax,0ffffh
+	jz	fi_open_file_er1
+;
+	mov	cl,b_open			;open file
+	mov	dx,fi_fcb
+	call	bdos
+	cmp	ah,0
+	jnz	fi_open_file_er1
+;
+	mov	dx,fi_fcb
+	mov	cl,b_read			;read 1st sector
+	call	bdos
+	cmp	al,0
+	jnz	fi_open_file_er1
+;
+	mov	si,80h				;set EOF value.
+	mov	al,[si]
+	mov	bx,fi_eof
+	mov	[bx],al
+	inc	si
+	mov	ax,[si]
+	inc	bx
+	mov	[bx],ax
+;
+	mov	bx,fi_open
+	mov	word ptr [bx],1			;set file open.
+	mov	bx,fi_update
+	mov	word ptr [bx],0			;sector NOT updated.
+	mov	bx,fi_inmem
+	mov	word ptr [bx],0			;sector NOT in memory.
+;
+	cmp	al,al				;return no error
+	ret
+;
+;
+fi_open_file_er1:
+	mov	al,1
+	cmp	al,0
+	ret
+;
+;
+set_pointers:
+	;DX=input filblk.
+	mov	fi_filblk,dx
+	add	dx,32
+	mov	bx,dx
+	mov	fi_open,dx			;Setup addresses for each.
+	add	dx,1
+	mov	fi_update,dx
+	add	dx,1
+	mov	fi_inmem,dx
+	add	dx,1
+	mov	fi_next,dx
+	add	dx,3
+	mov	fi_eof,dx
+	mov	dx,bx
+	add	dx,32
+	mov	fi_fcb,dx
+	add	dx,192
+	mov	fi_sector,dx
+	ret
+;
+;

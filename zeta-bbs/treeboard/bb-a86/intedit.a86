@@ -1,0 +1,414 @@
+;Intedit.a86: Intal editor modified for BB.
+;(C) Zeta Microcomputer software.
+;
+x_start:
+	mov	si,offset outbuf
+	mov	cl,255
+ediv01:
+	inc	cl
+	mov	al,[si]
+	inc	si
+	cmp	al,cr
+	jnz	ediv01
+;
+	dec	si
+	mov	byte ptr [si],0		;put 0 at end not CR.
+edfn1:
+	mov	bl,0
+	mov	si,offset outbuf
+	mov	al,'>'
+	call	putc
+edfn2:
+	mov	dl,0
+edfn3:
+	call	getc_wait
+	cmp	al,'0'
+	jc	ediv02
+	cmp	al,'9'+1
+	jnc	ediv02
+	sub	al,'0'
+	mov	dh,al
+	mov	al,dl
+	mov	cl,10
+	mul	cl
+	mov	dl,al
+	add	dl,dh
+	jmp	edfn3
+;
+ediv02:
+	cmp	dl,0
+	jnz	ediv03
+	inc	dl
+ediv03:
+;
+	cmp	al,break
+	jnz	edij01
+	jmp	ebrk
+edij01:
+	cmp	al,8
+	jnz	edij02
+	jmp	ebsp
+edij02:
+	cmp	al,cr
+	jnz	edij03
+	jmp	ecr
+edij03:
+	cmp	al,' '
+	jnz	edij04
+	jmp	esp
+edij04:
+	cmp	al,9
+	jnz	edij05
+	jmp	esp
+edij05:
+	cmp	al,'a'
+	jc	ediv04
+;
+	and	al,5fh
+;
+ediv04:
+	cmp	al,'A'
+	jnz	edij06
+	jmp	ea
+edij06:
+	cmp	al,'C'
+	jnz	edij07
+	jmp	ec
+edij07:
+	cmp	al,'D'
+	jnz	edij08
+	jmp	ed
+edij08:
+	cmp	al,'E'
+	jnz	edij09
+	jmp	ee
+edij09:
+	cmp	al,'H'
+	jnz	edij10
+	jmp	eh
+edij10:
+	cmp	al,'I'
+	jnz	edij11
+	jmp	ei
+edij11:
+	cmp	al,'K'
+	jnz	edij12
+	jmp	ek
+edij12:
+	cmp	al,'L'
+	jnz	edij13
+	jmp	el
+edij13:
+	cmp	al,'Q'
+	jnz	edij14
+	jmp	eqq
+edij14:
+	cmp	al,'S'
+	jnz	edij15
+	jmp	ess
+edij15:
+	cmp	al,'X'
+	jnz	edij16
+	jmp	ex
+edij16:
+	cmp	al,'?'
+	jnz	edij17
+	jmp	edit_help
+edij17:
+	jmp	edfn3
+;
+ebrk:
+	call	edit_mess
+;
+	mov	al,cr
+	call	putc
+	mov	si,offset m_equit
+	call	puts
+	jmp	e_abort
+;
+ebsp:
+	mov	al,bl
+	cmp	al,0
+	jz	to_edfn2_4
+	dec	bl
+	dec	si
+;
+	mov	al,8
+	call	putc
+;
+	dec	dl
+	jnz	ebsp
+	jmp	edfn2
+;
+esp:
+	mov	al,[si]
+	cmp	al,0
+	jz	to_edfn2_4
+	inc	bl
+	call	putc
+	inc	si
+	dec	dl
+	jnz	esp
+to_edfn2_4:
+	jmp	edfn2
+;
+ea:
+	call	reload
+	mov	al,cr
+	call	putc
+	jmp	edfn1
+;
+;**** ????
+;
+ec:
+	mov	al,[si]
+	cmp	al,0
+	jz	to_edfn2_3
+;
+ecv01:
+	call	getc_wait
+	cmp	al,' '
+	jc	ecv01
+	cmp	al,7fh
+	jnc	ecv01
+	mov	[si],al
+	call	putc
+	inc	si
+	inc	bl
+	dec	dl
+	jnz	ec
+	jmp	edfn2
+;
+ed:
+	mov	al,[si]
+	cmp	al,0
+	jz	to_edfn2_3
+	mov	al,'['
+	call	putc
+;
+edv01:
+	mov	al,[si]
+	cmp	al,0
+	jz	edv03
+;
+	call	putc
+	push	si
+;
+edv02:
+	mov	al,1[si]
+	mov	[si],al
+	inc	si
+	cmp	al,0
+	jnz	edv02
+;
+	pop	si
+	dec	cl
+	dec	dl
+	jnz	edv01
+edv03:
+	mov	al,']'
+	call	putc
+to_edfn2_3:
+	jmp	edfn2
+;
+ecr:
+	call	edit_mess
+ee:
+	mov	al,cr
+	call	putc
+e_exit:
+	cmp	al,al
+	ret
+;
+e_abort:
+	mov	al,0
+	cmp	al,1
+	ret
+;
+eh:	mov	byte ptr [si],0
+	mov	cl,bl
+ex:
+	call	edit_mess
+	mov	si,offset outbuf
+exv01:
+	mov	al,[si]
+	inc	si
+	cmp	al,0
+	jnz	exv01
+;
+	dec	si
+	mov	bl,cl
+;
+ei:
+	call	getc_wait
+	cmp	al,8
+	jnz	eij01
+	jmp	eibsp
+eij01:
+	cmp	al,cr
+	jnz	eij02
+	jmp	ecr
+eij02:
+	cmp	al,1bh		;escape
+	jz	to_edfn2_3
+	cmp	al,' '
+	jc	ei
+	cmp	al,7fh
+	jnc	ei
+	push	ax
+;
+	cmp	cl,78
+	jc	eiv01
+	pop	ax
+	jmp	ei
+;
+eiv01:
+	push	si
+	inc	cl
+	inc	bl
+	mov	dl,0
+eiv02:
+	mov	al,[si]
+	inc	si
+	inc	dl
+	cmp	al,0
+	jnz	eiv02
+	dec	si
+eiv03:
+	mov	al,[si]
+	mov	1[si],al
+	dec	si
+	dec	dl
+	jnz	eiv03
+;
+	pop	si
+	pop	ax
+	mov	[si],al
+	inc	si
+	call	putc
+	jmp	ei
+;
+eibsp:
+	cmp	bl,0
+	jz	ei
+	mov	al,8
+	call	putc
+	dec	cl
+	dec	bl
+	dec	si
+	push	si
+eibv01:
+	mov	al,1[si]
+	mov	[si],al
+	inc	si
+	cmp	al,0
+	jnz	eibv01
+;
+	pop	si
+	jmp	ei
+;
+eqq:
+	call	edit_mess
+	mov	al,cr
+	call	putc
+	jmp	e_abort
+;
+el:
+	call	edit_mess
+	mov	al,cr
+	call	putc
+to_edfn1_1:
+	jmp	edfn1
+;
+ess:
+	call	getc_wait
+	cmp	al,' '
+	jc	ess
+	cmp	al,7fh
+	jnc	ess
+	mov	ah,al
+	mov	al,[si]
+	cmp	al,0
+	jz	to_edfn2_2
+	cmp	al,ah
+	jnz	esv01
+	call	putc
+	inc	si
+	inc	bl
+esv01:
+	mov	al,[si]
+	cmp	al,0
+	jz	to_edfn2_2
+	call	putc
+	inc	si
+	inc	bl
+	cmp	al,ah
+	jnz	esv01
+	dec	dl
+	jnz	esv01
+	mov	al,8
+	call	putc
+	dec	si
+	dec	bl
+to_edfn2_2:
+	jmp	edfn2
+;
+;next .... ek
+ek:
+	call	getc_wait
+	cmp	al,' '
+	jc	ek
+	cmp	al,7fh
+	jnc	ek
+	mov	ah,al
+	mov	al,'['
+	call	putc
+ekv01:
+	mov	al,[si]
+	cmp	al,0
+	jz	ekv03
+	call	putc
+	push	si
+ekv02:
+	mov	al,1[si]
+	mov	[si],al
+	inc	si
+	cmp	al,0
+	jnz	ekv02
+;
+	dec	cl
+	pop	si
+	mov	al,[si]
+	cmp	al,ah
+	jnz	ekv01
+	dec	dl
+	jnz	ekv01
+ekv03:
+	mov	al,']'
+	call	putc
+to_edfn2_1:
+	jmp	edfn2
+;
+edit_mess:
+	mov	al,[si]
+	cmp	al,0
+	jz	edit_mess_1
+	call	putc
+	cmp	al,cr
+	jz	edit_mess_1
+	inc	si
+	jmp	edit_mess
+edit_mess_1:
+	ret
+;
+edit_help:
+	mov	si,offset m_edit_help
+	call	puts
+	jmp	edfn2
+;
+getc_wait:
+	call	getc
+	cmp	al,0
+	jz	getc_wait
+	ret
+;

@@ -1,0 +1,388 @@
+;whoami: Find out who I am.
+;(C) Zeta Microcomputer Software
+;
+who_am_i:
+;
+	mov	si,offset buff_end
+	mov	file_ptr,si
+;
+	mov	cl,99h
+	call	bdos
+	mov	console,al
+;
+	call	w_open
+;
+w_1:
+	call	w_read1			;read 1 login record
+	jz	w_1a
+	jmp	w_error
+w_1a:
+	mov	al,condig
+	sub	al,'0'
+	mov	ah,console
+	cmp	al,ah
+	jnz	w_1
+;
+	mov	si,offset usname	;copy name from UTMP file
+	mov	di,offset usr_name
+w_2:	mov	al,[si]
+	cmp	al,' '
+	jz	w_3
+	mov	[di],al
+	inc	si
+	inc	di
+	jmp	w_2
+;
+w_3:	mov	byte ptr [si],0
+	call	w_close
+	ret
+;
+;
+w_read1:					;read 1 login record
+	mov	si,offset whobuff
+	mov	cx,50				;lrl of utmp file.
+wr_1:
+	push	si
+	push	cx
+	call	w_read
+	pop	cx
+	pop	si
+	jz	wr_2
+	ret
+wr_2:	mov	[si],al
+	inc	si
+	loop	wr_1
+	cmp	al,al
+	ret
+;
+w_read:
+	mov	si,file_ptr
+	cmp	si,offset buff_end
+	jz	w_getblock
+	mov	al,[si]
+	inc	si
+	mov	file_ptr,si
+	cmp	al,al
+	ret
+;
+w_getblock:
+	mov	si,offset buff_start
+	mov	file_ptr,si
+;
+	mov	cl,14h
+	mov	dx,offset who_fcb
+	call	bdos
+	cmp	al,0
+	jz	w_getblock2
+	ret
+;
+w_getblock2:
+	mov	si,80h				;dma
+	mov	di,offset buff_start
+	mov	cx,80h
+	call	ldir
+	cmp	al,al
+	jmp	w_read
+;
+w_open:
+	mov	cx,0fh
+	mov	dx,offset who_fcb
+	call	bdos
+	cmp	al,4
+	jnc	w_error
+	ret
+;
+w_close:
+	mov	cx,10h
+	mov	dx,offset who_fcb
+	call	bdos
+	cmp	al,4
+	jnc	w_error
+	ret
+;
+w_error:
+	mov	si,offset m_whoerr
+	call	puts
+	jmp	exit
+;
+whats_the_number:
+;
+	mov	his_name,si
+	mov	dx,offset usr_filblk
+	call	rewind				;rewind.
+	call	wha_readnum			;read max userid
+	jz	wha_99
+wha_98:
+	jmp	wha_err
+;
+wha_99:
+	mov	max_userid,dx			;store max userid
+	mov	dx,offset usr_filblk
+	call	read				;1 char after.
+	jnz	wha_98
+wha_loop:
+;
+	call	wha_readnum			;read number
+	jz	wha_00
+	ret
+wha_00:
+	mov	temp_userid,dx			;into temp userid
+;
+	mov	si,his_name
+	mov	dx,offset usr_filblk
+wha_loop_2:
+;
+	mov	al,[si]				;name in memory
+	cmp	al,0
+	jz	wha_01
+	cmp	al,cr
+	jz	wha_01
+	call	read
+	jnz	wha_err
+	cmp	al,0
+	jz	wha_byplast
+;
+	call	wh_to_upper
+	mov	ah,al
+	mov	al,[si]
+	call	wh_to_upper
+	cmp	al,ah
+	jnz	wha_not_eq
+	inc	si
+	jmp	wha_loop_2
+;
+wh_to_upper:
+	cmp	al,'A'
+	jc	wh_case_ok
+	cmp	al,'z'+1
+	jnc	wh_case_ok
+	and	al,5fh
+wh_case_ok:
+	ret
+;
+;
+wha_err:
+	mov	si,offset m_name_error
+	call	puts
+	call	exit
+;
+wha_not_eq:
+;
+	call	read
+	jnz	wha_err
+	cmp	al,0
+	jnz	wha_not_eq
+wha_byp_last:
+	mov	dx,offset usr_filblk
+	call	read
+	call	read
+	call	read
+;
+	jmp	wha_loop
+;
+wha_01:
+	mov	dx,offset usr_filblk
+	call	read
+	cmp	al,0
+	jnz	wha_not_eq
+;they match!!
+;now what about call dates???
+;
+	cmp	set_date,1
+	jnz	wha_no_dates_set
+;
+	call	read				;read in 3 byte date.
+	mov	si,offset last_call
+	mov	[si],al
+	inc	si
+	call	read
+	mov	[si],al
+	inc	si
+	call	read
+	mov	[si],al
+;
+;now write todays date back into the file.
+;
+;first rewind file by 3 bytes.
+	mov	dx,offset usr_filblk
+	call	set_pointers
+	mov	bx,fi_next
+	mov	al,[bx]
+	inc	bx
+	mov	cl,[bx]
+	inc	bx
+	mov	ch,[bx]
+	mov	bh,ch
+	mov	bl,cl
+	mov	ch,al
+	call	dec3
+	call	dec3
+	call	dec3
+	mov	dx,offset usr_filblk
+	call	pos_to_rba
+	jnz	wha_date_err
+;
+;create MO,DA,YR contents.
+;
+	call	get_date_time
+;
+	mov	dx,offset usr_filblk
+;
+	mov	al,da
+	call	write
+	jnz	wha_date_err
+	mov	al,mo
+	call	write
+	jnz	wha_date_err
+	mov	al,yr
+	call	write
+	jnz	wha_date_err
+;
+	jmp	wha_no_dates_set
+	ret
+;
+wha_any_err:
+wha_date_err:
+	jmp	wha_err
+;
+dec3:
+	dec	ch
+	jnc	ret_nc
+	dec	bx
+ret_nc:
+	ret
+;
+;
+wha_no_dates_set:
+	mov	set_date,0
+;
+	mov	dx,temp_userid
+;
+	cmp	al,al
+	ret
+;
+wha_readnum:
+	mov	bx,0
+	call	wha_1_numb
+	jnz	wha_readnum_2
+	call	wha_1_numb
+	jnz	wha_readnum_2
+	call	wha_1_numb
+	jnz	wha_readnum_2
+	call	wha_1_numb
+	jnz	wha_readnum_2
+	call	wha_1_numb
+	mov	dx,bx
+wha_readnum_2:
+	ret
+;
+wha_1_numb:
+;
+	mov	ax,bx
+	mov	cx,10
+	mul	cx
+	mov	bx,ax
+	mov	dx,offset usr_filblk
+	call	read
+	jz	wha_1_numb_1
+;
+	ret
+wha_1_numb_1:
+	and	al,0cfh
+	mov	ah,0
+	add	bx,ax
+	cmp	al,al
+	ret
+;
+gimme_a_number:
+;
+	mov	dx,offset usr_filblk
+	call	rewind
+	call	wha_readnum			;read maximum usernumber
+	jnz	wha_any_err
+	inc	dx
+	mov	max_userid,dx
+	mov	dx,offset usr_filblk
+	call	pos_to_eof			;position to eof.
+	jnz	gimme_1_out_3
+;
+	mov	bx,max_userid
+	dec	bx
+	mov	dx,10000
+	call	gimme_1_out
+	mov	dx,1000
+	call	gimme_1_out
+	mov	dx,100
+	call	gimme_1_out
+	mov	dx,10
+	call	gimme_1_out
+	mov	dx,1
+	call	gimme_1_out
+	jmp	gimme_put_name
+;
+gimme_1_out:
+;
+	mov	al,'0'
+gimme_1_out_1:
+	cmp	bx,dx
+	jc	gimme_1_out_2
+	sub	bx,dx
+	inc	al
+	jmp	gimme_1_out_1
+gimme_1_out_2:
+	mov	dx,offset usr_filblk
+	push	bx
+	call	write
+	pop	bx
+	jz	gimme_1_out_4
+gimme_1_out_3:
+	jmp	wha_err
+gimme_1_out_4:
+	ret
+;
+gimme_put_name:
+;
+	mov	si,offset usr_name
+gimme_put_name_1:
+	mov	al,[si]
+	mov	dx,offset usr_filblk
+	call	write
+	jnz	gimme_1_out_3
+	mov	al,[si]
+	inc	si
+	cmp	al,0
+	jnz	gimme_put_name_1
+;
+;Now write 3 byte 'last call' date (all zeroes). Set our last_call too.
+	mov	si,offset last_call
+	mov	al,0
+	mov	[si],al
+	inc	si
+	mov	[si],al
+	inc	si
+	mov	[si],al
+;
+	call	write
+	call	write
+	call	write
+;finished writing zeroes date to file.
+;
+	mov	dx,offset usr_filblk
+	call	rewind
+	mov	bx,max_userid
+	mov	dx,10000
+	call	gimme_1_out
+	mov	dx,1000
+	call	gimme_1_out
+	mov	dx,100
+	call	gimme_1_out
+	mov	dx,10
+	call	gimme_1_out
+	mov	dx,1
+	call	gimme_1_out
+;
+	mov	dx,max_userid
+	dec	dx
+;
+	ret
+;

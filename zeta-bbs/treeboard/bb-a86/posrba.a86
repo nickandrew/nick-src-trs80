@@ -1,0 +1,86 @@
+;PosRba.a86: Position an open file to a specified RBA.
+;(C) Zeta Microcomputer software.
+;
+;
+pos_to_rba:
+	call	save_regs_na
+	mov	pos_mh,bx
+	mov	pos_low,ch
+	call	set_pointers
+	mov	ch,pos_low
+	mov	bx,pos_mh
+	mov	si,fi_eof
+	inc	si
+	cmp	[si],bx
+	jnz	pos_001
+	dec	si
+	cmp	[si],ch
+pos_001:
+	jnc	pos_002
+;
+;tried to position past eof.
+;
+	mov	dx,pos_mh
+	call	print_numb
+;
+	mov	al,1				;error........
+	or	al,al
+	call	get_regs_na
+	ret
+;
+pos_002:
+	mov	si,fi_next
+	inc	si
+	cmp	[si],bx
+	jnz	pos_003
+;
+;position within same sector.
+	dec	si
+	mov	[si],ch
+	mov	si,fi_inmem
+	cmp	byte ptr [si],0
+	jz	pos_003
+;
+;is in memory so just return.
+	call	get_regs_na
+	cmp	al,al
+	ret
+;
+pos_003:
+	mov	si,fi_update
+	cmp	byte ptr [si],0
+	jz	pos_004
+;
+;Whats more whats in memory has been updated. Write it out.
+	call	write_out
+	jz	pos_004
+	mov	al,'w'
+	call	putc
+	call	get_regs_na
+	ret
+;
+pos_004:
+	mov	bx,pos_mh
+	mov	si,fi_next
+	mov	ch,pos_low
+	mov	[si],ch
+	inc	si
+	mov	[si],bx
+	mov	bx,fi_inmem
+	mov	byte ptr [bx],0
+	cmp	al,al
+	call	get_regs_na
+	ret
+;
+;
+pos_to_eof:
+	push	dx
+	call	set_pointers
+	mov	si,fi_eof
+	mov	ch,[si]
+	inc	si
+	mov	bx,[si]
+	pop	dx
+	call	pos_to_rba
+	ret
+;

@@ -1,0 +1,18 @@
+exit:
+	mov	cl,0
+	jp	bdos
+;
+get_userid:
+	mov	dx,usr_number
+	ret
+;
+if_sysop:
+	call	get_userid
+	cmp	dx,3				;=sysop
+	jc	ja
+	cmp	dx,1
+	ret
+ja:	cmp	dx,dx
+	ret
+;
+word_wrap	db	0

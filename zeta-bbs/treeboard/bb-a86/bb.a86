@@ -1,0 +1,50 @@
+;BB.A86: Tree Structured Message System
+;(C) Zeta Microcomputer Software
+;
+;
+;
+include	bdoscall
+include	external
+include	ascii
+;
+	org	100h
+;
+	jmp	start
+;
+;
+include		bbcode1
+include		bbcode2
+;
+;
+include		dummy
+;
+include		bbnew
+;
+include		bbsubs
+;
+include		intedit
+;
+;
+;
+include		fileopen
+;
+include		fileread
+;
+include		filewrit
+;
+include		posrba
+;
+include		fileclos
+;
+include		rdwr
+;
+include		filecrea
+;
+include		whoami
+;
+;
+include		bbdata
+;
+;
+;
+	end

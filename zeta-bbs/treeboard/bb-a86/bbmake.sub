@@ -1,0 +1,6 @@
+;This file makes an executable BB.CMD from the source.
+;
+asm86       bb
+gencmd      bb        data[m0800]
+;
+;

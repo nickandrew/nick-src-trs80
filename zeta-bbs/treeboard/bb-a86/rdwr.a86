@@ -1,0 +1,120 @@
+;RdWr.A86: Read_in and Write_out routines....
+;
+read_in:
+;
+	mov	bx,fi_inmem
+	cmp	byte ptr [bx],1
+	jnz	read_in_001
+	ret				;z flag set.
+;
+read_in_001:
+	mov	bx,fi_next
+	inc	bx
+	mov	dx,[bx]			;DX is 256*RBA value...
+	shl	dx,1			;record number to get.
+	inc	dx
+	mov	si,fi_fcb
+	add	si,33
+	mov	[si],dx
+	add	si,2
+	mov	byte ptr [si],0
+	mov	dx,fi_fcb
+	mov	cl,33			;read random
+	call	bdos
+	cmp	al,0
+	jz	read_in_002
+	ret				;1st sector not read.
+;
+read_in_002:
+	mov	si,80h			;dma addr.
+	mov	di,fi_sector
+	mov	cx,128
+	call	ldir
+	mov	si,fi_fcb
+	add	si,33
+	mov	dx,[si]
+	inc	dx
+	mov	[si],dx
+	mov	dx,fi_fcb
+	mov	cl,33
+	call	bdos
+	cmp	al,0
+	jz	read_in_003
+	ret
+;
+read_in_003:
+	mov	si,80h
+	mov	di,fi_sector
+	mov	cx,128
+	add	di,128
+	call	ldir
+	mov	bx,fi_inmem
+	mov	byte ptr [bx],1
+	mov	bx,fi_update
+	mov	byte ptr [bx],0
+	cmp	al,al
+	ret
+;
+;
+write_out:
+	mov	bx,fi_inmem
+	cmp	byte ptr [bx],0
+	jnz	write_out_001
+	call	get_regs_na
+	cmp	al,al
+	ret
+;
+write_out_001:
+	mov	bx,fi_next
+	inc	bx
+	mov	dx,[bx]
+	shl	dx,1
+	inc	dx
+	push	dx
+;						;move in...
+	mov	di,80h
+	mov	si,fi_sector
+	mov	cx,128
+	call	ldir
+;						;write out...
+	pop	dx
+	mov	si,fi_fcb
+	add	si,33
+	mov	[si],dx
+	add	si,2
+	mov	byte ptr [si],0
+	mov	dx,fi_fcb
+	mov	cl,34
+	call	bdos
+	cmp	al,0
+	jz	write_out_002
+	call	get_regs_na
+	ret
+;
+write_out_002:
+	mov	di,80h				;move in again...
+	mov	si,fi_sector
+	add	si,128
+	mov	cx,128
+	call	ldir
+;						;and write out again...
+	mov	si,fi_fcb
+	add	si,33
+	mov	dx,[si]
+	inc	dx
+	mov	[si],dx
+	mov	dx,fi_fcb
+	mov	cl,34
+	call	bdos
+	cmp	al,0
+	jz	write_out_003
+	call	get_regs_na
+	ret
+;
+write_out_003:
+	mov	bx,fi_update
+	mov	byte ptr [bx],0
+	cmp	al,al
+	call	get_regs_na
+	ret
+;

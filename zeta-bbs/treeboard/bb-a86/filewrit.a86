@@ -1,0 +1,89 @@
+;FileWrit.A86: Write a byte to a disk file.
+;(C) Zeta Microcomputer Software
+;
+;
+write:
+	call	save_regs_na
+	push	ax
+	call	set_pointers
+	mov	si,fi_next
+	inc	si
+	mov	ax,[si]
+	mov	bx,fi_eof
+	inc	bx
+	cmp	ax,[bx]
+	jnz	writ_000
+	dec	bx
+	dec	si
+	mov	al,[si]
+	cmp	al,[bx]
+	jnz	writ_000
+;
+;at EOF.....
+	mov	bx,fi_eof
+	cmp	byte ptr [bx],0
+	jnz	writ_999
+	mov	bx,fi_inmem
+	mov	byte ptr [bx],1
+;
+writ_999:
+;
+	mov	bx,fi_eof
+	inc	byte ptr [bx]
+	jnz	writ_000
+	inc	bx
+	inc	word ptr [bx]
+;
+;
+writ_000:
+	mov	bx,fi_inmem
+	cmp	byte ptr [bx],0
+	jnz	writ_001
+	call	read_in
+	jz	writ_001
+	call	get_regs_na
+	pop	ax
+	mov	al,0
+	cmp	al,1
+	ret					;error return.
+;
+writ_001:
+	mov	si,fi_sector
+	mov	bx,fi_next
+	mov	dl,[bx]
+	mov	dh,0
+	mov	bx,dx
+	pop	ax
+	mov	[si+bx],al			;get char.
+	mov	bx,fi_update
+	mov	byte ptr [bx],1
+	mov	bx,fi_next
+	cmp	byte ptr [bx],0ffh		;if end of sector
+	jz	writ_002
+;
+;inc position, return with Z set.
+	inc	byte ptr [bx]
+	cmp	al,al
+	call	get_regs_na
+	ret
+;
+writ_002:
+	call	write_out
+	jz	writ_004
+	call	get_regs_na
+	ret				;error return. 
+;
+writ_004:
+	mov	si,fi_next
+	inc	byte ptr [si]
+	inc	si
+	inc	word ptr [si]
+	mov	bx,fi_inmem
+	mov	byte ptr [bx],0
+	mov	bx,fi_update
+	mov	byte ptr [bx],0
+	cmp	al,al
+	call	get_regs_na
+	ret
+;
+;

@@ -1,0 +1,419 @@
+;BBNEW.A86 (01-Feb-86).
+;File of new routines.
+;
+puts:
+	mov	al,[si]
+	cmp	al,0
+	jnz	puts_01
+	ret
+puts_01:
+	call	putc
+	inc	si
+	jmp	puts
+;
+;
+putc:
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	bp
+	mov	cl,02h
+	mov	dl,al
+	push	ax
+	call	bdos
+	pop	ax
+	cmp	al,cr
+	jnz	putc_1
+	mov	dl,lf
+	mov	cl,02h
+	call	bdos
+putc_1:
+	pop	bp
+	pop	di
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+;
+bdos:
+	int	0e0h
+	ret
+;
+getc:
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	bp
+	mov	cl,06h
+	mov	dl,0feh		;console status
+	call	bdos
+	cmp	al,0
+	jz	getc_1
+	mov	cl,06h
+	mov	dl,0fdh
+	call	bdos
+getc_1:
+	pop	bp
+	pop	di
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	ret
+;
+;
+h40h:				;input SI and BL.
+				;output C,[si].
+	push	si
+	mov	bh,bl
+h40_1:
+	call	getc
+	cmp	al,0
+	jz	h40_1
+	cmp	al,break
+	jz	h40_break
+	cmp	al,cr
+	jz	h40_cr
+	cmp	al,8		;^H
+	jz	h40_bs
+	cmp	al,18h		;^X
+	jz	h40_can
+	cmp	al,20h
+	jc	h40_1
+	cmp	al,7fh
+	jnc	h40_1
+	cmp	bl,0
+	jz	h40_1
+	call	putc
+	mov	[si],al
+	inc	si
+	dec	bl
+	jmp	h40_1
+;
+h40_cr:
+	mov	[si],al
+	inc	si
+	mov	byte ptr [si],0
+	pop	si
+	mov	al,cr
+	call	putc
+	clc
+	ret
+;
+h40_bs:
+	cmp	bl,bh
+	jz	h40_1
+	mov	al,8
+	call	putc
+	mov	al,' '
+	call	putc
+	mov	al,8
+	call	putc
+	dec	si
+	inc	bl
+	jmp	h40_1
+h40_can:
+	cmp	bl,bh
+	jz	h40_1
+	mov	al,8
+	call	putc
+	mov	al,' '
+	call	putc
+	mov	al,8
+	call	putc
+	dec	si
+	inc	bl
+	jmp	h40_can
+;
+h40_break:
+	mov	byte ptr [si],cr
+	pop	si
+	mov	al,cr
+	call	putc
+	stc
+	ret
+;End of h40h...
+;
+print_numb:
+	mov	blank,0
+	mov	bx,10000
+	call	prt_digit
+	mov	bx,1000
+	call	prt_digit
+	mov	bx,100
+	call	prt_digit
+	mov	bx,10
+	call	prt_digit
+	mov	blank,1
+	mov	bx,1
+	call	prt_digit
+	ret
+;
+prt_digit:
+	mov	al,'0'-1
+pd_1:
+	inc	al
+	sub	dx,bx
+	jnc	pd_1
+	add	dx,bx
+	cmp	blank,0
+	jnz	pd_2
+	cmp	al,'0'
+	jnz	pd_2
+	ret
+pd_2:	mov	blank,1
+	call	putc
+	ret
+;
+;
+ldir:
+	mov	al,[si]
+	mov	[di],al
+	inc	si
+	inc	di
+	loop	ldir
+	ret
+;
+lddr:	mov	al,[si]
+	mov	[di],al
+	dec	si
+	dec	di
+	loop	lddr
+	ret
+;
+str_cmp:
+	mov	al,[si]
+	cmp	al,[di]
+	jnz	str_cmp_1
+	cmp	al,0
+	jz	str_cmp_1
+	cmp	al,cr
+	jz	str_cmp_1
+	inc	si
+	inc	di
+	jmp	str_cmp
+str_cmp_1:
+	ret
+;
+rewind:
+	mov	bx,0
+	mov	ch,0
+	call	pos_to_rba
+	ret
+;
+asc_time:
+	mov	si,offset hdr_time+2
+	mov	di,offset time_string
+	call	copy_2_numbers
+	call	copy_2_numbers
+	call	copy_2_numbers
+	ret
+;
+copy_2_numbers:
+	mov	al,[si]
+	mov	ah,0
+;
+	mov	cl,10
+	div	cl
+	or	al,'0'
+	mov	[di],al
+;
+	inc	di
+	or	ah,'0'
+	mov	[di],ah
+	inc	di
+	mov	al,':'
+	mov	[di],al
+;
+	inc	di
+	dec	si
+	ret
+;
+;
+get_date_time:
+	mov	cl,155
+	mov	dx,offset tod_buff
+	call	bdos
+;
+	mov	si,offset tod_buff
+	call	make_date
+;
+	mov	si,offset tod_buff+2
+	mov	di,offset time_string
+	call	copy_2_digits
+	call	copy_2_digits
+	call	copy_2_digits
+	ret
+;
+copy_2_digits:
+	mov	al,[si]
+	mov	cl,4
+	shr	al,cl
+	and	al,0fh
+	add	al,30h
+	mov	[di],al
+	inc	di
+	mov	al,[si]
+	and	al,0fh
+	add	al,30h
+	mov	[di],al
+	inc	di
+	ret
+;
+;
+make_date:
+	mov	dx,[si]			;dx=days since 01-Jan-78.
+	mov	yr,0
+m_d_1:
+	cmp	dx,366
+	jc	m_d_3
+m_d_1a:
+	sub	dx,365
+	mov	al,yr
+	and	al,3
+	cmp	al,0
+	jnz	m_d_2
+	dec	dx
+m_d_2:	inc	yr
+	jmp	m_d_1
+;
+m_d_3:
+	cmp	dx,365
+	jnz	m_d_3a
+	mov	al,yr
+	and	al,3
+	cmp	al,0
+	jnz	m_d_1a
+;
+m_d_3a:					;dx=day number this year from 0
+	inc	dx
+	cmp	dx,32
+	jnc	m_d_feb
+	mov	mmo,offset january
+	mov	mo,1
+	jmp	make_date_string
+m_d_feb:
+	sub	dx,31
+	mov	bx,29
+	mov	al,yr
+	and	al,3
+	cmp	al,0
+	jnz	m_d_feb_2
+	mov	bx,30
+m_d_feb_2:
+	cmp	dx,bx
+	jnc	m_d_mar
+	mov	mmo,offset february
+	mov	mo,2
+	jmp	make_date_string
+;
+m_d_mar:
+	sub	dx,bx
+	inc	dx
+	cmp	dx,32
+	jnc	m_d_apr
+	mov	mmo,offset march
+	mov	mo,3
+	jmp	make_date_string
+m_d_apr:
+	sub	dx,31
+	cmp	dx,31
+	jnc	m_d_may
+	mov	mmo,offset april
+	mov	mo,4
+	jmp	make_date_string
+m_d_may:
+	sub	dx,30
+	cmp	dx,32
+	jnc	m_d_jun
+	mov	mmo,offset may
+	mov	mo,5
+	jmp	make_date_string
+m_d_jun:
+	sub	dx,31
+	cmp	dx,31
+	jnc	m_d_jul
+	mov	mmo,offset june
+	mov	mo,6
+	jmp	make_date_string
+m_d_jul:
+	sub	dx,30
+	cmp	dx,32
+	jnc	m_d_aug
+	mov	mmo,offset july
+	mov	mo,7
+	jmp	make_date_string
+m_d_aug:
+	sub	dx,31
+	cmp	dx,32
+	jnc	m_d_sep
+	mov	mmo,offset august
+	mov	mo,8
+	jmp	make_date_string
+m_d_sep:
+	sub	dx,31
+	cmp	dx,31
+	jnc	m_d_oct
+	mov	mmo,offset september
+	mov	mo,9
+	jmp	make_date_string
+m_d_oct:
+	sub	dx,30
+	cmp	dx,32
+	jnc	m_d_nov
+	mov	mmo,offset october
+	mov	mo,10
+	jmp	make_date_string
+m_d_nov:
+	sub	dx,31
+	cmp	dx,31
+	jnc	m_d_dec
+	mov	mmo,offset november
+	mov	mo,11
+	jmp	make_date_string
+m_d_dec:
+	sub	dx,30
+	mov	mmo,offset december
+	mov	mo,12
+	jmp	make_date_string
+;
+make_date_string:
+	mov	da,dl
+	mov	si,offset date_string
+	mov	al,dl
+	call	do_2_digits
+	mov	byte ptr [si],'-'
+	inc	si
+	mov	di,si
+	mov	si,mmo
+	mov	cx,3
+	call	ldir
+	mov	si,di
+	mov	byte ptr [si],'-'
+	inc	si
+	mov	al,yr
+	add	al,78				;year offset
+	call	do_2_digits
+	mov	byte ptr [si],0
+	ret
+;
+do_2_digits:
+	mov	ah,0
+	mov	cl,10
+	div	cl
+	add	ah,30h
+	add	al,30h
+	mov	[si],al
+	inc	si
+	mov	[si],ah
+	inc	si
+	ret
+;
+;

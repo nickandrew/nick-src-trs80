@@ -1,0 +1,107 @@
+;FileRead.A86: Read a byte from a disk file.
+;(C) Zeta Microcomputer Software
+;
+;
+read:
+	call	save_regs_na
+	call	set_pointers
+	mov	si,fi_next
+	mov	al,[si]
+	mov	bx,fi_eof
+	cmp	al,[bx]
+	jnz	read_000
+	inc	si
+	inc	bx
+	mov	ax,[si]
+	cmp	ax,[bx]
+	jnz	read_000
+;
+;at EOF.....
+	mov	al,1ch				;eof seen.
+	or	al,al
+	call	get_regs_na
+	ret
+;
+;
+read_000:
+	mov	bx,fi_inmem
+	cmp	byte ptr [bx],0
+	jnz	read_001
+	call	read_in
+	jz	read_001
+	call	get_regs_na
+	ret						;error return.
+;
+read_001:
+	mov	si,fi_sector
+	mov	bx,fi_next
+	mov	dl,[bx]
+	mov	dh,0
+	mov	bx,dx
+	mov	ah,[si+bx]
+	mov	bx,fi_next				;get char.
+	cmp	byte ptr [bx],0ffh			;if end of sector
+	jz	read_002
+;
+;inc position, return with Z set.
+	mov	bx,fi_next
+	inc	byte ptr [bx]
+	mov	al,ah
+	cmp	al,al
+	call	get_regs_na
+	ret
+;
+read_002:
+	mov	bx,fi_update
+	cmp	byte ptr [bx],0
+	jnz	read_003
+	mov	si,fi_next
+	inc	byte ptr [si]
+	inc	si
+	inc	word ptr [si]
+	mov	bx,fi_inmem
+	mov	byte ptr [bx],0
+;
+	mov	al,ah
+	cmp	al,al
+	call	get_regs_na
+	ret
+;
+read_003:
+	push	ax
+	call	write_out
+	pop	ax
+	jz	read_004
+	call	get_regs_na
+	ret				;error return. 
+;
+read_004:
+	mov	si,fi_next
+	inc	byte ptr [si]
+	inc	si
+	inc	word ptr [si]
+	mov	al,ah
+	cmp	al,al
+	call	get_regs_na
+	ret
+;
+;
+save_regs_na:
+	mov	reg_bx,bx
+	mov	reg_cx,cx
+	mov	reg_dx,dx
+	mov	reg_si,si
+	mov	reg_di,di
+	mov	reg_bp,bp
+	ret
+;
+get_regs_na:
+	mov	bx,reg_bx
+	mov	cx,reg_cx
+	mov	dx,reg_dx
+	mov	si,reg_si
+	mov	di,reg_di
+	mov	bp,reg_bp
+	ret
+;
+;
