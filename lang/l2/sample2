@@ -1,0 +1,32 @@
+(* sample2 - test action of reason code 1, 2, 3, 4, 5, 8, 11 *)
+(* primary purpose is to show data structures after programs *)
+(* reference numbers, strings & variables. Also to show      *)
+(* correct output from reason1                               *)
+
+prog
+
+var  glob1,glob2,glob3;
+funct fact ( formal ) ;
+	var  loc1,loc2;
+begin
+	formal = 12345;
+
+	loc1 = loc2 ;
+
+	glob1 = ( glob2 * glob3)+28;
+
+	(* test character strings & string table routines *)
+
+	write "The first string", "The second string";
+	write 3*2, 18, 191;	 (* test numbers & number table *)
+
+	fact(formal-1);
+
+	endfn
+
+begin
+	(* m should draw undeclared identifier messages *)
+
+	read m;
+	write "m=", m,"factorial m=",fact(m)
+endprg

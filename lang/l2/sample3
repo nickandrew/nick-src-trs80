@@ -1,0 +1,33 @@
+(*  Sample program 3 - test global/function/local/formal       *)
+(*  handling in symbol table. No reserved words are used,      *)
+(*  merely appropriately named variables, since the purpose    *)
+(*  of the exercise is to show that the LA sets correct        *)
+(*  class/code/level and that it deletes entries properly      *)
+
+global1  global2  global3
+
+function
+
+	formal1   formal2
+
+	local1	local2	local3
+
+(* end of function "function". local1-3 and formal1-2 should be *)
+(* deleted next, but not "function".                            *)
+
+func2         (* no formal parameters  *)
+
+	local1	local2
+
+FUNC3         (* specified within func2 *)
+
+	form1	form2
+
+	loc1	loc2	loc1	(* repeated local variable *)
+	form1			(* same as a formal parameter *)
+	func3			(* same as the function name  *)
+	func2			(* this is valid *)
+
+(* end of functions func3 and func2 *)
+
+(* beginning and end of main, only globals should be in symbol table *)

@@ -1,0 +1,11 @@
+begin
+	(* test tokens and comments
+	test(tokens),, comments & invaslid symbols!
+	<<< <= :? :- ** + <= => >= <> =
+	+ - * / = <> < <=>>=:=;(),+-*/=<>
+	"this is a string"
+	123000
+(*comment*)begin(*endfn*)3+2=(*
+test long numbers 12345 123456 1234567890 3456789012345678
+54321
+endfn
