@@ -4,7 +4,7 @@
 
    XFER is an interactive, menu-driven command to help you
 do file transfers. Non-interactive, more powerful commands
-are available (see help on xmf, cat, and upload).
+are available (see help on xmodem, cat, and list).
 
    Once initiated, XFER provides a menu, the selections
 possible are outlined below:
@@ -38,10 +38,5 @@ descriptions of all files on the disk called newfiles.
 <X>  Exit
 
    The "xfer" command terminates immediately.
-
-BUGS
-----
-      There is a bug in uploading. Sometimes xmf thinks it is
-to receive a second file after the first transfer completes.
 
 0
