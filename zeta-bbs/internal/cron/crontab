@@ -1,19 +1,19 @@
 # crontab: Do things at specified dates, times and periods
 #
 # Fix up things every so often
-D 1 9007080000 msgdel
-D 1 9007072300 logclean
-H 8 9007072000 mailass
-H 8 9007071600 bbass
-D 2 9007081100 msgcomp
-D 4 9007111000 loccomp
-M 1 9008010000 usrclean
+D 1 9008020000 msgdel
+D 1 9008012300 logclean
+H 8 9008020400 mailass
+H 8 9008020000 bbass
+D 2 9008031100 msgcomp
+D 4 9008041000 loccomp
+M 1 9009010000 usrclean
 #
 # talk to ACSgate and 713/606 when we want to
-H 12 9007080100 dialout A
-H 12 9007080100 ankhmail -d
-D 1 9007072300 dialout P
-D 1 9007072300 ankhmail -d
+H 12 9008020100 dialout A
+H 12 9008020100 ankhmail -d
+D 1 9008021800 dialout P
+D 1 9008021800 ankhmail -d
 #
 # These are here for one-off events
 Y 1 9104072000 dialout A
@@ -24,32 +24,32 @@ Y 1 9012240800 echo Merry xmas from Zeta!
 Y 1 9101060800 echo Tomorrow is Greek Orthodox Xmas day!
 Y 1 9010010800 echo Masami's birthday on 23rd!
 Y 1 9106150800 echo Lisa's birthday on 3rd!
-M 1 9008010800 echo Do system backups you bastard!
-D 7 9007131700 echo Hey, look alive - its the weekend!
+M 1 9009010800 echo Do system backups you bastard!
+D 7 9008031700 echo Hey, look alive - its the weekend!
 #
 # Guard the fort
-D 1 9007080000 echo zero bells, and you should be in bed
-D 1 9007080100 echo one bell, and you're up late
-D 1 9007080200 echo two bells
-D 1 9007080300 echo three bells
-D 1 9007080400 echo four bells
-D 1 9007080500 echo five bells
-D 1 9007080600 echo six bells
-D 1 9007080700 echo seven bells, and good morning
-D 1 9007080800 echo eight bells, and get to work!
-D 1 9007080900 echo nine bells
-D 1 9007081000 echo ten bells
-D 1 9007081100 echo eleven bells
-D 1 9007081200 echo twelve bells, and it's midday
-D 1 9007081300 echo thirteen bells
-D 1 9007081400 echo fourteen bells
-D 1 9007081500 echo fifteen bells, and good afternoon
-D 1 9007071600 echo sixteen bells
-D 1 9007071700 echo seventeen bells
-D 1 9007071800 echo eighteen bells, and good evening
-D 1 9007071900 echo nineteen bells
-D 1 9007072000 echo twenty bells
-D 1 9007072100 echo twenty-one bells
-D 1 9007072200 echo twenty-two bells
-D 1 9007072300 echo twenty-three bells, and goodnight!
-H 2 9007071600 date
+D 1 9008020000 echo zero bells, and you should be in bed
+D 1 9008020100 echo one bell, and you're up late
+D 1 9008020200 echo two bells
+D 1 9008020300 echo three bells
+D 1 9008020400 echo four bells
+D 1 9008020500 echo five bells
+D 1 9008020600 echo six bells
+D 1 9008020700 echo seven bells, and good morning
+D 1 9008020800 echo eight bells, and get to work!
+D 1 9008020900 echo nine bells
+D 1 9008021000 echo ten bells
+D 1 9008021100 echo eleven bells
+D 1 9008021200 echo twelve bells, and it's midday
+D 1 9008021300 echo thirteen bells
+D 1 9008021400 echo fourteen bells
+D 1 9008021500 echo fifteen bells, and good afternoon
+D 1 9008021600 echo sixteen bells
+D 1 9008021700 echo seventeen bells
+D 1 9008021800 echo eighteen bells, and good evening
+D 1 9008021900 echo nineteen bells
+D 1 9008022000 echo twenty bells
+D 1 9008022100 echo twenty-one bells
+D 1 9008012200 echo twenty-two bells
+D 1 9008012300 echo twenty-three bells, and goodnight!
+H 2 9008012200 date
