@@ -1,6 +1,6 @@
 ;external.hdr: definitions for external constants
 ;and high memory locations.
-;last modified 14-Feb-88.
+;last modified 31-Dec-88.
 ;
 *LIST	OFF
 ;
@@ -55,7 +55,7 @@ MEM_TABLE	EQU	0FF62H	;W- addr swapped-in pages
 USR_NAME	EQU	0FF68H	;W- name string
 USR_NUMBER	EQU	0FF6AH	;W- user #
 USR_LOGOUT	EQU	0FF6CH	;J- log off user
-SECOND		EQU	0FF6FH	;C- wait 'A' sec
+;;SECOND		EQU	0FF6FH	;C- wait 'A' sec
 ;;MESSAGE		EQU	0FF72H	;C- msg to device
 ;;LIST		EQU	0FF75H	;C- list file to $2o
 PRIV_1		EQU	0FF78H	;B- first privileges
@@ -103,7 +103,10 @@ CD_STAT		EQU	0FF91H	;B- send/recv status
 CDS_0		EQU	0
 CDS_1		EQU	1
 CDS_2		EQU	2
-CDS_DISCON	EQU	7	;1 if disconnect pending
+CDS_CSTAT	EQU	3	;1 if not ignoring carrier
+CDS_DSTAT	EQU	4	;1 if discon when carrier drops
+CDS_LOST	EQU	5	;1 if we did lose carrier
+CDS_DISCON	EQU	7	;1 if disconnect in process
 ;
 CD_COUNT	EQU	0FF92H	;B- carrier count
 CD_LOSS		EQU	0FF93H	;B- carrier losses
