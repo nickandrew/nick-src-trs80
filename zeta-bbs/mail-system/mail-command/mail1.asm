@@ -1,4 +1,4 @@
-;@(#) mail1.asm, on 08 Apr 89
+;@(#) mail1.asm, mail high level control, on 28 Jun 89
 ;
 START	LD	SP,START
 	CALL	INIT
@@ -22,7 +22,7 @@ MAIN				;Main section
 	CALL	IF_CHAR
 	JR	Z,MAIN_1	;if input already here
 ;
-	CALL	PRTMODE		;print mode/where.
+;;	CALL	PRTMODE		;print mode/where.
 	LD	HL,MENU_MAIN
 	CALL	MENU
 ;
@@ -411,69 +411,104 @@ READMESSAGE
 	OR	A
 	JR	NZ,RM_01
 ;
-	XOR	A
-	LD	(PAUSE),A
-	LD	HL,M_NTOSKP
+;First time through the loop
+	LD	HL,M_TOPT	;Hint message
 	CALL	MESS
-	LD	HL,M_APAUSE
-	CALL	YES_NO
-	CP	'N'
-	JR	Z,RM_01
-	CP	'Q'
-	JR	Z,RM_05
-	LD	A,1
-	LD	(PAUSE),A
+;
 RM_01
 	CALL	PUTCR
 	CALL	PUTCR
 	CALL	TEXT_POSN
 	CALL	HDR_PRNT
 ;
-RM_02	CALL	BGETC
-	JR	NZ,RM_03	;Read error
+;Initialise more
+	LD	HL,RM_INFUNC
+	LD	(INFUNC),HL	;Setup input function
+	LD	HL,RM_KEYFUNC
+	LD	(KEYFUNC),HL	;Setup key function
+	LD	A,6
+	LD	(SCRDONE),A
+;
+	CALL	MOREPIPE
 	OR	A
-	JR	Z,RM_03		;End of message
-	CALL	PUT
-	CALL	GET_$2
-	AND	5FH
-	CP	'N'		;Bypass
-	JR	Z,RM_06
-	CP	'Q'		;Quit reading
-	JR	Z,RM_05
-	CP	'A'		;Read again
-	JR	Z,RM_01
-	JR	RM_02
+	JR	NZ,RM_05	;Interpret a key pressed while in more
+	JR	RM_03		;Wait for a keystroke
 ;
 RM_03
-	CALL	PUTCR
-	CALL	PROC_NEWMAIL
-	LD	A,(PAUSE)
-	OR	A
-	RET	Z
 	LD	HL,M_PAUSE
 	CALL	MESS
 RM_04
 	CALL	GET_$2
 	OR	A
 	JR	Z,RM_04
+RM_05
+	CP	'?'
+	JR	Z,RM_10
+	CP	' '
+	JR	Z,RM_11		;Next message
 	AND	5FH
-	CP	'Q'
-	JR	Z,RM_05
-	CP	'N'
-	RET	Z
-;	cp	'R'
-;	call	z,reply
 	CP	'A'
-	JR	Z,RM_01
+	JR	Z,RM_09		;Read again
+	CP	'N'
+	JR	Z,RM_11		;Next message
+	CP	'Q'
+	JR	Z,RM_06		;Quit
+	CP	'R'
+	JR	Z,RM_08		;Reply option
 	JR	RM_04
 ;
-RM_05	LD	A,1
+RM_06	LD	A,1
 	LD	(SCAN_ABORT),A
+	JR	RM_11
+;
+RM_08	CALL	DO_REPLY
+	JR	RM_11		;Next message
+;
+;Read again - reposition & back to the top
+RM_09	JP	RM_01
+;
+;Display help message
+RM_10	CALL	RMK_01
+	JP	RM_03
+;
+;Process it if it was new mail, otherwise continue
+RM_11
+	CALL	PROC_NEWMAIL
 	RET
 ;
-RM_06
-	CALL	PUTCR
+;--------------------------------
+;
+RM_INFUNC
+	CALL	BGETC
+	RET	NZ		;If read error, ret nz
+	CP	A
 	RET
+;
+RM_KEYFUNC
+	CP	'?'
+	JR	Z,RMK_01	;Help
+	AND	5FH
+	CP	'A'
+	JR	Z,RMK_02	;Read again
+	CP	'H'
+	JR	Z,RMK_01	;Help
+	CP	'N'
+	JR	Z,RMK_02	;Next message
+	CP	'Q'
+	JR	Z,RMK_02	;Quit
+	CP	'R'
+	JR	Z,RMK_02	;Reply
+	LD	A,0		;Redisplay more prompt
+	RET
+;
+RMK_01
+	LD	HL,M_READHELP
+	CALL	MESS
+	LD	A,0		;Redisplay more prompt
+	RET
+;
+RMK_02
+	JP	MORE_Q
 ;
 ;If a new message for me was just read, set the processed flag
 ;and rewrite the header.
@@ -654,6 +689,17 @@ WRITE_MSGHDR
 	CALL	DOS_POSIT
 	JP	NZ,ERROR
 	LD	HL,THIS_MSG_HDR
+	CALL	DOS_WRIT_SECT
+	JP	NZ,ERROR
+	RET
+;
+WRITE_NMSGHDR
+	LD	BC,(N_MSG)
+	DEC	BC
+	LD	DE,HDR_FCB
+	CALL	DOS_POSIT
+	JP	NZ,ERROR
+	LD	HL,NEW_MSG_HDR
 	CALL	DOS_WRIT_SECT
 	JP	NZ,ERROR
 	RET
