@@ -100,8 +100,15 @@ GI_2	LD	(HL),0
 	RET
 ;
 GAME_LOOP
+	LD	A,(_COUNTER)
+	INC	A
+	LD	(_COUNTER),A
 	CALL	EXEC_COMM
+;just a temporary measure
+	LD	A,(_COUNTER)
+	AND	1
 	CALL	MOVE_ALIEN_2
+;	CALL	MOVE_ALIEN_2
 	CALL	MOVE_MAN
 	XOR	A
 	LD	(DEAD),A
@@ -698,6 +705,9 @@ M1SHOT	LD	A,(HL)
 	AND	1
 	RET	Z
 	LD	A,R
+;****************
+	RET
+;****************
 	AND	1FH
 	CP	3
 	RET	NC
@@ -921,6 +931,7 @@ W_WAIT	INC	HL
 	LD	D,(HL)
 	INC	HL
 	LD	(WAVE_PC),HL
+	DEC	DE
 	EX	DE,HL
 	LD	(WAVE_DELAY),HL
 	RET
