@@ -59,15 +59,6 @@ var
     tick : integer;
     j    : impnr;
 
-     seed : real;
-
-function rndr : real;
-   begin
-   seed := 125.0 * (seed + 1.0);
-   seed := seed -8192.0 * trunc(seed/8192);
-   rndr := (seed + 0.5) / 8192;
-end;
-
 procedure wait;
 var x: char;
 begin
@@ -193,12 +184,12 @@ begin {protocol6}
             {temp is the first frame outside the window}
             temp:=(frameexpected[me]+(maxseq+1) div 2)
                   mod (maxseq + 1);
-   
+
             {if frame is within receivers window}
-            if between(frameexpected[me],r.seq,temp) then begin
+           if between(frameexpected[me],r.seq,temp) then begin
                recbuff[me][r.seq].xinfo := r.info;
                recbuff[me][r.seq].used  := true;
-   
+
                {send message or group of messages if possible}
                framenr := frameexpected[me];
                while (recbuff[me][framenr].used) do begin
@@ -256,6 +247,7 @@ begin {protocol6}
 
       if (nbuffered[me] < (maxseq + 1)/2) and
          (hostready) then begin
+
          {send new frame with ack for last frame received}
          nbuffered[me] := nbuffered[me] + 1;
          s.info := fromhost(me);
@@ -281,7 +273,7 @@ procedure initialise;
 var  i,j : integer;
    index : integer;
 begin
-   rewrite(result,'result');
+   rewrite(result);
    for j:= 0 to maximp do begin
       nexttosend[j]    := 0;
       ackexpected[j]   := 0;

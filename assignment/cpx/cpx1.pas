@@ -5,7 +5,7 @@ const  maxseq = 7;
        propagation = 1;            {propagation delay}
        toint = 5;                  {timeout interval}
        errorprob = 0;              {line error probability %}
-       hostrdyprob = 40;           {host ready prob %}
+       hostrdyprob = 100;          {host ready prob %}
        maxtick = 100;              {length of run}
        maxmessage = 101;           {maximum messages}
 
@@ -53,6 +53,15 @@ var
     r, s : frame;
     tick : integer;
     j    : impnr;
+     seed : real;
+
+function rndr : real;
+   begin
+   seed := 125.0 * (seed + 1.0);
+   seed := seed -8192.0 * trunc(seed/8192);
+   rndr := (seed + 0.5) / 8192;
+end;
+
 
 procedure wait;
 var x: char;
@@ -217,7 +226,7 @@ procedure initialise;
 var  i,j : integer;
    index : integer;
 begin
-   rewrite(result);
+   rewrite(result,'result');
    for j:= 0 to maximp do begin
       nexttosend[j]    := 0;
       ackexpected[j]   := 0;
@@ -272,5 +281,3 @@ begin    {program}
    end;
    printresults;
 end.
-
-
