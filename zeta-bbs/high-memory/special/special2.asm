@@ -1,0 +1,73 @@
+;special2: setup special routines #2.
+;
+*GET	DOSCALLS.HDR
+*GET	EXTERNAL.HDR
+*GET	ASCII.HDR
+;
+	COM	'<Special2 1.1a 06-Jul-86>'
+	ORG	BASE+100H
+START	LD	SP,START
+	LD	HL,(HIMEM)
+	LD	A,H
+	CP	0FFH
+	JR	NZ,NOT_FF
+	LD	HL,EXTERNALS-1
+NOT_FF	LD	DE,EN_CODE-ST_CODE
+	OR	A
+	SBC	HL,DE
+	LD	(HIMEM),HL
+	INC	HL
+	EX	DE,HL
+	LD	HL,ST_CODE
+	LD	BC,EN_CODE-ST_CODE
+	LDIR	
+;
+	LD	HL,(HIMEM)
+	INC	HL
+	LD	DE,ST_CODE
+	OR	A
+	SBC	HL,DE
+	EX	DE,HL
+;
+	LD	HL,USRNAME
+	ADD	HL,DE
+	LD	(USR_NAME),HL
+;
+	LD	HL,STDINFCB
+	ADD	HL,DE
+	LD	($STDIN_FCB),HL
+;
+	LD	HL,STDINBUFF
+	ADD	HL,DE
+	LD	($STDIN_BUFF),HL
+;
+	LD	HL,STDOUTFCB
+	ADD	HL,DE
+	LD	($STDOUT_FCB),HL
+;
+	LD	HL,STDOUTBUFF
+	ADD	HL,DE
+	LD	($STDOUT_BUFF),HL
+;
+	LD	HL,LOG_MSG
+	LD	(HL),0C9H	;disable log output
+;will be later enabled by PTRLOG.
+;
+	JP	DOS		;auth.
+;
+ST_CODE
+;Buffer for User Name.
+USRNAME	DC	32,0
+;Buffer for Standard Input File
+STDINFCB
+	DC	32,0
+STDINBUFF			;Must immediately follow
+	DC	256,0		;stdinfcb
+STDOUTFCB
+	DC	32,0
+STDOUTBUFF			;Must immediately follow
+	DC	256,0		;stdoutfcb
+EN_CODE
+	NOP	
+;
+	END	START
