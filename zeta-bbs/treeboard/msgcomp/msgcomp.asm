@@ -2,9 +2,9 @@
 ;
 MIN_KILLED	EQU	10	;Usually 25.
 ;
-*GET	DOSCALLS
-*GET	EXTERNAL
-*GET	ASCII
+*GET	DOSCALLS.HDR
+*GET	EXTERNAL.HDR
+*GET	ASCII.HDR
 ;
 	ORG	PROG_START
 	DEFW	BASE
@@ -13,7 +13,7 @@ MIN_KILLED	EQU	10	;Usually 25.
 	DEFW	0
 ;End of program load info.
 ;
-	COM	'<msgcomp 1.0f 23-Jan-87>'
+	COM	'<msgcomp 1.1  27-Dec-87>'
 ;
 	ORG	BASE+100H
 START	LD	SP,START
@@ -33,10 +33,12 @@ START	LD	SP,START
 ;
 	CALL	OPEN_FILES	;Open all files
 	CALL	CHK_COUNTS	;exit if too few killed
+;Now: old_top,new_top are positioned to rba 0x1000
 	CALL	FIND_KILLED	;find first killed msg
+;old hdr & old top are positioned after the first killed
+;new hdr & new top are positioned AT the first killed.
 ;
-	CALL	MOVE_MSG	;relocate text.
-	JP	Z,EXIT
+	CALL	MOVE_MSG	;relocate hdr & top field
 	JP	EXIT
 ;
 MOVE_MSG
@@ -49,21 +51,16 @@ MOVE_MSG
 	JP	Z,FINISHED
 ;
 MM_02
-	CALL	READ_HDR_REC	;Hdr and TOP file byte.
+	CALL	READ_HDR_REC	;Read old hdr & top
 ;
 	LD	A,(OLD_HDR_FLAG)
 	BIT	FM_KILLED,A
 	JP	NZ,MOVE_MSG	;ignore if killed.
 ;
-	LD	HL,OLD_HDR_REC
+	LD	HL,OLD_HDR_REC	;Copy header
 	LD	DE,NEW_HDR_REC
 	LD	BC,16
 	LDIR
-;
-	LD	A,(NEW_TXT+5)	;NEXT low
-	LD	(NEW_HDR_RBA),A
-	LD	HL,(NEW_TXT+10)	;NEXT mid/high
-	LD	(NEW_HDR_RBA+1),HL
 ;
 	LD	HL,(THIS_MSG_N)
 	INC	HL
@@ -75,6 +72,55 @@ MM_02
 	CP	B
 	JR	Z,MM_05
 ;
+	CALL	CORR_MSG
+;
+MM_05
+	CALL	WRITE_HDR_REC	;Write new hdr & top
+;
+	LD	HL,OLD_HDR_FLAG	;Set old msg killed
+	SET	FM_KILLED,(HL)
+;
+	LD	DE,OLD_HDR
+	CALL	DOS_BACK_RECD
+	JP	NZ,ERROR
+;
+	CALL	DOS_WRIT_SECT
+	JP	NZ,ERROR
+;
+	LD	HL,(MOVED)
+	INC	HL
+	LD	(MOVED),HL
+	JP	MOVE_MSG
+;
+FINISHED
+;If EOF ...
+	LD	HL,(THIS_MSG_N)
+	LD	(NUM_MSG),HL
+	LD	HL,0
+	LD	(NUM_KLD_MSG),HL
+;
+;
+	LD	DE,NEW_TOP
+	CALL	DOS_REWIND
+	JP	NZ,ERROR
+;
+	LD	HL,STATS_REC
+	LD	B,16
+MM_01	LD	A,(HL)
+	CALL	$PUT
+	JP	NZ,ERROR
+	INC	HL
+	DJNZ	MM_01
+;
+	;close files & stuff
+	LD	DE,NEW_TOP
+	CALL	DOS_CLOSE
+;
+	LD	DE,NEW_HDR
+	CALL	DOS_CLOSE
+	JP	EXIT		;exit
+;
+CORR_MSG
 	LD	HL,M_COR_TOP1
 	CALL	LOG_MSG_2
 	LD	HL,(THIS_MSG_O)
@@ -99,114 +145,7 @@ MM_02
 ;
 	LD	A,(NEW_HDR_TOPIC)
 	LD	(TOPIC_BYTE),A
-;
-MM_05
-	CALL	WRITE_HDR_REC	;And TOP file byte.
-;
-	LD	A,(OLD_HDR_RBA)
-	LD	C,A
-	LD	HL,(OLD_HDR_RBA+1)
-	LD	DE,OLD_TXT
-	CALL	DOS_POS_RBA
-	JP	NZ,ERROR
-;
-	LD	DE,OLD_TXT
-	CALL	$GET
-	JP	NZ,ERROR
-	CP	0FFH
-	JP	NZ,CORRUPT
-	LD	DE,NEW_TXT
-	CALL	$PUT
-	JP	NZ,ERROR
-;
-	LD	DE,OLD_TXT
-	CALL	$GET
-	JP	NZ,ERROR
-	LD	DE,NEW_TXT
-	CALL	$PUT
-	JP	NZ,ERROR
-;
-	LD	DE,OLD_TXT
-	CALL	$GET
-	JP	NZ,ERROR
-	LD	DE,NEW_TXT
-	CALL	$PUT
-	JP	NZ,ERROR
-;
-MM_03	LD	DE,OLD_TXT
-	CALL	$GET
-	JP	NZ,ERROR
-	OR	A
-	JR	Z,MM_04
-	LD	DE,NEW_TXT
-	CALL	$PUT
-	JP	NZ,ERROR
-	JR	MM_03
-;
-MM_04	LD	DE,NEW_TXT
-	CALL	$PUT
-	JP	NZ,ERROR
-;
-	LD	HL,OLD_HDR_FLAG
-	SET	FM_KILLED,(HL)
-;
-	LD	DE,OLD_HDR
-	CALL	DOS_BACK_RECD
-	JP	NZ,ERROR
-;
-	CALL	DOS_WRIT_SECT
-	JP	NZ,ERROR
-;
-	LD	HL,(MOVED)
-	INC	HL
-	LD	(MOVED),HL
-	JP	MOVE_MSG
-;
-FINISHED
-;If EOF ...
-	LD	HL,(THIS_MSG_N)
-	LD	(NUM_MSG),HL
-	LD	HL,0
-	LD	(NUM_KLD_MSG),HL
-;
-	LD	A,(NEW_TXT+5)		;NEXT low
-	LD	(EOF_RBA),A
-	LD	HL,(NEW_TXT+10)		;NEXT mid/hi
-	LD	(EOF_RBA+1),HL
-;
-;Set topic file EOF
-	LD	A,(NEW_TOP+5)		;NEXT low
-	LD	(NEW_TOP+8),A		;EOF low
-	LD	HL,(NEW_TOP+10)		;NEXT mid/high
-	LD	(NEW_TOP+12),HL		;EOF mid/high
-;
-	LD	DE,NEW_TOP
-	CALL	DOS_REWIND
-	JP	NZ,ERROR
-;
-	LD	HL,STATS_REC
-	LD	B,16
-MM_01	LD	A,(HL)
-	CALL	$PUT
-	JP	NZ,ERROR
-	INC	HL
-	DJNZ	MM_01
-;
-	;close files & stuff
-	LD	DE,NEW_TOP
-	CALL	DOS_CLOSE
-;Ensure text file has shrunk (freeing lotsa lovely space)
-;by setting EOF equal to NEXT.
-	LD	A,(NEW_TXT+5)	;NEXT low
-	LD	(NEW_TXT+8),A	;EOF  low
-	LD	HL,(NEW_TXT+10)	;NEXT mid/high
-	LD	(NEW_TXT+12),HL	;EOF  mid/high
-;
-	LD	DE,NEW_TXT
-	CALL	DOS_CLOSE
-	LD	DE,NEW_HDR
-	CALL	DOS_CLOSE
-	JP	EXIT		;exit
+	RET
 ;
 READ_HDR_REC
 	LD	HL,OLD_HDR_REC
@@ -236,84 +175,25 @@ FIND_KILLED
 	LD	(THIS_MSG_O),HL
 	LD	(THIS_MSG_N),HL
 ;
-	LD	A,(OLD_HDR_RBA)
-	LD	(LAST_TXT_EOF),A
-	LD	HL,(OLD_HDR_RBA+1)
-	LD	(LAST_TXT_EOF+1),HL
-;
 	CALL	READ_HDR_REC
+;
 	LD	A,(OLD_HDR_FLAG)
 	BIT	FM_KILLED,A
-	JR	Z,FIND_KILLED		;loop until found
-;
-	LD	A,(OLD_HDR+5)
-	LD	C,A
-	LD	HL,(OLD_HDR+10)
-	LD	A,C
-	SUB	16
-	LD	C,A
-	LD	A,L
-	SBC	A,0
-	LD	L,A
-	LD	A,H
-	SBC	A,0
-	LD	H,A
+	JR	NZ,FOUND_KILLED
+;Keep new hdr & top files in line
 	LD	DE,NEW_HDR
-	CALL	DOS_POS_RBA
+	LD	HL,NEW_HDR_REC
+	CALL	DOS_READ_SECT
 	JP	NZ,ERROR
-;
-	LD	A,(OLD_TOP+5)
-	LD	C,A
-	LD	HL,(OLD_TOP+10)
-	OR	A
-	JR	NZ,FK_01
-	DEC	HL
-FK_01
-	DEC	C
 	LD	DE,NEW_TOP
-	CALL	DOS_POS_RBA
-	JP	NZ,ERROR
-;
-;If THIS_MSG_O = 0000, (ie first msg killed), then there
-;is NO previous TXT file rba, hence TXT file is already
-;positioned to the correct starting place (000000).
-;
-	LD	HL,(THIS_MSG_O)
-	LD	A,H
-	OR	L
-	RET	Z
-;
-;Try and position text file.
-	LD	A,(LAST_TXT_EOF)
-	LD	C,A
-	LD	HL,(LAST_TXT_EOF+1)
-	LD	DE,NEW_TXT
-	CALL	DOS_POS_RBA
-	JP	NZ,ERROR
-;
-	LD	DE,NEW_TXT
 	CALL	$GET
 	JP	NZ,ERROR
-	CP	0FFH
-	JP	NZ,CORRUPT
-	LD	DE,NEW_TXT
-	CALL	$GET
-	JP	NZ,ERROR
-FK_02
-	LD	DE,NEW_TXT
-	CALL	$GET
-	JP	NZ,ERROR
-	OR	A
-	JR	NZ,FK_02	;find EOM.
+	JR	FIND_KILLED		;loop until found
 ;
+FOUND_KILLED
 	RET
 ;
 OPEN_FILES
-	LD	DE,OLD_TXT
-	LD	HL,OLD_TXT_BUF
-	LD	B,0
-	CALL	DOS_OPEN_EX
-	JP	NZ,ERROR
 ;
 	LD	DE,OLD_HDR
 	LD	HL,OLD_HDR_BUF
@@ -323,12 +203,6 @@ OPEN_FILES
 ;
 	LD	DE,OLD_TOP
 	LD	HL,OLD_TOP_BUF
-	LD	B,0
-	CALL	DOS_OPEN_EX
-	JP	NZ,ERROR
-;
-	LD	DE,NEW_TXT
-	LD	HL,NEW_TXT_BUF
 	LD	B,0
 	CALL	DOS_OPEN_EX
 	JP	NZ,ERROR
@@ -353,11 +227,6 @@ OPEN_FILES
 	OR	C
 	LD	(OLD_TOP+1),A
 ;
-	LD	A,(OLD_TXT+1)
-	AND	B
-	OR	C
-	LD	(OLD_TXT+1),A
-;
 	LD	A,(OLD_HDR+1)
 	AND	B
 	OR	40H		;prevent OLD_HDR shrink
@@ -365,14 +234,12 @@ OPEN_FILES
 ;
 	LD	A,(NEW_TOP+1)
 	AND	B
+	OR	40H
 	LD	(NEW_TOP+1),A
-;
-	LD	A,(NEW_TXT+1)
-	AND	B
-	LD	(NEW_TXT+1),A
 ;
 	LD	A,(NEW_HDR+1)
 	AND	B
+	OR	40H
 	LD	(NEW_HDR+1),A
 	RET
 ;
@@ -406,15 +273,6 @@ CC_01	CALL	$GET
 	JP	NZ,ERROR
 	RET
 ;
-CORRUPT
-	LD	HL,M_CORRUPT
-	LD	DE,($STDOUT)
-	CALL	MESS_0
-	LD	HL,M_CORRUPT
-	CALL	LOG_MSG
-	LD	A,15
-	JP	TERMINATE
-;
 LOG_MSG_2
 	PUSH	HL
 	CALL	LOG_MSG
@@ -431,12 +289,6 @@ ERROR	PUSH	AF
 	OR	80H
 	CALL	DOS_ERROR
 ;
-;;	LD	DE,NEW_TXT	;Rewind files to write
-;;	CALL	DOS_REWIND	;any updated sectors
-;;	LD	DE,NEW_TOP	;without the EOF hassles
-;;	CALL	DOS_REWIND	;of closing the files.
-;;	LD	DE,NEW_HDR
-;;	CALL	DOS_REWIND
 ;
 	POP	AF
 	JP	TERMINATE
@@ -447,14 +299,11 @@ MOVED		DEFW	0
 THIS_MSG_O	DEFW	0
 THIS_MSG_N	DEFW	0
 TOPIC_BYTE	DEFW	0
-LAST_TXT_EOF	DEFB	0,0,0
 ;
 STRING	DEFS	80
 ;
 M_COR_TOP1
 	DEFM	'** topic code corrupt, ',0
-M_CORRUPT
-	DEFM	'Corrupt files: First byte of msg is not FF',CR,0
 M_SPACE	DEFM	'  ',0
 M_CR	DEFM	CR,0
 ;
@@ -496,13 +345,9 @@ NEW_HDR_TIME	DEFB	0,0,0
 ;
 ;End of msghdr.
 ;
-NEW_TXT	DEFM	'msgtxt.zms',CR
-	DC	32-11,0
 NEW_HDR	DEFM	'msghdr.zms',CR
 	DC	32-11,0
 NEW_TOP	DEFM	'msgtop.zms',CR
-	DC	32-11,0
-OLD_TXT	DEFM	'msgtxt.zms',CR
 	DC	32-11,0
 OLD_HDR	DEFM	'msghdr.zms',CR
 	DC	32-11,0
@@ -511,10 +356,8 @@ OLD_TOP	DEFM	'msgtop.zms',CR
 ;
 *GET	MSGTOP.HDR
 ;
-NEW_TXT_BUF	DEFS	256
 NEW_HDR_BUF	DEFS	256
 NEW_TOP_BUF	DEFS	256
-OLD_TXT_BUF	DEFS	256
 OLD_HDR_BUF	DEFS	256
 OLD_TOP_BUF	DEFS	256
 ;
