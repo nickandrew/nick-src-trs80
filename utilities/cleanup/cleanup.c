@@ -5,16 +5,15 @@ char *argv[];
 {
    FILE *fin,*fout;
    char string[255],*cp1,*cp2;
-   if (argc!=3) { printf("Cleanup: Usage cleanup infile outfile\n");
-                  exit(1);
-                }
-   if ((fin=fopen(argv[1],"r"))==NULL)
-      {
+   if (argc!=3) {
+      printf("Cleanup: Usage cleanup infile outfile\n");
+      exit(1);
+      }
+   if ((fin=fopen(argv[1],"r"))==NULL) {
       printf("Cleanup: Can't open %s\n",argv[1]);
       exit(2);
       }
-   if ((fout=fopen(argv[2],"w"))==NULL)
-      {
+   if ((fout=fopen(argv[2],"w"))==NULL) {
       printf("Cleanup: Can't open %s\n",argv[2]);
       exit(3);
       }
