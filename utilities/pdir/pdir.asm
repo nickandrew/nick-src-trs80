@@ -1,8 +1,18 @@
 ;pdir/asm: do a printer oriented 'DIR I P'
-; Ver 1.1 on 29-Dec-84
+; Ver 1.2 on 29-Dec-84
 ;
 	ORG	5200H
-START	LD	HL,MESS
+START	LD	A,(HL)
+	CP	0DH
+	LD	A,'0'
+	JR	Z,ST_1
+	LD	A,(HL)
+ST_1	SUB	30H
+	CP	'4'
+	JP	NC,402DH
+	CALL	445BH
+	JP	NZ,4409H
+	LD	HL,MESS
 	CALL	4467H
 KEY	CALL	0049H
 	CP	5BH
@@ -145,7 +155,7 @@ SECS	DEFB	0
 SECTOR	DEFB	0
 CHARS	DEFB	0
 ;
-MESS	DEFM	'Super Directory 1.0 by Nick Andrew',0DH
+MESS	DEFM	'Super Directory 1.2 by Nick Andrew',0DH
 ;
 ;
 	END	START
