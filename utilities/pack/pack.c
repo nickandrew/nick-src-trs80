@@ -2,18 +2,21 @@
  *     Huffman encoding program
  *     Usage:  pack [[ - ] filename ... ] filename ...
  *             - option: enable/disable listing of statistics
- * hacked from Unix by Nick Andrew, 15-Jun-86
+ *
+ * Trs-80 version hacked from Unix by Nick Andrew, 15-Jun-86
  */
 
 
 #include  <stdio.h>
 
 #define END     256
-#define BLKSIZE 512
+#define BLKSIZE 256
 #define NAMELEN 32    /* filename length */
 #define PACKED 017436 /* <US><RS> - Unlikely value */
-#define SUF0    '.'   /* CP/M   */
+#define SUF0    '/'   /* TRS-80 */
 #define SUF1    'z'
+
+struct stat status, ostatus;
 
 /* union for overlaying a long int with
  * a set of four characters
@@ -305,10 +308,6 @@ int argc; char *argv[];
     int fcount =0; /* count failures */
 
 
-
-    /* this shuffle may need to be changed depending on the
-     * order of bytes within a long
-     */
 
     maskshuff[0]= &(mask.chars.c3);
     maskshuff[1]= &(mask.chars.c2);
