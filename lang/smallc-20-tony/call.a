@@ -1,0 +1,523 @@
+#asm
+;
+; --- call.a: Small-C arithmetic and logical library
+;
+CCDDGC:
+	DAD	D
+	JMP	CCGCHAR
+;
+CCDSGC:
+	INX	H
+	INX	H
+	DAD	SP
+;
+;	fetch a single byte from the address
+;	in HL and sign extend into HL
+;
+CCGCHAR:
+	MOV	A,M
+;
+;	put the accumulator into HL and sign
+;	extend into HL
+;
+CCARGC:
+CCSXT:
+	MOV	L,A
+	RLC
+	SBB	A
+	MOV	H,A
+	RET
+;
+CCDDGI:
+	DAD	D
+	JMP	CCGINT
+;
+CCDSGI:
+	INX	H
+	INX	H
+	DAD	SP
+;
+;	fetch a 16-bit integer from the address
+;	in HL into HL
+;
+CCGINT:
+	MOV	A,M
+	INX	H
+	MOV	H,M
+	MOV	L,A
+	RET
+;
+CCDECC:
+	INX	H
+	INX	H
+	DAD	SP
+	MOV	D,H
+	MOV	E,L
+	CALL	CCGCHAR
+	DCX	H
+	MOV	A,L
+	STAX	D
+	RET
+;
+CCINCC:
+	INX	H
+	INX	H
+	DAD	SP
+	MOV	D,H
+	MOV	E,L
+	CALL	CCGCHAR
+	INX	H
+	MOV	A,L
+	STAX	D
+	RET
+;
+CCDDPDPC:
+	DAD	D
+CCPDPC:
+	POP	B	; return address
+	POP	D
+	PUSH	B
+;
+;	Store a single byte from HL at the
+;	address in DE
+;
+CCPCHAR:
+PCHAR:
+	MOV	A,L
+	STAX	D
+	RET
+;
+CCDECI:
+	INX	H
+	INX	H
+	DAD	SP
+	MOV	D,H
+	MOV	E,L
+	CALL	CCGINT
+	DCX	H
+	JMP	CCPINT
+;
+CCINCI:
+	INX	H
+	INX	H
+	DAD	SP
+	MOV	D,H
+	MOV	E,L
+	CALL	CCGINT
+	INX	H
+	JMP	CCPINT
+;
+CCDDPDPI:
+	DAD	D
+CCPDPI:
+	POP	B	; return address
+	POP	D
+	PUSH	B
+;
+;	Store a 16-bit integer in HL at the
+;	address in DE
+;
+CCPINT:
+PINT:
+	MOV	A,L
+	STAX	D
+	INX	D
+	MOV	A,H
+	STAX	D
+	RET
+;
+;	Inclusive OR of HL and DE into HL
+;
+CCOR:
+	MOV	A,L
+	ORA	E
+	MOV	L,A
+	MOV	A,H
+	ORA	D
+	MOV	H,A
+	RET
+;
+;	Exclusive OR of HL and DE into HL
+;
+CCXOR:
+	MOV	A,L
+	XRA	E
+	MOV	L,A
+	MOV	A,H
+	XRA	D
+	MOV	H,A
+	RET
+;
+;	AND of HL and DE into HL
+;
+CCAND:
+	MOV	A,L
+	ANA	E
+	MOV	L,A
+	MOV	A,H
+	ANA	D
+	MOV	H,A
+	RET
+;
+;	In all the following compare routines,
+;	HL is set to 1 if the condition is true,
+;	otherwise HL is set to 0.
+;
+;	Test if HL = DE
+;
+CCEQ:
+	CALL	CCCMP
+	RZ
+	DCX	H
+	RET
+;
+;	Test if DE != HL
+;
+CCNE:
+	CALL	CCCMP
+	RNZ
+	DCX	H
+	RET
+;
+;	Test if DE > HL (signed)
+;
+CCGT:
+	XCHG
+	CALL	CCCMP
+	RC
+	DCX	H
+	RET
+;
+;	Test if DE <= HL (signed)
+;
+CCLE:
+	CALL	CCCMP
+	RZ
+	RC
+	DCX	H
+	RET
+;
+;	Test if DE >= HL (signed)
+;
+CCGE:
+	CALL	CCCMP
+	RNC
+	DCX	H
+	RET
+;
+;	Test if DE < HL (signed)
+;
+CCLT:
+	CALL	CCCMP
+	RC
+	DCX	H
+	RET
+;
+;	Common routine to perform a signed
+;	compare of DE and HL
+;
+;	This routine performs DE - HL and sets
+;	the conditions:
+;		Carry reflects sign of difference (set DE < HL)
+;		Zero/Nonzero set according to equality
+;
+CCCMP:
+	MOV	A,H	;; invert sign of HL
+	XRI	80H
+	MOV	H,A
+	MOV	A,D	;; invert sign of DE
+	XRI	80H
+	CMP	H	;; compare MSBs
+	JNZ	CCCMP1
+	MOV	A,E	;; compare LSBs
+	CMP	L
+CCCMP1:
+	LXI	H,1	;; preset true condition
+	RET
+;
+;	Test if DE >= HL (unsigned)
+;
+CCUGE:
+	CALL	CCUCMP
+	RNC
+	DCX	H
+	RET
+;
+;	Test if DE < HL (unsigned)
+;
+CCULT:
+	CALL	CCUCMP
+	RC
+	DCX	H
+	RET
+;
+;	Test if DE > HL (unsigned)
+;
+CCUGT:
+	XCHG
+	CALL	CCUCMP
+	RC
+	DCX	H
+	RET
+;
+;	Test if DE <= HL (unsigned)
+;
+CCULE:
+	CALL	CCUCMP
+	RZ
+	RC
+	DCX	H
+	RET
+;
+;	Common routine to perform unsigned
+;	compare of DE and HL
+;
+;	Carry set if DE < HL
+;	Zero/Nonzero set accordingly
+;
+CCUCMP:
+	MOV	A,D
+	CMP	H
+	JNZ	CCUCMP1
+	MOV	A,E
+	CMP	L
+CCUCMP1:
+	LXI	H,1
+	RET
+;
+;	Shift DE arithmetically right by
+;	HL and return in HL
+;
+CCASR:
+	XCHG
+	DCR	E
+	RM
+	MOV	A,H
+	RAL
+	MOV	A,H
+	RAR
+	MOV	H,A
+	MOV	A,L
+	RAR
+	MOV	L,A
+	JMP	CCASR+1
+;
+;	Shift DE arithmetically left by
+;	HL and return in HL
+;
+CCASL:
+	XCHG
+	DCR	E
+	RM
+	DAD	H
+	JMP	CCASL+1
+;
+;	Subtract HL from DE and return in HL
+;
+CCSUB:
+	MOV	A,E
+	SUB	L
+	MOV	L,A
+	MOV	A,D
+	SBB	H
+	MOV	H,A
+	RET
+;
+;	Form the 2's complement of HL
+;
+CCNEG:
+	CALL	CCCOM
+	INX	H
+	RET
+;
+;	Form the 1's complement of HL
+;
+CCCOM:
+	MOV	A,H
+	CMA
+	MOV	H,A
+	MOV	A,L
+	CMA
+	MOV	L,A
+	RET
+;
+;	Multiply DE by HL and return in HL
+;	(signed multiply)
+;
+CCMULT:
+MULT:
+	MOV	B,H
+	MOV	C,L
+	LXI	H,0
+CCMULT1:
+	MOV	A,C
+	RRC
+	JNC	CCMULT2
+	DAD	D
+CCMULT2:
+	XRA	A
+	MOV	A,B
+	RAR
+	MOV	B,A
+	MOV	A,C
+	RAR
+	MOV	C,A
+	ORA	B
+	RZ
+	XRA	A
+	MOV	A,E
+	RAL
+	MOV	E,A
+	MOV	A,D
+	RAL
+	MOV	D,A
+	ORA	E
+	RZ
+	JMP	CCMULT1
+;
+;	Divide DE by HL and return quotient
+;	in HL and remainder in DE
+;	(signed divide)
+;
+CCDIV:
+DIV:
+	MOV	B,H
+	MOV	C,L
+	MOV	A,D
+	XRA	B
+	PUSH	PSW
+	MOV	A,D
+	ORA	A
+	CM	CCDNEG
+	MOV	A,B
+	ORA	A
+	CM	CCBNEG
+	MVI	A,16
+	PUSH	PSW
+	XCHG
+	LXI	D,0
+CCDIV1:
+	DAD	H
+	CALL	CCRDEL
+	JZ	CCDIV2
+	CALL	CCCMPBCDE
+	JM	CCDIV2
+	MOV	A,L
+	ORI	1
+	MOV	L,A
+	MOV	A,E
+	SUB	C
+	MOV	E,A
+	MOV	A,D
+	SBB	B
+	MOV	D,A
+CCDIV2:
+	POP	PSW
+	DCR	A
+	JZ	CCDIV3
+	PUSH	PSW
+	JMP	CCDIV1
+CCDIV3:
+	POP	PSW
+	RP
+	CALL	CCDNEG
+	XCHG
+	CALL	CCDNEG
+	XCHG
+	RET
+;
+;	Negate the integer in DE
+;	(internal routine)
+;
+CCDNEG:
+	MOV	A,D
+	CMA
+	MOV	D,A
+	MOV	A,E
+	CMA
+	MOV	E,A
+	INX	D
+	RET
+;
+;	Negate the integer in BC
+;	(internal routine)
+;
+CCBNEG:
+	MOV	A,B
+	CMA
+	MOV	B,A
+	MOV	A,C
+	CMA
+	MOV	C,A
+	INX	B
+	RET
+;
+;	Rotate DE left one bit
+;	(internal routine)
+;
+CCRDEL:
+	MOV	A,E
+	RAL
+	MOV	E,A
+	MOV	A,D
+	RAL
+	MOV	D,A
+	ORA	E
+	RET
+;
+;	Compare BC to DE
+;	(internal routine)
+;
+	MOV	A,E
+	SUB	C
+	MOV	A,D
+	SBB	B
+	RET
+;
+;	Logical negation
+;
+CCLNEG:
+	MOV	A,H
+	ORA	L
+	JNZ	$+6
+	MVI	L,1
+	RET
+	LXI	H,0
+	RET
+;
+;	Execute "switch" statement
+;
+;	 HL  =  switch value
+;	(SP) -> switch table
+;		DW	ADDR1, VALUE1
+;		DW	ADDR2, VALUE2
+;		...
+;		DW	0
+;		[JMP	default]
+;		continuation
+;
+CCSWITCH:
+	XCHG		;; DE = switch value
+	POP	H	;; HL -> switch table
+SWLOOP:
+	MOV	C,M
+	INX	H
+	MOV	B,M	;; BC -> case address, else 0
+	INX	H
+	MOV	A,B
+	ORA	C
+	JZ	SWEND	;; default or continuation code
+	MOV	A,M
+	INX	H
+	CMP	E
+	MOV	A,M
+	INX	H
+	JNZ	SWLOOP
+	CMP	D
+	JNZ	SWLOOP
+	MOV	H,B	;; case matched
+	MOV	L,C
+SWEND:
+	PCHL
+;
+#endasm
