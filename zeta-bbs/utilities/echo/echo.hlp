@@ -1,0 +1,41 @@
+3ST echo help
+       Help on the ECHO command.. 22-Jun-86
+       ------------------------------------
+
+  Echo is a command which will let you command Zeta to send
+any ascii characters from 00 to 7FH to your terminal. It is
+principally useful if you have special modes which you want
+turned on or off, or to control your local printer.
+
+
+  Usage is:   ECHO [text.......]
+
+where the TEXT consists of:
+   - ordinary characters. These are sent as normal.
+   - BACKSLASH then a character. The next character is sent
+     as typed by you, except uppercase letters are changed
+     to lowercase (All cmd line chars are converted to u/c
+     before the program is executed)
+   - string like '<NAK>' or <ESC> prints the Ascii code which
+     the string stands for.
+
+  For example:
+     ECHO <CR><CR><CR><CR><CR><CR><CR>
+        sends 7 carriage returns (subject to normal cr/lf
+        conversion). Likewise with backspaces.
+     ECHO HI THERE<CR>BUDDY!
+        sends HI THERE on one line, and BUDDY! on the next
+     ECHO <ESC>4
+        sends an escape 4
+     ECHO H\I T\H\E\R\E
+        sends Hi There
+     echo h\i t\h\e\r\e
+        sends Hi There
+     ECHO \\  \<CAN>
+        sends \  <CAN>      (in text, not as ascii CAN)
+
+etc... Best you play around with it if you are unsure at this
+stage what its all about.
+
+0
+
