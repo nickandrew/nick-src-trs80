@@ -2,34 +2,23 @@
  *     Huffman encoding program
  *     Usage:  pack [[ - ] filename ... ] filename ...
  *             - option: enable/disable listing of statistics
- *
- * Trs-80 version hacked from Unix by Nick Andrew, 15-Jun-86
+ * hacked from Unix by Nick Andrew, 15-Jun-86
+ * Generic C version, 13-Oct-86
  */
 
 
 #include  <stdio.h>
 
 #define END     256
-#define BLKSIZE 256
+#define BLKSIZE 512
 #define NAMELEN 32    /* filename length */
 #define PACKED 017436 /* <US><RS> - Unlikely value */
-#define SUF0    '/'   /* TRS-80 */
+#define SUF0    '.'   /* CP/M   */
 #define SUF1    'z'
-
-struct stat status, ostatus;
-
-/* union for overlaying a long int with
- * a set of four characters
- */
-
-union FOUR {
-        struct { long int lng; } lint;
-        struct { char c0, c1, c2, c3; } chars;
-};
 
 /* character counters */
 long    count[END+1];
-union   FOUR insize;
+long    insize;
 long    outsize;
 long    dictsize;
 int     diffbytes;
@@ -54,9 +43,9 @@ int     parent [2*END+1];
 /* variables associated with the encoding process */
 char    length [END+1];
 long    bits [END+1];
-union   FOUR mask;
+long    mask,masklong;
+char    longch[4];
 long    inc;
-char    *maskshuff[4];
 
 /* the heap */
 int     n;
@@ -96,15 +85,15 @@ output()
 {
     int c, i, inleft;
     char *inp;
-    register char **q, *outp;
-    register int bitsleft;
+    register char *outp;
+    register int bitsleft,q;
     long temp;
 
     /* output ``PACKED'' header */
     outbuff[0] = 037;       /* ascii US */
     outbuff[1] = 036;       /* ascii RS */
     /* output the length and the dictionary */
-    temp = insize.lint.lng;
+    temp = insize;
     for (i=5; i>=2; i--) {
         outbuff[i] =  (char) (temp & 0377);
         temp >>= 8;
@@ -141,17 +130,26 @@ output()
             }
         }
         c = (--inleft < 0) ? END : (*inp++ & 0377);
-        mask.lint.lng = bits[c]<<bitsleft;
-        q = &maskshuff[0];
+        mask = bits[c]<<bitsleft;
+	masklong=mask;  /* save in scratchpad */
+	longch[3]=(masklong & 0377);
+	masklong >>= 8;
+	longch[2]=(masklong & 0377);
+	masklong >>= 8;
+	longch[1]=(masklong & 0377);
+	masklong >>= 8;
+	longch[0]=(masklong & 0377);
+
+        q =0;
         if (bitsleft == 8)
-            *outp = **q++;
+            *outp = longch[q++];
         else
-            *outp |= **q++;
+            *outp |= longch[q++];
 
         bitsleft -= length[c];
 
         while (bitsleft < 0) {
-            *++outp = **q++;
+            *++outp = longch[q++];
             bitsleft += 8;
         }
         if (vflag) printf(" %d ",*outp);
@@ -217,12 +215,12 @@ int packfile ()
         /* put occurring chars in heap with their counts */
         diffbytes = -1;
         count[END] = 1;
-        insize.lint.lng = n = 0;
+        insize = n = 0;
         for (i=END; i>=0; i--) {
                 parent[i] = 0;
                 if (count[i] > 0) {
                         diffbytes++;
-                        insize.lint.lng += count[i];
+                        insize += count[i];
                         heap[++n].count = count[i];
                         heap[n].node = i;
                 }
@@ -231,7 +229,7 @@ int packfile ()
                 printf (": trivial file");
                 return (0);
         }
-        insize.lint.lng >>= 1;
+        insize >>= 1;
         for (i=n/2; i>=1; i--)
                 heapify(i);
 
@@ -266,14 +264,14 @@ int packfile ()
                 bitsout += c*(count[i]>>1);
         }
         if (maxlev > 24) {
-        /* can't occur unless insize.lint.lng >= 2**24 */
+        /* can't occur unless insize >= 2**24 */
                 printf (": Huffman tree has too many levels");
                 return(0);
         }
 
         /* don't bother if no compression results */
         outsize = ((bitsout+7)>>3)+6+maxlev+diffbytes;
-        if ((insize.lint.lng+BLKSIZE-1)/BLKSIZE <=
+        if ((insize+BLKSIZE-1)/BLKSIZE <=
           (outsize+BLKSIZE-1)/BLKSIZE && !force) {
                 printf (": no saving");
                 return(0);
@@ -283,15 +281,15 @@ int packfile ()
         if (vflag) printf(" (3) ");
         inc = 1L << 24;
         inc >>= maxlev;
-        mask.lint.lng = 0;
+        mask = 0;
         for (i=maxlev; i>0; i--) {
                 for (c=0; c<=END; c++)
                         if (length[c] == i) {
-                                bits[c] = mask.lint.lng;
-                                mask.lint.lng += inc;
+                                bits[c] = mask;
+                                mask += inc;
    if (vflag) printf("bits[%d] = %ld ",c,bits[c]);
                         }
-                mask.lint.lng &= ~inc;
+                mask &= ~inc;
                 inc <<= 1;
         }
 
@@ -306,13 +304,6 @@ int argc; char *argv[];
     register char *cp;
     int k, sep;
     int fcount =0; /* count failures */
-
-
-
-    maskshuff[0]= &(mask.chars.c3);
-    maskshuff[1]= &(mask.chars.c2);
-    maskshuff[2]= &(mask.chars.c1);
-    maskshuff[3]= &(mask.chars.c0);
 
     for (k=1; k<argc; k++) {
         if (argv[k][0] == '-' && argv[k][1] == '\0') {
@@ -354,8 +345,8 @@ int argc; char *argv[];
         if (packfile()) {
             fcount--;  /* success after all */
             printf (": %.1f%% Compression\n",
-                ((double)(-outsize+(insize.lint.lng))
-                /(double)insize.lint.lng)*100);
+                ((double)(-outsize+(insize))
+                /(double)insize)*100);
         }
         else
             {       printf (" - file unchanged\n");
