@@ -13,7 +13,7 @@ MAX_MSGS	EQU	1024
 	DEFW	CLEAN_DISCON
 ;End of program load info.
 ;
-	COM	'<BB 1.8a 14-May-89>'
+	COM	'<BB 1.8c 03-Jul-89>'
 ;
 	ORG	BASE+100H
 ;
