@@ -1,5 +1,5 @@
 /*
-**      Small C Compiler Version 2.2 - 84/03/05 16:32:44 - c3.c
+**      Small-C Compiler Version 2.2 - 84/03/05 16:32:44 - c3.c
 **
 **      Copyright 1982 J. E. Hendrix
 **
@@ -41,8 +41,8 @@ illname()
 multidef(sname)
 char    *sname;
         {
-	char string[32];
-	sprintf(string,"%s already defined",sname);
+        char string[32];
+        sprintf(string,"%s already defined",sname);
         error(string);
 }
 
@@ -60,66 +60,73 @@ needlval()
         error("must be an lvalue");
 }
 
-findglb(sname)
+char *findglb(sname)
 char    *sname;
         {
 
        if (search(sname,
-		STARTGLB,
-		SYMMAX,
-		ENDGLB,
-		NUMGLBS,
-		NAME))
+            STARTGLB,
+            SYMMAX,
+            ENDGLB,
+            NUMGLBS,
+            NAME))
                 return (cptr);
 
-        return (0);
+        return NULL;
 }
 
-findloc(sname)
+char *findloc(sname)
 char    *sname;
         {
 
-        cptr = locptr - 1;
+        cptr = locptr;
 
         while (cptr > STARTLOC) {
-                cptr = cptr - *cptr;
+                cptr = cptr - SYMMAX;
 
-                if (astreq(sname, cptr, NAMEMAX))
-                        return (cptr - NAME);
+                if (astreq(sname, cptr+NAME, NAMEMAX))
+                        return (cptr);
 
-                cptr = cptr - NAME - 1;
         }
 
-        return (0);
+        return NULL;
 }
 
-addsym(sname, idarray, type, value, lgptrptr, class)
-char    *sname, type;
-char	idarray[];
-int     value, *lgptrptr, class;
-        {
+char *addsym(sname, tarray, type, value, lgptrptr, class)
+char    *sname;
+char    tarray[];
+int     type;
+int     value;
+char    **lgptrptr;
+int     class;
+{
+        int i;
+        char        *s;
 
-	int	i;
         if (lgptrptr == &glbptr)        {
-                if (cptr2 = findglb(sname))
+                if (cptr2 = findglb(sname)) {
+                    fprintf(stderr,"Addsym: %s already a global\n",sname);
                         return (cptr2);
+            }
 
                 if (cptr == 0)  {
                         error("global symbol table overflow");
-                        return (0);
+                        return 0;
                 }
-        }
-        else    {
+        } else {
                 if (locptr > (ENDLOC - SYMMAX)) {
                         error("local symbol table overflow");
                         exit(1);
                 }
 
-                cptr = *lgptrptr;
+            if (*lgptrptr != locptr)
+                    fprintf(stderr,"Addsym: illegal lgptrptr\n");
+                cptr = locptr;
         }
 
-	for (i=0;i<HIER_LEN;++i)
-		cptr[IDENT+i] = idarray[i];
+        for (i=0;i<HIER_LEN;++i) {
+            cptr[IDENT+i] = tarray[i];
+        }
         cptr[TYPE] = type;
         cptr[CLASS] = class;
         putint(value, cptr + OFFSET, OFFSIZE);
@@ -128,22 +135,19 @@ int     value, *lgptrptr, class;
         while (an(*sname))
                 *cptr2++ = *sname++;
 
+        *cptr2 = 0;             /* null terminate in symtab */
         if (lgptrptr == &locptr)        {
-                *cptr2 = cptr2 - cptr3;
-                *lgptrptr = ++cptr2;
+                locptr = cptr + SYMMAX;
         }
 
-        return (cptr);
+        return cptr;
 }
 
-nextsym(entry)
+char *nextsym(entry)
 char    *entry;
         {
 
-        entry = entry + NAME;
-
-        while (*entry++ >= ' ')
-                ;
+        entry = entry + SYMMAX;
 
         return (entry);
 }
@@ -192,7 +196,6 @@ char    *sname;
 int     ucase;
         {
         int     k;
-        char    c;
 
         blanks();
 
@@ -256,8 +259,8 @@ char    c;
         {
 
     return (  ((c >= 'a') & (c <= 'z'))
-	    | ((c >= 'A') & (c <= 'Z'))
-	    | (c == '_'));
+            | ((c >= 'A') & (c <= 'Z'))
+            | (c == '_'));
 }
 
 /*
@@ -285,7 +288,6 @@ char    c;
 addwhile(ptr)
 int     ptr[];
         {
-        int     k;
 
         ptr[WQSP] = csp;
         ptr[WQLOOP] = getlabel();
@@ -296,21 +298,22 @@ int     ptr[];
                 exit(1);
         }
 
-        k = 0;
+        xi = 0;
 
-        while (k < WQSIZ)
-                *wqptr++ = ptr[k++];
+        while (xi < WQSIZ)
+                *wqptr++ = ptr[xi++];
 }
 
 delwhile()
         {
 
-        if (readwhile())
+        int *readwhile();
+        if (readwhile()!=NULL)
                 wqptr = wqptr - WQSIZ;
 }
 
-readwhile()
-        {
+int     *readwhile()
+{
 
         if (wqptr == wq)        {
                 error("no active loops");
@@ -334,12 +337,11 @@ white()
 
 gch()
         {
-        int     c;
 
-        if (c = ch)
+        if (xc = ch)
                 bump(1);
 
-        return (c);
+        return (xc);
 }
 
 bump(n)
@@ -377,25 +379,25 @@ inbyte()
 
 inline()
         {
-        int     k, unit;
+        FILE        *unit;
 
         for (;;)        {
-                if (input == EOF)
+                if (input == NULL)
                         openin();
 
                 if (eof)
                         return;
 
-                if ((unit = input2) == EOF)
+                if ((unit = input2) == NULL)
                         unit = input;
 
                 if (fgets(line, LINEMAX, unit) == NULL) {
                         fclose(unit);
 
-                        if (input2 != EOF)
-                                input2 = EOF;
+                        if (input2 != NULL)
+                                input2 = NULL;
                         else
-                                input = EOF;
+                                input = NULL;
                 }
                 else    {
                         bump(0);

@@ -1,5 +1,5 @@
 /*
-**      Small C Compiler Version 2.2 - 84/03/05 16:33:39 - c8.c
+**      Small-C Compiler Version 2.2 - 84/03/05 16:33:39 - c8.c
 **
 **      Copyright 1982 J. E. Hendrix
 **
@@ -15,8 +15,8 @@ char    exbuff[32];             /* external name buffer */
 
 header()
         {
-	ol("COM\t'<small c compiler output>'");
-	outstr("*MOD\n");
+        ol("COM\t'<small c compiler output>'");
+        outstr("*MOD\n");
 }
 
 /*
@@ -33,20 +33,21 @@ trailer()
 **      make an external name
 */
 
-exname(s)
+char *exname(s)
 char    *s;
         {
-        char    *p;
+
+        char        *p;
 
         p = exbuff;
 
         *p++ = '_';
 
         while (*s) {
-		if (*s>='a' && *s<='z') *p++ = (*s++ & 95);
-		else *p++ = *s++;
+            if (*s>='a' && *s<='z') *p++ = (*s++ & 95);
+            else *p++ = *s++;
         }
-	*p++ = 0;
+        *p++ = 0;
 
         return (exbuff);
 }
@@ -72,9 +73,9 @@ external(name)
 char    *name;
         {
 
-/*      outstr(";\textrn\t");	*/
-/*      outstr(exname(name));	*/
-/*      nl();			*/
+/*      outstr(";\textrn\t");   */
+/*      outstr(exname(name));   */
+/*      nl();               */
 }
 
 /*
@@ -89,21 +90,22 @@ int     lval[];
     ptr=lval[LVSYM];
 
     if (ptr!=0) {
-	fprintf(stderr,"indirect: hierpos = %d\n",lval[LVHIER]);
-	if (ptr[lval[LVHIER]+IDENT] != VARIABLE) {
-	    call("CCGINT");
-	} else {
-		if (ptr[TYPE]==CCHAR)
-			call("CCGCHAR");
-		else	call("CCGINT");
-	}
-	return;
+        if (ptr[lval[LVHIER]+IDENT] != VARIABLE) {
+            call("CCGINT");
+        } else {
+            if (ptr[TYPE]==CCHAR)
+                    call("CCGCHAR");
+            else    call("CCGINT");
+        }
+        return;
     } else
         fprintf(stderr,"* indirect: no link to symbol table\n");
+        exit(1);
 
-    if (lval[LVSTYPE] == CCHAR)
+/*    if (lval[LVSTYPE] == CCHAR)
         call("CCGCHAR");
     else call("CCGINT");
+*/
 }
 
 /*
@@ -120,14 +122,14 @@ int     lval[];
         if ((sym[IDENT] != POINTER) && (sym[TYPE] == CCHAR)) {
                 ot("LD\tA,(");
                 outstr(exname(sym + NAME));
-		outstr( ")" );
+            outstr( ")" );
                 nl();
                 call("CCSXT");
         }
         else {
                 ot("LD\tHL,(");
                 outstr(exname(sym + NAME));
-		outstr( ")" );
+            outstr( ")" );
                 nl();
         }
 }
@@ -159,12 +161,12 @@ int     lval[];
                 ol("LD\tA,L");
                 ot("LD\t(");
                 outstr(exname(sym + NAME));
-		outstr( "),A" );
+            outstr( "),A" );
         }
         else    {
                 ot("LD\t(");
                 outstr(exname(sym + NAME));
-		outstr( "),HL" );
+            outstr( "),HL" );
         }
         nl();
 }
@@ -174,26 +176,34 @@ int     lval[];
 */
 
 putstk(lval)
-int     lval[];
-        {
+int  lval[];
+{
 
     char *ptr;
     ptr=lval[LVSYM];
 
     if (ptr!=0) {
-	fprintf(stderr,"putstk: hierpos = %d\n",lval[LVHIER]);
-	if (ptr[lval[LVHIER]+IDENT] == POINTER) {
-	    call("CCPINT");
-	    return;
-	}
+        if (ptr[lval[LVHIER]+IDENT] == POINTER) {
+            call("CCPINT");
+            return;
+        } else {
+            if (lval[LVSTYPE] == CCHAR) {
+                ol("LD\tA,L");
+                ol("LD\t(DE),A");
+            } else 
+                call("CCPINT");
+            return;
+        }
     } else
-        fprintf(stderr,"putstk: no link to symbol table\n");
+        fprintf(stderr,"* putstk: no link to symbol table\n");
+        exit(1);
 
-    if (lval[LVSTYPE] == CCHAR) {
-        ol("LD\tA,L");
-        ol("LD\t(DE),A");
-    } else 
-        call("CCPINT");
+/*    if (lval[LVSTYPE] == CCHAR) {
+**      ol("LD\tA,L");
+**      ol("LD\t(DE),A");
+**  } else 
+**      call("CCPINT");
+*/
 }
 
 /*
@@ -259,49 +269,12 @@ int     lval[];
 char    *start;
         {
 
-/*        if (lval[5])			*/
-/*                pop(); 		*/ /* secondary was used */
-/*        else				*/
-/*                unpush(start);	*/
+/*        if (lval[5])              */
+/*                pop();            */ /* secondary was used */
+/*        else                      */
+/*                unpush(start);        */
 
-	pop();
-}
-
-/*
-**      replace a push with a swap
-*/
-
-unpush(dest)
-char    *dest;
-        {
-        int     i;
-        char    *sour;
-
-        sour = "\tex\tde,hl\n";      /* peephole() uses trailing ";;" */
-
-        while (*sour)
-                *dest++ = *sour++;
-
-        sour = stagenext;
-
-        while (--sour > dest)   {
-                /* adjust stack references */
-                if (streq(sour, "\tadd hl,sp"))    {
-                        --sour;
-                        i = BPW;
-
-                        while (numeric(*(--sour)))      {
-                                if ((*sour = *sour - i) < '0')  {
-                                        *sour = *sour + 10;
-                                        i = 1;
-                                }
-                                else
-                                        i = 0;
-                        }
-                }
-        }
-
-        csp = csp + BPW;
+        pop();
 }
 
 /*
@@ -410,7 +383,7 @@ int     label, lval[];
 int     (*oper)();
         {
 
-        clearstage(lval[7], 0);         /* clear conventional code */
+        clearstage(lval[7], NULL);      /* clear conventional code */
         (*oper)(label);
 }
 
@@ -514,7 +487,7 @@ doublereg()
 dataseg()
         {
 
-/*      outstr(";\tDSEG\n");	*/
+/*      outstr(";\tDSEG\n");    */
 }
 
 /*
@@ -524,5 +497,31 @@ dataseg()
 textseg()
         {
 
-/*      outstr(";\tCSEG\n");	*/
+/*      outstr(";\tCSEG\n");    */
+}
+
+/* dumpsym ... dump the symbol table */
+dumpsym(flag)
+int flag;
+{
+        FILE *st;
+        char *cp;
+
+        if (flag==1) {
+            char x;
+            scanf(" %c",&x);
+            if (x!='y') return;
+        }
+
+        if ((st=fopen("symloc","w"))==NULL) return;
+
+        cp = STARTLOC;
+
+        while (cp < ENDLOC) fputc(*(cp++), st);
+        fclose(st);
+        if ((st=fopen("symglb","w"))==NULL) return;
+        cp = STARTGLB;
+
+        while (cp < ENDGLB) fputc(*(cp++), st);
+        fclose(st);
 }

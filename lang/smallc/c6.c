@@ -1,5 +1,5 @@
 /*
-**      Small C Compiler Version 2.2 - 84/03/05 16:33:22 - c6.c
+**      Small-C Compiler Version 2.2 - 84/03/05 16:33:22 - c6.c
 **
 **      Copyright 1982 J. E. Hendrix
 **
@@ -12,7 +12,7 @@ int     lval[];
         {
         int     k;
         char    *ptr;
-	int	hierpos,incval;
+        int hierpos,incval;
 
         if (match("++"))        {
                 if (heir13(lval) == 0)  {
@@ -20,7 +20,7 @@ int     lval[];
                         return (0);
                 }
 
-                step(inc, lval);
+                step(1, lval);
                 return (0);
         }
         else if (match("--"))   {
@@ -29,7 +29,7 @@ int     lval[];
                         return (0);
                 }
 
-                step(dec, lval);
+                step(-1, lval);
                 return (0);
         }
         else if (match("~"))    {
@@ -59,30 +59,28 @@ int     lval[];
         else if (match("*"))    {
                 if (heir13(lval)) {
                         rvalue(lval);
-		}
-		if (ptr=lval[LVSYM]) {
-		    hierpos = lval[LVHIER];
-		    fprintf(stderr,"ptr: Hierpos = %d\n",hierpos);
-		    if (ptr[IDENT+hierpos]!=VARIABLE)
-			lval[LVHIER]= ++hierpos;
-		    else error("Not a pointer type");
-		} else fprintf(stderr,"* ptr: no symbol table\n");
-		fprintf(stderr,"Hierpos now becomes %d\n",hierpos);
+            }
+            if (ptr=lval[LVSYM]) {
+                hierpos = lval[LVHIER];
+                if (ptr[IDENT+hierpos]!=VARIABLE)
+                    lval[LVHIER]= ++hierpos;
+                else error("Not a pointer type");
+            } else fprintf(stderr,"* ptr: no symbol table\n");
 
                 if (ptr = lval[LVSYM]) {
-			hierpos=lval[LVHIER];
-			if (ptr[IDENT+hierpos]==VARIABLE) {
+                    hierpos=lval[LVHIER];
+                    if (ptr[IDENT+hierpos]==VARIABLE) {
                                 lval[LVSTYPE] = ptr[TYPE];
-				lval[LVPTYPE] = 0;
-			} else {
-				lval[LVSTYPE] = CINT;
-				if (ptr[IDENT+hierpos+1]==VARIABLE)
-					lval[LVPTYPE]=0;
-				else	lval[LVPTYPE]=ptr[TYPE];
-			}
+                        lval[LVPTYPE] = 0;
+                    } else {
+                        lval[LVSTYPE] = CINT;
+                        if (ptr[IDENT+hierpos+1]==VARIABLE)
+                                lval[LVPTYPE]=0;
+                        else    lval[LVPTYPE]=ptr[TYPE];
+                    }
                 } else {
                         lval[LVSTYPE] = CINT;
-		}
+            }
 
                 lval[LVCONST] = 0;
                 return (1);
@@ -112,8 +110,8 @@ int     lval[];
                                 return (0);
                         }
 
-                        incval = step(inc, lval);
-                        dec(incval);
+                        incval = step(1, lval);
+                        inc(-incval);
                         return (0);
                 }
                 else if (match("--"))   {
@@ -122,7 +120,7 @@ int     lval[];
                                 return (0);
                         }
 
-                        incval=step(dec, lval);
+                        incval=step(-1, lval);
                         inc(incval);
                         return (0);
                 }
@@ -133,8 +131,8 @@ int     lval[];
 
 heir14(lval)
 int     lval[];
-    {
-    int     k, const, val, lval2[LVALUE],hierpos;
+{
+    int     k, lval2[LVALUE],hierpos;
     char    *ptr, *before, *start;
 
     k = primary(lval);
@@ -145,41 +143,38 @@ int     lval[];
         lval[5] = 1;
 
         for (;;)        {
-	    hierpos = lval[LVHIER];
+            hierpos = lval[LVHIER];
             if (match("[")) {
                 if (ptr == 0)   {
-                    error("can't subscript");
+                    error("can't subscript (not an lvalue)");
                     junk();
                     needtoken("]");
                     return(0);
                 }
                 else if (ptr[IDENT+hierpos] == POINTER) {
-		    fprintf(stderr,"heir14: hierpos=%d, is a pointer\n",
-		    hierpos);
                     rvalue(lval);
-		}
+            }
                 else if (ptr[IDENT+hierpos] != ARRAY)   {
-                    error("can't subscript");
+                    error("can't subscript (not ptr or array)");
                     k = 0;
-                } else
-		    fprintf(stderr,"heir14: hierpos=%d, is an array\n",
-		    hierpos);
+                }
 
                 setstage(&before, &start);
                 lval2[LVCONST] = 0;
                 plunge2(0, 0, heir1, lval2, lval2);
                 needtoken("]");
+
                 if (ptr[IDENT+hierpos]!=VARIABLE)
-		    lval[LVHIER]= ++hierpos;
+                lval[LVHIER]= ++hierpos;
 
                 if (lval2[LVCONST])   { /* if constant expr */
-                    clearstage(before, 0);
+                    clearstage(before, NULL);
 
                     if (lval2[LVCONVL])   { /* if index!=0 */
                         int index;
 
                         if ((ptr[IDENT+hierpos]!=VARIABLE)
-			 || (ptr[TYPE] == CINT))
+                     || (ptr[TYPE] == CINT))
                             index=(lval2[LVCONVL] * SINT);
                         else
                             index=lval2[LVCONVL];
@@ -199,20 +194,17 @@ int     lval[];
                     add();
                 }
 
-/*              lval[LVSYM] = lval[LVPTYPE] = 0;	*/
-/*              lval[LVSTYPE] = ptr[TYPE];		*/
-
-		if (ptr[IDENT+hierpos] == VARIABLE)
-		    lval[LVPTYPE] = 0;
+            if (ptr[IDENT+hierpos] == VARIABLE)
+                lval[LVPTYPE] = 0;
                 lval[LVSTYPE] = ptr[TYPE];
                 k = 1;
             }
             else if (match("("))    {
                 if (ptr == 0)
-                    callfunction(0);
-                else if (ptr[IDENT] != FUNCTION)        {
+                    callfunction(NULL);
+                else if (ptr[IDENT+hierpos] != FUNCTION) {
                     rvalue(lval);
-                    callfunction(0);
+                    callfunction(NULL);
                 }
                 else
                     callfunction(ptr);
@@ -236,13 +228,14 @@ int     lval[];
 }
 
 primary(lval)
-int     *lval;
+int     lval[];
         {
-        char    *ptr;
+        char    *ptr,*findloc(),*findglb(),*addsym();
         int     k;
-	char	ftype[HIER_LEN];
+        char        ftype[HIER_LEN];
 
-	ftype[0]=FUNCTION;
+        ftype[0]=FUNCTION;
+        ftype[1]=VARIABLE;
         if (match("(")) {
                 k = heir1(lval);
                 needtoken(")");
@@ -258,14 +251,16 @@ int     *lval;
                                 return 0;
                         }
 
+                    if (ptr[IDENT] != FUNCTION)
                         getloc(ptr);
                         lval[LVSYM] = ptr;
                         lval[LVSTYPE] = ptr[TYPE];
+                    lval[LVHIER] = 0;
 
                         if (ptr[IDENT] == POINTER) {
                                 lval[LVSTYPE] = CINT;
                                 lval[LVPTYPE] = ptr[TYPE];
-				return 1;
+                        return 1;
                         }
 
                         if (ptr[IDENT] == ARRAY) {
@@ -276,10 +271,11 @@ int     *lval;
                         return 1;
                 }
 
-                if (ptr = findglb(ssname))
+                if (ptr = findglb(ssname)) {
                         if (ptr[IDENT] != FUNCTION)     {
                                 lval[LVSYM] = ptr;
                                 lval[LVSTYPE] = 0;
+                        lval[LVHIER] = 0;
 
                                 if (ptr[IDENT] != ARRAY)        {
                                         if (ptr[IDENT] == POINTER)
@@ -290,11 +286,18 @@ int     *lval;
 
                                 address(ptr);
                                 lval[LVSTYPE] = lval[LVPTYPE] = ptr[TYPE];
-                                return (0);
-                        }
+                                return 0;
+                        } else {
+                        lval[LVSYM] = ptr;
+                        lval[LVSTYPE] = 0;
+                        return 0;
+                    }
+            }
 
-		fprintf(stderr,"Cd %s\n",ssname);
+
+            fprintf(stderr,"* Cd %s\n",ssname);
                 ptr = addsym(ssname, ftype, CINT, 0, &glbptr, STATIC);
+            lval[LVHIER] = 0;
                 lval[LVSYM] = ptr;
                 lval[LVSTYPE] = 0;
                 return (0);
@@ -318,11 +321,16 @@ callfunction(ptr)
 char    *ptr;
         {
         int     nargs, const, val;
+        char        *exname();
 
         nargs = 0;
         blanks();
 
-        if (ptr == 0)
+        if (ptr != NULL)
+            if (ptr[IDENT]!=FUNCTION)
+                    ptr = NULL;
+
+        if (ptr == NULL)
                 push();
 
         while (streq(lptr, ")") == 0)   {
@@ -331,7 +339,7 @@ char    *ptr;
 
                 expression(&const, &val);
 
-                if (ptr == 0)
+                if (ptr == NULL)
                         swapstk();
 
                 push();

@@ -1,5 +1,5 @@
 /*
-**      Small-C Compiler Version 2.2 - 84/03/05 16:34:10 - cc.h
+**      Small-C Compiler Version 2.2 - 01-Nov-87 - cc.h
 **
 **      Copyright 1982, J. E. Hendrix
 **
@@ -23,8 +23,8 @@
 **      symbol table format
 */
 
-/*	IDENT = char array length 4 of type hierarchy */
-#define HIER_LEN	4
+/*      IDENT = char array length 4 of type hierarchy */
+#define HIER_LEN    4
 
 #define IDENT   0
 #define TYPE    5
@@ -40,26 +40,26 @@
 */
 
 #define NUMLOCS         100
-#define STARTLOC        symtab
-#define ENDLOC          (symtab + (NUMLOCS * SYMAVG))
 #define NUMGLBS         200
+#define STARTLOC        symtab
+#define ENDLOC          (symtab + (NUMLOCS * SYMMAX))
 #define STARTGLB        ENDLOC
 #define ENDGLB          (ENDLOC + ((NUMGLBS - 1) * SYMMAX))
-#define SYMTBSZ         5000	/* NUMLOCS * SYMAVG + NUMGLBS * SYMMAX */
+#define SYMTBSZ         5400    /* NUMLOCS * SYMMAX + NUMGLBS * SYMMAX */
 
 /*
-**	Lvalue array format (first 5 integers of 9)
+**      Lvalue array format (first 5 integers of 9)
 */
 
-/* 	LVALUE	= Length of array */
-#define LVALUE	9
+/*      LVALUE  = Length of array */
+#define LVALUE  9
 
-#define LVSYM		0
-#define LVSTYPE		1
-#define LVPTYPE		2
-#define LVCONST		3
-#define LVCONVL		4
-#define LVHIER		8	/* Position of Lvalue in type hierarchy */
+#define LVSYM       0
+#define LVSTYPE     1
+#define LVPTYPE     2
+#define LVCONST     3
+#define LVCONVL     4
+#define LVHIER      8           /* Position of Lvalue in type hierarchy */
 
 /*
 **      System wide name size (for symbols)
@@ -198,15 +198,15 @@ extern char
         *cptr,                  /* work ptrs to any char buffer */
         *cptr2,
         *cptr3,
-	typearr[HIER_LEN],	/* Hierarchy of types */
+        typearr[HIER_LEN],      /* Hierarchy of types */
         msname[NAMESIZE],       /* macro symbol name array */
-        ssname[NAMESIZE];       /* static symbol name array */
+        ssname[NAMESIZE],       /* static symbol name array */
+        xc,                     /* character workspace */
+        *xcp;                   /* char pointer workspace */
 
 extern int
         nogo,                   /* > 0 disables goto statements */
         noloc,                  /* > 0 disables block locals */
-        op[16],                 /* function addresses of binary operators */
-        op2[16],                /* same for unsigned operators */
         opindex,                /* index to matched operator */
         opsize,                 /* size of operator in bytes */
         swactive,               /* true inside a switch */
@@ -218,34 +218,40 @@ extern int
         litptr,                 /* ptr to next entry */
         macptr,                 /* macro buffer index */
         pptr,                   /* ptr to parsing buffer */
-        oper,                   /* address of binary operator function */
         ch,                     /* current character of line being scanned */
         nch,                    /* next character of line being scanned */
-        declared,               /* # of local bytes declared, else -1 when done */
+        declared,            /* # of local bytes declared, else -1 when done */
         iflevel,                /* #if... nest level */
         skiplevel,              /* level at which #if... skipping started */
         func1,                  /* true for first function */
         nxtlab,                 /* next avail label */
         litlab,                 /* label # assigned to literal pool */
-        beglab,                 /* beginning label -- first function */
         csp,                    /* compiler relative stk ptr */
         argstk,                 /* function argument sp */
         argtop,
         ncmp,                   /* # open compound statements */
         errflag,                /* non-zero after 1st error in statement */
         eof,                    /* set non-zero after final input eof */
-        input,                  /* fd # for input file */
-        input2,                 /* fd # for "include" file */
-        output,                 /* fd # for output file */
         files,                  /* non-zero if filelist specified on cmdline*/
         filearg,                /* current file arg index */
         glbflag,                /* non-zero if internal globals */
         ctext,                  /* non-zero to intermix c-source */
         ccode,                  /* non-zero when parsing c-code */
                                 /* zero when parsing assembly code */
-        listfp,                 /* file pointer to list device */
         lastst,                 /* last executed statement type */
-        *iptr;                  /* work ptr to any int buffer */
+        xi,                     /* integer workspace */
+        *xip;                   /* int pointer workspace */
+
+extern FILE
+    *input,                /* file pointer for input file */
+    *input2,               /* file pointer for "include" file */
+    *output,               /* file pointer for output file */
+    *listfp;               /* file pointer to list device */
+
+extern int
+        (*oper)(),             /* address of binary operator function */
+        (*(op[16]))(),         /* function addresses of binary operators */
+        (*(op2[16]))();        /* same for unsigned operators */
 
 extern int
         heir1(), heir3(), heir4(), heir5(), heir6(), heir7(),

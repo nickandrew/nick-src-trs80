@@ -1,5 +1,5 @@
 /*
-**      Small C Compiler Version 2.2 - 84/03/05 16:33:11 - c5.c
+**      Small-C Compiler Version 2.2 - 84/03/05 16:33:11 - c5.c
 **
 **      Copyright 1982 J. E. Hendrix
 **
@@ -25,7 +25,7 @@
 
 skim(opstr, testfunc, dropval, endval, heir, lval)
 char    *opstr;
-int     (*testfunc)(), dropval, endval, heir, lval[];
+int     (*testfunc)(), dropval, endval,(*heir)(), lval[];
         {
         int     k, hits, droplab, endlab;
 
@@ -82,7 +82,8 @@ int     (*testfunc)();
 
 plunge(opstr, opoff, heir, lval)
 char    *opstr;
-int     opoff, heir, lval[];
+int     opoff, lval[];
+int     (*heir)();
         {
         int     k, lval2[LVALUE];
 
@@ -120,7 +121,7 @@ int     (*heir)();
         k = (*heir)(lval);
 
         if (lval[LVCONST])
-                clearstage(before, 0);
+                clearstage(before, NULL);
 
         return (k);
 }
@@ -159,7 +160,7 @@ int     (*oper)(), (*oper2)(), (*heir)();
 
                         if (oper == add)        {
                                 csp = csp + 2;
-                                clearstage(before, 0);
+                                clearstage(before, NULL);
                                 const2(lval2[LVCONVL] << dbltest(lval, lval2));
                         }
                         else    {
@@ -187,7 +188,7 @@ int     (*oper)(), (*oper2)(), (*heir)();
         if (oper)       {
                 if (lval[LVCONST] = lval[3] & lval2[LVCONST])       {
                         lval[LVCONVL] = calc(lval[4], oper, lval2[LVCONVL]);
-                        clearstage(before, 0);
+                        clearstage(before, NULL);
                         lval[5] = 0;
                 }
                 else    {
@@ -215,8 +216,9 @@ int     (*oper)(), (*oper2)(), (*heir)();
 }
 
 calc(left, oper, right)
-int     left, oper, right;
-        {
+int     left, right;
+int     (*oper)();
+{
 
         if (oper == or)
                 return (left | right);
@@ -273,7 +275,8 @@ int     *const, *val;
 heir1(lval)
 int     lval[];
         {
-        int     k, lval2[LVALUE], oper;
+        int     k, lval2[LVALUE];
+        int (*oper)();
 
         k = plunge1(heir3, lval);
 
@@ -348,7 +351,6 @@ int     lval[];
 heir4(lval)
 int     lval[];
         {
-
         return (skim("&&", ne0, 0, 1, heir5, lval));
 }
 

@@ -1,5 +1,5 @@
 /*
-**      Small C Compiler Version 2.2 - 84/03/05 16:32:54 - c4.c
+**      Small-C Compiler Version 2.2 - 84/03/05 16:32:54 - c4.c
 **
 **      Copyright 1982 J. E. Hendrix
 **
@@ -72,7 +72,7 @@ ifline()
                 if (skiplevel)
                         continue;
 
-                if (listfp)     {
+                if (listfp!=NULL) {
                         if (listfp == output)
                                 cout(';', output);
 
@@ -280,8 +280,10 @@ int     len, max, off;
                 if ((cptr = cptr + len) >= end)
                         cptr = buf;
 
-                if (cptr == cptr2)
-                        return (cptr = 0);
+                if (cptr == cptr2) {
+                        cptr = NULL;
+                    return 0;
+            }
         }
 
         return (0);
@@ -290,19 +292,18 @@ int     len, max, off;
 hash(sname)
 char    *sname;
         {
-        int     i, c;
 
-        i = 0;
+        xi = 0;
 
-        while (c = *sname++)
-                i = (i << 1) + c;
+        while (xc = *sname++)
+                xi = (xi << 1) + xc;
 
-        return (i);
+        return (xi);
 }
 
 setstage(before, start)
-int     *before, *start;
-        {
+char    **before, **start;
+{
 
         if ((*before = stagenext) == 0)
                 stagenext = stage;
@@ -319,10 +320,10 @@ char    *before, *start;
         if (stagenext = before)
                 return;
 
-        if (start) {
-		fflush(stderr);
-                fputs(start,output);	/* was peephole(start); */
-	}
+        if (start != NULL) {
+            fflush(stderr);
+                fputs(start,output);    /* was peephole(start); */
+        }
 }
 
 outdec(number)
@@ -394,31 +395,30 @@ char    c;
         return (c);
 }
 
-cout(c, fd)
+cout(c, fp)
 char    c;
-int     fd;
-        {
+FILE    *fp;
+{
 
-        if (fputc(c, fd) == EOF)
+        if (fputc(c, fp) == EOF)
                 xout();
 }
 
-sout(string, fd)
+sout(string, fp)
 char    *string;
-int     fd;
+FILE    *fp;
         {
 
-        if (fputs(string, fd) == EOF)
+        if (fputs(string, fp) == EOF)
                 xout();
 }
 
-lout(line, fd)
+lout(line, fp)
 char    *line;
-int     fd;
-        {
-
-        sout(line, fd);
-        cout('\n', fd);
+FILE    *fp;
+{
+        sout(line, fp);
+        cout('\n', fp);
 }
 
 xout()
@@ -456,20 +456,19 @@ char    msg[];
         lout(line, stderr);
         errout(msg, stderr);
 
-        if (listfp > 0)
+        if (listfp != NULL)
                 errout(msg, listfp);
 }
 
 errout(msg, fp)
 char    msg[];
-int     fp;
+FILE    *fp;
         {
-        int     k;
+        char    *k;
 
         k = line + 2;
 
-        while (++k <= lptr)
-                cout(' ', fp);
+        while (++k <= lptr) cout(' ', fp);
 
         lout("/\\", fp);
         sout("**** ", fp);
@@ -479,18 +478,17 @@ int     fp;
 streq(str1, str2)
 char    str1[], str2[];
         {
-        int     k;
 
-        k = 0;
+        xi = 0;
 
-        while (str2[k]) {
-                if ((str1[k]) != (str2[k]))
+        while (str2[xi]) {
+                if ((str1[xi]) != (str2[xi]))
                         return (0);
 
-                ++k;
+                ++xi;
         }
 
-        return (k);
+        return (xi);
 }
 
 astreq(str1, str2, len)
@@ -576,7 +574,7 @@ char    *list;
 
                 if (opsize = streq(lptr, op))
                         if ((*(lptr + opsize) != '=')
-			  & (*(lptr + opsize) != *(lptr + opsize - 1)))
+                      & (*(lptr + opsize) != *(lptr + opsize - 1)))
                                 return (1);
 
                 if (*list)      {

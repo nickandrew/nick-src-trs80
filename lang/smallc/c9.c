@@ -1,10 +1,10 @@
 /*
-**      Small C Compiler Version 2.2 - 84/03/05 16:33:56 - c9.c
+**      Small-C Compiler Version 2.2 - 84/03/05 16:33:56 - c9.c
 **
 **      Copyright 1982 J. E. Hendrix
 **
-**	Lacking the peephole() routine ... that will go in a
-**	stand-alone optimiser called peephole.
+**      Lacking the peephole() routine ... that will go in a
+**      stand-alone optimiser called peephole.
 **
 */
 
@@ -14,7 +14,7 @@
 **      add primary and secondary registers (result in primary)
 */
 
-add()	{
+add()   {
         ol("ADD\tHL,DE");
 }
 
@@ -154,15 +154,16 @@ com()
 
 inc(n)
 int     n;
-        {
+{
 
-	while (n>0) {
-		ol("INC\tHL");
-		--n;
-	}
-	while (n<0) {
-		ol("DEC\tHL");
-		++n;
+        fprintf(stderr,"Increment value is: %d\n",n);
+        while (n>0) {
+            ol("INC\tHL");
+            --n;
+        }
+        while (n<0) {
+            ol("DEC\tHL");
+            ++n;
         }
 }
 

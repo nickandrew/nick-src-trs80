@@ -1,5 +1,5 @@
 /*
-**      Small C Compiler Version 2.2 - 84/03/05 16:33:30 - c7.c
+**      Small-C Compiler Version 2.2 - 84/03/05 16:33:30 - c7.c
 **
 **      Copyright 1982 J. E. Hendrix
 **
@@ -15,30 +15,30 @@ dbltest(val1, val2)
 int     val1[], val2[];
         {
 
-	char *ptr;
-	int  hierpos;
-	if (ptr=val2[LVSYM])
-		if (ptr[IDENT+val2[LVHIER]] != VARIABLE)
-			return 0;
+        char *ptr;
+        int  hierpos;
+        if (ptr=val2[LVSYM])
+            if (ptr[IDENT+val2[LVHIER]] != VARIABLE)
+                    return 0;
 
-	if (ptr=val1[LVSYM]) {
-		hierpos=val1[LVHIER];
-		if (ptr[IDENT+hierpos]==VARIABLE)
-			return 0;
-		if (ptr[IDENT+hierpos+1]==ARRAY
-		  ||ptr[IDENT+hierpos+1]==VARIABLE)
-			if (ptr[TYPE]==CINT) return 1;
-			else return 0;
-		else return 1;
-	}
-			
+        if (ptr=val1[LVSYM]) {
+            hierpos=val1[LVHIER];
+            if (ptr[IDENT+hierpos]==VARIABLE)
+                    return 0;
+            if (ptr[IDENT+hierpos+1]==ARRAY
+              ||ptr[IDENT+hierpos+1]==VARIABLE)
+                    if (ptr[TYPE]==CINT) return 1;
+                    else return 0;
+            else return 1;
+        }
+                    
         if (val1[2] != CINT)
                 return (0);
 
         if (val2[2])
                 return (0);
 
-	fprintf(stderr,"* dbltest: val1 not in sym tab\n");
+        fprintf(stderr,"* dbltest: val1 not in sym tab\n");
         return (1);
 }
 
@@ -50,16 +50,16 @@ result(lval, lval2)
 int     lval[], lval2[];
         {
 
-	char *ptr1,*ptr2;
-	ptr1=lval[LVSYM];
-	ptr2=lval2[LVSYM];
-	if (ptr1 && ptr2) {
-		if ((ptr1[IDENT+lval[LVHIER]] == POINTER)
-	          & (ptr2[IDENT+lval2[LVHIER]] == POINTER))
-			lval[LVPTYPE] = 0;
-	}
+        char *ptr1,*ptr2;
+        ptr1=lval[LVSYM];
+        ptr2=lval2[LVSYM];
+        if (ptr1 && ptr2) {
+            if ((ptr1[IDENT+lval[LVHIER]] == POINTER)
+                  & (ptr2[IDENT+lval2[LVHIER]] == POINTER))
+                    lval[LVPTYPE] = 0;
+        }
         else if (ptr2) {
-		if (ptr2[IDENT+lval2[LVHIER]]==POINTER)      {
+            if (ptr2[IDENT+lval2[LVHIER]]==POINTER)      {
                         lval[LVSYM] = lval2[LVSYM];
                         lval[LVSTYPE] = lval2[LVSTYPE];
                         lval[LVPTYPE] = lval2[LVPTYPE];
@@ -68,43 +68,42 @@ int     lval[], lval2[];
         }
 }
 
-int step(oper, lval)
+int step(dir, lval)
 int     lval[];
-int     (*oper)();
-        {
+int     dir;
+{
 
-	char *ptr;
-	int  incval,hierpos;
+        char *ptr;
+        int  incval,hierpos;
 
-	incval = lval[LVPTYPE] >> 2;
-	if (ptr=lval[LVSYM]) {
-		hierpos=lval[LVHIER];
-		fprintf(stderr,"step: hierpos = %d\n",hierpos);
-		if (ptr[IDENT+hierpos]==POINTER) {
-			if (ptr[IDENT+hierpos+1]!=VARIABLE
-			  ||ptr[TYPE]==CINT)
-				incval = SINT;
-			else
-				incval = SCHAR;
-		} else if (ptr[IDENT+hierpos]==VARIABLE) {
-			incval = 1;
-		} else {
-			error("Must be a pointer or a variable");
-			return;
-		}
-	fprintf(stderr,"step: adjusting by %d\n",incval);
-	} else fprintf(stderr,"step: No symbol table entry\n");
+        incval = lval[LVPTYPE] >> 2;
+        if (ptr=lval[LVSYM]) {
+            hierpos=lval[LVHIER];
+            if (ptr[IDENT+hierpos]==POINTER) {
+                    if (ptr[IDENT+hierpos+1]!=VARIABLE
+                      ||ptr[TYPE]==CINT)
+                        incval = SINT;
+                    else
+                        incval = SCHAR;
+            } else if (ptr[IDENT+hierpos]==VARIABLE) {
+                    incval = 1;
+            } else {
+                    error("Must be a pointer or a variable");
+                    return 0;
+            }
+        fprintf(stderr,"step: adjusting by %d\n",incval);
+        } else fprintf(stderr,"step: No symbol table entry\n");
 
         if (lval[LVSTYPE]==0) {
-        	rvalue(lval);
-        	(*oper)(incval);
-        	store(lval);
-		return incval;
-	}
+                rvalue(lval);
+                inc(dir * incval);
+                store(lval);
+            return incval;
+        }
         if (lval[5])    {
                 push();
                 rvalue(lval);
-                (*oper)(incval);
+                inc(dir * incval);
                 pop();
                 store(lval);
                 return incval;
@@ -115,9 +114,9 @@ int     (*oper)();
         }
 
         rvalue(lval);
-        (*oper)(incval);
+        inc(dir * incval);
         store(lval);
-	return incval;
+        return incval;
 }
 
 store(lval)
@@ -164,9 +163,10 @@ int     label, parens;
         if (parens)
                 needtoken(")");
 
+        /* if we are testing a constant */
 
         if (lval[LVCONST])    {
-                clearstage(before, 0);
+                clearstage(before, NULL);
 
                 if (lval[LVCONVL])
                         return;
@@ -187,7 +187,7 @@ int     label, parens;
                 else if (oper == ge)
                         zerojump(ge0, label, lval);
                 else if (oper == uge)
-                        clearstage(lval[7], 0);
+                        clearstage(lval[7], NULL);
                 else if (oper == lt)
                         zerojump(lt0, label, lval);
                 else if (oper == ult)
@@ -211,7 +211,7 @@ int     *val;
 
         setstage(&before, &start);
         expression(&const, val);
-        clearstage(before, 0);
+        clearstage(before, NULL);
 
         if (const == 0)
                 error("must be constant expression");
@@ -261,14 +261,25 @@ int     lval[];
         return (1);
 }
 
+hexdigit(c)
+int  c;
+{
+        if (c>='a' && c<='f') return 1;
+        if (c>='A' && c<='F') return 1;
+        if (c>='0' && c<='9') return 1;
+        return 0;
+}
+
 number(val)
 int     *val;
-        {
-        int     k, minus;
+{
+        int     k, minus, base;
 
         k = minus = 0;
+        base = 10;
 
-        for (;;)        {
+        for (;;) {
+            /* I don't agree with this */
                 if (match("+"))
                         ;
                 else if (match("-"))
@@ -280,8 +291,20 @@ int     *val;
         if (numeric(ch) == 0)
                 return (0);
 
-        while (numeric(ch))
-                k = k * 10 + (inbyte() - '0');
+        if (ch=='0') {
+            base = 8;
+            k = k * base + (inbyte() - '0');
+            if (ch=='x'||ch=='X') {
+                    base=16;
+                    inbyte();
+            }
+        }
+
+        while (numeric(ch)|| (base==16 && hexdigit(ch)))
+            if (ch>='0' && ch<='9')
+                    k = k * base + (inbyte() - '0');
+            else
+                    k = k * base + ((inbyte()&0x5f) - 'A' + 10);
 
         if (minus)
                 k = (-k);
@@ -294,6 +317,7 @@ address(ptr)
 char    *ptr;
         {
 
+        char        *exname();
         immed();
         outstr(exname(ptr + NAME));
         nl();
@@ -320,7 +344,6 @@ int     *val;
 qstr(val)
 int     *val;
         {
-        char    c;
 
         if (match(quote) == 0)
                 return (0);

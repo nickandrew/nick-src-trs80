@@ -1,5 +1,5 @@
 /*
-**      Small C Compiler Version 2.2 - 84/03/05 16:32:21 - c1.c
+**      Small-C Compiler Version 2.2 - 84/03/05 16:32:21 - c1.c
 **
 **      Copyright 1982 J. E. Hendrix
 **
@@ -14,18 +14,17 @@
 doinclude()
         {
 
-	char filename[80];
-	int  i;
-	char *j;
+        char filename[80];
+
         blanks();
 
-	j=lptr;		/* handle <name> and "name" */
-	if (*j=='"' || *j=='<') ++j;
-	for (i=0;(*j!='>' && *j!='"');++i)
-	   filename[i]= *j++;
-	filename[i]=0;
+        xcp=lptr;           /* handle <name> and "name" */
+        if (*xcp=='"' || *xcp=='<') ++xcp;
+        for (xi=0;(*xcp!='>' && *xcp!='"');++xi)
+           filename[xi]= *xcp++;
+        filename[xi]=0;
         if ((input2 = fopen(filename, "r")) == NULL)        {
-                input2 = EOF;
+                input2 = NULL;
                 error("open failure on include file");
         }
 
@@ -40,20 +39,20 @@ dodeclare(class)
 int     class;
         {
 
-	int ftype;
+        int ftype;
         if (amatch("char", 4))  {
                 ftype=declglb(CCHAR, class);
         }
         else if ((amatch("int", 3)) | (class == EXTERNAL))      {
                 ftype=declglb(CINT, class);
-        } else	{	/* class==STATIC, must be function following */
-		ftype=declglb(CINT, class);
-	}
+        } else  {       /* class==STATIC, must be function following */
+            ftype=declglb(CINT, class);
+        }
 
-	if (ftype==FUNCTION && class==STATIC)
-		newfunc();
-	else
-		ns();
+        if (ftype==FUNCTION && class==STATIC)
+            newfunc();
+        else
+            ns();
 
         return;
 }
@@ -66,18 +65,18 @@ int declglb(type, class)
 int     type, class;
         {
         int     k;
-	char	firsttype;
-	int	size;
-
-	if (type==CCHAR) size=SCHAR;
-	else size=SINT;
+        char        firsttype;
+        int size;
 
         for (;;)        {
 
-		declparse(typearr,&k,YES,YES,class);
-		firsttype=typearr[0];
-		if (firsttype==POINTER)
-			size=SINT;
+            if (type==CCHAR) size=SCHAR;
+            else size=SINT;
+
+            declparse(typearr,&k,YES,YES,class);
+            firsttype=typearr[0];
+            if (firsttype==POINTER)
+                    size=SINT;
 
                 if (class == EXTERNAL)
                         external(ssname);
@@ -86,10 +85,10 @@ int     type, class;
 
                 addsym(ssname, typearr, type, k, &glbptr, class);
 
-		if (firsttype==FUNCTION && class==STATIC)
-			return firsttype;
-		if (match(",")) continue;
-		if (endst()) return firsttype;
+            if (firsttype==FUNCTION && class==STATIC)
+                    return firsttype;
+            if (match(",")) continue;
+            if (endst()) return firsttype;
         }
 }
 
@@ -100,7 +99,7 @@ int     type, class;
 declloc(type)
 int     type;
         {
-        int	k;
+        int     k,class;
 
         if (noloc)
                 error("not allowed with goto");
@@ -110,23 +109,27 @@ int     type;
 
         for (;;)        {
 
-		declparse(typearr,&k,YES,NO,AUTOMATIC);
+            declparse(typearr,&k,YES,NO,AUTOMATIC);
 
-		if (typearr[0] == VARIABLE)
-			if (type==CINT) k = SINT;
-			else k = SBPC;
-		else
-			if ((typearr[1]!=VARIABLE)
-			  ||(typearr[0]==POINTER)
-			  ||(type==CINT))
-				k *= SINT; 
-			else k *= SBPC;
+            if (typearr[0] == VARIABLE)
+                    if (type==CINT) k = SINT;
+                    else k = SBPC;
+            else
+                    if ((typearr[1]!=VARIABLE)
+                      ||(typearr[0]==POINTER)
+                      ||(type==CINT))
+                        k *= SINT; 
+                    else k *= SBPC;
 
                 declared = declared + k;
-		fprintf(stderr,"Declloc: %s, size %d\n",ssname,k);
-                addsym(ssname,typearr,type,csp-declared,&locptr,AUTOMATIC);
+
+            if (typearr[0]==FUNCTION)
+                    class = EXTERNAL;
+            else    class = AUTOMATIC;
+
+                addsym(ssname,typearr,type,csp-declared,&locptr,class);
                 if (match(",")) continue;
-		if (endst()) return;
+            if (endst()) return;
         }
 }
 
@@ -139,9 +142,9 @@ int     size, ident, dim;
         {
         int     savedim;
 
-	if (ident==FUNCTION) {	/* can't initialize a function */
-		return ident;
-	}
+        if (ident==FUNCTION) {      /* can't initialize a function */
+            return ident;
+        }
 
         litptr = 0;
 
@@ -185,11 +188,11 @@ init(size, ident, dim)
 int     size, ident;
 int     *dim;
         {
-        int	value;
+        int     value;
 
         if (qstr(&value))       {
                 if ((ident == VARIABLE) | (size != 1))
-			error("must assign to char pointer or array");
+                    error("must assign to char pointer or array");
 
                 *dim = *dim - (litptr - value);
 
@@ -236,33 +239,31 @@ needsub()       {
 */
 
 newfunc()
-        {
-        char    *ptr;
-	char	functype[HIER_LEN];
+{
 
         nogo = noloc = lastst = litptr = 0;
-	functype[0]=FUNCTION;
-	functype[1]=VARIABLE;	/* its not really a variable of course */
         litlab = getlabel();
         textseg();
 
         if (monitor)
                 lout(line, stderr);
 
-        addsym(ssname, functype, CINT, FUNCTION, &glbptr, STATIC);
-
         entry();
-	/* formal parameters already known */
+        outstr("\tDEBUG\t'");
+        outstr(ssname);
+        outstr("'\n");
+
+        /* formal parameters already known */
 
         csp = 0;
         argtop = argstk;
 
-        while (argstk)  {
-                if (amatch("char", 4))  {
+        while (argstk) {
+                if (amatch("char", 4)) {
                         doargs(CCHAR);
                         ns();
                 }
-                else if (amatch("int", 3))      {
+                else if (amatch("int", 3)) {
                         doargs(CINT);
                         ns();
                 }
@@ -295,33 +296,33 @@ newfunc()
 doargs(type)
 int     type;
         {
-        int     i, k, legalname;
-        char    c, *argptr;
+        int     i, k;
+        char    *argptr,*findloc();
 
         for (;;)        {
                 if (argstk == 0) return;
 
-		declparse(typearr, &k, NO, NO,AUTOMATIC);
-		/* k (length)  unused. NO,     <- no array bounds needed */
-		/*                       , NO  <- don't search globals   */
+            declparse(typearr, &k, NO, NO,AUTOMATIC);
+            /* k (length)  unused. NO,     <- no array bounds needed */
+            /*                       , NO  <- don't search globals   */
 
-		/* an array passed as a parameter must be considered a   */
-		/* pointer instead. The rules for indexing a ptr differ  */
+            /* an array passed as a parameter must be considered a   */
+            /* pointer instead. The rules for indexing a ptr differ  */
 
-		if (typearr[0]==ARRAY) typearr[0]=POINTER;
+            if (typearr[0]==ARRAY) typearr[0]=POINTER;
 
                 if (argptr = findloc(ssname))   {
-			for (i=0;i<HIER_LEN;++i)
-				argptr[IDENT+i]=typearr[i];
+                    for (i=0;i<HIER_LEN;++i)
+                        argptr[IDENT+i]=typearr[i];
                         argptr[TYPE] = type;
                         putint(argtop - getint(argptr+OFFSET,OFFSIZE),
-			       argptr + OFFSET, OFFSIZE);
+                           argptr + OFFSET, OFFSIZE);
                 } else {
                         error("not an argument");
-		}
+            }
 
-                argstk = argstk - BPW;	/* argument chars conv to ints */
-		if (match(",")) continue;
+                argstk = argstk - BPW;  /* argument chars conv to ints */
+            if (match(",")) continue;
                 if (endst()) return;
         }
 }

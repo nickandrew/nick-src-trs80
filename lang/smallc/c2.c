@@ -1,5 +1,5 @@
 /*
-**      Small C Compiler Version 2.2 - 84/03/05 16:32:34 - c2.c
+**      Small-C Compiler Version 2.2 - 84/03/05 16:32:34 - c2.c
 **
 **      Copyright 1982 J. E. Hendrix
 **
@@ -121,7 +121,7 @@ ns()
 compound()
         {
         int     savcsp;
-        char    *savloc;
+        char    *savloc,*nextsym();
 
         savcsp = csp;
         savloc = locptr;
@@ -270,9 +270,9 @@ doswitch()
         swnex = swptr = swnext;
 
         addwhile(wq);
-	/* copy WQLOOP value from last while/switch so continue within
-	   switch statement works */
-	wq[WQLOOP] = *(wqptr - WQSIZ + WQLOOP);
+        /* copy WQLOOP value from last while/switch so continue within
+           switch statement works */
+        wq[WQLOOP] = *(wqptr - WQSIZ + WQLOOP);
         needtoken("(");
         doexpr();
         needtoken(")");
@@ -375,8 +375,9 @@ dolabel()
 addlabel()
         {
 
-	char	labtype[HIER_LEN];
-	labtype[0]=LABEL;
+        char        *findloc(),*addsym();
+        char        labtype[HIER_LEN];
+        labtype[0]=LABEL;
         if (cptr = findloc(ssname))     {
                 if (cptr[IDENT] != LABEL)
                         error("not a label");
@@ -402,7 +403,7 @@ doreturn()
 
 dobreak()
         {
-        int     *ptr;
+        int     *ptr,*readwhile();
 
         if ((ptr = readwhile()) == 0)
                 return;
@@ -412,8 +413,8 @@ dobreak()
 }
 
 docont()
-        {
-        int     *ptr;
+{
+        int     *ptr,*readwhile();
 
         if ((ptr = readwhile()) == 0)
                 return;
