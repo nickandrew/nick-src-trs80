@@ -1,0 +1,154 @@
+;Deluser: Delete a username entry from the userfile.
+;         Or lock a user out of the system.
+;
+*GET	DOSCALLS.HDR
+*GET	EXTERNAL.HDR
+*GET	ASCII.HDR
+;
+	ORG	PROG_START
+	DEFW	BASE
+	DEFW	THIS_PROG_END
+	DEFW	TERM_ABORT
+	DEFW	0
+;
+	COM	'<Deluser 1.1b 25-Jul-87>'
+	ORG	BASE+100H
+START	LD	SP,START
+	LD	A,(PRIV_1)	;ensure sysop running
+	BIT	IS_SYSOP,A
+	LD	A,128		;sample error
+	JP	Z,TERMINATE
+;
+	LD	A,(HL)
+	CP	'-'
+	JR	NZ,NOSPEC
+	INC	HL
+	LD	A,(HL)
+	AND	5FH
+	LD	(D_OR_L),A
+BYP_1	INC	HL
+	LD	A,(HL)
+	CP	' '
+	JR	Z,BYP_1
+;
+NOSPEC:
+	LD	A,(HL)
+	OR	A
+	JP	Z,TERMINATE
+	CP	CR
+	JR	NZ,NAME_IN
+	LD	HL,M_WHO	;ask for name
+	CALL	PUTS
+	LD	HL,IN_BUFF
+	LD	B,24
+	CALL	40H
+	LD	A,0
+	JP	C,TERMINATE
+	LD	A,(HL)
+	CP	CR
+	LD	A,0
+	JP	Z,TERMINATE
+NAME_IN
+	PUSH	HL
+	CALL	TERMINATE_S
+	POP	HL
+	CALL	USER_SEARCH
+	JR	Z,EXISTS
+	JR	NC,ISNT_THAR
+	LD	A,1
+	JP	TERMINATE
+ISNT_THAR
+	LD	HL,M_NONEX
+	CALL	PUTS
+	LD	A,0
+	JP	TERMINATE
+;
+EXISTS
+	LD	A,(D_OR_L)
+	OR	A
+	JR	NZ,DORL_GIVEN
+	LD	HL,M_DORL
+	CALL	PUTS
+	LD	HL,D_OR_L
+	LD	B,1
+	CALL	40H
+	XOR	A
+	JP	C,TERMINATE
+;
+DORL_GIVEN
+	LD	A,(D_OR_L)
+	AND	5FH
+	LD	(D_OR_L),A
+	CP	'D'
+	JR	Z,DELUSER
+	CP	'L'
+	JR	Z,LOCKOUT
+	XOR	A
+	JP	TERMINATE
+;
+DELUSER				;delete him.
+	;Firstly zero the 'ACTIVE' flag.
+	LD	HL,UF_STATUS
+	RES	UF_ST_ZERO,(HL)
+	JR	WRIT_STATUS
+;
+LOCKOUT
+	LD	HL,UF_STATUS
+	SET	UF_ST_NOTUSER,(HL)
+;
+	;Write that byte to the file.
+WRIT_STATUS
+	LD	DE,US_FCB
+	LD	A,(US_RBA)
+	LD	HL,(US_RBA+1)
+	LD	C,A
+	CALL	DOS_POS_RBA
+	JP	NZ,ERROR
+	LD	A,(UF_STATUS)
+	CALL	$PUT
+	JP	NZ,ERROR
+;
+	;now zero the hash byte if deleting.
+	LD	A,(D_OR_L)
+	CP	'D'
+	JR	NZ,FINI		;else we are finished.
+;
+	LD	HL,(US_POSN)
+	LD	E,L
+	LD	L,0
+	LD	A,UF_LRL+1
+	CALL	MULTIPLY
+	LD	C,E
+	LD	DE,US_FCB
+	CALL	DOS_POS_RBA
+	JP	NZ,ERROR
+	XOR	A		;hash of zero=empty slot
+	CALL	$PUT
+	JP	NZ,ERROR
+;
+	;finished. close files & leave.
+FINI
+	LD	DE,US_FCB
+	CALL	DOS_CLOSE
+	JP	NZ,ERROR
+	LD	A,0
+	JP	TERMINATE
+;
+ERROR	PUSH	AF
+	OR	80H
+	CALL	DOS_ERROR
+	POP	AF
+	JP	TERMINATE
+;
+*GET	ROUTINES
+;
+M_WHO	DEFM	'Delete who? ',0
+M_NONEX	DEFM	'User does not exist!',CR,0
+M_DORL
+	DEFM	'<D>elete user or <L>ockout user? ',0
+IN_BUFF	DEFS	64
+D_OR_L	DEFB	0
+;
+THIS_PROG_END	EQU	$
+;
+	END	START
