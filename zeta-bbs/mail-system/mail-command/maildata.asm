@@ -1,14 +1,13 @@
-;@(#) maildata.asm: Data for mail system, 08 Apr 89
+;@(#) maildata.asm - Data for mail system, 20 Aug 89
 ;
 SYSOP_NAME	DEFM	'Sysop',0
 M_YHM		DEFM	'You have mail.',CR,0
 M_YHNM		DEFM	'You have new mail.',CR,0
 ;
 M_BADCMD
+M_UNK
 		DEFM	'Unknown command.',CR,0
-M_BADSYN
-		DEFM	'Command error',CR,0
-M_UNK		DEFM	'Unknown command.',CR,0
+M_BADSYN	DEFM	'Command error',CR,0
 M_BDRNG		DEFM	'Bad message range.',CR,0
 M_KILLERR	DEFM	'Disk error while killing message',CR,0
 M_SAVEERR	DEFM	'Disk error while saving message',CR,0
@@ -18,6 +17,7 @@ M_READ		DEFM	CR,'     ** READing **',CR,0
 M_SCAN		DEFM	CR,'     ** SCANning **',CR,0
 M_KILL		DEFM	CR,'     ** KILLing **',CR,0
 M_ENTER		DEFM	CR,'     ** ENTERing **',CR,0
+M_REPLY		DEFM	CR,'     ** Replying **',CR,0
 M_FORWARD	DEFM	CR,'     ** Forwarding **',CR,0
 M_MOVEMSG	DEFM	CR,'     ** Moving **',CR,0
 M_MSGNUM	DEFM	'Message No ',0
@@ -56,6 +56,7 @@ M_NOTCRTR	DEFM	'Sorry you''re not the creator of this topic',CR,0
 M_TPNTMT	DEFM	'Sorry this topic has messages.',CR,0
 M_ACTSUB	DEFM	'Sorry this topic has Sub-Topics.',CR,0
 M_TRSEDIT	DEFM	'Type L then H then retype the line',CR,0
+M_TOOFEW	DEFM	'Too few lines in the message',CR,0
 M_MAXLIN	DEFM	'Sorry you''ve already filled the message.',CR,0
 M_MVGUP		DEFM	'OK Moving up...',CR,0
 M_OK		DEFM	'OK',CR,0
@@ -109,7 +110,7 @@ M_DISREG	DEFM	'OK but last line disregarded.',CR,0
 M_FRCEND	DEFM	'** Buffer full. Message truncated BEFORE your last input line',CR,0
 M_INTRO		DEFM	'Zeta''s local and network mail system.',CR
 		DEFM	'Fidonet node 3:713/602',CR
-		DEFM	'ACSnet address 713.602@fidogate.fido.oz',CR
+		DEFM	'ACSnet site 713.602@fidogate.fido.oz',CR
 		DEFB	CR,0
 ;
 M_KLQRY		DEFM	'Ask before killing? (Y/N/Q): ',0
@@ -118,23 +119,32 @@ M_KILLIT	DEFM	'Kill it? (Y/N/Q): ',0
 M_MOVEIT	DEFM	'Move it? (Y/N/Q): ',0
 M_KILLING	DEFM	'Killing # ',0
 M_MOVING	DEFM	'Moving  # ',0
-M_PAUSE		DEFM	'Hit N to continue, Q to quit, A to read again',CR,0
-M_TRMPAUSE	DEFM	CR,'Hit N to continue, T to skip this topic,'
-		DEFM	' Q to quit',CR,0
+M_PAUSE		DEFM	'Hit N to continue, Q to quit, R to reply'
+		DEFM	', ? for help'
+		DEFM	CR,0
 M_APAUSE	DEFM	'Pause after each message? (Y/N/Q): ',0
-;
-M_NTOSKP
-	DEFM	'Hit <N> while msg being printed to skip to the next message.',CR,0
+M_TOPT		DEFM	'Type ? to see all available keystrokes',CR,0
 ;
 M_EDWHLI	DEFM	'Edit which line? (CR to exit): ',0
 M_FILESAFE	DEFM	'Your file was safely saved.',CR,0
-M_FILEFAIL	DEFM	'File saved but truncated by disk error.',CR,0
+M_FILEFAIL	DEFM	'Message saved but truncated by disk error.',CR,0
 M_LONGFILE	DEFM	'File is too long. Limit it to <10k',CR,0
 M_WHATFILE	DEFM	'Take from which file? ',0
 M_RESENDTO	DEFM	'Resend to: ',0
 M_TOPIC1	DEFM	'Current topic is ',0
 M_TOPIC2	DEFM	CR,0
 M_TOPIC3	DEFM	'Topic:   ',0
+;
+M_READHELP
+	DEFM	CR,'The following keys are accepted:',CR
+	DEFM	'  <space>   Display the next page',CR
+	DEFM	'  <enter>   Display another line',CR
+	DEFM	'     A      read Again',CR
+	DEFM	'     N      Next message',CR
+	DEFM	'     R      Reply',CR
+	DEFM	'     Q      Quit',CR
+	DEFM	'     ?      Display this help message',CR
+	DEFM	0
 ;
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++
 MENU_MAIN
@@ -175,10 +185,10 @@ MU_SPEC
 	DEFM	'<F>  Forward messages        <R>  Resend message',CR
 	DEFM	0
 ;
-MU_DS1	DEFM	'<A>  ALL (to or from)       <M>  Mail to you',CR
+MU_DS1	DEFM	'<A>  ALL your mail          <M>  Mail to you',CR
 	DEFM	'<N>  New mail to you        <F>  Mail sent by you',CR
-	DEFM	'<CR> No messages',CR
-	DEFM	'OR enter a range ie. 1+  20-30  18  $-  etc..',CR,0
+	DEFM	'<enter> No messages',CR
+	DEFM	CR,0
 ;
 MU_QUEST
 	DEFM	'<L> List, <E> Edit, <C> Continue, <A> Abort, <S> Save',CR,0
@@ -186,8 +196,8 @@ MX_MAIN
 	DEFM	'MAIN: (R,S,E,K,X,#)',CR,0
 MX_SPEC
 	DEFM	'Spec: (M,C,D,F,R,#)',CR,0
-MX_DS1	DEFM	'Msg Select (M,N,A,F,<CR> or range)',CR,0
-MX_OPT	DEFM	'Options: (1,2,3,4,<CR>)',CR,0
+MX_DS1	DEFM	'Msg Select (M,N,A,F,<enter> or range)',CR,0
+MX_OPT	DEFM	'Options: (1,2,3,4,<enter>)',CR,0
 MX_QUEST
 	DEFM	'Msg: (L,E,C,A,S)',CR,0
 ;
@@ -225,17 +235,11 @@ ML_MSG		DEFW	0		;Either M_YHM or M_YHNM
 ML_FOUND	DEFB	0		;Mail was found
 SEND_TO		DEFW	0		;Command arg if any
 QUICK_SEND	DEFB	0		;1 iff SEND_TO contains a name
+PREV_CHAR	DEFB	0		;When saving a message, previous
+					;character written.
 ;
-HMS_H		DEFB	0
-HMS_M		DEFB	0
-HMS_S		DEFB	0
-DMY_D		DEFB	0
-DMY_M		DEFB	0
-DMY_Y		DEFB	0
-;
-M_LINE		DEFB	0
+M_LINE		DEFB	0	;Editing printed line number
 CHAR_FLAG	DEFB	0
-NOWRAP		DEFB	0
 NETMSG		DEFB	0
 TOPIC_BELOW	DEFB	0
 SUB_CNT		DEFB	0
@@ -288,8 +292,9 @@ INT_TOP		DEFB	0
 ;
 TEMP_TOPIC	DEFB	0
 ;
-LINES		DEFB	0
+LINES		DEFB	0	;Nr of lines in entered message
 ;
+MSGQ_BUFF	DC	6,0
 IN_BUFF		DC	81,0
 TOPNAM_BUFF	DC	33,0
 NAME_BUFF	DC	81,0
@@ -307,7 +312,7 @@ TRIES		DEFB	0
 ;
 PAUSE		DEFB	0
 TXT_RBA		DEFB	0,0,0	;low/mid/high
-START_RBA	DEFB	0,0,0
+;;START_RBA	DEFB	0,0,0
 ;
 MSG_FOUND	DEFB	0
 BACKWARD	DEFB	0
@@ -333,6 +338,17 @@ FM_INCOMING	EQU	1			;**
 FM_OUTGOING	EQU	2			;**
 FM_PROCESSED	EQU	3			;**
 FM_NEW		EQU	4			;**
+FM_INTRANSIT	EQU	5			;**
+;						;**
+NEW_MSG_HDR					;**
+NHDR_FLAG	DEFB	0			;**
+NHDR_LINES	DEFB	0			;**
+NHDR_RBA	DEFB	0,0,0	;low/mid/high	;**
+NHDR_DATE	DEFB	0,0,0	;day/mon/yr	;**
+NHDR_SNDR	DEFW	0	;sender id	;**
+NHDR_RCVR	DEFW	0	;dest. id	;**
+NHDR_TOPIC	DEFB	0	;topic code	;**
+NHDR_TIME	DEFB	0,0,0	;hr/min/sec	;**
 ;						;**
 ;**************************************************
 ;
@@ -349,13 +365,18 @@ FILE_FCB
 TOPIC	;5K bytes for message info.		;**
 N_MSG		DEFW	0			;**
 N_KLD_MSG	DEFW	0			;**
-EOF_RBA		DEFB	0,0,0	;EOF of TXT	;**
-		DC	9,0	;Unused		;**
+MAX_SECTORS	DEFW	0	;#sec on txt	;**
+		DC	10,0	;Unused		;**
 TOPIC_DAT					;**
 		DEFS	4080	;204*20 bytes.	;**
 MSG_TOPIC					;**
 		DEFS	MAX_MSGS		;**
 ;**************************************************
+;
+B_FROM		DEFS	81	;Useful for replying
+B_TO		DEFS	81	;"
+B_DATE		DEFS	81	;"
+B_SUBJ		DEFS	81	;"
 ;
 HDR_B		DEFS	256
 TOP_B		DEFS	256
