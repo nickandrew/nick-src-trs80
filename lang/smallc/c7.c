@@ -1,0 +1,345 @@
+/*
+**      Small C Compiler Version 2.2 - 84/03/05 16:33:30 - c7.c
+**
+**      Copyright 1982 J. E. Hendrix
+**
+*/
+
+#include        "cc.h"
+
+/*
+**      true if val1 -> int ptr or int array and val2 not ptr or array
+*/
+
+dbltest(val1, val2)
+int     val1[], val2[];
+        {
+
+        if (val1[2] != CINT)
+                return (0);
+
+        if (val2[2])
+                return (0);
+
+        return (1);
+}
+
+/*
+**      determine type of binary operation
+*/
+
+result(lval, lval2)
+int     lval[], lval2[];
+        {
+
+        if ((lval[2] != 0) & (lval2[2] != 0))   {
+                lval[2] = 0;
+        }
+        else if (lval2[2])      {
+                lval[0] = lval2[0];
+                lval[1] = lval2[1];
+                lval[2] = lval2[2];
+        }
+}
+
+step(oper, lval)
+int     lval[];
+int     (*oper)();
+        {
+
+        if (lval[1])    {
+                if (lval[5])    {
+                        push();
+                        rvalue(lval);
+                        (*oper)(lval[2] >> 2);
+                        pop();
+                        store(lval);
+                        return;
+                }
+                else    {
+                        move();
+                        lval[5] = 1;
+                }
+        }
+
+        rvalue(lval);
+        (*oper)(lval[2] >> 2);
+        store(lval);
+}
+
+store(lval)
+int     lval[];
+        {
+
+        if (lval[1])
+                putstk(lval);
+        else
+                putmem(lval);
+}
+
+rvalue(lval)
+int     lval[];
+        {
+
+        if ((lval[0] != 0) & (lval[1] == 0))
+                getmem(lval);
+        else
+                indirect(lval);
+}
+
+test(label, parens)
+int     label, parens;
+        {
+        int     lval[8];
+        char    *before, *start;
+
+        if (parens)
+                needtoken("(");
+
+        for (;;)        {
+                setstage(&before, &start);
+
+                if (heir1(lval))
+                        rvalue(lval);
+
+                if (match(","))
+                        clearstage(before, start);
+                else
+                        break;
+        }
+
+        if (parens)
+                needtoken(")");
+
+
+        if (lval[3])    {
+                clearstage(before, 0);
+
+                if (lval[4])
+                        return;
+
+                jump(label);
+                return;
+        }
+
+        if (lval[7])    {
+                oper = lval[6];
+
+                if ((oper == eq) | (oper == ule))
+                        zerojump(eq0, label, lval);
+                else if ((oper == ne) | (oper == ugt))
+                        zerojump(ne0, label, lval);
+                else if (oper == gt)
+                        zerojump(gt0, label, lval);
+                else if (oper == ge)
+                        zerojump(ge0, label, lval);
+                else if (oper == uge)
+                        clearstage(lval[7], 0);
+                else if (oper == lt)
+                        zerojump(lt0, label, lval);
+                else if (oper == ult)
+                        zerojump(ult0, label, lval);
+                else if (oper == le)
+                        zerojump(le0, label, lval);
+                else
+                        testjump(label);
+        }
+        else
+                testjump(label);
+
+        clearstage(before, start);
+}
+
+constexpr(val)
+int     *val;
+        {
+        int     const;
+        char    *before, *start;
+
+        setstage(&before, &start);
+        expression(&const, val);
+        clearstage(before, 0);
+
+        if (const == 0)
+                error("must be constant expression");
+
+        return (const);
+}
+
+const(val)
+int     val;
+        {
+
+        immed();
+        outdec(val);
+        nl();
+}
+
+const2(val)
+int     val;
+        {
+
+        immed2();
+        outdec(val);
+        nl();
+}
+
+constant(lval)
+int     lval[];
+        {
+
+        lval = lval + 3;
+        *lval = 1;
+
+        if (number(++lval))
+                immed();
+        else if (pstr(lval))
+                immed();
+        else if (qstr(lval))    {
+                *(lval - 1) = 0;
+                immed();
+                printlabel(litlab);
+                outbyte('+');
+        }
+        else
+                return (0);
+
+        outdec(*lval);
+        nl();
+        return (1);
+}
+
+number(val)
+int     val[];
+        {
+        int     k, minus;
+
+        k = minus = 0;
+
+        for (;;)        {
+                if (match("+"))
+                        ;
+                else if (match("-"))
+                        minus = 1;
+                else
+                        break;
+        }
+
+        if (numeric(ch) == 0)
+                return (0);
+
+        while (numeric(ch))
+                k = k * 10 + (inbyte() - '0');
+
+        if (minus)
+                k = (-k);
+
+        val[0] = k;
+        return (1);
+}
+
+address(ptr)
+char    *ptr;
+        {
+
+        immed();
+        outstr(exname(ptr + NAME));
+        nl();
+}
+
+pstr(val)
+int     val[];
+        {
+        int     k;
+
+        k = 0;
+
+        if (match("'") == 0)
+                return (0);
+
+        while (ch != 39)
+                k = (k & 255) * 256 + (litchar() & 255);
+
+        ++lptr;
+        val[0] = k;
+        return (1);
+}
+
+qstr(val)
+int     val[];
+        {
+        char    c;
+
+        if (match(quote) == 0)
+                return (0);
+
+        val[0] = litptr;
+
+        while (ch != '"')       {
+                if (ch == 0)
+                        break;
+
+                stowlit(litchar(), 1);
+        }
+
+        gch();
+        litq[litptr++] = 0;
+        return (1);
+}
+
+stowlit(value, size)
+int     value, size;
+        {
+
+        if ((litptr + size) >= LITMAX)  {
+                error("literal queue overflow");
+                exit(1);
+        }
+
+        putint(value, litq + litptr, size);
+        litptr = litptr + size;
+}
+
+/*
+**      return current literal char & bump ptr
+*/
+
+litchar()       {
+        int     i, oct;
+
+        if ((ch != 92) | (nch == 0))
+                return (gch());
+
+        gch();
+
+        if (ch == 'n')  {
+                gch();
+                return (13);    /* CR */
+        }
+
+        if (ch == 't')  {
+                gch();
+                return (9);     /* HT */
+        }
+
+        if (ch == 'b')  {
+                gch();
+                return (8);     /* BS */
+        }
+
+        if (ch == 'f')  {
+                gch();
+                return (12);    /* FF */
+        }
+
+        i = 3;
+        oct = 0;
+
+        while (((i--) > 0) & (ch >= '0') & (ch <= '7'))
+                oct = (oct << 3) + gch() - '0';
+
+        if (i == 2)
+                return (gch());
+        else
+                return (oct);
+}
