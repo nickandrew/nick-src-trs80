@@ -26,6 +26,8 @@ STACKSIZE	EQU	100H	;Size of the stack
 ;
 	ENDIF
 ;
+TOPSTACK	EQU	$
+;
 	IF	DEBUGF
 *GET	DEBUGF
 	ELSE
@@ -41,7 +43,7 @@ START1	DEC	HL
 	JR	NC,START1
 	INC	HL		;Pseudo start of cmd line
 ;
-	LD	SP,START	;There is plenty of stack
+	LD	SP,TOPSTACK	;There is plenty of stack
 	LD	(_CMDLINE),HL	;Save cmd line pointer
 	LD	HL,REDIRDIS	;Disable redirection
 	LD	(_NOREDIR),HL
@@ -97,8 +99,7 @@ DB_LOOP
 ;
 _CMDLINE	DEFW	4318H
 _NOREDIR	DEFW	0
-;
-HIGHEST	DEFW	$+2
+_BRKSIZE	DEFW	$+2
 ;
 	IF	ZETA
 THIS_PROG_END	EQU	$
