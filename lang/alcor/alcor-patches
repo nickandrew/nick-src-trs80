@@ -40,15 +40,4 @@ LINKLOAD/CMD Frs  68, Rel 27H:  2A,11,44 --> 2A,49,40
 LINKLOAD/CMD Frs  25, Rel 95H:  C3,36,30,C3,33,30 --> C3,70,44,C3,6D,44
 LINKLOAD/CMD Frs  62, Rel 48H:  CD,8D,02 --> C9,00,00
 #
-# Patches to CC.CMD and RUNC.CMD for dots in filenames
-# 09-Aug-87
-#
-CC.CMD       Frs  28, Rel 7AH:  2F --> 2E
-CC.CMD       Frs  28, Rel 7FH:  2F --> 2E
-CC.CMD       Frs  28, Rel 8DH:  2F --> 2E
-CC.CMD       Frs  28, Rel 94H:  2F --> 2E
-CC.CMD       Frs  33, Rel 90H:  2F --> 2E
-#
-RUNC.CMD     Frs 109, Rel 77H:  2F --> 2E
-#
 # End of patches.
