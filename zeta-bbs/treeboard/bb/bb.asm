@@ -1,4 +1,4 @@
-;BB: The main part of the Treeboard
+; @(#) bb.asm: News and echomail system
 *GET	DOSCALLS.HDR
 *GET	EXTERNAL.HDR
 *GET	ASCII.HDR
@@ -13,7 +13,7 @@ MAX_MSGS	EQU	1024
 	DEFW	CLEAN_DISCON
 ;End of program load info.
 ;
-	COM	'<BB 1.7b 14-Feb-88>'
+	COM	'<BB 1.8a 14-May-89>'
 ;
 	ORG	BASE+100H
 ;
@@ -26,6 +26,7 @@ MAX_MSGS	EQU	1024
 *GET	BB7		;Text file routines
 ;
 *GET	LINEIN.LIB
+*GET	MOREPIPE.LIB	;Pipe output through - more - filter
 *GET	TIMES.LIB
 *GET	ROUTINES.LIB
 ;
