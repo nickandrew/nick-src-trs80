@@ -82,7 +82,7 @@ REGISTER			;Register a new person.
 	CALL	PUTS_0
 	LD	HL,NAME_BUFF
 	CALL	PUTS_0
-	LD	HL,M_CR
+	LD	HL,M_REGISTER2
 	CALL	PUTS_0
 ;
 WHPASS	LD	HL,M_WHPASS	;ask for a password
@@ -243,7 +243,7 @@ ADD_25
 ;
 	XOR	A
 	LD	(UF_TFLAG1),A
-	LD	A,0BFH		;CPM type.
+	LD	A,0BFH		;dumb type.
 	LD	(UF_TFLAG2),A
 ;
 	LD	A,8

@@ -1,52 +1,48 @@
-;logon1: Part 1 of 2 of logon.
+; @(#) logon1.asm - Part 1 of Logon, 16 May 89
 ;
 START	LD	SP,START
-;
 	LD	A,(SYS_STAT)
 	BIT	SYS_LOGDIN,A
-	JR	Z,STAT_OK
+	JR	Z,STAT_OK		;If not already logged in
 	LD	HL,M_BADSTAT
 	CALL	PUTS
 	LD	A,130
 	JP	TERMINATE
 ;
 STAT_OK
-;
 	XOR	A
 	LD	(WORD_WRAP),A
-	LD	HL,HI_FILE
-	CALL	LIST
-	CALL	SETUP
 ;
-	LD	HL,M_1
-	CALL	PUTS
+	LD	HL,M_HELLO
+	LD	DE,$2
+	CALL	MESS_0
+;
+	CALL	SETUP
 ;
 LP_1	CALL	GETNAME
 	LD	HL,NAME_BUFF
 	CALL	USER_SEARCH
-	JP	Z,NAME_OK
-	JP	C,ERROR
-	CALL	NOTE_NAME
+	JP	Z,NAME_OK	;If name already known
+	JP	C,ERROR		;If disk error
 ;
-;Check if a prohibited word entered in a name
-	CALL	BAD_NAMES
+	CALL	NOTE_NAME	;Note it as an attempt
+	CALL	BAD_NAMES	;Check if prohibited word used
 	JP	Z,NAUGHTY_MAN
 	JR	LP_2		;Check if they like name
 ;
 LP_1A
-;
 	LD	A,(COUNT)
 	INC	A
 	LD	(COUNT),A
 	CP	6
-	JR	C,LP_1
+	JR	C,LP_1		;Try again, alien
 ;
 ;Took too many tries ie. too many invalid names or
 ;guessed at names.
 	LD	HL,M_NOLOG1
 	CALL	PUTS
-	LD	A,2
-	CALL	SECOND
+	LD	A,20
+	CALL	SEC10
 	LD	A,131
 	JP	TERMINATE	;pass disconnect b/wards
 ;
@@ -61,26 +57,29 @@ LP_2	CALL	CHK_FORMAT
 	CALL	PUTS
 	JR	LP_1A
 ;
-LP_3	;the name "joe bloggs" is unknown.
-	LD	HL,M_THENAME
+;the name "joe bloggs" is unknown.
+LP_3	LD	HL,M_THENAME
 	CALL	PUTS
 	LD	HL,NAME_BUFF
 	CALL	PUTS
 	LD	HL,M_UNKN
 	CALL	PUTS
 ;
+;Ask if it is correct
 LP_4	LD	HL,M_CORRECT
 	CALL	PUTS
 	LD	HL,IN_BUFF
-	LD	B,30
+	LD	B,10
 	CALL	40H
-	JR	C,LP_4
+	JR	C,LP_4		;If break hit
 	LD	A,(HL)
 	AND	5FH
 	CP	'N'
 	JR	Z,LP_1A
 	CP	'Y'
 	JR	NZ,LP_4
+;
+;Register them
 	CALL	REGISTER
 	CALL	LOGIN_ACC
 	JP	LOGIN_ALLWD
@@ -115,10 +114,10 @@ BAD_NAMES
 	LD	DE,BADN_5
 	CALL	INSTR
 	RET	Z
-;;	LD	HL,NAME_BUFF
-;;	LD	DE,BADN_6
-;;	CALL	INSTR
-;;	RET	Z
+	LD	HL,NAME_BUFF
+	LD	DE,BADN_6
+	CALL	INSTR
+	RET	Z
 	LD	HL,NAME_BUFF
 	LD	DE,BADN_7
 	CALL	INSTR
@@ -156,6 +155,7 @@ GETNAME
 	JR	Z,GETNAME
 	RET
 ;
+;Check the format of the entered name
 CHK_FORMAT
 	LD	HL,NAME_BUFF
 CF_1	LD	A,(HL)
@@ -202,7 +202,7 @@ NAME_OK
 	JP	NAUGHTY_MAN
 ;
 N_O_1
-	CALL	CHK_PASS
+	CALL	CHK_PASS	;Let em try the password N times
 	JR	Z,LOGIN_ALLWD
 ;
 	LD	HL,M_KICKOUT
@@ -219,35 +219,28 @@ N_O_1
 	LD	HL,M_DENIED
 	CALL	PUTS
 BUMP_OFF
-	LD	A,2
-	CALL	SECOND
+	LD	A,20
+	CALL	SEC10
 	LD	A,2
 	JP	TERMINATE	;not always naughty
 ;
 LOGIN_ALLWD
 	LD	HL,SYS_STAT
-	SET	SYS_LOGDIN,(HL)
+	SET	SYS_LOGDIN,(HL)		;Logged in
 ;
-	LD	HL,(UF_UID)	;Set userid
+	LD	HL,(UF_UID)		;Set userid
 	LD	(USR_NUMBER),HL
 ;
-	CALL	SET_NAME
+	CALL	SET_NAME	;Set user name
 	CALL	LOG_NAME	;record the login
 ;
 	LD	HL,SYS_STAT	;No caller inc if testing
 	BIT	SYS_TEST,(HL)
-	JR	NZ,NO_CLRINC
+	JR	NZ,LA_01
 	LD	HL,(CALLER)	;inc # logged in callers
 	INC	HL
 	LD	(CALLER),HL
-NO_CLRINC
-;
-;If network, bypass messages
-	LD	HL,(USR_NUMBER)
-	LD	DE,ACSNET_ID
-	OR	A
-	SBC	HL,DE
-	JP	Z,EXIT_LOGIN
+LA_01
 ;
 	LD	HL,M_LOG	;print msg
 	CALL	PUTS
@@ -280,12 +273,12 @@ NO_CLRINC
 	LD	B,A
 	LD	A,(4046H)	;this current month
 	CP	B
-	JR	Z,LAL_2
+	JR	Z,LAL_2		;Ok if it was this month
 	DEC	A
 	JR	NZ,LAL_1
-	LD	A,12
+	LD	A,12		;If this is Jan, change to Dec
 LAL_1	CP	B
-	JR	Z,LAL_2
+	JR	Z,LAL_2		;Ok if it was last month
 	LD	HL,M_OLDMATE
 	CALL	PUTS
 LAL_2
@@ -316,7 +309,6 @@ LAL_2A
 	CALL	C,HI_VISITOR
 ;
 EXIT_LOGIN
-;
 	LD	HL,(USR_NUMBER)
 	LD	DE,ACSNET_ID
 	OR	A
@@ -343,49 +335,67 @@ NEWINFO_MSG
 	CALL	DOS_OPEN_EX
 	RET	NZ
 ;
-GINFO	LD	DE,INFO_FCB
+GINFO
+GI_01	LD	DE,INFO_FCB
 	CALL	DOS_REWIND
 ;
-GINFO_1	LD	DE,INFO_FCB
+GI_02	LD	DE,INFO_FCB
 	CALL	$GET
 	CP	CR
-	JR	Z,GINFO_2
+	JR	Z,GI_03
 	LD	DE,$2
 	CALL	$PUT
-	JR	GINFO_1
-GINFO_2
-	LD	HL,M_INFOQ
-	LD	DE,$2
-	CALL	MESS_0
+	JR	GI_02
 ;
+GI_03
 	LD	HL,STRING
-	LD	B,18
+	LD	B,5
 	CALL	40H
-	JR	C,GINFO
+	JR	C,GI_01		;Break hit
 	LD	A,(HL)
 	AND	5FH
 	CP	'N'
-	RET	Z
+	RET	Z		;Not interested
 	CP	'Y'
-	JR	NZ,GINFO
+	JR	NZ,GI_01
 ;
-	LD	DE,$2
-GINFO_3
-	CALL	$GET
-	OR	A
-	JR	NZ,GINFO_4
-	LD	DE,INFO_FCB
-	CALL	$GET
-	JR	NZ,GINFO_4
-	LD	DE,$2
-	CALL	$PUT
-	JR	GINFO_3
-GINFO_4
-	LD	A,CR
-	LD	DE,$2
-	CALL	$PUT
+; Start filtering the darn thing through more
+	LD	HL,GI_INFUNC
+	LD	(INFUNC),HL
+	LD	HL,GI_KEYFUNC
+	LD	(KEYFUNC),HL
+	XOR	A
+	LD	(SCRDONE),A
+;
+	CALL	MOREPIPE
 	RET
 ;
+GI_INFUNC
+	LD	DE,INFO_FCB
+	CALL	$GET
+	RET	Z
+	CP	1CH
+	RET	NZ
+	XOR	A
+	RET
+;
+GI_KEYFUNC
+	CP	'?'
+	JR	Z,GI_04
+	AND	5FH
+	CP	'Q'
+	JP	Z,MORE_Q
+	LD	A,0
+	RET
+;
+GI_04
+	LD	HL,M_MOREQ
+	LD	DE,$2
+	CALL	MESS_0
+	LD	A,0
+	RET
+;
+;I don't think this is wise at all!
 SETUP	LD	HL,($2+1)	;Route devices
 	LD	($KBD+1),HL
 	LD	HL,($2+1)
@@ -407,6 +417,7 @@ OPEN_UFILE
 	LD	(COUNT),A
 	RET
 ;
+;Record somebody's attempt
 NOTE_NAME
 	LD	HL,M_UNSUC
 	CALL	LOG_MSG
@@ -416,23 +427,24 @@ NOTE_NAME
 	CALL	LOG_MSG
 	RET
 ;
+;Set the logon name
 SET_NAME
 	LD	HL,(USR_NAME)
 	LD	B,32
-LN_01	LD	(HL),0
+SN_01	LD	(HL),0
 	INC	HL
-	DJNZ	LN_01
+	DJNZ	SN_01
 ;
 	LD	HL,(USR_NAME)
 	LD	DE,UF_NAME
-LN_1	LD	A,(DE)
+SN_02	LD	A,(DE)
 	LD	(HL),A
 	OR	A
-	JR	Z,LN_2
+	JR	Z,SN_03
 	INC	HL
 	INC	DE
-	JR	LN_1
-LN_2
+	JR	SN_02
+SN_03
 	LD	(HL),CR		;External CR on name end
 	RET
 ;
@@ -507,8 +519,6 @@ ERROR	LD	HL,M_ERROR	;Dos error detected.
 ;
 	LD	DE,US_FCB
 	CALL	DOS_CLOSE
-	LD	A,3
-	CALL	SECOND
 	LD	A,254
 	JP	TERMINATE	;error. Not naughty,
 				;just disconnect.
@@ -583,7 +593,7 @@ CP_5A	LD	HL,M_THISPWD
 	CP	4		;max no. of pwd tries
 	JP	C,CP_1
 ;
-;Setup user name "(failed) fred smith", print bad-passwd
+;Setup user name "fred smith (failed)", print bad-passwd
 ;message then run "comment" to let them say their piece.
 	LD	HL,M_FORGOT
 	CALL	PUTS
@@ -651,10 +661,9 @@ LOGIN_ACC
 	LD	A,(UF_TFLAG2)	;load Stty
 	OR	A
 	JR	NZ,LA_0A
-	LD	A,0BFH		;config for CPM if none
+	LD	A,0BFH		;config for dumb if none
 LA_0A
 	LD	(TFLAG2),A
-;
 ;
 LA_1
 	CALL	REWRITE
@@ -687,22 +696,6 @@ RWL_1	LD	A,(HL)
 ;
 	CALL	DOS_CLOSE
 	JP	NZ,ERROR
-	RET
-;
-SEC10	PUSH	BC		;wait A/10 seconds.
-S1_1	PUSH	AF
-	LD	B,4		;40/10
-	LD	A,(TICKER)
-	LD	D,A
-S1_2	LD	A,(TICKER)
-	CP	D
-	LD	D,A
-	JR	Z,S1_2
-	DJNZ	S1_2
-	POP	AF
-	DEC	A
-	JR	NZ,S1_1
-	POP	BC
 	RET
 ;
 PCREDITS
@@ -742,3 +735,4 @@ M_SYSOPONLY
 	DEFM	CR,'**   For today only...',CR
 	DEFM	'**  Zeta is not accepting user logins.',CR
 	DEFM	'**  Please call back tomorrow.',CR,CR,0
+;
