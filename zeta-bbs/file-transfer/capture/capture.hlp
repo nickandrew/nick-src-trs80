@@ -1,16 +1,10 @@
 3ST Capture help
 
 Help on "Capture" command, 04-Aug-86
------------------------------------
+------------------------------------
 
-   CAPTURE lets you upload to Zeta without using any of the
-accepted file transfer protocols (Xmodem, Zmodem or Kermit).
+   CAPTURE lets you upload to Zeta without using any of the accepted file transfer protocols (Xmodem, Zmodem or Kermit).
 
-   Type: "capture FILENAME" (where filename is the name of the
-file you wish to send to Zeta) and the program will prompt you
-to ready your file for output. Start sending the characters
-down the line. Zeta will beep when it needs to save to disk,
-and beep again when finished. Type control-D, (^D, 04H) when
-your file is finished sending and Capture will close the file
-and return to the shell.
+   Type: "capture FILENAME" (where filename is the name of the file you wish to send to Zeta) and the program will prompt you to ready your file for output. Start sending the characters down the line. Zeta will beep when it needs to save to disk, and beep again when finished. Type control-D, (^D, 04H) when your file is finished sending and Capture will close the file and return to the shell.
 
+0
