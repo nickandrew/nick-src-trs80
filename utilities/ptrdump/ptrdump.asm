@@ -1,0 +1,26 @@
+;ptrdump version 2 because I lost version 1.
+;
+*GET	DOSCALLS
+;
+	COM	'<ptrdump 2.0  07-Jan-86 Trs-80 M1>'
+	COM	'<usage: ptrdump filename>'
+	ORG	5300H
+START	LD	SP,START
+	LD	DE,FCB
+	CALL	DOS_EXTRACT
+	JP	NZ,DOS_ERROR
+	LD	HL,BUFF
+	LD	DE,FCB
+	CALL	DOS_OPEN_EX
+	JP	NZ,DOS_ERROR
+;
+LOOP	LD	DE,FCB
+	CALL	$GET
+	JP	NZ,DOS
+	CALL	3BH
+	JR	LOOP
+;
+BUFF	DEFS	256
+FCB	DEFS	32
+;
+	END	START
