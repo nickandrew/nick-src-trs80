@@ -1,0 +1,46 @@
+    Pseudocode for Spooler program
+    ------------------------------
+
+Interrupt:
+   Check PC (4 per second)
+   If within DOS area
+      Return
+   If within SPOOLER area
+      Return
+   EI
+   Push IX,IY,AF',BC',DE',HL'
+   Am I printing a file?
+      No: Is there a file to print?
+         No: Exit
+      Get filespec & open up
+      Increment file queue pointer
+      set 'printing a file bit'
+      return
+loop:
+   Wait .... a bit
+   Is printer ready?
+      no: DI and return (POP *)
+     yes:
+      read byte from file
+      if EOF reached
+         print a Form Feed
+         reset 'printing a file' bit
+         DI
+         Pop registers
+         Return
+      Else
+         Send byte to printer
+         jump loop
+
+
+Spool:
+   DI
+   Count files in queue
+   If maximum
+      SPOOL QUEUE FULL
+   inc file count
+   write filename into queue
+   EI
+   jump to dos
+
+
