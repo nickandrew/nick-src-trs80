@@ -1,27 +1,35 @@
->*OFFSETV2/TXT: DESCRIPTION OF THE ACTIONS OF THE PROGRAM OFFSETV2/CMD.
+   <<        Short Documentation for 'offset/cmd':        >>
+   << (C) 1984, Nick Andrew - Zeta Microcomputer Software >>
 
-OFFSET (VERSION 2.00) IS A PROGRAM DESIGNED TO CONVERT A /CMD TYPE FILE
-FOR EXECUTION FROM DISK. MANY PROGRAMS, ESPECIALLY GAMES, WILL NOT RUN
-DIRECTLY FROM DOS BECAUSE THEY OVERWRITE DOS MEMORY WHILE LOADING AND
-CONSEQUENTLY CRASH THE SYSTEM. OFFSET IS A PROGRAM DESIGNED TO RELOCATE
-ANY CODE WHICH WOULD OTHERWISE OVERWRITE DOS MEMORY (4000H TO 51FFH),
-AND RESTORE THAT CODE IN A LEVEL II (NON-DOS, RESERVED MEMORY FIXED)
-ENVIRONMENT, THEN EXECUTE THE PROGRAM AS IF IT HAD BEEN LOADED FROM
-LEVEL II BASIC VIA THE 'SYSTEM' COMMAND.
-
-COMMAND FORMAT:    OFFSETV2 [%]FILENAME
-
-THE FILENAME SPECIFIED IS THAT OF THE INPUT DISK FILE CALLED 'FILENAME',
-WHICH IS TAKEN TO HAVE AN EXTENSION OF '/ORI'. THE OUTPUT FILE HAS THE
-SAME NAME, BUT WITH A '/CMD' EXTENSION.
-
-ANY PORTION OF THE INPUT FILE RESIDING BETWEEN 4000H AND 51FFH WILL BE
-RELOCATED TO AN UNUSED AREA OF MEMORY, ALONG WITH THE NECESSARY RESERVED
-RAM AND SAVED TO DISK. THE OUTPUT FILE (/CMD) WHEN EXECUTED, WILL LOAD AS
-NORMAL BUT WITH THE RELOCATED PORTION OF MEMORY. THIS AREA OF MEMORY IS
-THEN MOVED TO 4000H. AT THIS STAGE, ALL IMPORTANT ADDRESSES (INCLUDING
-RESERVED RAM) WILL LOOK AS THOUGH THEY WERE LOADED THROUGH LEVEL II
-BASIC. THE PROGRAM IS THEN EXECUTED THROUGH A SIMPLE JUMP STATEMENT,
-WITH INTERRUPTS DISABLED.
+   Offset is the ultimate offsetting program. It does all the
+work in modifying a file - the user need only tell OFFSET
+which file he/she wishes to offset - OFFSET does the rest.
+   Offset will be on the Omen's drives as either:
+a) 'offsetm1/com' or b) 'offsetm3/com' for model I or III
+trs-80.
+   The command format is:
+     'offsetm1 [%]filename' which means typing 'offset'
+followed by a filename (NO EXTENSION) with an optional '%'
+sign prefixing the filename.
+   For a non-'%' command line, OFFSET reads the file called
+'filename/ORI' from disk and writes the offsetted (and now
+hopefully executable) program back onto disk with the filename
+'filename/CMD'.
+   When the '%' prefix is included in the command line
+(directly before the filename) then operation is the same,
+except that a system-type tape is first loaded from tape unit
+zero. This data from tape is stored on disk as 'filename/ORI'
+ready for the next stage of the offsetting process (described
+above).
+   Please note that this program is copyright though public
+domain and that I (Nick Andrew) hold all commercial rights.
+   I believe this program will offset practically all tape
+programs, even those using tape autostart. I cannot, however
+guarantee this as there are many devious means of putting
+programs on tape.
+   I would appreciate any feedback from users on problems
+encountered using this program, perhaps along with copies
+of the input given to offset and its output.
+   Nick Andrew.
 
 
