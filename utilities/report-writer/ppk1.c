@@ -23,10 +23,10 @@ char toupper();
 int  chkcond();
 
 FILE *config,  *src,   *dest, *temp1, *temp2;
-char *heading, *today, *usecr;
+char *heading, *today;
 
 int sortdat[MAXFLDS],printdat[MAXFLDS],mwidth[MAXFLDS];
-int numflds, numsort,numprint,lines,sortlen,page;
+int numflds, numsort,numprint,lines,sortlen,page,usecr;
 int sumwidth,columns,spacing, linpage;
 
 struct       {
@@ -389,7 +389,7 @@ dorprt()
       ungetc(c,temp2);            /* Undo illogical UNIX EOF check */
       getfields();                /* Get all input fields          */
       if (chkcond()) {
-	 writrecd();    /* write formatted output      */
+	 writrecd();    	  /* write formatted output      */
       }
       if (lines>(linpage-14)) lines=0;
       }
@@ -466,7 +466,7 @@ ffeed()
    spaces(dest,stdspc-8);
    fprintf(dest,"%s",heading);       /* heading string */
    spaces(dest,stdspc-24);
-   fprintf(dest,"%s","Sat 23 Aug 1986 23:59\n");
+   fprintf(dest,"%s","Sat 28 Nov 1987 15:16\n");
    center(1,heading,columns);
    fprintf(dest,"\n\n\n");
    for (i=1;i<=numprint;i++)
@@ -586,8 +586,9 @@ int  mlen;
    sprintf(string,"%*ld.%d%d",mlen-3,l1,(i/10),(i-10*(i/10)));
 }
 
-/* chkcond() - check that if any 'O'r fields are set then
- *   at least one must have a value.
+/* chkcond() - decide whether or not to print a field.
+ *   check that if any 'O'r fields are set then at
+ *   least one must have a value.
  */
 
 int chkcond() {
