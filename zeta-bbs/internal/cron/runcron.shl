@@ -2,4 +2,6 @@ echo packdis -pr
 packdis -pr
 echo mailass
 mailass
+echo pktass
+pktass
 exit
