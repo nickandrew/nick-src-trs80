@@ -1,0 +1,16 @@
+
+
+   Help on the NOTE command ... 22-Jun-86
+   --------------------------------------
+
+   The NOTE command lets you leave a 1-line note to any
+other user. Maximum length of a note is 80 characters.
+
+   NOTES to you are displayed when you logon.
+
+   Usage of the NOTE command is:  NOTE [-r] [-e]
+
+   Use "NOTE -R" to read notes to you.
+   Use "NOTE -E" to read and then erase all notes to you.
+   Use "NOTE" with no parameters to send a note.
+
