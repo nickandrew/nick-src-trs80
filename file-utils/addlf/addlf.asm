@@ -124,7 +124,7 @@ MESS_WORD
 *GET	ROUTINES
 ;
 M_ADDLF	DEFM	'addlf: ',0
-M_NOFILE  DEFM	'addlf: Cannot open ',0
+M_NOFILE	DEFM	'addlf: Cannot open ',0
 M_USAGE	DEFM	'addlf: add an LF after every CR to files.',CR
 	DEFM	'usage: addlf files ...',CR
 	DEFM	'eg:    addlf myfile.txt >',CR,0

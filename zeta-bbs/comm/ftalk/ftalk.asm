@@ -703,7 +703,7 @@ TO_UPPER_C
 C_FLAG	DEFB	0	;1=Already connected
 D_FLAG	DEFB	0	;1=Dial out
 FATAL	DEFB	0	;1 = Connection failed somewhere
-SENTPKT DEFB	0	;1 = Outgoing packet was sent
+SENTPKT	DEFB	0	;1 = Outgoing packet was sent
 TRIES	DEFB	0	;Count of file send attempts
 ;
 TO_NET	DEFW	0	;Calling/called net

@@ -1214,7 +1214,7 @@ ADD_SUM	PUSH	HL
 ;
 D_FLAG	DEFB	0	;1=Dial-out.
 FAILED	DEFB	0	;1 = Connection failed somewhere
-SENTPKT DEFB	0	;1 = Outgoing packet was sent
+SENTPKT	DEFB	0	;1 = Outgoing packet was sent
 TRIES	DEFB	0	;Count of file send attempts
 TO_NET	DEFW	0	;Calling/called net
 TO_NODE	DEFW	0	;Calling/called node

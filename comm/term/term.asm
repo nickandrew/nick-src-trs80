@@ -892,7 +892,7 @@ PC_1	LD	A,B
 ;
 M_7BITS	DEFM	'Bits:   7',CR,0
 M_8BITS	DEFM	'Bits:   8',CR,0
-M_UNKBITS DEFM	'Bits:   Unknown',CR,0
+M_UNKBITS	DEFM	'Bits:   Unknown',CR,0
 M_NOPAR	DEFM	'Parity: NONE',CR,0
 M_EVPAR	DEFM	'Parity: EVEN',CR,0
 M_ODPAR	DEFM	'Parity: ODD',CR,0
