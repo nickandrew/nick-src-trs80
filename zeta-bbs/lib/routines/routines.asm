@@ -1,5 +1,5 @@
 ;routines.lib: Common routines for global label search.
-;Last updated: 26-Feb-89.
+;Last updated: 09-Mar-89.
 ;
 ;PRINT_NUMB. Print a number in HL to unit $stdout_def.
 ;sets up TENS&ONES for suffix printing.
@@ -433,6 +433,7 @@ _US_08	CALL	$GET
 	LD	(HL),A
 	INC	HL
 	DJNZ	_US_08
+	CP	A
 	RET
 ;
 _US_CHKNM
