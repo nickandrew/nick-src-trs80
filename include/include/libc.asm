@@ -1,6 +1,6 @@
-;libc.asm: Standard I-O library for Small-C, Trs-80
+;libc: Standard I-O library for Small-C, Trs-80
 ;
-	COM	'<libc dated 25-Aug-87>'
+	COM	'<libc dated 17 Jun 90>'
 ;
 EOF	EQU	-1
 NULL	EQU	0
@@ -58,7 +58,7 @@ $C_01	INC	BC
 $C_02	PUSH	BC
 	POP	HL
 	RET
-	ENDIF	;ifref _fileno
+	ENDIF	;_fileno
 ;
 ;putchar(c)
 ;int  c;
@@ -76,7 +76,12 @@ _PUTCHAR
 	POP	BC
 	POP	BC
 	RET
-	ENDIF
+	ENDIF	;_putchar
+;
+	IFREF	_PUTC
+_PUTC
+	JP	_FPUTC
+	ENDIF	;_putc
 ;
 ;int fputc(c,fp)
 ;int c;
@@ -88,7 +93,7 @@ _FPUTC
 	ADD	HL,SP
 	LD	E,(HL)
 	INC	HL
-	LD	D,(HL)	;de=fp
+	LD	D,(HL)
 	INC	HL
 	LD	C,(HL)
 	EX	DE,HL	;hl now points to fdarray
@@ -105,7 +110,7 @@ _FPUTC
 	RET
 $C_03	LD	HL,EOF
 	RET
-	ENDIF	;ifref _fputc
+	ENDIF	;_fputc
 ;
 	IFREF	_GETCHAR
 _GETCHAR
@@ -114,7 +119,7 @@ _GETCHAR
 	CALL	_FGETC
 	POP	BC
 	RET
-	ENDIF
+	ENDIF	;_getchar
 ;
 ;int getc(fp)
 ;FILE *fp;
@@ -122,7 +127,7 @@ _GETCHAR
 	IFREF	_GETC
 _GETC
 	JP	_FGETC
-	ENDIF
+	ENDIF	;_getc
 ;
 ;fgets(s,n,ioptr)
 ;char *s;
@@ -317,7 +322,7 @@ FG_02	CALL	$GET
 	RET	NZ
 	LD	HL,EOF
 	RET
-	ENDIF
+	ENDIF	;_fgetc
 ;
 ;fputs(s,fp)
 ;char *s;
@@ -345,10 +350,10 @@ $C_04	LD	A,(HL)
 	OR	A
 	RET	Z
 	CALL	$PUT
-	RET	NZ
+;;	RET	NZ
 	INC	HL
 	JR	$C_04
-	ENDIF
+	ENDIF	;_fputs
 ;
 ;exit(errcode)
 ;char errcode;
@@ -378,7 +383,7 @@ CL_1	PUSH	BC
 	DJNZ	CL_1
 	RET
 ;
-	ENDIF
+	ENDIF	;_exit
 ;
 ;strcpy(out,in)
 ;char *out,*in;
@@ -401,7 +406,7 @@ $C_05	LD	A,(BC)
 	OR	A
 	JR	NZ,$C_05
 	RET
-	ENDIF
+	ENDIF	;_strcpy
 ;
 ;fclose(fp)
 ;FILE *fp;
@@ -425,7 +430,7 @@ _FCLOSE
 	LD	D,(HL)
 	CALL	DOS_CLOSE
 	RET
-	ENDIF
+	ENDIF	;_fclose
 ;
 ;FILE *fopen(file,mode)
 ;char *file,*mode;
@@ -446,7 +451,7 @@ _FOPEN
 	INC	HL
 	LD	D,(HL)
 	EX	DE,HL
-	LD	DE,(HIGHEST)
+	LD	DE,(_BRKSIZE)
 	LD	A,(HL)
 	CP	':'
 	JR	NZ,$C_07
@@ -456,18 +461,18 @@ _FOPEN
 	LD	($C_07V),A
 	CP	'D'
 	LD	DE,NULL_DCB
-	JR	Z,$C_11
+	JR	Z,$C_11B
 	CP	'L'
 	LD	DE,PTR_DCB
-	JR	Z,$C_11
+	JR	Z,$C_11B
 	CP	'C'
 	JR	NZ,$C_13
 	LD	A,($C_06V)	;Mode
 	CP	'r'
 	LD	DE,KBD_DCB
-	JR	Z,$C_11
+	JR	Z,$C_11B
 	LD	DE,VDU_DCB
-	JR	$C_11
+	JR	$C_11B
 ;
 $C_07	LD	A,(HL)
 	OR	A
@@ -487,7 +492,7 @@ $C_09	LD	A,3
 	LD	(DE),A
 ;
 	LD	HL,32
-	LD	DE,(HIGHEST)
+	LD	DE,(_BRKSIZE)
 	ADD	HL,DE
 	LD	B,0
 	LD	A,($C_06V)
@@ -502,26 +507,28 @@ $C_09	LD	A,3
 	RET	NZ
 	LD	HL,256+32
 	ADD	HL,DE
-	LD	(HIGHEST),HL
-;Set fcb such that writes do not truncate file
-	INC	DE
-	LD	A,(DE)
-	SET	6,A
-	LD	(DE),A
-	DEC	DE
-	JR	$C_11
+	LD	(_BRKSIZE),HL
+	JR	$C_11A
 $C_10
 	CALL	DOS_OPEN_NEW	;Write & append
 	LD	HL,NULL
 	RET	NZ
 	LD	HL,256+32
 	ADD	HL,DE
-	LD	(HIGHEST),HL
+	LD	(_BRKSIZE),HL
 	LD	A,($C_06V)
 	CP	'a'
 	JR	NZ,$C_11
-	CALL	DOS_POS_EOF
+	CALL	DOS_POS_EOF	;Append
+	JR	$C_11A
 $C_11
+	;Truncate the file??
+$C_11A	INC	DE
+	LD	A,(DE)
+	SET	6,A		;Writes do not bugger eof
+	LD	(DE),A
+	DEC	DE
+$C_11B
 	LD	($C_08V),DE
 	LD	B,MAX_FILES
 	LD	HL,FD_ARRAY
@@ -555,7 +562,7 @@ $C_07V	DEFB	0	;Type of special device C,D,L
 $C_08V	DEFW	0	;Addr of dcb/fcb.
 ;
 NULL_DCB	DC	8,0
-	ENDIF
+	ENDIF	;_fopen
 ;
 ;int feof(fp)
 ;FILE *fp;
@@ -565,10 +572,11 @@ _FEOF
 	ADD	HL,SP
 	LD	E,(HL)
 	INC	HL
-	LD	D,(HL)	;DE points to fdarray
+	LD	D,(HL)	;DE = fp (pointer to fdarray)
+	EX	DE,HL
 	BIT	IS_TERM,(HL)
 	JR	NZ,$C_17
-	LD	HL,FD_FCBPTR
+	LD	DE,FD_FCBPTR
 	ADD	HL,DE
 	LD	E,(HL)
 	INC	HL
@@ -590,14 +598,14 @@ $C_15	LD	HL,1
 	RET	NC
 $C_17	LD	HL,0
 	RET
-	ENDIF
+	ENDIF	;_feof
 ;
 ;fflush(fp)
 ;FILE *fp
 	IFREF	_FFLUSH
 _FFLUSH
 	RET
-	ENDIF
+	ENDIF	;_fflush
 ;
 ;fseek(fp,offset,n)
 ;FILE *fp;
@@ -661,7 +669,7 @@ FSE_N1
 	POP	DE
 	CALL	DOS_POS_RBA
 	RET
-	ENDIF
+	ENDIF	;_fseek
 ;
 ;rewind(ioptr)
 ;char *ioptr;
@@ -681,13 +689,62 @@ _REWIND
 	RET
 	ENDIF	;_rewind
 ;
+;_brk: Set the end of the data space allocated to this program
+	IFREF	_BRK
+_BRK
+	LD	HL,2
+	ADD	HL,SP
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)		;DE = endds
+	LD	HL,(HIMEM)
+	OR	A
+	SBC	HL,DE
+	JR	C,$C_20		;HIMEM - endds < 0
+;
+	LD	HL,(_BRKSIZE)
+	OR	A
+	SBC	HL,DE
+	JR	NC,$C_19	;_BRKSIZE - endds >= 0
+
+;Must zero the intermediate storage. HL = number of bytes to zero
+	PUSH	HL
+	POP	BC
+	LD	HL,(_BRKSIZE)
+$C_18
+	LD	(HL),0
+	INC	HL
+	DEC	BC
+	LD	A,B
+	OR	C
+	JR	NZ,$C_18
+$C_19
+	EX	DE,HL		;HL = endds
+	LD	(_BRKSIZE),HL
+	LD	HL,0
+	RET
+;
+$C_20
+	LD	HL,-1		;Tried to allocate above HIMEM
+	RET
+;
+	ENDIF	;_brk
+;
+;fix_prog_end: Update the end of the program according to the _brksize
+	IFREF	FIX_PROG_END
+FIX_PROG_END
+	LD	HL,(_BRKSIZE)
+;;	ld	(prog_end),hl		;Not needed as not Zeta!
+	RET
+	ENDIF	;fix_prog_end
+;
 ;sprintf(string,format,args)
 ;char *string,*format;
 ;unkn args;
 	IFREF	_SPRINTF
 _SPRINTF
 	RET
-	ENDIF
+	ENDIF	;_sprintf
 ;
 ;fprintf(fp,format,args)
 ;FILE *fp;
