@@ -18,7 +18,7 @@
 *GET	ASCII.HDR
 *GET	PROGNUMB.HDR
 ;
-	COM	'<Swapper 1.2  02-Apr-88>'
+	COM	'<Swapper 1.2a 23-Apr-89>'
 	ORG	5200H
 ;
 START
@@ -323,6 +323,7 @@ CU_02
 	DJNZ	CU_01
 	RET
 ;
+; Free all pages owned by the current process
 FREE_ALL
 	LD	HL,(MEM_OWNER)
 	LD	A,(PROCESS)
@@ -353,6 +354,7 @@ FIND_PAGE
 	CP	1
 	RET	;nz
 ;
+;Copy command line into CMD_BUFFER
 COPY_CMD
 	LD	HL,(NEW_CMD)
 	LD	DE,CMD_BUFFER
@@ -369,6 +371,7 @@ CC_01	LD	A,(HL)
 CC_02	LD	A,CR		;Terminate with CR
 	LD	(DE),A
 	LD	HL,CMD_BUFFER
+;Find end of command name
 CC_03	LD	A,(HL)
 	CP	CR
 	JR	Z,CC_05
@@ -383,22 +386,6 @@ CC_04	INC	HL
 	CP	' '
 	JR	Z,CC_04
 CC_05	LD	(PROGARG),HL
-	LD	HL,CMD_BUFFER
-CC_06	LD	A,(HL)
-	CP	CR
-	JR	Z,CC_08
-	OR	A
-	JR	Z,CC_08
-	CP	'a'
-	JR	C,CC_07
-	CP	'z'+1
-	JR	NC,CC_07
-	AND	5FH		;to U/C
-	LD	(HL),A
-CC_07	INC	HL
-	JR	CC_06
-;
-CC_08
 	RET
 ;
 ;We wanted overlay so zap the original program away.
@@ -694,7 +681,6 @@ PAGENUM		DEFB	0
 OLDPAGE		DEFB	0
 ;
 CMD_BUFFER	DEFS	256
-;
 ;
 DEFAULT_BLOCK
 	DEFW	5C00H		;Default Start
