@@ -1,5 +1,5 @@
 ;msghdr.hdr: format of MSGHDR.ZMS file.
-;Last updated 03-Oct-86
+;Last updated 19-Aug-88
 ;
 HDR_LEN		EQU	16
 ;
@@ -21,5 +21,7 @@ FM_IMPORT	EQU	2
 FM_RUDE		EQU	3
 FM_NETMSG	EQU	4
 FM_NETSENT	EQU	5
+FM_FIDONET	EQU	6
+FM_ACSNET	EQU	7
 ;
 ;End of msghdr.
