@@ -327,10 +327,9 @@ RM_02	CALL	$GET
 	JP	NZ,RD_ERROR
 ;
 	LD	HL,SUBJ_BUFFER
-	LD	DE,$2
-	CALL	MESS_0
-	LD	A,CR
-	CALL	$PUT
+	CALL	LOG_MSG_2
+	LD	HL,M_CR
+	CALL	LOG_MSG_2
 ;
 ;Check if message intended for Zeta
 	XOR	A
@@ -383,13 +382,14 @@ RD_ERROR
 ;
 COPY_MESSAGE
 ;
-	CALL	MAKE_NAMES	;Make @name from origin
+	CALL	MAKE_NAMES	;Make (fidonet) addresses
 ;
 	LD	A,DEFAULT_TOPIC
 	LD	(HDR_TOPIC),A
 ;
 	XOR	A
 	LD	(ECHOMAIL),A	;Default not echomail.
+	LD	(AREA_FLAGS),A
 ;
 ;Read first line of message. if AREA: then it is echomail
 	LD	HL,STRING
@@ -438,6 +438,7 @@ CM_03
 ;
 CM_03B
 	CALL	WHICH_CONF	;Find out where it goes
+	CALL	FIX_ADDRESS
 ;
 CM_03A
 ;Create a new message.
@@ -449,11 +450,11 @@ CM_03A
 ;
 	CALL	FIX_HDR
 ;
-	LD	A,0FFH		;Write header byte
+	LD	A,0FFH		;Write start of msg byte
 	CALL	BPUTC
 	JP	NZ,WRIT_ERR
 ;
-	XOR	A
+	XOR	A		;Write filler byte
 	CALL	BPUTC
 	JP	NZ,WRIT_ERR
 ;
@@ -497,18 +498,7 @@ CM_03A
 ;
 	LD	A,(ECHOMAIL)	;if echomail do not write
 	OR	A		;first line.
-	JR	NZ,RM_07A
-;
-;Output the first line of the message
-	LD	HL,STRING
-RM_06	LD	A,(HL)
-	OR	A
-	JR	Z,RM_07
-	CALL	BPUTC
-	JP	NZ,WRIT_ERR
-	INC	HL
-	JR	RM_06
-RM_07
+	CALL	Z,WRITE_FIRST
 ;
 RM_07A
 	XOR	A
@@ -548,6 +538,17 @@ CM_04	LD	A,(HL)
 	LD	(NUM_MSG),HL
 	CP	A
 	RET
+;
+WRITE_FIRST
+;Output the first line of the message
+	LD	HL,STRING
+WF_01	LD	A,(HL)
+	OR	A
+	RET	Z
+	CALL	BPUTC
+	JP	NZ,WRIT_ERR
+	INC	HL
+	JR	WF_01
 ;
 GETLINE
 	LD	B,80
@@ -641,20 +642,19 @@ STATS
 	LD	DE,CONF_TABLE
 ST_01	LD	A,(DE)
 	OR	A
-	RET	Z
-	CALL	BYP_STR
-	PUSH	DE		;ourname - 1
+	RET	Z		;if end of table
+	PUSH	DE
 	CALL	BYP_STR
 	INC	DE		;bypass null
+	INC	DE		;bypass flags
 	INC	DE		;bypass topic #
-	LD	A,(DE)
+	LD	A,(DE)		;count of messages
 	INC	DE
-	POP	HL
+	POP	HL		;name of group
 	OR	A
 	JR	Z,ST_01		;If no messages there
 	PUSH	DE
 	EX	DE,HL
-	INC	DE		;de is our name
 	LD	L,A
 	LD	H,0
 	PUSH	HL
@@ -665,7 +665,7 @@ ST_01	LD	A,(DE)
 	POP	HL		; our name
 	LD	DE,STRING
 	CALL	STRCPY
-	LD	A,' '		;remove null
+	LD	A,' '		;change null to blank
 	LD	(DE),A
 	POP	HL		;the count
 	LD	DE,STRING+16
@@ -678,15 +678,16 @@ ST_01	LD	A,(DE)
 	JR	ST_01
 ;
 WHICH_CONF
+;Bypass any spaces after AREA: string
 	LD	A,(HL)
 	CP	' '
-	JR	NZ,WC_00	;Bypass preceding spaces
+	JR	NZ,WC_00
 	INC	HL
 	JR	WHICH_CONF
+;
 WC_00
 ;HL points to first character of area name
 ;
-;Now find out which conference it is in.
 	LD	DE,CONF_TABLE
 WC_01
 	LD	A,(DE)
@@ -698,34 +699,27 @@ WC_01
 	JR	Z,WC_04
 	POP	DE
 	CALL	BYP_STR		;Bypass incoming name
-	CALL	BYP_STR		;Bypass our name
-	INC	DE
+	INC	DE		;Bypass null
+	INC	DE		;Bypass flags
 	INC	DE		;Bypass topic #
 	INC	DE		;Bypass message count
 	POP	HL
 	JR	WC_01
 ;
 WC_04	POP	DE
+	CALL	BYP_STR
+	POP	HL		;No longer required
 ;
 	LD	A,1
 	LD	(ECHOMAIL),A
-	CALL	BYP_STR
-	INC	DE		;de points to our name
-	PUSH	DE
-	EX	DE,HL		;HL now our name
-;---
-;;	LD	DE,ID_ORIG+1	;after the '@'
-;;	CALL	STRCPY		;use conference id_orig.
-;---
-	LD	DE,ID_ORIG	;on the @
-	XOR	A
-	LD	(DE),A		;No net address (yet)
-;---
-	POP	DE
-WC_06	LD	A,(DE)		;bypass our name
-	INC	DE
-	OR	A
-	JR	NZ,WC_06
+	INC	DE		;de points to flags now
+	LD	HL,ID_ORIG	;on the @
+	LD	(HL),0		;No net address (yet)
+;
+	LD	A,(DE)
+	LD	(AREA_FLAGS),A
+	INC	DE		;de now points to topic #
+;
 	LD	A,(DE)		;topic number.
 	LD	(HDR_TOPIC),A
 ;
@@ -733,8 +727,17 @@ WC_06	LD	A,(DE)		;bypass our name
 	LD	A,(DE)		;Inc messages count
 	INC	A
 	LD	(DE),A
+	RET
 ;
-	POP	HL		;now unused.
+FIX_ADDRESS
+	LD	A,(ECHOMAIL)
+	OR	A
+	RET	Z
+	LD	A,(AREA_FLAGS)
+	AND	IS_ACS
+	RET	Z
+	XOR	A
+	LD	(ID_ORIG),A	;No @713/603 if acsnet
 	RET
 ;
 BYP_STR	INC	DE
@@ -803,21 +806,6 @@ FH_01
 	LD	(HDR_TIME+2),A
 	RET
 ;
-NODENUMB
-	PUSH	IX
-	LD	A,'@'
-	CALL	SPUTC
-	LD	A,'['
-	CALL	SPUTC
-	CALL	SPUTNUM
-	LD	A,'/'
-	CALL	SPUTC
-	POP	HL
-	CALL	SPUTNUM
-	LD	A,']'
-	CALL	SPUTC
-	RET
-;
 ERROR	PUSH	AF
 	OR	80H
 	CALL	DOS_ERROR
@@ -878,26 +866,41 @@ LOG_MSG_2
 ;
 ;Determine host addresses for orig & dest systems
 MAKE_NAMES
+	XOR	A
+	LD	(ID_ORIG),A	;Zero string
+	LD	(ID_DEST),A	;Zero string
+;
 	LD	IX,(ORIG_NODE)
 	LD	HL,(ORIG_NET)
 	LD	DE,ID_ORIG
-	CALL	NODENUMB
-;;	LD	HL,ID_ORIG+1		;bypass '@'
-;;	CALL	CONVERT_NODE
 ;
-	XOR	A		;null ID_DEST string
-	LD	(ID_DEST),A	;in case of unkn_dest.
+	LD	A,(AREA_FLAGS)
+	AND	IS_ACS
+	CALL	Z,NODENUMB
 ;
 	LD	A,(DEST_KNOWN)	;if person not a user
-	OR	A		;do not append '@zeta'.
+	OR	A		;do not append.
 	RET	Z
 ;
 	LD	IX,(DEST_NODE)
 	LD	HL,(DEST_NET)
 	LD	DE,ID_DEST
 	CALL	NODENUMB
-;;	LD	HL,ID_DEST+1	;Bypass '@'
-;;	CALL	CONVERT_NODE
+	RET
+;
+NODENUMB
+	PUSH	IX		;Node number
+	PUSH	HL		;Net number
+	LD	HL,M_OF1
+	CALL	STRCAT
+	POP	HL
+	CALL	SPUTNUM
+	LD	A,'/'
+	CALL	SPUTC
+	POP	HL
+	CALL	SPUTNUM
+	LD	HL,M_OF2
+	CALL	STRCAT
 	RET
 ;
 ;End of pktdis1

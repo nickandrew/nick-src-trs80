@@ -6,7 +6,7 @@
 *GET	ASCII.HDR
 *GET	FIDONET.HDR
 ;
-	COM	'<Pktdis 1.5h 11-Apr-88>'
+	COM	'<Pktdis 1.5o 08-Apr-89>'
 	ORG	PROG_START
 	DEFW	BASE
 	DEFW	THIS_PROG_END
@@ -22,95 +22,119 @@
 *GET	TIMES.LIB	;Time output routines
 *GET	ROUTINES.LIB	;General routines
 ;
-DEFAULT_TOPIC	EQU	10000100B	;gen>mail>fidonet
+DEFAULT_TOPIC	EQU	10000100B	;gen>mail>netmail
+;
+;Byte values for 2nd field of conf_table:
+IS_FIDO		EQU	1
+IS_ACS		EQU	2
+IS_REJECT	EQU	4
+;
 ;Known Echomail conferences. Names; topic numbers.
 CONF_TABLE
 ;
-	DEFM	'NET713_SYSOP',0
-	DEFM	'713',0
-	DEFB	01101011B	;gen>fido>admin>713
-	DEFB	0
-;
-	DEFM	'RG54_SYSOP',0	;First name = incoming
-	DEFM	'54',0		;2nd name = displayed
-	DEFB	01101010B	;gen>fido>admin>54
-	DEFB	0		;Count of msgs rcvd
-;
-	DEFM	'ZONE3_SYSOP',0
-	DEFM	'z3',0
-	DEFB	01101001B	;gen>fido>admin>z3
-	DEFB	0
-;
-	DEFM	'AUST_PAMS',0
-	DEFM	'pams',0
-	DEFM	00101000B	;gen>echomail>pams
-	DEFB	0
-;
-	DEFM	'aust_xenix',0
-	DEFM	'unix',0
+	DEFM	'AUST_XENIX',0
+	DEFB	IS_FIDO
 	DEFB	00100100B	;gen>echomail>unix
 	DEFB	0
 ;
-	DEFM	'unet_sf',0
-	DEFM	'sf',0
-	DEFB	11001000B	;gen>usenet>sf
-	DEFB	0
-;
-	DEFM	'UNET_JOKES',0
-	DEFM	'jokes',0
-	DEFB	11000100B	;gen>usenet>jokes
-	DEFB	0
-;
-	DEFM	'UNET_MED',0
-	DEFM	'med',0
-	DEFB	11010000B	;gen>usenet>med
-	DEFB	0
-;
-	DEFM	'unet_minix',0
-	DEFM	'minix',0
-	DEFB	01000000B	;gen>minix
-	DEFB	0
-;
-	DEFM	'AUST_C_HERE',0
-	DEFM	'c',0
-	DEFB	00110000B	;gen>echomail>c
-	DEFB	0
-;
 	DEFM	'GATERS',0
-	DEFM	'gaters',0
+	DEFB	IS_FIDO
 	DEFB	00101100B	;gen>echomail>gaters
 	DEFB	0
 ;
+	DEFM	'AUST_C_HERE',0
+	DEFB	IS_FIDO
+	DEFB	00110000B	;gen>echomail>c
+	DEFB	0
+;
+	DEFM	'AUST_MEDICAL',0
+	DEFB	IS_FIDO
+	DEFB	00110100B	;gen>echomail>med
+	DEFB	0
+;
+	DEFM	'BBS_NEWS',0
+	DEFB	IS_FIDO
+	DEFM	00111001B	;gen>echomail>bbs>news
+	DEFB	0
+;
+	DEFM	'BBS_USER',0
+	DEFB	IS_FIDO
+	DEFM	00111010B	;gen>echomail>bbs>user
+	DEFB	0
+;
+	DEFM	'BBS_SYSOP',0
+	DEFB	IS_FIDO
+	DEFM	00111011B	;gen>echomail>bbs>sysop
+	DEFB	0
+;
+	DEFM	'COMP.OS.MINIX',0
+	DEFB	IS_ACS
+	DEFB	01000100B	;gen>minix>news
+	DEFB	0
+;
+	DEFM	'ZONE3_SYSOP',0
+	DEFB	IS_FIDO+IS_REJECT
+	DEFB	01101001B	;gen>fido>admin>z3
+	DEFB	0
+;
+	DEFM	'RG54_SYSOP',0	;First name = incoming
+	DEFB	IS_FIDO
+	DEFB	01101010B	;gen>fido>admin>54
+	DEFB	0		;Count of msgs rcvd
+;
+	DEFM	'NET713_SYSOP',0
+	DEFB	IS_FIDO
+	DEFB	01101011B	;gen>fido>admin>713
+	DEFB	0
+;
+	DEFM	'COMP.SYS.TRANSPUTER',0
+	DEFB	IS_ACS
+	DEFB	10100100B	;gen>misc>t'puter
+	DEFB	0
+;
+	DEFM	'AUS.WANTED',0
+	DEFB	IS_ACS
+	DEFB	10101000B	;gen>misc>wanted
+	DEFB	0
+;
+	DEFM	'COMP.UNIX.XENIX',0
+	DEFB	IS_ACS
+	DEFB	10101100B	;gen>misc>xenix
+	DEFB	0
+;
+	DEFM	'AUS.JOKES',0
+	DEFB	IS_ACS
+	DEFB	11000100B	;gen>usenet>jokes
+	DEFB	0
+;
+	DEFM	'AUS.SF',0
+	DEFB	IS_ACS
+	DEFB	11001000B	;gen>usenet>sf
+	DEFB	0
+;
 	DEFM	'AUS.GENERAL',0
-	DEFM	'aus.general',0
+	DEFB	IS_ACS
 	DEFB	11001100B	;gen>usenet>aus.general
 	DEFB	0
 ;
+	DEFM	'AUS.COMPUTERS.AMIGA',0
+	DEFB	IS_ACS
+	DEFB	11010000B	;gen>usenet>amiga
+	DEFB	0
+;
 	DEFM	'AUS.FORSALE',0
-	DEFM	'aus.forsale',0
+	DEFB	IS_ACS
 	DEFB	11010100B	;gen>usenet>aus.forsale
 	DEFB	0
 ;
 	DEFM	'AUS.JOBS',0
-	DEFM	'aus.jobs',0
+	DEFB	IS_ACS
 	DEFB	11011000B	;gen>usenet>aus.jobs
 	DEFB	0
 ;
 	DEFM	'AUS.AI',0
-	DEFM	'aus.ai',0
+	DEFB	IS_ACS
 	DEFB	11011100B	;gen>usenet>aus.ai
-	DEFB	0
-;
-	DEFM	'TRANSPUTER',0
-	DEFM	'transputer',0
-	DEFB	10100100B	;gen>misc>t'puter
-	DEFB	0
-;
-;These conferences are no longer being received.
-;
-	DEFM	'c_echo',0
-	DEFM	'c_echo',0
-	DEFB	10100000B	;general>misc
 	DEFB	0
 ;
 	DEFB	0		;end of table.
@@ -118,6 +142,8 @@ CONF_TABLE
 ECHOMAIL	DEFB	0	;1=Echomail.
 TO_ZETA		DEFB	0	;1=Addressed to zeta.
 RMFLAG		DEFB	0	;1=Remove packet
+AREA_FLAGS	DEFB	0	;is_fido etc...
+;
 ECHO_MARK	DEFM	'AREA:',0
 ECHO_MARK2	DEFM	01H,'AREA:',0
 SEEN_MARK	DEFM	'SEEN-BY: ',0
@@ -141,6 +167,7 @@ H_DEST_NET	DEFW	0
 H_X		DEFS	34
 ;******************************************
 ;
+M_CR	DEFM	CR,0
 M_HDROK	DEFM	'Header correct',CR,0
 M_NOMSG	DEFM	'** Could not read message',CR,0
 M_NOCOPY DEFM	'** Could not copy message',CR,0
@@ -157,6 +184,8 @@ M_PKTDIS DEFM	'pktdis: ',0
 M_STATS	DEFM	'Echomail message counts:',CR,0
 M_RDERR	DEFM	'Error while reading message',CR,0
 BLANKS	DEFM	'                    ',0
+M_OF1	DEFM	' (',0
+M_OF2	DEFM	')',0
 ;
 ;*****************************************
 MSGHDR_REC				;*
