@@ -1,0 +1,101 @@
+; trail/asm: Remove trailing tab from Disassem created
+; files.
+;
+; Version 1.0 on 22-Dec-84. Written by Nick Andrew.
+;
+; Edtasm source files created by Newdos Disassem package
+; contain a trailing tab on lines containing NOPs etc..
+; This program will remove a tab immediately preceding
+; carriage return on source file lines.
+;
+; Usage: TRAIL sourcefile destfile
+;
+*GET	DOSCALLS
+;
+	ORG	5200H
+START	LD	DE,FCB_INP
+	CALL	DOS_EXTRACT
+	LD	DE,FCB_OUT
+	CALL	DOS_EXTRACT
+	LD	HL,BUF_INP
+	LD	DE,FCB_INP
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,DOS_ERROR
+	LD	HL,BUF_OUT
+	LD	DE,FCB_OUT
+	LD	B,0
+	CALL	DOS_OPEN_NEW
+	JP	NZ,DOS_ERROR
+LOOP	CALL	GET_LINE
+	JR	Z,EXIT
+	CALL	TRAIL
+	CALL	PUT_LINE
+	JR	LOOP
+EXIT	LD	A,1AH
+	LD	DE,FCB_OUT
+	CALL	001BH
+	JP	NZ,DOS_ERROR
+	LD	A,0DH
+	CALL	0033H
+	LD	DE,FCB_OUT
+	CALL	DOS_CLOSE
+	JP	NZ,DOS_ERROR
+	LD	DE,FCB_INP
+	CALL	DOS_CLOSE
+	JP	NZ,DOS_ERROR
+	JP	DOS
+;
+GET_LINE
+	LD	DE,FCB_INP
+	CALL	0013H
+	JP	NZ,DOS_ERROR
+	CP	1AH
+	RET	Z
+	LD	HL,LINE
+	LD	(HL),A
+	INC	HL
+GL_1	PUSH	HL
+	LD	DE,FCB_INP
+	CALL	0013H
+	JP	NZ,DOS_ERROR
+	POP	HL
+	LD	(HL),A
+	INC	HL
+	CP	0DH
+	JR	NZ,GL_1
+	OR	A
+	RET
+;
+TRAIL	DEC	HL
+	DEC	HL
+	LD	A,(HL)
+	CP	09H
+	RET	NZ
+	LD	(HL),0DH
+	LD	A,'.'
+	CALL	0033H
+	RET
+;
+PUT_LINE
+	LD	HL,LINE
+PL_1	LD	A,(HL)
+	PUSH	HL
+	LD	DE,FCB_OUT
+	CALL	001BH
+	JP	NZ,DOS_ERROR
+	POP	HL
+	LD	A,(HL)
+	INC	HL
+	CP	0DH
+	JR	NZ,PL_1
+	RET
+;
+LINE	DEFS	128
+;
+FCB_INP	DEFS	32
+FCB_OUT	DEFS	32
+BUF_INP	DEFS	256
+BUF_OUT	DEFS	256
+;
+	END	START
