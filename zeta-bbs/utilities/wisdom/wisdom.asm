@@ -1,29 +1,39 @@
 ;wisdom
 ;
-ZETA	EQU	1
+ZETA		EQU	1
+DEBUGF		EQU	0	;Function call debugging
+DEBUGG		EQU	0	;Loop at start debug
+SYSOPONLY	EQU	1	;Only the Sysop may run
+REDIRDIS	EQU	1	;1 to disable redirection
+STACKSIZE	EQU	100H	;Size of the stack
 ;
 *GET	DOSCALLS:0
 ;
 	IF	ZETA
-*GET	EXTERNAL
-*GET	ASCII
+*GET	EXTERNAL.HDR
+*GET	ASCII.HDR
 ;
 	COM	'<wisdom 1.0  17-Oct-87>'
 	ORG	PROG_START
 	DEFW	BASE
 	DEFW	THIS_PROG_END
 	DEFW	0
-	DEFW	TERMINATE
+	DEFW	0
 ;End of program load info.
-	ORG	BASE+100H
+	ORG	BASE+STACKSIZE
 	ELSE
-	ORG	5200H
+	ORG	5200H+STACKSIZE
 ;
 	ENDIF
 ;
-;;*GET	DEBUG:1
+TOPSTACK	EQU	$
+;
+	IF	DEBUGF
+*GET	DEBUGF
+	ELSE
 DEBUG	MACRO	#$STR
 	ENDM
+	ENDIF
 ;
 START
 	IF	ZETA
@@ -33,15 +43,17 @@ START1	DEC	HL
 	JR	NC,START1
 	INC	HL		;Pseudo start of cmd line
 ;
-	LD	SP,START	;There is plenty of stack
+	LD	SP,TOPSTACK	;There is plenty of stack
 	LD	(_CMDLINE),HL	;Save cmd line pointer
-	LD	HL,1		;Disable redirection
+	LD	HL,REDIRDIS	;Disable redirection
 	LD	(_NOREDIR),HL
 ;
-;;	LD	A,(PRIV_1)
-;;	BIT	IS_SYSOP,A
-;;	LD	A,0
-;;	JP	Z,TERMINATE
+	IF	SYSOPONLY
+	LD	A,(PRIV_1)
+	BIT	IS_SYSOP,A
+	LD	A,0
+	JP	Z,TERMINATE
+	ENDIF
 ;
 	ELSE
 ;
@@ -50,8 +62,13 @@ START1	DEC	HL
 ;
 	ENDIF
 ;
-*GET	CINIT:1
-*GET	CALL:1
+	IF	DEBUGG
+DB_LOOP
+	JP	DB_LOOP
+	ENDIF
+;
+*GET	CINIT
+*GET	CALL
 ;
 *GET	WISDOM1
 ;
@@ -69,8 +86,7 @@ START1	DEC	HL
 _CMDLINE	DEFW	4318H
 _NOREDIR	DEFW	0
 _TICKPTR	DEFW	4040H
-;
-HIGHEST	DEFW	$+2
+_BRKSIZE	DEFW	$+2
 ;
 	IF	ZETA
 THIS_PROG_END	EQU	$
