@@ -45,7 +45,7 @@ char *argv[];
     is_trs80=0;
     is_unix=0;
     nocomment=1;
-    ignore=numdef=0;
+    ignore=numdef=trueif=falseif=0;
     if (argc!=3) {
         fputs("pp: Usage is PP infile outfile\n",stderr);
         exit(1);
@@ -124,10 +124,12 @@ char string[];
             if (isoctal(*(cp++))) {
                 int  i;
                 i=0;
-                while ((i++ < 4) && isoctal(*cp))
+                while ((i++ < 2) && isoctal(*cp))
                     cputc(*(cp++));
             }
-        }
+        } else {
+            cputc(*(cp++));
+	}
     }
     else if (*cp=='\'')
             error("Empty character constant\n");
@@ -232,9 +234,9 @@ char *cp;
     if (*cp=='"') delim='"';
     if (delim) cp++;
     i=0;
-    while ((i<=80) && (*cp!=delim) && (!white(*cp)))
+    while ((i<=NAMELEN) && (*cp!=delim) && (!white(*cp)))
         file[i++]= (*(cp++));
-    if (i>80) error("Include filename too long\n");
+    if (i>=NAMELEN) error("Include filename too long\n");
     file[i]=0;
     fname=file;
     if (is_trs80 && !strcmp(file,"stdio.h")) fname="stdio";
@@ -309,6 +311,7 @@ char *cp;
     i=0;
     while (i<(DEFLEN-1) && !white(*cp) && *cp)
         thisdef[i++]= *(cp++);
+    thisdef[i] = '\0';
     i=0;
     while (i<numdef) {
         if (strcmp(thisdef,&defines[i++ * DEFLEN])) continue;
