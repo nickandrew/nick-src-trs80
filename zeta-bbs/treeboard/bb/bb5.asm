@@ -1,10 +1,154 @@
-;BB5.asm: BB subroutines, on 10-Jan-88
+;BB5.asm: BB subroutines, on 13-Dec-88
+;
+; ------------------------------
+;
+HDR_PRNT			;print a header.
+	LD	HL,M_MSG2
+	CALL	MESS
+	LD	HL,(MSG_NUM)
+	CALL	PRINT_NUMB
+	LD	HL,M_SPACES
+	CALL	MESS
+	LD	A,(HDR_TOPIC)
+	CALL	TOPIC_PRINT
+;
+	CALL	BGETC		;bypass dummy byte
+	CALL	BGETC		;bypass # of lines
+;
+	LD	A,(HDR_LINES)
+	CP	4		;min size before msg
+	JR	C,HPR_1
+	LD	HL,M_SPACES
+	CALL	MESS
+	LD	A,'('
+	CALL	PUT
+	LD	A,(HDR_LINES)
+	LD	L,A
+	LD	H,0
+	CALL	PRINT_NUMB
+	LD	HL,M_LINES
+	CALL	MESS
+	LD	A,')'
+	CALL	PUT
+HPR_1
+	CALL	PUTCR
+;
+	LD	HL,M_SNDR
+	CALL	MESS
+	CALL	TXT_GET_PUT_NCR
+;
+	LD	HL,M_RCVR
+	CALL	MESS
+	CALL	TXT_GET_PUT_NCR
+;
+	LD	A,(HDR_FLAG)
+	BIT	FM_PRIVATE,A
+	JR	Z,HPR_2
+	LD	HL,M_P
+	CALL	MESS
+HPR_2
+	LD	A,(HDR_FLAG)
+	BIT	FM_NETSENT,A
+	JR	Z,HPR_2A	;if not sent
+	LD	HL,M_NETSENT
+	CALL	MESS
+HPR_2A
+;
+	LD	HL,M_DATE
+	CALL	MESS
+	CALL	TXT_GET_PUT_NCR		;now date & time.
+;
+	LD	HL,M_SUBJ
+	CALL	MESS
+	CALL	TXT_GET_PUT_NCR
+;
+	CALL	PUTCR
+	CALL	PUTCR
+	RET
+;
+; ------------------------------
+;
+;Store fields of a header in buffers
+HDR_STORE
+	CALL	BGETC		;bypass dummy byte
+	CALL	BGETC		;bypass # of lines
+;
+	LD	HL,B_FROM
+	CALL	HDR_GETNCR
+;
+	LD	HL,B_TO
+	CALL	HDR_GETNCR
+;
+	LD	HL,B_DATE
+	CALL	HDR_GETNCR
+;
+	LD	HL,B_SUBJ
+	CALL	HDR_GETNCR
+	RET
+;
+HDR_GETNCR
+	LD	B,80
+HGN_01
+	PUSH	BC
+	PUSH	HL
+	CALL	BGETC
+	POP	HL
+	POP	BC
+	JR	NZ,HGN_02
+	CP	CR
+	JR	Z,HGN_02
+	OR	A
+	JR	Z,HGN_02
+	LD	(HL),A
+	INC	HL
+	DJNZ	HGN_01
+HGN_02
+	LD	(HL),0
+	RET
+;
+; ------------------------------
+;
+IF_VISITOR
+	LD	A,(PRIV_2)
+	BIT	IS_VISITOR,A
+	RET
+;
+IF_SYSOP
+	LD	A,(PRIV_1)
+	BIT	IS_SYSOP,A
+	RET
+;
+RET_NZ
+	OR	A
+	RET	NZ
+	CP	1
+	RET
 ;
 MESS	PUSH	DE
 	LD	DE,$2
 	CALL	MESS_0
 	POP	DE
 	RET
+;
+MESS_CR
+	PUSH	DE
+	LD	DE,$2
+MCR_01
+	LD	A,(HL)
+	PUSH	AF
+	CALL	$PUT
+	POP	AF
+	CP	CR
+	JR	Z,MCR_02
+	OR	A
+	JR	Z,MCR_02
+	INC	HL
+	JR	MCR_01
+MCR_02
+	POP	DE
+	RET
+;
+; ------------------------------
 ;
 MENU
 	LD	(CONTROL),HL
@@ -92,6 +236,8 @@ MU_5
 	POP	HL
 	JR	MU_1
 ;
+; ------------------------------
+;
 GET_STRING
 	PUSH	HL
 	LD	HL,(CHAR_POSN)
@@ -118,6 +264,8 @@ GS_002	LD	A,(HL)
 	LD	(HL),0
 	RET
 ;
+; ------------------------------
+;
 GET_CHAR
 	LD	HL,(CHAR_POSN)
 	LD	A,(HL)
@@ -130,6 +278,8 @@ GET_CHAR
 	LD	A,CR
 GC_1	CP	A
 	RET
+;
+; ------------------------------
 ;
 IF_CHAR	LD	HL,(CHAR_POSN)	;Set NZ if no more chars
 	LD	A,(HL)
@@ -148,6 +298,8 @@ IF_NUM	CP	'0'
 	RET
 IN_1	CP	A
 	RET
+;
+; ------------------------------
 ;
 GET_NUM
 	LD	HL,0
@@ -189,12 +341,16 @@ O_FLO	LD	HL,0C000H	;sufficiently big
 ;
 ;to stop all such 65536-65537 attempts.
 ;
+; ------------------------------
+;
 ;
 FUNC	LD	HL,(FUNCTION)
 	LD	A,H
 	OR	L
 	RET	Z
 	JP	(HL)
+;
+; ------------------------------
 ;
 PUT	PUSH	DE
 	LD	DE,$2
@@ -216,12 +372,6 @@ CPHLDE	LD	A,H
 	RET	NZ
 	LD	A,L
 	CP	E
-	RET
-;
-TOP_ADDR
-	CALL	MUL_20
-	LD	DE,TOPIC_DAT
-	ADD	HL,DE
 	RET
 ;
 MUL_20	LD	L,A
@@ -482,6 +632,12 @@ FTNC_7	INC	HL
 FTNC_8	LD	(FTN_STR),HL
 	XOR	A
 	LD	(DE),A
+	RET
+;
+TOP_ADDR
+	CALL	MUL_20
+	LD	DE,TOPIC_DAT
+	ADD	HL,DE
 	RET
 ;
 PUTCR
