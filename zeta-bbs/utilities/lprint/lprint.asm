@@ -1,8 +1,8 @@
 ;lprint: print time & message on printer.
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	COM	'<Lprint 1.1a 06-Jul-86>'
 	ORG	BASE+100H

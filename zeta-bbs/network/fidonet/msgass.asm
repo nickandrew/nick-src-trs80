@@ -1,9 +1,9 @@
 ;pktass: Assemble messages into outgoing packets.
 ;
 *GET	DOSCALLS
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
-*GET	FIDONET.HDR
+*GET	EXTERNAL
+*GET	ASCII
+*GET	FIDONET
 ;
 	ORG	PROG_START
 	DEFW	BASE
@@ -25,7 +25,7 @@ START	LD	SP,START
 *GET	PKTASS1
 *GET	BB7
 ;
-*GET	ROUTINES.LIB
+*GET	ROUTINES
 ;
 ;Data section...........................................
 ;
@@ -80,7 +80,7 @@ CURRENT_FILE	DEFS	32
 CURRENT_FILEA	DEFS	32
 FILE_APPEND	DEFM	'/poof:2',0
 ;
-*GET	MSGHDR.HDR
+*GET	MSGHDR
 ;
 NET_ADDRESS	DEFW	0	;Addr of @"realtors"
 LINK_TOUSE	DEFW	0
@@ -115,7 +115,7 @@ F_ECHO	DEFB	0
 ECHO_AREA	DEFW	0	;addr of AREA: line.
 ECHO_ORIGIN	DEFW	0	;addr of ORIGIN lines
 ;
-*GET	MSGTOP.HDR
+*GET	MSGTOP
 ;
 ;Echomail control information....
 ECHOMAIL

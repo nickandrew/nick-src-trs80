@@ -6,9 +6,9 @@ ACSNET_ID	EQU	6	;Runx & Nswitgould
 NEWCOND		EQU	0	;Must answer Y to conditions to logon
 CREDITS		EQU	0	;Print credit info
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	ORG	PROG_START
 	DEFW	BASE
@@ -23,9 +23,9 @@ CREDITS		EQU	0	;Print credit info
 *GET	LOGON1
 *GET	LOGON2
 ;
-*GET	FORTYHEX.LIB
-*GET	MOREPIPE.LIB
-*GET	ROUTINES.LIB
+*GET	FORTYHEX
+*GET	MOREPIPE
+*GET	ROUTINES
 ;
 ;List of prohibited words or parts of words
 BADN_1	DEFM	'SYSOP',0

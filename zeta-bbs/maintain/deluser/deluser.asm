@@ -1,9 +1,9 @@
 ;Deluser: Delete a username entry from the userfile.
 ;         Or lock a user out of the system.
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	ORG	PROG_START
 	DEFW	BASE

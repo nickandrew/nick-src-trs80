@@ -1,10 +1,10 @@
 ;msgdel: Delete messages older than a certain age
 ;usage:  msgdel
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
-*GET	FIDONET.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
+*GET	FIDONET
 ;
 	COM	'<Msgdel 1.0  29-Dec-88>'
 	ORG	PROG_START
@@ -449,8 +449,8 @@ RET_NZ
 	CP	1
 	RET
 ;
-*GET	BB7.ASM
-*GET	ROUTINES.LIB
+*GET	BB7
+*GET	ROUTINES
 ;
 ;-------------------------------
 M_OPERR		DEFM	'Error opening message files',CR,0

@@ -2,7 +2,7 @@
 ;Last modified: 07-Aug-87
 ;
 ;
-*GET	RS232.HDR
+*GET	RS232
 ;
 OK	EQU	0
 TIMEOUT	EQU	1

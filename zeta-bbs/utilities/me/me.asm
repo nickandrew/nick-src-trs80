@@ -1,8 +1,8 @@
 ;me: Message entry for BB primarily, but other things too
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 MAX_LINES	EQU	250
 ;
@@ -990,9 +990,9 @@ SAVE_ERROR
 	CALL	MESS
 	JP	MAIN
 ;
-*GET	LINEIN.LIB
-*GET	TIMES.LIB
-*GET	ROUTINES.LIB
+*GET	LINEIN
+*GET	TIMES
+*GET	ROUTINES
 ;
 ZZZZZZZY EQU $		;End of required data (?)
 	DEFS	4096	;Text buffer.

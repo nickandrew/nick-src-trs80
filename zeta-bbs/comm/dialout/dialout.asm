@@ -10,11 +10,11 @@
 ; 1.1b	16 Aug 89	Increase carrier detect interval when dialling
 ; 1.1a	31 May 89	Base version
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
-*GET	RS232.HDR
-*GET	FIDONET.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
+*GET	RS232
+*GET	FIDONET
 ;
 	ORG	PROG_START
 	DEFW	BASE
@@ -624,7 +624,7 @@ STRCMP_01
 	JR	STRCMP_01
 ;
 ;Include common routines.
-*GET	ROUTINES.LIB
+*GET	ROUTINES
 ;
 ; -----------------------------------------------
 ;

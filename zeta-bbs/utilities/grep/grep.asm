@@ -1,9 +1,9 @@
 ;grep: Search for a string of chars in a file.
 ;usage: grep pattern filename
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	ORG	PROG_START
 	DEFW	BASE

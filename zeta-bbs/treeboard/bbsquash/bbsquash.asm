@@ -483,13 +483,13 @@ M_DOWHAT
 	DEFM	'<A>bort, <F>ix? ',0
 ;
 HDR_BUFF	;Buffer for message headers.
-*GET	MSGHDR.HDR
+*GET	MSGHDR
 ;
 THIS_MSG	DEFW	0
 MSG_COUNT	DEFW	0
 ;
 ;Info about counts.
-*GET	MSGTOP.HDR
+*GET	MSGTOP
 ;
 ;
 M_FILDUP

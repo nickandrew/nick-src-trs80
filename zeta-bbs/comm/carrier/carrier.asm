@@ -1,10 +1,10 @@
 ;Carrier: Interrupt-Driven carrier detect.
 ; Figure out when to send a disconnect signal
 ;
-*GET	EXTERNAL.HDR
-*GET	DOSCALLS.HDR
-*GET	ASCII.HDR
-*GET	RS232.HDR
+*GET	EXTERNAL
+*GET	DOSCALLS
+*GET	ASCII
+*GET	RS232
 ;
 	COM	'<Carrier 1.2a 31-Dec-87>'
 	ORG	BASE+100H

@@ -1,9 +1,9 @@
 ;free.asm: Source code for FREE command
 ;For Zeta Rtrs only (uses devices).
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	ORG	PROG_START
 	DEFW	BASE

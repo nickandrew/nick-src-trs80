@@ -8,9 +8,9 @@
 ;**************************************************
 ;
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	COM	'<ERRLOG 1.0d 16-Apr-86>'
 	ORG	BASE+100H

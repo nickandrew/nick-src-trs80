@@ -1,9 +1,9 @@
 ;scrub: Remove bit 7 from files and convert from CPM
 ;	    to TRS-80 format.
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	ORG	PROG_START
 	DEFW	BASE

@@ -1,9 +1,9 @@
 ;special: set up special routines.
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
-*GET	RS232.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
+*GET	RS232
 ;
 	COM	'<Special 1.3g 02-Apr-88>'
 	ORG	BASE+100H

@@ -1,8 +1,8 @@
 ;EDIT: Trs-80 Lisp editor modified for Zeta.
 ;Zeta RTRS Version...
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 ;
 	ORG	PROG_START

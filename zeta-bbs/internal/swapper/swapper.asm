@@ -13,10 +13,10 @@
 ;*							*
 ;********************************************************
 ;
-*GET	EXTERNAL.HDR
-*GET	DOSCALLS.HDR
-*GET	ASCII.HDR
-*GET	PROGNUMB.HDR
+*GET	EXTERNAL
+*GET	DOSCALLS
+*GET	ASCII
+*GET	PROGNUMB
 ;
 	COM	'<Swapper 1.2a 23-Apr-89>'
 	ORG	5200H
@@ -670,7 +670,7 @@ ERROR_SWAP_5
 ;
 ;********************************************************
 ;
-*GET	ROUTINES.LIB
+*GET	ROUTINES
 ;
 ;********************************************************
 ;

@@ -19,9 +19,9 @@
 ;* This program is compatible with DIRECT.C for Unix.   *
 ;********************************************************
 ;
-*GET	DOSCALLS.HDR		;Include DOSCALLS.ASM
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS		;Include DOSCALLS.ASM
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	ORG	PROG_START
 	DEFW	BASE

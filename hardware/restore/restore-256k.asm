@@ -1,9 +1,9 @@
 ;Restore: SYSres for 256k ram system (zeta)
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
-*GET	PROGNUMB.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
+*GET	PROGNUMB
 ;
 	COM	'<Restore 1.1b 29-Mar-87 (zeta)>'
 ;

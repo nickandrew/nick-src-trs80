@@ -5,9 +5,9 @@
 ;1.5i	07 May 89
 ;	Add - more - option & base version
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;  
 	ORG	PROG_START
 	DEFW	BASE
@@ -590,8 +590,8 @@ RB_EOF	LD	A,'0'
 	OR	A		;Set NZ flag
 	RET
 ;
-*GET	MOREPIPE.LIB	;Pagination routine
-*GET	ROUTINES.LIB	;Other routines
+*GET	MOREPIPE	;Pagination routine
+*GET	ROUTINES	;Other routines
 ;
 ;data follows.
 ;

@@ -8,9 +8,9 @@
 ; 1.12 02 Jan 89
 ;	Base version
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	ORG	PROG_START
 	DEFW	BASE
@@ -52,8 +52,8 @@ CHARTIMEOUT	EQU	2	;0.2 seconds timeout when receiving
 *GET	XMODEM2
 ;
 ;Get useful routines.
-*GET	TIMES.LIB
-*GET	ROUTINES.LIB
+*GET	TIMES
+*GET	ROUTINES
 ;
 ;Special flags & stuff.
 QUIET		DEFB	0	;1=Quiet output

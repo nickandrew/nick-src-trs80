@@ -3,9 +3,9 @@
 ;1.10	20 Aug 89	Fix crashing bug in editor
 ;1.9c	24 Jul 89	Base version
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 MAX_LINES	EQU	250
 MAX_MSGS	EQU	400
@@ -29,10 +29,10 @@ MAX_MSGS	EQU	400
 *GET	MAIL6		;Resend command
 *GET	MAIL7		;Text file routines
 ;
-*GET	LINEIN.LIB
-*GET	MOREPIPE.LIB	;Pipe output through - more - filter
-*GET	TIMES.LIB
-*GET	ROUTINES.LIB
+*GET	LINEIN
+*GET	MOREPIPE	;Pipe output through - more - filter
+*GET	TIMES
+*GET	ROUTINES
 ;
 *GET	MAILDATA
 ;

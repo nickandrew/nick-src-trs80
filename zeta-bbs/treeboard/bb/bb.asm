@@ -4,9 +4,9 @@
 ;1.8c:
 ;	Base version
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 MAX_LINES	EQU	250
 MAX_MSGS	EQU	1024
@@ -30,10 +30,10 @@ MAX_MSGS	EQU	1024
 *GET	BB6		;Resend command
 *GET	BB7		;Text file routines
 ;
-*GET	LINEIN.LIB
-*GET	MOREPIPE.LIB	;Pipe output through - more - filter
-*GET	TIMES.LIB
-*GET	ROUTINES.LIB
+*GET	LINEIN
+*GET	MOREPIPE	;Pipe output through - more - filter
+*GET	TIMES
+*GET	ROUTINES
 ;
 *GET	BBDATA
 ;

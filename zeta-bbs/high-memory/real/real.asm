@@ -1,7 +1,7 @@
 ;real: get time off real time clock.
 ;
-*GET	EXTERNAL.HDR
-*GET	DOSCALLS.HDR
+*GET	EXTERNAL
+*GET	DOSCALLS
 ;
 	COM	'<Real 2.1c 25-Jun-86>'
 	ORG	BASE+100H

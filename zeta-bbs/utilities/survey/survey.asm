@@ -7,11 +7,11 @@ SYSOPONLY	EQU	1	;Only the Sysop may run
 REDIRDIS	EQU	1	;1 to disable redirection
 STACKSIZE	EQU	100H	;Size of the stack
 ;
-*GET	DOSCALLS:0
+*GET	DOSCALLS
 ;
 	IF	ZETA
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	COM	'<Survey 1.0a 23-Jan-88 Zeta>'
 	ORG	PROG_START

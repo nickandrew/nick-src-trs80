@@ -7,13 +7,13 @@ SYSOPONLY	EQU	1	;Only the Sysop may run
 REDIRDIS	EQU	1	;1 to disable redirection
 STACKSIZE	EQU	100H	;Size of the stack
 ;
-*GET	DOSCALLS:0
+*GET	DOSCALLS
 ;
 	IF	ZETA
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	EXTERNAL
+*GET	ASCII
 ;
-	COM	'<Ankhmail 1.2  12 Apr 90>'
+	COM	'<Ankhmail 1.2c 14 Aug 90>'
 	ORG	PROG_START
 	DEFW	BASE
 	DEFW	THIS_PROG_END
@@ -25,6 +25,8 @@ STACKSIZE	EQU	100H	;Size of the stack
 	ORG	5200H+STACKSIZE
 ;
 	ENDIF
+;
+TOPSTACK	EQU	$
 ;
 	IF	DEBUGF
 *GET	DEBUGF
@@ -41,7 +43,7 @@ START1	DEC	HL
 	JR	NC,START1
 	INC	HL		;Pseudo start of cmd line
 ;
-	LD	SP,START	;There is plenty of stack
+	LD	SP,TOPSTACK	;There is plenty of stack
 	LD	(_CMDLINE),HL	;Save cmd line pointer
 	LD	HL,REDIRDIS	;Disable redirection
 	LD	(_NOREDIR),HL
@@ -89,7 +91,7 @@ DB_LOOP
 *GET	WILD
 ;
 	IF	ZETA
-*GET	ROUTINES.LIB
+*GET	ROUTINES
 *GET	LIBCZ
 	ELSE
 *GET	LIBC
@@ -97,8 +99,7 @@ DB_LOOP
 ;
 _CMDLINE	DEFW	4318H
 _NOREDIR	DEFW	0
-;
-HIGHEST	DEFW	$+2
+_BRKSIZE	DEFW	$+2
 ;
 	IF	ZETA
 THIS_PROG_END	EQU	$

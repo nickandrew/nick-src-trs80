@@ -2,9 +2,9 @@
 ;This new pktass does not handle netmail at all.
 ;
 *GET	DOSCALLS
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
-*GET	FIDONET.HDR
+*GET	EXTERNAL
+*GET	ASCII
+*GET	FIDONET
 ;
 ALLNET		EQU	0	;1=Send out msgs with fm_netmsg bit ZERO
 ECHO_GENERAL	EQU	0	;1=General is an echomail topic TO_ZETA.
@@ -29,7 +29,7 @@ START	LD	SP,START
 *GET	PKTASS1
 *GET	BB7
 ;
-*GET	ROUTINES.LIB
+*GET	ROUTINES
 ;
 ;Data section...........................................
 ;
@@ -84,7 +84,7 @@ CURRENT_FILE	DEFS	32
 CURRENT_FILEA	DEFS	32
 FILE_APPEND	DEFM	'/poof:2',0
 ;
-*GET	MSGHDR.HDR
+*GET	MSGHDR
 ;
 NET_ADDRESS	DEFW	0	;Addr of @"prophet"
 LINK_TOUSE	DEFW	0
@@ -123,7 +123,7 @@ ECHO_AREA	DEFW	0	;addr of AREA: line.
 ECHO_ORIGIN	DEFW	0	;addr of ORIGIN lines
 ECHO_COORD	DEFW	0	;addr of net,node ints
 ;
-*GET	MSGTOP.HDR
+*GET	MSGTOP
 ;
 ;Echomail control information....
 ECHOMAIL

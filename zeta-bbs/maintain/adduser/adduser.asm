@@ -1,9 +1,9 @@
 ;Adduser: Add a new user to the user file.
 ;         Or give a person member status.
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 ;
 	ORG	PROG_START

@@ -1,8 +1,8 @@
 ;fixwhere: Build and maintain file catalogues
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	COM	'<Fixwhere 1.3  02-Jan-88>'
 ;

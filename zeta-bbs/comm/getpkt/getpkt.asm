@@ -1,10 +1,10 @@
 ;getpkt: Do all functions required to get a Fidonet
 ;	 packet
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
-*GET	RS232.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
+*GET	RS232
 ;
 	ORG	PROG_START
 	DEFW	BASE
@@ -657,7 +657,7 @@ BS_2
 	RET
 ;
 *GET	ROUTINES
-*GET	STATS.HDR
+*GET	STATS
 ;
 MT_1	DEFM	'--> trying to get filename',CR,0
 MT_2	DEFM	'--> eot seen',CR,0

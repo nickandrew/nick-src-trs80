@@ -1,8 +1,8 @@
 ;special2: setup special routines #2.
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
 ;
 	COM	'<Special2 1.1a 06-Jul-86>'
 	ORG	BASE+100H

@@ -1,10 +1,10 @@
 ;pktdis: Fido packet disassembler
 ;usage:  pktdis [-r] filename
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
-*GET	FIDONET.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
+*GET	FIDONET
 ;
 	COM	'<Pktdis 1.5p 09-Jun-89>'
 	ORG	PROG_START
@@ -19,8 +19,8 @@
 *GET	PKTDIS1
 *GET	BB7		;Text file routines
 ;
-*GET	TIMES.LIB	;Time output routines
-*GET	ROUTINES.LIB	;General routines
+*GET	TIMES		;Time output routines
+*GET	ROUTINES	;General routines
 ;
 DEFAULT_TOPIC	EQU	10000100B	;gen>mail>netmail
 ;

@@ -13,10 +13,10 @@
 ;		Change "modem online, start" to start at current rate
 ; 3.3o:		Add "waiting for carrier" message
 ;
-*GET	DOSCALLS.HDR
-*GET	EXTERNAL.HDR
-*GET	ASCII.HDR
-*GET	RS232.HDR
+*GET	DOSCALLS
+*GET	EXTERNAL
+*GET	ASCII
+*GET	RS232
 ;
 $TA	EQU	0FF38H		;Type ahead.
 ;
@@ -871,7 +871,7 @@ LF_02
 	RET
 ;
 ;Include common routines.
-*GET	ROUTINES.LIB
+*GET	ROUTINES
 ;
 MODEM_1A	DEFM	'AT&FB2&T5',CR,0
 MODEM_1B	DEFM	'AT v0 x1 h0 s0=3 s2=255 s11=8',CR,0
