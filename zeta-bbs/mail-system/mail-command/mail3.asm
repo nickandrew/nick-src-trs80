@@ -1,4 +1,4 @@
-;@(#) mail3.asm - mail code file #3, 26 Jun 89
+;mail3.asm: mail code file #3, 11-Mar-89
 ;
 TOPIC_PRINT
 	LD	(TEMP_TOPIC),A
@@ -192,8 +192,8 @@ SPEC_1	CALL	GET_CHAR
 ;
 	CP	'#'
 	JP	Z,MAIN
-;;	CP	'C'		;Create subtopic
-;;	JP	Z,CREATE_CMD
+	CP	'C'		;Create subtopic
+	JP	Z,CREATE_CMD
 	CP	'D'		;Delete this topic
 	JP	Z,DELTOP_CMD
 	CP	'F'		;Forward msgs to user
