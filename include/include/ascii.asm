@@ -1,5 +1,5 @@
-;ASCII: Definitions for control codes.
-;Last updated 18-Jan-88.
+;ASCII.HDR: Definitions for control codes.
+;Last updated 04-Dec-88.
 ;
 *LIST	OFF
 NULL	EQU	0
@@ -12,6 +12,7 @@ LF	EQU	0AH
 CR	EQU	0DH
 XON	EQU	11H	;^Q
 XOFF	EQU	13H	;^S
+ESC	EQU	1BH
 DEL	EQU	7FH
 ;
 *LIST	ON
