@@ -39,13 +39,11 @@ char *argv[];
    is_trs80=1;
    is_unix=0;
    nocomment=ignore=numdef=trueif=falseif=0;
-   if (argc!=3)
-      {
+   if (argc!=3) {
       printf("PP: Usage is pp infile outfile\n");
       exit(1);
       }
-   if ((fout=fopen(argv[2],"w"))==NULL)
-      {
+   if ((fout=fopen(argv[2],"w"))==NULL) {
       printf("pp: Can't open output file %s\n",argv[2]);
       exit(2);
       }
@@ -53,6 +51,7 @@ char *argv[];
    fclose(fout);
    exit(0);
 }
+
 process(name)
 char *name;
 {
@@ -62,25 +61,21 @@ char *name;
    line=1;
    curr_line= &line;
    curr_file=name;
-   if ((fp=fopen(name,"r"))==NULL)
-      {
+   if ((fp=fopen(name,"r"))==NULL) {
       verberr(0,thisline,"Can't open file");
       return(0);
       }
    fprintf(fout,"# %d %s\n",line,curr_file);
-   while (fgets(thisline,LINELEN,fp))
-      {
+   while (fgets(thisline,LINELEN,fp)) {
       curr_text=thisline;
       if (is_trs80 && (*thisline==0x1a)) break;
       line++;
       i=0;
       while (whitencr(thisline[i])) i++;
       if (thisline[i]=='#') handlepp(thisline,fp,&i);
-      else
-         {
+      else {
          i=0;
-         while (c=thisline[i])
-            {
+         while (c=thisline[i]) {
             if (c=='\'') handlesq(thisline,&i);
             else
             if (c=='"')  handledq(thisline,fp,&i);
@@ -95,16 +90,19 @@ char *name;
       }
    fclose(fp);
 }
+
 whitencr(c)
 char c;
 {
    return((c==' ') || (c=='\t') || (c=='\f'));
 }
+
 white(c)
 char c;
 {
    return(whitencr(c) || (c=='\n'));
 }
+
 handlesq(string,ip)
 int  *ip;
 char string[];
@@ -112,40 +110,38 @@ char string[];
    char *cp;
    cp=string+*ip;
    cputc(*(cp++));
-   if (*cp=='\\')
-      {
-      if (escchr(*(++cp)))
-         {
+   if (*cp=='\\') {
+      if (escchr(*(++cp))) {
          cputc('\\');
          cputc(*cp);
-         if (isoctal(*(cp++)))
-            {
+         if (isoctal(*(cp++))) {
             int  i;
             i=0;
             while ((i++ < 2) && isoctal(*cp))
                cputc(*(cp++));
             }
-         }
-      else cputc(*(cp++));
-      }
-   else if (*cp=='\'') verberr(0,curr_text,"Character '' ?");
+         } else cputc(*(cp++));
+      } else if (*cp=='\'') verberr(0,curr_text,"Character '' ?");
         else cputc(*(cp++));
    if (*cp!='\'') 
       error("Character constant not terminated properly\n");
    cputc(*(cp++));
    *ip=cp-string;
 }
+
 escchr(c)
 char c;
 {
    return((c=='n') || (c=='t') || (c=='b') || (c=='r') ||
           (c=='f') || (c=='\\')|| (c=='\'')|| isoctal(c) );
 }
+
 isoctal(c)
 char c;
 {
    return( (c>='0') && (c<='7'));
 }
+
 handledq(string,fp,ip)
 char string[];
 FILE *fp;
@@ -156,8 +152,7 @@ int  *ip;
    cputc(*(cp++));
    while (*cp && (*cp!='"'))
       cputc(*(cp++));
-   while (!*cp)
-      {
+   while (!*cp) {
       (*curr_line)++;
       if (!fgets(string,LINELEN,fp)) error("EOF within string\n");
       cp=curr_text=string;
@@ -167,6 +162,7 @@ int  *ip;
    cputc(*(cp++));
    *ip=cp-string;
 }
+
 handleco(string,fp,ip)
 char string[];
 FILE *fp;
@@ -179,8 +175,7 @@ int  *ip;
    cputc(*(cp++));
    while (*cp && ((*cp!='/') || (ch1!='*')))
       cputc(ch1=(*(cp++)));
-   while (!*cp)
-      {
+   while (!*cp) {
       (*curr_line)++;
       if (!fgets(string,LINELEN,fp)) error("EOF within comment\n");
       cp=curr_text=string;
@@ -189,6 +184,7 @@ int  *ip;
       }
    *ip=cp-string;
 }
+
 handlepp(string,fp,ip)
 char string[];
 FILE *fp;
@@ -212,6 +208,7 @@ int  *ip;
    else if (!strcmp(preproc,"endif"  )) hendif(cp);
    else if (!ignore)  fputs(string,fout);
 }
+
 hinclude(cp)
 char *cp;
 {
@@ -229,8 +226,7 @@ char *cp;
    file[i]=0;
    fname=file;
    if (is_trs80 && !strcmp(file,"stdio.h")) fname="STDIO/CSH";
-   if (is_unix && (delim=='>'))
-      {
+   if (is_unix && (delim=='>')) {
       /* Prepend standard unix search directory */
       strcpy(stddir,"/usr/include/");
       strcat(stddir,fname);
@@ -241,12 +237,14 @@ char *cp;
    process(fname);
    fprintf(fout,"# %d %s\n",*last_line,last_file);
 }
+
 error(str1,str2)
 char *str1,*str2;
 {
    printf(str1,str2);
    exit(-1);
 }
+
 verberr(flag,str1,str2)
 char *str1,*str2;
 int  flag;
@@ -255,16 +253,19 @@ int  flag;
    printf("'%s', line %d, %s\n",curr_file,*curr_line,str2);
    if (flag) exit(flag);
 }
+
 cputc(c)
 char c;
 {
    if (!ignore) putc(c,fout);
 }
+
 hif(cp)
 char *cp;
 {
    verberr(1,curr_text,"#if construct not supported");
 }
+
 hdefine(cp)
 char *cp;
 {
@@ -282,13 +283,13 @@ char *cp;
    fputs(curr_text,fout);
    /* Put #define in output for constant replacement */
 }
+
 hifdef(cp)
 char *cp;
 {
    int  i;
    char thisdef[DEFLEN];
-   if (ignore)
-      {
+   if (ignore) {
       falseif++;
       return;
       }
@@ -298,8 +299,7 @@ char *cp;
       thisdef[i++]= *(cp++);
    thisdef[i]=0;
    i=0;
-   while (i<numdef)
-      {
+   while (i<numdef) {
       if (strcmp(thisdef,&defines[i++ * DEFLEN])) continue;
       printf("T: %s",curr_text);
       trueif++;
@@ -310,13 +310,13 @@ char *cp;
    ignore=1;
    return;
 }
+
 hifndef(cp)
 char *cp;
 {
    int  i;
    char thisdef[DEFLEN];
-   if (ignore)
-      {
+   if (ignore) {
       falseif++;
       return;
       }
@@ -325,8 +325,7 @@ char *cp;
    while (i<(DEFLEN-1) && !white(*cp) && *cp)
       thisdef[i++]= *(cp++);
    i=0;
-   while (i<numdef)
-      {
+   while (i<numdef) {
       if (strcmp(thisdef,&defines[i++ * DEFLEN])) continue;
       printf("F: %s",curr_text);
       falseif++;
@@ -337,15 +336,14 @@ char *cp;
    trueif++;
    return;
 }
+
 helse(cp)
 char *cp;
 {
    if (trueif==0 && falseif==0)
       verberr(1,curr_text,"No matching #if");
-   if (falseif)
-      {
-      if (falseif==1)
-         {
+   if (falseif) {
+      if (falseif==1) {
          trueif=1;
          falseif=ignore=0;
          }
@@ -355,18 +353,19 @@ char *cp;
    falseif++;
    ignore=1;
 }
+
 hendif(cp)
 char *cp;
 {
    if (trueif==0 && falseif==0)
       verberr(1,curr_text,"No matching #if");
-   if (falseif)
-      {
+   if (falseif) {
       if (!(--falseif)) ignore=0;
       return;
       }
    trueif--;
 }
+
 hline(cp)
 char *cp;
 {
