@@ -1,7 +1,7 @@
 ;*************************************
-;* term/edt: terminal program.       *
+;* term15/asm: terminal program.     *
 ;* Nick Andrew, 04-Apr-84.           *
-;* Version 1.4b 16-Jun-85.           *
+;* Version 1.5  17-Dec-85.           *
 ;*                                   *
 ;*                                   *
 ;* Now working on ascii file send    *
@@ -45,7 +45,7 @@ SNDON	EQU	03H	;Holds Send=on character.
 SNDOFF	EQU	04H	;Holds Send=off character.
 UARTPG	EQU	05H	;# codes for uart setting.
 ;Bits defined for flag: 'status'
-FULDPX	EQU	0	;Full Duplex.
+FULDPX	EQU	0	;1=Full Duplex.
 ECHOCR	EQU	1	;Echo c/r on Half duplex.
 PTROUT	EQU	2	;Printer output.
 WTSND	EQU	3	;Wait-to-send flag.
@@ -94,7 +94,7 @@ UART_CLR	;codes to clear UART.
 	DEFB	4
 	DEFB	82H,50H,0CEH,37H
 ;
-TITLE	DEFM	'Terminal Prog Ver 1.4  12-May-85.',CR
+TITLE	DEFM	'Terminal Prog Ver 1.5  12-May-85.',CR
 ;Send a single character to the Uart.
 SEND1	PUSH	AF
 	CP	XOFF
@@ -393,7 +393,7 @@ Q_DELAY	LD	A,(4040H)
 M_QUIT	DEFM	LF,'Quit.',CR
 ;
 ;
-TERM	CALL	01C9H
+TERM	CALL	CLS
 	BIT	DATAOK,(IX+STATUS)
 	JR	NZ,TERV20
 	LD	HL,NODMES
@@ -483,9 +483,12 @@ SF_02	LD	DE,FCB
 SLOOP	LD	DE,FCB
 	CALL	13H
 	JP	NZ,SFINI
-WS_SF	CALL	SEND1
+WS_SF	PUSH	AF
+	CALL	SEND1
 	CALL	TRVDUO
 	CALL	PRINT2
+	POP	AF
+	CALL	CHAR_DELAY
 	CALL	RCHAR
 	BIT	WTSTAT,(IX+STATUS)
 	JR	NZ,SLOOP
@@ -505,14 +508,28 @@ WAIT_RDY
 	JR	Z,WAIT_RDY
 	JR	SLOOP
 ;
-MAX_SEC	NOP
+CHAR_DELAY
+	CP	0DH
+	LD	BC,0
+	PUSH	AF
+	CALL	Z,0060H
+	POP	AF
+	CALL	Z,0060H
+	LD	BC,1800H
+	CALL	0060H
+	RET
+;
+MAX_SEC	DEFB	0
 ;
 FILE_ERR
 	OR	80H
 	CALL	4409H
 	RET
 ;
-SFINI	LD	HL,EOF_STRING
+SFINI	LD	A,(FLAGS+STATUS)
+	BIT	FULDPX,A
+	RET	NZ	;Test for Honeywell!!
+	LD	HL,EOF_STRING
 FIN_LP	LD	A,(HL)
 	OR	A
 	RET	Z
