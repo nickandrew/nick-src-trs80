@@ -24,55 +24,51 @@
 The main commands are:
      <R> Read messages       <E> Enter message
      <S> Scan messages       <K> Kill messages
-     <T> Topic read of <U>nread messages
+     <T> Treewalk
 
-The "S" command, scan, prints only the headers of messages.
-This includes message number, topic, sender name, receiver
-name, subject and date left.
+The "S" command, scan, prints only the headers of messages. This includes
+     message number, topic, sender name, receiver name, subject and date
+     left.
 
-The "T" command is described elsewhere. Suffice to say it is
-very useful for reading new messages.
+The "T" command is described elsewhere. Suffice to say it is very useful
+     for reading new messages.
 
-When you have a command prompt you can string several
-     commands together by separating two commands with
-     a semicolon. For example: 'R;1+' to read messages 1
-     through end.
+When you have a command prompt you can string several commands together by
+     separating two commands with a semicolon. For example: 'R;1+' to read
+     messages 1 through end.
 
 
-Any menu may be cancelled while being transmitted by
-     hitting the appropriate single key for reply. For example
-     if you wanted <R>ead <A>ll messages you could hit "R"
-     during the main menu then "A" immediately after and each
-     menu in turn would be discarded as the key is typed.
+Any menu may be cancelled while being transmitted by hitting the appropriate
+     single key for reply.  For example if you wanted <R>ead <A>ll messages
+     you could hit "R" during the main menu then "A" immediately after and
+     each menu in turn would be discarded as the key is typed.
 
+5
 4MM
 
 3A2 - T command
 
-The "T" command has a single purpose: To allow you to read
-     "new" messages wherever they may be within the tree.
-     There are no operands.  The tree is searched, topic by
-     topic, in preorder fashion.  When a "new" message is
-     found, it is printed as with an "R" command.
+The "T" command has a single purpose: To allow you to read "new" messages
+     wherever they may be within the tree.  There are no operands.  The
+     tree is searched, topic by topic, in preorder fashion.  When a "new"
+     message is found, it is printed as with an "R" command.
 
-"NEW" messages are defined as messages left on or after the
-     day of your last logon. This means messages left ON that
-     day only could be displayed for you twice. Not a great
-     problem unless you call every day. The other problem
-     associated with this is if you call & are disconnected
-     or logoff precipitately without reading "new" messages,
-     the system cannot determine this. There are other methods
-     to read messages (such as in reverse order). Thats left
-     as an exercise to the reader.
+"NEW" messages are defined as messages left on or after the day of your
+     last logon.  This means messages left ON that day only could be
+     displayed for you twice. Not a great problem unless you call every
+     day.  The other problem associated with this is if you call and are
+     disconnected or logoff precipitately without reading "new" messages,
+     the system cannot determine this. There are other methods to read
+     messages (such as in reverse order). Thats left as an exercise to the
+     reader.
 
-While messages are being printed, typing a single "n" will
-     skip the rest of the message. Typing "t" will skip the
-     rest of that topic (if its a topic in which you are not
-     interested).
+While messages are being printed, typing a single "n" will skip the rest of
+     the message.  Typing "t" will skip the rest of that topic (if its a
+     topic in which you are not interested).
 
-Additional options to allow reply to messages are "in the
-     works" right now.
+Additional options to allow reply to messages are "in the works" right now.
 
+5
 4MM
 
 3A3 - Miscellaneous info
@@ -92,30 +88,33 @@ There will be someone who can help you with problems!
  - Hit ^C to terminate reading or scanning messages.
  - Hit 'N' to skip the rest of a message while reading.
 
+5
 
- - Word wraparound is in effect when leaving messages so you
-     rarely have to hit CR at the end of a line. You should
-     set your appropriate STTY options for line length.
 
- - Message range selection after main function selection
-   can allow some sophisticated choices For example ..
+ - Word wraparound is in effect when leaving messages so you rarely have to
+     hit CR at the end of a line.  You should set your appropriate STTY
+     options for line length.
+
+ - Message range selection after main function selection can allow some
+    sophisticated choices For example ..
            23-45   Messages 23 through 45
            23-$    23 through end
            $-23    last message backwards to 23
            23-     23 backwards to first message
      etc... etc....
 
+5
 4MM
 
 3A4 - Editing messages
 
-     Editing messages is possible after the message has been
-entered by hand. Editing is done on one line only, there
-unfortunately is no means to insert or delete a whole line.
+Editing messages is possible after the message has been entered by hand.
+    Editing is done on one line only, there unfortunately is no means yet
+    to insert or delete a whole line.
 
-     The line editing has two modes: Insert and Command.
-When in Insert mode, any characters typed are put in the line
-at the current cursor position, until <ESC> or ^K is hit.
+The line editing has two modes: Insert and Command.  When in Insert mode,
+    any characters typed are put in the line at the current cursor position,
+    until <ESC> or ^K is hit.
 
      The keys in command mode are:
 
@@ -128,56 +127,65 @@ at the current cursor position, until <ESC> or ^K is hit.
 "A"  Undo all changes made
 "C"  Change character under cursor to next character typed.
 
-     Experienced users will note that this is the editing
-scheme used by the Trs-80 model 1/3 basic interpreter, and
-also Mbasic, so it should be a little familiar.
+Experienced users will note that this is the editing scheme used by the
+    Trs-80 model 1/3 basic interpreter, and also Mbasic, so it should be a
+    little familiar to some.
 
+5
 4MM
 
 3A5 - Using Fidonet
 
-   Members are strongly encouraged to take part in discussions
-on "bb", whether local or via Echomail. See FIDOHINT.TXT for
-methods to send echomail.
 
-   To send fidonet mail to Joe Bloggs on Fidonet 712/301, when
-asked for the recipient of the message, enter
-"Joe Bloggs@[712/301]"  and the message will be sent via Fido.
 
-   To send echomail to the c_echo conference, likewise enter
-"all@c_echo" or "Joe Bloggs@c_echo".  Do not attempt to send
-private messages through echomail ... they'll be visible to
-everybody on every participating Fidonet.
+Members are strongly encouraged to take part in discussions on "bb", whether
+    local or via Echomail.
 
-   Again, check out FIDOHINT.TXT for more detailed info.
 
+To send fidonet mail to Joe Bloggs on a Fidonet, do "HELP MAIL" from the
+    Shell.  MAIL handles all private mail being sent, whether it is local
+    Zeta mail or mail into Fidonet or ACSnet.
+
+
+To send echomail in a conference which Zeta receives, while in BB move to
+    the topic that contains the conference messages.  For example, to send
+    into the PAMS conference, you should move to General>Echomail>Pams.
+    Enter a message.  If it is of general interest and not a reply to a
+    particular person, <E>nter a message To: All.  If the message is to
+    some individual, address it To: the individual's name.  Do not enter
+    eye catchers like "All Sysops" or "QuickBBS Users".
+
+5
 4MM
 
-3A6 - Entering msgs from a file
+3A6 - Entering messages from a file
 
-   The "E" (Enter message) command has one optional parameter,
-that is "EF" to enter from a file.
+The "E" (Enter message) command has one optional parameter, that is "EF" to
+    enter from a file.
 
-   You are asked the recipient's address (login name, possibly
-Fidonet node number if non-local) and a subject
+You are asked the recipient's address (login name, possibly Fidonet node
+    number if non-local) and a subject.
 
-   You are then asked for a text filename from which the
-message is to be copied.  Unprintable characters will be
-deleted.  There is no editing option since the file is assumed
-to contain the correct text anyway, and a limit of about 10k
-maximum length. 10k makes for a fairly long message.
+You are then asked for a text filename from which the message is to be
+    copied.  Unprintable characters will be deleted.  There is no editing
+    option since the file is assumed to contain the correct text anyway,
+    and a there is a length limit of about 10k.  10k makes for a fairly
+    long message.
 
-   To have control over the file (in other words, to be able
-to kill it after you are finished with it), upload it with
-the name TEMPFILE.  You can kill tempfile with the command
-"kill tempfile", preferably before attempting to upload since
-some other user may have created a tempfile then forgotten to
-remove it.
+To have control over the file (in other words, to be able to kill it after
+    you are finished with it), upload it with the name TEMPFILE.  You can
+    kill tempfile with the command "kill tempfile", preferably before
+    attempting to upload since some other user may have created a tempfile
+    then forgotten to remove it.
+
+5
+
+
 
 The command sequence is therefore:
 
    kill tempfile
-   xmf -r tempfile
+   xmodem -cr tempfile
    bb
    ef
    Joe Bloggs
@@ -186,24 +194,27 @@ The command sequence is therefore:
    x
    kill tempfile
 
+5
 4MM
 
 3A7 - Options
 
    There are 4 options, any two of which are always "ON".
+
 Turning on option 2 turns off option 1 and vice versa.
 Turning on option 4 turns off option 3 and vice versa.
 
-Option 1 :   The only messages accessible from this point are
-             those in the current topic. This is the default.
+Option 1 :   The only messages accessible from this point are those in the
+             current topic. This is the default.
 
-Option 2 :   Messages in the current topic and all topics
-             under that (its a tree remember) are visible.
-             Useful to find messages wherever they may be.
+Option 2 :   Messages in the current topic and all topics under that (its a
+             tree remember) are visible. Useful to find messages wherever
+             they may be.
 
 Option 3 :   Full length menus are printed for all functions
 
 Option 4 :   Very short menus are printed instead of long ones
 
+5
 4MM
 0
