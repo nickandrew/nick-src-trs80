@@ -1,0 +1,48 @@
+# crontab: Do things at specified dates, times and periods
+#
+# Fix stuff every 8 hours
+D 1 8802150300 shell runcron
+D 1 8802151100 shell runcron
+D 1 8802141900 shell runcron
+#
+# Fix up things every so often
+D 1 8802150100 fixwhere
+D 7 8802150700 msgcomp
+M 1 8803010000 usrclean
+M 1 8803010000 credit r-1
+#
+# talk to Naba prophet every couple of days
+D 2 8909011300 ftalk -d 713/606
+#
+# Reminders
+Y 1 8812240000 note sysop,merry xmas from Zeta!
+Y 1 8812311200 note sysop,Have a denegerate new years eve!
+Y 1 8901060900 note sysop,Tomorrow is Greek Orthodox Xmas day!
+M 1 8802200800 note sysop,do system backups you bastard!
+D 7 8802191700 echo hey, look alive - its the weekend!
+#
+# Guard the fort
+D 1 8802150000 echo zero bells, and all's well
+D 1 8802150100 echo one bell, and all's well
+D 1 8802150200 echo two bells, and all's well
+D 1 8802150300 echo three bells, and all's well
+D 1 8802150400 echo four bells, and all's well
+D 1 8802150500 echo five bells, and all's well
+D 1 8802150600 echo six bells, and all's well
+D 1 8802150700 echo seven bells, and all's well
+D 1 8802150800 echo eight bells, and all's well
+D 1 8802150900 echo nine bells, and all's well
+D 1 8802151000 echo ten bells, and all's well
+D 1 8802151100 echo eleven bells, and all's well
+D 1 8802151200 echo twelve bells, and all's well
+D 1 8802151300 echo thirteen bells, and all's well
+D 1 8802151400 echo fourteen bells, and all's well
+D 1 8802151500 echo fifteen bells, and all's well
+D 1 8802141600 echo sixteen bells, and all's well
+D 1 8802141700 echo seventeen bells, and all's well
+D 1 8802141800 echo eighteen bells, and all's well
+D 1 8802141900 echo nineteen bells, and all's well
+D 1 8802142000 echo twenty bells, and all's well
+D 1 8802142100 echo twenty-one bells, and all's well
+D 1 8802142200 echo twenty-two bells, and all's well
+D 1 8802142300 echo twenty-three bells, and all's well
