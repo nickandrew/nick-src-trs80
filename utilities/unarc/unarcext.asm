@@ -1,17 +1,18 @@
 ;UNARC-EXTERNAL: definitions for external constants
 ;and high memory locations.
-;last modified 07-Mar-87.
+;last modified 30-Apr-89.
 ;
 *LIST	OFF
 ;
-MAX_LOWMEM	EQU	0BC00H
+MAX_LOWMEM	EQU	0B400H
 ;
 ;First 256 bytes of externals follow.....
 ALLOC_PAGE	EQU	0FE00H	;C- allocate a page #
 FREE_PAGE	EQU	0FE03H	;C- unalloc a page
 SWAP_PAGE	EQU	0FE06H	;C- swap a page in.
 PROCESS		EQU	0FE09H	;B- Current process #
-;
+;;BRK		EQU	0FE0AH	;C- Set top of addr space
+SYS_CALL	EQU	0FE0DH	;C- Any system call
 ;
 ;
 ;Device equates.
@@ -21,8 +22,6 @@ $SI	EQU	0FF10H		;8- serial in
 $SO	EQU	0FF18H		;8- serial out
 $2I	EQU	0FF20H		;8- keyboard OR serial in
 $2O	EQU	0FF28H		;8- Screen AND serial out
-;;$PR	EQU	0FF30H		;8- printer OR screen
-;;$TA	EQU	0FF38H		;8- type-ahead.
 ;
 ;Standard devices
 $KBD	EQU	4015H		;Kbd device driver
@@ -48,16 +47,12 @@ INPUT_BUFFER	EQU	0FF50H	;16- Buff for $TA
 ;Replace chars_sent & chars_recvd by these:
 MEM_OWNER	EQU	0FF60H	;W- addr page owners
 MEM_TABLE	EQU	0FF62H	;W- addr swapped-in pages
-;CHARS_SENT	EQU	0FF60H	;W- chars sent
-;CHARS_RECVD	EQU	0FF62H	;W- chars recvd
 ;
-BUFFER		EQU	0FF64H	;W- buffer space
-FCB		EQU	0FF66H	;W- fcb space
 USR_NAME	EQU	0FF68H	;W- name string
 USR_NUMBER	EQU	0FF6AH	;W- user #
 USR_LOGOUT	EQU	0FF6CH	;J- log off user
-SECOND		EQU	0FF6FH	;C- wait 'A' sec
-MESSAGE		EQU	0FF72H	;C- msg to device
+;;SECOND		EQU	0FF6FH	;C- wait 'A' sec
+;;MESSAGE		EQU	0FF72H	;C- msg to device
 ;***;LIST		EQU	0FF75H	;C- list file to $2o
 PRIV_1		EQU	0FF78H	;B- first privileges
 PRIV_2		EQU	0FF79H	;B- second.
@@ -78,12 +73,10 @@ DEN_GAMES	EQU	2	;1=No game playing allwd.
 DEN_LOGCMD	EQU	3	;1=log commands.
 EXPERT_USER	EQU	4	;1=Expert.
 XP2_4		EQU	4	;_2
-;;DEN_PASSWD	EQU	5	;System password reqd.
 KEY_APPROVAL	EQU	6	;Requires sysop approval.
 XP2_6		EQU	6	;_2
 XP2_7		EQU	7	;_2
 ;
-CR_COUNT	EQU	0FF7AH	;W?- crash count?
 PUP_TIME	EQU	0FF7CH	;8- call start time
 CALLER		EQU	0FF84H	;W- caller number logdin
 PUP_DATE	EQU	0FF86H	;8- call date
@@ -93,9 +86,6 @@ CD_STAT		EQU	0FF91H	;B- send/recv status
 CD_COUNT	EQU	0FF92H	;B- carrier count
 CD_LOSS		EQU	0FF93H	;B- carrier losses
 ;---
-;REG_FLAG	EQU	0FF94H	;B- register flag
-;REG_RECD	EQU	0FF95H	;W- register recnum
-;--- were replaced by ---
 MODEM_STAT1	EQU	0FF94H	;B- word length etc
 MODEM_STAT2	EQU	0FF95H	;B- rs232 signals etc
 ;---
@@ -135,10 +125,7 @@ SER_INP		EQU	0FFADH	;C- Get from RS-232
 CIRC_BUFF	EQU	0FFB0H	;16- Circular Buffer
 				;for rude check.
 ;
-;---
-;CMDLOG		EQU	0FFC0H	;J- Command Log
 LOG_MSG		EQU	0FFC0H	;J- Message to log file.
-;---
 ;
 CIRC_LOCN	EQU	0FFD0H	;B- offset in circ_buff
 RUDE_DISC	EQU	0FFD1H	;B- user was rude -> disc
@@ -178,7 +165,7 @@ SYS_STAT	EQU	0FFFFH	;B- System status
 ;sysop_test	equ	6	;no modem
 ;Undefined	equ	7
 ;
-BASE		EQU	5900H	;ORG base for progs.
+BASE		EQU	5C00H	;ORG base for progs.
 BASE_PAGEX	EQU	8	;base log.page offset
 TOP_RAM		EQU	0E800H	;High Memory (zeta)
 TOP_PAGE	EQU	0E8H

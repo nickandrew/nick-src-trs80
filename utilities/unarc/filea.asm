@@ -1,4 +1,4 @@
-;Filea/asm
+;Filea
 ;
 	IFDEF	SHOWA
 *LIST	ON
@@ -7,13 +7,6 @@
 	ENDIF
 ;
 ;	TITLE	Archive File Extractor for Trs-80
-IDENT	MACRO
-	DB	'UNARC  1.2 24-Jun-86 for Trs-80 23-Jun-87'
-	ENDM
-; (Remember to update version/date here and maintain history log below)
-COPR	MACRO
-	DB	'Copyright (C) 1986 by Robert A. Freed.  All Rights Reserved.'
-	ENDM
 ;
 ;NOTICE:  This program is the copyrighted property of its author -- it 
 ;is NOT in the public domain.  HOWEVER...  Free use, distribution, and 
@@ -33,8 +26,14 @@ COPR	MACRO
 ;		Newton Centre, MA  02159
 ;		Telephone (617) 332-3533
 ;
-;	PAGE
-;	SUBTTL	Modification History
+;1.2b   21 Nov 88  (Nick Andrew, Sysop of Zeta, Fidonet 3:713/602)
+;Bugs fixed and generally cleaned up the code. Removed the last of the
+;CP/M dependencies.
+;
+;1.3a   23 Jul 87  (Nick Andrew)
+;Modified for the Trs-80 from the CP/M source code. Many things were
+;changed to facilitate this - argument formats, filename conversion, etc.
+;
 ;1.2	24 Jun 86  (RAF)
 ;Modified to allow assembly of a version which will execute on 8080/8085 
 ;CPU's.  (We resisted this initially but have been made to realize that 
@@ -114,7 +113,4 @@ COPR	MACRO
 ;\
 ;	PAGE
 ;
-NO	EQU	0
-YES	EQU	.NOT.NO
-	PAGE
-LINLEN	EQU	80		;to 64?
+

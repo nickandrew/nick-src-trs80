@@ -1,35 +1,9 @@
-;Filek/asm
+; @(#) filek.asm - Initialised data - 29-Apr-89
 ;
-E_FLAG	DEFB	0		;1=extract data
-E_DRIVE	DEFB	0		;Extract drive #
-T_FLAG	DEFB	0		;1=type to vdu.
-;
-CLSERR:	DB	'Cannot close output file',0
-UCRERR:	DB	'Incompatible crunched file format',0
-TYPERR:	DB	'Typeout line limit exceeded',0
-WARN:	DB	'Warning: Extracted file has incorrect ',0
-CRCERR:	DB	'CRC',0
-LENERR:	DB	'length',0
-MONTX:	DB	'???JanFebMarAprMayJunJulAugSepOctNovDec'
-STOWTX:	DB	'Unpacked'
-	DB	' Packed '
-	DB	'Squeezed'
-	DB	'Crunched'
-	DB	'Unknown!'
-TITLES:	DB	'Name           Length  Stowage  Ver  Stored Save'
-	DB	'd   Date'
-	DB	CR
-TITLE1:	DB	'============  =======  ======== === ======= ===='
-	DB	'= ========='
-	DB	0
-TOTALS:	DB	'        ====  =======               =======  ==='
-	DB	CR
-	DB	'Total  '	; (LINE must follow!)
 	PAGE
-	SUBTTL	Data Storage
-; Unitialized data last (does not contribute to .COM file size)
-LINE:	DS	LINLEN+1	; Listing line buffer (follow TOTALS!)
-	DS	50*2		; Program stack (50 levels)
+;
+	SUBTTL	Data Storage	; Unitialized data
+	DS	128*2		; Program stack (50 levels)
 STACK	EQU	$		; (Too small will only garbage listing)
 TOTS:				; Start of listing totals
 TFILES:	DS	2		;  Total files processed
@@ -40,7 +14,6 @@ LINCT:	DS	1		; Line count for file typeout
 TOTC	EQU	$-TOTS		; Count of bytes to clear
 GETPTR:	DS	2		; Input buffer pointer
 LBLKSZ:	DS	1		; Disk allocation block size for listing
-TNAME:	DS	11		; Test pattern for selecting file names
 OFCB:	DS	32		; Output file FCB
 IFCB:	DS	32		; Input file FCB
 ;
@@ -57,6 +30,7 @@ CRC:	DS	2		; Cyclic check of uncompressed file
 LEN:	DS	4		; Uncompressed bytes (version > 1)
 HDRSIZ	EQU	$-HDRBUF	; Header size (4 less if version = 1)
 MINMEM	EQU	$		; Min memory limit (no file output)
+;
 	PAGE
 ; Data for file output processing only
 				; Following order required:

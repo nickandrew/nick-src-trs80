@@ -1,9 +1,10 @@
-;Unarc ... by Bob Freed ... Modified for Trs-80 by
+;Unarc88 ... by Bob Freed ... Modified for Trs-80 by
 ;Nick Andrew, 29-Nov-86.
 ;	      31-Dec-86
 ;	      29-Jan-86
 ;	      14-Aug-87 Convert 1st char of filename
 ;	      13-Sep-87 Convert 1st char of extension
+;             29-Apr-89 Many improvements and some bugfixes
 ;
 *GET	DOSCALLS
 ;
@@ -17,22 +18,23 @@ MEMTOP	EQU	4049H		; himem for model 1
 ;SHOWE	EQU	1
 ;SHOWF	EQU	1
 ;
+	COM	'<Unarc 1988 release, 06-May-89>'
 	ORG	TBASE
 _EXIT
 	JP	DOS
 _ERROR
 	JP	DOS
 ;
-*GET	FILEA:2
-*GET	FILEB:2
-*GET	FILEC:2
-*GET	FILED:2
-*GET	FILEE:2
-*GET	FILEF:2
-*GET	FILEG:2
-*GET	FILEH:2
-*GET	FILEI:2
-*GET	FILEJ:2
-*GET	FILEK:2
+*GET	FILEA
+*GET	FILEB
+*GET	FILEC
+*GET	FILED
+*GET	FILEE
+*GET	FILEF
+*GET	FILEG
+*GET	FILEH
+*GET	FILEI
+*GET	FILEJ
+*GET	FILEK
 ;
 	END	BEGIN

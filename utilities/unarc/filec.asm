@@ -1,60 +1,39 @@
-;Filec - last updated 13-Sep-87
+; @(#) filec.asm - High level code - 29-Apr-89
+;
 	IFDEF	SHOWC
 *LIST	ON
 	ELSE
 *LIST	OFF
 	ENDIF
 ;
-	DB	'[-t] [-e] [afn]',CR,CR
-	DB	'Examples:',CR
-;
-	DB	'unarc save'
-	DB	SEP
-;
-ARCTYP:	DB	'ARC'		; Default filetype for archive files
-	DB	' *.*     '
-	DB	'; Index of all files in archive SAVE',CR
-	DB	'UNARC SAVE             '
-	DB	'; Same as above',CR
-	DB	'UNARC SAVE *.DOC       '
-	DB	'; Index of just .DOC files',CR
-USE2:	DB	'UNARC SAVE -t READ.ME  '
-	DB	'; Display the file READ.ME',CR
-USE3:
-	DB	'UNARC SAVE -e READ.ME  '
-	DB	'; Extract file READ.ME',CR
-	DB	CR
-	COPR			; Copyright notice last
-; (We'd like to be unobtrusive, but please don't remove or patch out)
-	DB	0		; End of message marker
-	DB	CTLZ		; Stop .COM file typeout
-	PAGE
-	SUBTTL	Beginnings and Endings
-; Program begins
-;
-PARAMS	DEFW	0		;Parameter start
+; # BEGIN:	Jump here to start the program
 ;
 BEGIN:
 	LD	(PARAMS),HL
-	LD	(SPSAV),SP	; Save CCP stack
 	LD	SP,STACK
 	CALL	CHECK		; Check if we can proceed
 	CALL	INIT		; Process command line, open ARC file
-	CALL	OUTSET		; Check output drive, setup for output
+	CALL	CRCINI		; Initialise CRC table
+;
 	LD	HL,TOTS		; Zero all listing totals
-	LD	BC,TOTC*256+0
+	LD	B,TOTC
+	LD	C,0
 	CALL	FILL
+;
 ; Find first archive header
 	LD	B,3		; Setup count of allowed extra bytes
 ; Note:	As of UNARC 1.2, up to three additional bytes are tolerated
 ;	before first header mark (for "self-unpacking" archives).
-FIRST:	CALL	GET		; Get next byte
+;
+FIRST
+	CALL	GET		; Get next byte
 	CP	ARCMARK		; Is it header marker?
 	JR	Z,NEXT		; Yes, skip
 	DJNZ	FIRST		; Else loop for no. allowed extras
-	PAGE
+;
 ; File processing loop
-LOOP:	CALL	GET		; Get next byte
+LOOP
+	CALL	GET		; Get next byte
 	CP	ARCMARK		; Is it archive header marker?
 	JR	Z,NEXT		; Yes, go process next file (if any)
 ; Bad archive file header
@@ -80,19 +59,16 @@ BAD1:	LD	DE,FMTERR	; Report bad format error
 	LD	DE,HDRERR	; Print warning message
 	CALL	PRINTX
 	POP	AF		; Restore version
-	PAGE
 ; Process next file
 NEXT:
 	CALL	NC,GET		; Get header version (if haven't yet)
 	OR	A		; If zero, that's logical end of file,
 	JR	Z,DONE		;  and we're done
 	CALL	GETHDR		; Read archive header
-	CALL	GETNAM		; Does file name match test pattern?
+	CALL	GETNAM		; Is filename one we desire?
 	JR	NZ,SKIP		; No, skip this file
 	CALL	LIST		; List file info
-	CALL	OUTPUT		; Output the file (possibly)
-	CALL	TAMBIG		; Ambiguous output file selection?
-	JR	NZ,EXIT		; No, quit early
+	CALL	OUTPUT		; Extract/Type Output the file (possibly)
 ; Skip to next file
 SKIP:	LD	HL,SIZE		; Get two-word remaining file size
 	CALL	LGET		; (will be 0 if output was completed)
@@ -110,14 +86,20 @@ DONE:	LD	HL,(TFILES)	; Get no. files processed
 DONE1:	CALL	NZ,LISTT	; If more than one, list totals
 ; Exit program
 EXIT:	CALL	ICLOSE		;Close input, output files
-;;	LD	HL,(SPSAV)	; Restore stack pointer
-;;	LD	SP,HL
+	CALL	OCLOSE
 	JP	_EXIT
 ;
-SPSAV	DEFW	0		; SP save word.
-HIPAGE	DEFB	0
+; # MESS: Print a null-terminated message on the console
 ;
-; Preliminary checks
+MESS	LD	A,(HL)
+	OR	A
+	RET	Z
+	CALL	33H
+	INC	HL
+	JR	MESS
+;
+; # CHECK: Check that enough memory is available
+;
 CHECK:	XOR	A		; Clear flags in case early abort:
 	LD	(IFLAG),A	;  Input file open flag
 	LD	(OFLAG),A	;  Output file open flag
@@ -128,24 +110,43 @@ CHECK:	XOR	A		; Clear flags in case early abort:
 ; Check for enough memory
 CKMEM:	CP	B
 	RET	NC		;If OK
+;
 	LD	DE,NOROOM	; abort due to no room
+	POP	HL
+	JP	PABORT
 ;
-EABORT:	POP	HL		; Early abort
+PABORT:
+	CALL	PRINT		; Print msg & abort
+	LD	DE,PABMSG
+	CALL	PRINT
+	JP	ABORT
 ;
-PABORT:	CALL	PRINT		; Print msg & abort
 ; Abort program
-ABORT:	LD	DE,ABOMSG	; Print general abort msg
+ABORT:
+	LD	DE,ABOMSG	; Print general abort msg
 	CALL	PRINTX		;Print message
-	CALL	ICLOSE		;Close files
+	CALL	ICLOSE		;Close file
+	LD	DE,OFCB
+	LD	A,(DE)
+	AND	80H		;Check if file is open
+	CALL	NZ,DOS_KILL	;Kill output file
+	LD	A,8		;Return code=8
 	JP	_ERROR		;Error exit
-PEXIT:	CALL	PRINTX
+;
+PEXIT:
+	CALL	PRINTX
 	JP	EXIT
 ;
-; Validate command line parameters and open input file
-SFCB_2	DEFS	32		; Address of second parameter.
+;-------------------------------------------------------------------------
+; # FN_ERROR: Print a help message and abort with code 8
+;-------------------------------------------------------------------------
 ;
 FN_ERROR
 	JP	HELP
+;
+;-------------------------------------------------------------------------
+; # F_ERROR: Display a dos error message
+;-------------------------------------------------------------------------
 ;
 F_ERROR	PUSH	AF
 	OR	80H
@@ -153,213 +154,158 @@ F_ERROR	PUSH	AF
 	POP	AF
 	JP	ABORT
 ;
+;-------------------------------------------------------------------------
+; # INIT: Initialise and parse command line
+;-------------------------------------------------------------------------
+;
 INIT
-	LD	HL,(PARAMS)
-	LD	DE,IFCB
-	CALL	DOS_EXTRACT
-	JP	NZ,FN_ERROR	;If no first parameter
-	LD	HL,ARCTYP	;Add default extension
-	LD	DE,IFCB
-	CALL	DOS_EXTEND
+	CALL	PROC_FLAGS	;Process dash options (if any)
+	CALL	PROC_ARCFILE	;Process arc file name and open file
+	RET
 ;
-	LD	HL,(PARAMS)	;Bypass first parameter
-INIT_1	LD	A,(HL)		;Bypass Arc filename
-	CP	CR
-	JR	Z,INIT_3
-	OR	A
-	JR	Z,INIT_3	;If end of cmd line
-	INC	HL
-	CP	' '
-	JR	NZ,INIT_1
-;
-INIT_2	LD	A,(HL)		;Bypass subseq. spaces
-	CP	' '
-	JR	NZ,INIT_3
-	INC	HL
-	JR	INIT_2
-INIT_3
-	LD	A,(HL)
-	CP	'-'
-	CALL	Z,PROC_FLAGS	;do -e or -t flags.
-	LD	DE,SFCB_2
-	XOR	A
-	LD	(DE),A
-	LD	B,13
-INIT_4	LD	A,(HL)
-	CP	CR
-	JR	Z,INIT_5
-	OR	A
-	JR	Z,INIT_5
-	CP	' '
-	JR	Z,INIT_5
-	LD	(DE),A
-	INC	HL
-	INC	DE
-	DJNZ	INIT_4
-	JP	FN_ERROR
-INIT_5	XOR	A
-	LD	(DE),A
-;
-	LD	HL,SFCB_2
-	LD	DE,TNAME	; Set to save test pattern
-	XOR	A
-	CP	(HL)		;Null string?
-	JP	Z,INIT_99	;if none, assume *.*
-;
-;Move a filespec ABCDEFGH/IJK into ABCDEFGHIJK with check
-	LD	B,9		; move up to 8 chars
-INIT_6
-	LD	A,(HL)
-	INC	HL
-	OR	A
-	JR	Z,INIT_7
-	CP	'.'
-	JR	Z,INIT_7
-	CP	'/'
-	JR	Z,INIT_7
-	DEC	B
-	JP	Z,FN_ERROR
-	CP	'*'
-	JR	Z,INIT_6B
-	LD	(DE),A
-	INC	DE
-	JR	INIT_6
-;
-INIT_6B	LD	A,'?'
-	LD	(DE),A
-	INC	DE
-	DJNZ	INIT_6B
-	INC	B
-	JR	INIT_6
-;
-INIT_7	DEC	B
-	JR	Z,INIT_7B
-	LD	A,' '
-	LD	(DE),A
-	INC	DE
-	JR	INIT_7
-INIT_7B
-	LD	B,4		;Move 3 chars.
-INIT_8
-	LD	A,(HL)
-	INC	HL
-	OR	A
-	JR	Z,INIT_9
-	DEC	B
-	JP	Z,FN_ERROR
-	CP	'*'
-	JR	Z,INIT_8B
-	LD	(DE),A
-	INC	DE
-	JR	INIT_8
-;
-INIT_8B	LD	A,'?'
-	LD	(DE),A
-	INC	DE
-	DJNZ	INIT_8B
-	INC	B
-	JR	INIT_8
-;
-INIT_9	DEC	B
-	JR	Z,INIT_9A
-	LD	A,' '
-	LD	(DE),A
-	INC	DE
-	JR	INIT_9
-INIT_9A
-	JR	INIT_98
-;
-INIT_99
-	LD	BC,10
-	LD	H,D		; No, default to "*.*"
-	LD	L,E
-	LD	(HL),'?'	; (I.e. all "?" chars)
-	INC	DE
-;;init1:
-	LDIR
-;
-INIT_98
-INIT2:	LD	HL,IFCB		; Any ARC file name?
-	PUSH	HL		; Save name ptr for message generation
-	CALL	FAMBIG		; Ambiguous ARC file name?
-	LD	DE,NAMERR	; Yes, report error
-	JP	Z,PABORT	;  and abort
-	POP	HL		; Recover ptr to FCB name
-	LD	DE,ARCNAM	; Unparse name for message
-;*******************************
-	LD	B,12
-INIT97	LD	A,(HL)
-;
-	CP	SEP
-;
-	JR	Z,INIT96
-	CP	':'
-	JR	Z,INIT96
-	CP	ETX
-	JR	Z,INIT96
-	LD	(DE),A
-	INC	HL
-	INC	DE
-	DJNZ	INIT97
-INIT96
-	XOR	A		; Cleanup end of message string
-	LD	(DE),A
-	PAGE
-; Open archive file
-	LD	HL,IFCB_BUF	;Open file
-	LD	DE,IFCB
-	LD	B,0
-	CALL	DOS_OPEN_EX
-	LD	DE,OPNERR	;If error opening
-	JP	NZ,PABORT	;  and abort
-	LD	A,1
-	LD	(IFLAG),A	; Yes, set input file open flag
-	LD	DE,ARCMSG	; Show ARC file name
-	CALL	PRINTX
-	RET			; Return
+;-------------------------------------------------------------------------
+; # PROC_FLAGS: Process dash options (if any)
+;-------------------------------------------------------------------------
 ;
 PROC_FLAGS
-	INC	HL
-	LD	A,(HL)
-	AND	5FH
-	CP	'E'
-	JR	Z,PROC_EFLAG
-	CP	'T'
-	JR	Z,PROC_TFLAG
-	JP	HELP
-PROC_TFLAG
+	LD	HL,(PARAMS)
+	CALL	BYP_SPACES
+;
 	LD	A,1
-	LD	(T_FLAG),A
-	LD	(E_FLAG),A
+	LD	(L_FLAG),A
 	XOR	A
-	LD	(E_DRIVE),A
+	LD	(O_FLAG),A	;No overwrite
+;
+PF_01
+	LD	A,(HL)
+	CP	CR
+	JP	Z,HELP2		; No parameters entered
+	CP	'-'
+	RET	NZ		; Default option is to List
 	INC	HL
-	JR	PEF_1
-PROC_EFLAG
+	LD	A,(HL)
+PF_02
+	AND	5FH
+	LD	DE,H_FLAG
+	CP	'H'
+	JR	Z,SET_FLAG
+	LD	DE,L_FLAG
+	CP	'L'		;List table of contents?
+	JR	Z,SET_FLAG
+	LD	DE,T_FLAG
+	CP	'T'		;Type contents
+	JR	Z,SET_FLAG
+	LD	DE,X_FLAG
+	CP	'X'		;Extract
+	JR	Z,SET_FLAG
+	LD	DE,O_FLAG
+	CP	'O'		;Overwrite existing
+	JR	Z,SET_FLAG
+	JP	HELP
+;
+SET_FLAG
 	LD	A,1
-	LD	(E_FLAG),A
+	LD	(DE),A
+;
 	INC	HL
 	LD	A,(HL)
-	CP	':'
-	JR	NZ,PEF_1
-	INC	HL
-	LD	A,(HL)
-	LD	(E_DRIVE),A
-	INC	HL
-PEF_1
+	CP	' '
+	JR	NZ,PF_02	;Process another flag
+	CALL	BYP_SPACES
+	JR	PF_01		;Rescan for possibly another option
+;
+;-------------------------------------------------------------------------
+; # BYP_SPACES: Bypass 0 or more spaces at HL
+;-------------------------------------------------------------------------
+;
+BYP_SPACES
 	LD	A,(HL)
 	CP	' '
 	RET	NZ
 	INC	HL
-	JR	PEF_1
+	JR	BYP_SPACES
+;
+;-------------------------------------------------------------------------
+; # BYP_WORD: Bypass a non-space word at HL
+;-------------------------------------------------------------------------
+;
+BYP_WORD
+BW_01	LD	A,(HL)
+	CP	CR
+	RET	Z
+	OR	A
+	RET	Z
+	CP	' '
+	JR	Z,BW_02
+	INC	HL
+	JR	BW_01
+BW_02	INC	HL
+	LD	A,(HL)
+	CP	' '
+	JR	Z,BW_02
+	RET
+;
+;-------------------------------------------------------------------------
+; # PROC_ARCFILE: Parse and open arcfile to use
+;-------------------------------------------------------------------------
+;
+PROC_ARCFILE
+	LD	(PARAMX),HL
+	LD	DE,IFCB
+	CALL	DOS_EXTRACT
+	JP	NZ,FN_ERROR	;If no arc filename
+	LD	HL,(PARAMX)
+	PUSH	HL
+	CALL	GETN81		;Fix first characters
+	POP	HL
+	CALL	BYP_WORD	;Bypass the arc filename
+	LD	(PARAMX),HL
+;
+	CALL	PRINT_FN	;Copy the filename for printing
+	LD	HL,IFCB_BUF
+	LD	DE,IFCB
+	LD	B,0
+	CALL	DOS_OPEN_EX	;Open the arcfile
+	LD	DE,OPNERR	;If error opening arcfile
+	JP	NZ,PABORT
+;
+	LD	A,1
+	LD	(IFLAG),A	; Yes, set input file open flag
+	LD	DE,ARCMSG	; Show ARC file name
+	CALL	PRINTX
+	RET
+;
+;-------------------------------------------------------------------------
+; # PRINT_FN: Copy the filename for printing
+;-------------------------------------------------------------------------
+;
+PRINT_FN
+	LD	HL,IFCB
+	LD	DE,ARCNAM
+	LD	B,30
+PFN_1	LD	A,(HL)
+	CP	ETX
+	JR	Z,PFN_2
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	DJNZ	PFN_1
+PFN_2
+	XOR	A
+	LD	(DE),A
+	RET
 ;
 ; Display program usage help message
 HELP:
+	LD	DE,HELPMSG
+	JP	PEXIT
+;
 HELP2:	LD	DE,USAGE	; Just print usage message
 	JP	PEXIT		;  and exit
 ;
 ; Check wheel byte
-WHLCK:	PUSH	HL		; Save register
+WHLCK
+	PUSH	HL		; Save register
 	LD	HL,(WHEEL)	; Get wheel byte address
 	LD	A,(HL)		; Fetch wheel byte
 	POP	HL		; Restore reg
@@ -368,4 +314,78 @@ WHLCK:	PUSH	HL		; Save register
 	JR	NZ,WHLCK1
 	INC	A		; If zero, user is not privileged
 	RET			; Return A=1 (NZ)
+;
+WHLCK1:	XOR	A		;If non-zero, he's a big wheel
+	RET			;Return A=0 (Z)
+;
+ICLOSE
+	LD	DE,IFCB		;Setup ARC file FCB
+	CALL	CLOSE
+	LD	HL,IFLAG
+	LD	(HL),0
+	RET
+;
+;Close output file
+OCLOSE
+	LD	DE,OFCB		;Setup output file FCB
+	CALL	CLOSE
+	LD	HL,OFLAG
+	LD	(HL),0
+	RET
+;
+;Close a file if open
+CLOSE
+	LD	A,(DE)		;File is open?
+	OR	A
+	RET	Z
+	CALL	DOS_CLOSE
+	RET			;Return to caller (NZ if error)
+;	
+;Check for CTRL-C abort (and/or read console char if any)
+CABORT
+	CALL	002BH		;read char from keyboard
+	CP	CTLC		;Is it CTRL-C?
+	JP	Z,ABORT
+	CP	CTLS		;Is it pause?
+	RET	NZ		;No, return char (and NZ) to caller
+CABORT2	CALL	002BH		;Wait for control-Q
+	CP	CTLQ
+	JR	NZ,CABORT2
+	CP	1
+	RET
+;
+;
+;
+	SUBTTL	File Output Routines
+;
+;
+;Initialize lookup table for CRC generation
+;Note:	For maximum speed, the CRC routines rely on the fact that the
+;	lookup table (CRCTAB) is page-aligned.
+CRCINI:
+	LD	HL,CRCTAB+256	;Point to 2nd page of lookup table
+	LD	A,H		;Check enough memory to store it
+	CALL	CKMEM
+	LD	DE,POLY		;Setup polynomial
+;Loop to compute CRC for each possible byte value from 0 to 255
+CRCIN1:	LD	A,L		;Init low CRC byte to table index
+	LD	BC,256*8	;Setup bit count, clear high CRC byte
+;Loop to include each bit of byte in CRC
+CRCIN2:	SRL	C		;Shift CRC right 1 bit (high byte)
+	RRA			;(low byte)
+	JR	NC,CRCIN3	; Skip if 0 shifted out
+	EX	AF,AF'		; Save lower CRC byte
+	LD	A,C		; Update upper CRC byte
+	XOR	D		;  with upper polynomial byte
+	LD	C,A
+	EX	AF,AF'		; Recover lower CRC byte
+	XOR	E		; Update with lower polynomial byte
+CRCIN3:	DJNZ	CRCIN2		; Loop for 8 bits
+	LD	(HL),C		; Store upper CRC byte (2nd table page)
+	DEC	H
+	LD	(HL),A		; Store lower CRC byte (1st table page)
+	INC	H
+	INC	L		; Bump table index
+	JR	NZ,CRCIN1	; Loop for 256 table entries
+	RET
 ;

@@ -1,259 +1,163 @@
-;Filei/asm
-;;	LD	B,19		; Else, clear out date and time fields
-;;	CALL	FILLB
-	JR	LIST2		; Skip
-LIST1:	CALL	LDATE		; List file date
-;;	CALL	LTIME		; List file time
-LIST2:	;;CALL	LCRC		; List CRC value
+;Filei
+; A few decimal ASCII conversion callers, for convenience
+WTODA:	LD	B,5		; List blank-filled word in 5 cols
+WTODB:	LD	C,' '		; List blank-filled word in B cols
+	JR	WTOD		; List C-filled word in B cols
+BTODA:	LD	B,4		; List blank-filled byte in 4 cols
+BTODB:	LD	C,' '		; List blank-filled byte in B cols
+	JR	BTOD		; List C-filled byte in B cols
+LTODA:	LD	BC,9*256+' '	; List blank-filled long in 9 cols
+;	JR	LTOD
 	PAGE
-; Terminate and print listing line
-LISTL:	LD	DE,LINE		; Setup listing line ptr
-	JR	LIST3		; Go finish up and list it
-; List file totals
-LISTT:	LD	HL,LINE		; Setup listing line ptr
-	LD	DE,(TFILES)	; List total files
-	CALL	WTODA
-	LD	DE,TLEN		; List total file length
-	PUSH	DE		;  and save ptr for factor calculation
-	CALL	LTODA
-;;	LD	DE,(TDISK)	; List total disk space
-;;	CALL	LDISK1
-	LD	B,13		; Fill next columns with blanks
-	CALL	FILLB	
-	POP	BC		; Recover total uncompressed length ptr
-	LD	DE,TSIZE	; Get total compressed size ptr
-	CALL	LSIZE		; List overall size, compression factor
-	LD	DE,TOTALS	; Point to totals string (precedes line)
-LIST3:	LD	(HL),0		; Terminate listing line
-; Print string, then start new line
-PRINTL:	CALL	PRINTS
-	CALL	CRLF
-	RET
+; Convert Long (or Word or Byte) Binary to Decimal ASCII
+; R. A. Freed
+; 2.0	15 Mar 85
+; Entry:	A  = Unsigned 8-bit byte value (BTOD)
+;		DE = Unsigned 16-bit word value (WTOD)
+;		DE = Pointer to low byte of 32-bit long value (LTOD)
+;		B  = Max. string length (0 implies 256, i.e. no limit)
+;		C  = High-zero fill (0 to suppress high-zero digits)
+;		HL = Address to store ASCII byte string
 ;
-; Start new line
-; Note:	Must preserve DE
-CRLF:	LD	A,CR
-	CALL	PCHAR
-	RET
-; Print character
-PCHAR:	PUSH	DE		; Save register
-	CALL	33H
-	POP	DE		; Restore register
-	RET			; Return
-	PAGE
-; Print string on new line, then start another
+; Return:	HL = Adress of next byte after last stored
 ;
-PRINTX:	CALL	CRLF
-	JR	PRINTL
-; Print string on new line
-PRINT:	CALL	CRLF
-; Print NUL-terminated string
-PRINTS:	LD	A,(DE)
-	OR	A
-	RET	Z
-	CALL	PCHAR
-	INC	DE
-	JR	PRINTS
+; Stack:	n+1 levels, where n = no. significant digits in output
 ;
-; Output warning message about extracted file
-OWARN:	PUSH	DE
-	LD	DE,WARN
-	CALL	PRINTS
-	POP	DE
-	JR	PRINTL
-	PAGE
-; List file name
-; Note:	We use name in output file FCB, rather than original name in
-;	archive header (illegal chars already filtered by GETNAM).
-;	This routine also called by INIT to unparse ARC file name.
-LNAME:	LD	B,12		; Setup count for name.
-LNAME1:	LD	A,(DE)		;If end of name
-	CP	3		;ETX delimiter
-	LD	A,' '
-	JR	Z,LNAME2	; Yes, go fill rest
-	LD	A,(DE)		; Get next char
-	INC	DE
-LNAME2:	LD	(HL),A		; Store char
+; Notes:	If B > n, (B-n) leading fill chars (C non-zero) stored.
+;		If B < n, high-order (n-B) digits are suppressed.
+;		If only word or byte values need be converted, use the
+;		 shorter version of this routine (WTOD or BTOD) instead.
+RADIX	EQU	10		; (Will work with any radix <= 10)
+LTOD:	PUSH	DE		; Entry for 32-bit long pointed to by DE
+	EXX			; Save caller's regs, swap in alt set
+	POP	HL		; Get pointer and fetch value to HADE
+	LD	E,(HL)
 	INC	HL
-LNAME3:	DJNZ	LNAME1		; Loop for all chars in name and type
+	LD	D,(HL)
+	INC	HL
+	LD	A,(HL)
+	INC	HL
+	LD	H,(HL)
+	EX	DE,HL		; Value now in DAHL
+	JR	LTOD1		; Join common code
+BTOD:	LD	E,A		; Entry for 8-bit byte in A
+	LD	D,0		; Copy to 16-bit word in DE
+WTOD:	PUSH	DE		; Entry for 16-bit word in DE, save it
+	EXX			; Swap in alt regs for local use
+	POP	HL		; Recover value in HL
+	XOR	A		; Set to clear upper bits in DE
+	LD	D,A
+; Common code for all entries
+LTOD1:	LD	E,A		; Now have 32-bit value in DEHL
+	LD	C,RADIX		; Setup radix for divides
+	SCF			; Set first-time flag
+	PUSH	AF		; Save for stack emptier when done
+	PAGE
+; Top of conversion loop
+; Method:  Generate output digits on stack in reverse order.  Each loop
+; divides the value by the radix.  Remainder is the next output digit,
+; quotient becomes the dividend for the next loop.  Stop when get zero
+; quotient or no. of digits = max. string length.  (Always generates at
+; least one digit, i.e. zero value has one "significant" digit.)
+LTOD2:	CALL	DIVLB		; Divide to get next digit
+	OR	'0'		; Convert to ASCII (clears carry)
+	EXX			; Swap in caller's regs
+	DJNZ	LTOD5		; Skip if still more room in string
+; All done (value fills string), this is the output loop
+LTOD3:	LD	(HL),A		; Store digit in string
+	INC	HL		; Bump string ptr
+LTOD4:	POP	AF		; Unstack next digit
+	JR	NC,LTOD3	; Loop if any
 	RET			; Return to caller
-;
-	PAGE
-; Compute and list disk space for uncompressed file
-LDISK:	PUSH	HL		; Save line ptr
-	LD	HL,(LEN)	; Convert file length to 1k disk space
-	LD	A,(LEN+2)	; (Most we can handle here is 16 Mb)
-	LD	DE,1023		; First, round up to next 1k
-	ADD	HL,DE
-	ADC	A,0
-	RRA			; Now, shift to divide by 1k	
-	RR	H
-	RRA
-	RR	H
-	AND	3FH
-	LD	L,H		; Result -> HL
-	LD	H,A
-;;	LD	A,(LBLKSZ)	; Get disk block size
-	LD	A,1		;1k block size? Its 1.25k!
-	DEC	A		; Round up result accordingly
-	LD	E,A
-	LD	D,0
-	ADD	HL,DE
-	CPL			; Form mask for lower bits
-	AND	L
-	LD	E,A		; Final result -> DE
-	LD	D,H
-	LD	HL,(TDISK)	; Update total disk space used
-	ADD	HL,DE
-	LD	(TDISK),HL
-	POP	HL		; Restore line ptr
-LDISK1:	CALL	WTODA		; List result
-	LD	(HL),'k'
-	INC	HL
-	RET
-	PAGE
-; List stowage method and version
-LSTOW:	CALL	FILL2B		; Blanks first
-	EX	DE,HL
-	LD	HL,STOWTX	; Point to stowage text table
-	LD	A,(VER)		; Get header version no.
-	PUSH	AF		; Save for next column
-	LD	BC,8		; Use to get correct text ptr
-	CP	3
-	JR	C,LSTOW1
-	ADD	HL,BC
-	JR	Z,LSTOW1
-	ADD	HL,BC
-	CP	4
-	JR	Z,LSTOW1
-	ADD	HL,BC
-	CP	9
-	JR	C,LSTOW1
-	ADD	HL,BC
-LSTOW1:	LDIR			; List stowage text
-	EX	DE,HL		; Restore line ptr
-	POP	AF		; Recover version no.
-	LD	B,3
-	JP	BTODB		; List and return
-	PAGE
-; List compressed file size and compression factor
-LSIZE:	PUSH	DE		; Save compressed size ptr
-	PUSH	BC		; Save uncompressed length ptr
-	CALL	LTODA		; List compressed size
-	POP	DE		; Recover length ptr
-	EX	(SP),HL		; Save line ptr, recover size ptr
-; Compute compression factor = 100 - [100*size/length]
-; (HL = ptr to size, DE = ptr to length, A = result)
-	PUSH	DE		; Save length ptr
-	CALL	LGET		; Get BCDE = size
-	LD	H,B		; Compute 100*size
-	LD	L,C		;  in HLIX:
-	PUSH	DE
-	POP	IX		;     size
-	ADD	IX,IX
-	ADC	HL,HL		;   2*size
-	ADD	IX,DE
-	ADC	HL,BC		;   3*size
-	ADD	IX,IX
-	ADC	HL,HL		;   6*size
-	ADD	IX,IX
-	ADC	HL,HL		;  12*size
-	ADD	IX,IX
-	ADC	HL,HL		;  24*size
-	ADD	IX,DE
-	ADC	HL,BC		;  25*size
-	ADD	IX,IX
-	ADC	HL,HL		;  50*size
-	ADD	IX,IX
-	ADC	HL,HL		; 100*size
-	EX	(SP),HL		; Swap back length ptr, save upper
-	CALL	LGET		; Get BCDE = length
-	PUSH	IX
-	POP	HL		; Now have (SP),HL = 100*size
-	LD	A,B		; Length = 0?
-	OR	C		; (Unlikely, but possible)
+; Still more room in string, test if more significant digits
+LTOD5:	PUSH	AF		; Stack this digit
+	EXX			; Swap back local regs
+	LD	A,H		; Last quotient = 0?
+	OR	L
 	OR	D
 	OR	E
-	JR	Z,LSIZE2	; Yes, go return result = 0
-	LD	A,101		; Initialize down counter for result
-LSIZE1:	DEC	A		; Divide by successive subtractions
-	SBC	HL,DE
-	EX	(SP),HL
-	SBC	HL,BC
-	EX	(SP),HL
-	JR	NC,LSIZE1	; Loop until remainder < length
-LSIZE2:	POP	HL		; Clean stack
-	POP	HL		; Restore line ptr
-	CALL	BTODA		; List the factor
-	LD	(HL),'%'
-	INC	HL
-	RET			; Return
+	JR	NZ,LTOD2	; No, loop for next digit
+; Can stop early (no more digits), handle leading zero-fill (if any)
+	EXX			; Swap back caller's regs
+	OR	C		; Any leading fill wanted?
+	JR	Z,LTOD4		; No, go to output loop
+LTOD6:	LD	(HL),A		; Store leading fill
+	INC	HL		; Bump string ptr
+	DJNZ	LTOD6		; Repeat until fill finished
+	JR	LTOD4		; Then go store the digits
 	PAGE
-; List file creation date
-; ARC files use MS-DOS 16-bit date format:
-;
-; Bits [15:9] = year - 1980
-; Bits  [8:5] = month of year
-; Bits  [4:0] = day of month
-;
-; (All zero means no date, checked before call to this routine)
-LDATE:	LD	A,(DATE)	; Get date
-	AND	1FH		; List day
-	CALL	BTODA
-	LD	(HL),'-'	; Then a separator
-	INC	HL
-	EX	DE,HL		; Save listing line ptr
-	LD	HL,(DATE)	; Get date again
-	PUSH	HL		; Save for listing year (in upper byte)
-	ADD	HL,HL		; Shift month into upper byte
-	ADD	HL,HL
-	ADD	HL,HL
-	LD	A,H		; Get month
-	AND	0FH
-	CP	13		; Make sure it's valid
-	JR	C,LDATE1
-	XOR	A		; (Else will show as "???")
-LDATE1:	LD	C,A		; Use to index to 3-byte string table
-	LD	B,0
-	LD	HL,MONTX
-	ADD	HL,BC
-	ADD	HL,BC
-	ADD	HL,BC
-	LD	C,3
-	LDIR			; Move month text into listing line
-	EX	DE,HL		; Restore line ptr
-	LD	(HL),'-'	; Then a separator
-	INC	HL
-	POP	AF		; Recover high byte of date
-	SRL	A		; Get 1980-relative year
-	ADD	A,80		; Get true year in century
-LDATE2:	LD	BC,256*2+'0'	; Setup for 2 digits with high-zero fill
-	JR	BTOD		;  and convert binary to decimal ASCII
+	SUBTTL	Miscellaneous Support Routines
+; Note:	The following general-purpose routine is currently used in this
+;	program only to divide longs by 10 (by decimal convertor, LTOD).
+;	Thus, a few unneeded code locations have been commented out.
+;	(May be restored if program requirements change.)
+; Unsigned Integer Division of Long (or Word or Byte) by Byte
+; R. A. Freed
+; Divisor in C, dividend in (A)DEHL or (A)HL or L (depends on call used)
+; Quotient returned in DEHL (or just HL), remainder in A
+;DIVXLB:OR	A		; 40-bit dividend in ADEHL (A < C)
+;	JR	NZ,DIVLB1	; Skip if have more than 32 bits
+DIVLB:	LD	A,D		; 32-bit dividend in DEHL
+	OR	E		; But is it really only 16 bits?
+	JR	Z,DIVWB		; Yes, skip (speeds things up a lot)
+	XOR	A		; Clear high quotient for first divide
+DIVLB1:	CALL	DIVLB2		; Get upper quotient first, then swap:
+DIVLB2:	EX	DE,HL		; Upper quotient in DE, lower in HL
+DIVXWB:	OR	A		; 24-bit dividend in AHL (A < C)
+	JR	NZ,DIVWB1	; Skip if have more than 16 bits
+DIVWB:	LD	A,H		; 16-bit dividend in HL
+	CP	C		; Will quotient be less than 8 bits?
+	JR	C,DIVBB1	; Yes, skip (small dividend speed-up)
+	XOR	A		; Clear high quotient
+DIVWB1:	LD	B,16		; Setup count for 16-bit divide
+	JR	DIVB		; Skip to divide loop
+;DIVBB:	XOR	A		; 8-bit dividend in L
+DIVBB1:	LD	H,L		; For very small nos., pre-shift 8 bits
+	LD	L,0		; High byte of quotient will be zero
+	LD	B,8		; Setup count for 8-bit divide
+; Top of divide loop (vanilla in-place shift-and-subtract)
+DIVB:	ADD	HL,HL		; Divide AHL (B=16) or AH (B=8) by C
+	RLA			; Shift out next remainder bit
+;	JR	C,DIVB1		; (This needed only for divsors > 128)
+	CP	C		; Greater than divisor?
+	JR	C,DIVB2		; No, skip (next quotient bit is 0)
+DIVB1:	SUB	C		; Yes, reduce remainder
+	INC	L		;  and set quotient bit to 1
+DIVB2:	DJNZ	DIVB		; Loop for no. bits in quotient
+	RET			; Done (quotient in HL, remainder in A)
 	PAGE
-; List file creation time
-; ARC files use MS-DOS 16-bit time format:
+; Fetch a long (4-byte) value
+LGET:	LD	E,(HL)		; Fetch BCDE from (HL)
+	INC	HL
+	LD	D,(HL)
+	INC	HL
+	LD	C,(HL)
+	INC	HL
+	LD	B,(HL)
+	RET
+; Add two longs
+LADD:	LD	B,4		; (DE) + (HL) -> (HL)
+	OR	A
+LADD1:	LD	A,(DE)
+	ADC	A,(HL)
+	LD	(HL),A
+	INC	HL
+	INC	DE
+	DJNZ	LADD1
+	RET	
+; Fill routines
+FILL2B:	LD	B,2		; Fill 2 blanks
+FILLB:	LD	C,' '		; Fill B blanks
+FILL:	LD	(HL),C		; Fill B bytes with char in C
+	INC	HL
+	DJNZ	FILL
+	RET
+; Convert character to upper case
+UPCASE:	CP	'a'
+	RET	C
+	CP	'z'+1
+	RET	NC
+	ADD	A,'A'-'a'
+	RET
 ;
-; Bits [15:11] = hour
-; Bits [10:5]  = minute
-; Bits  [4:0]  = second/2 (not shown here)
-LTIME:	EX	DE,HL		; Save listing line ptr
-	LD	HL,(TIME)	; Fetch time
-	LD	A,H		; Copy high byte
-	RRA			; Get hour
-	RRA
-	RRA
-	AND	1FH
-	LD	B,' '		; Assume 24 hour format!
-;;	JR	Z,LTIME1	; Skip if 0 (12 midnight)
-;;	CP	12		; Is it 1-11 am?
-;;	JR	C,LTIME2	; Yes, skip
-;;	LD	B,' '		; Else, it's pm
-;;	SUB	12		; Convert to 12-hour clock
-;;	JR	NZ,LTIME2	; Skip if not 12 noon
-;;LTIME1:	LD	A,12		; Convert 0 to 12
-LTIME2:	PUSH	BC		; Save am/pm indicator
-	ADD	HL,HL		; Shift minutes up to high byte
-	ADD	HL,HL
-	ADD	HL,HL
-	PUSH	HL		; Save minutes
-	EX	DE,HL		; Recover listing line ptr
+
