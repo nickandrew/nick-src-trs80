@@ -1,0 +1,47 @@
+3ST Xfer help
+
+   Usage:    XFER
+
+   XFER is an interactive, menu-driven command to help you
+do file transfers. Non-interactive, more powerful commands
+are available (see help on xmf, cat, and upload).
+
+   Once initiated, XFER provides a menu, the selections
+possible are outlined below:
+
+<U>  Upload a file to Zeta
+
+   You are prompted for a valid filename and transfer
+protocol.  The transfer protocol can be either Xmodem or
+Ascii (ie: no protocol).
+
+
+<D>  Download a file from Zeta
+
+   You may download any file which the system has online
+(except for certain protected files). Non-members may only
+download files containing Zeta information for them.
+After a valid, existing filename is found, a choice of Xmodem
+or Ascii is given.
+
+<F>  Directory of newfiles disk
+
+   This gets a directory of drive 1, which is usually the
+"newfiles" disk. There are two other drives, (0 and 2), which
+contain files for other purposes.
+
+<N>  Descriptions of new files
+
+   This option lists a file called newfiles which contains the
+descriptions of all files on the disk called newfiles.
+
+<X>  Exit
+
+   The "xfer" command terminates immediately.
+
+BUGS
+----
+      There is a bug in uploading. Sometimes xmf thinks it is
+to receive a second file after the first transfer completes.
+
+0
