@@ -1,0 +1,36 @@
+;Printer/asm: New printer driver
+; Version 1.0 on 23-Dec-84.
+;
+	ORG	5200H
+START
+	LD	HL,(4049H)
+	LD	BC,PR_END-PR_START
+	OR	A
+	SBC	HL,BC
+	LD	(4049H),HL
+	INC	HL
+	LD	(4026H),HL
+	LD	DE,PR_START
+	LD	BC,PR_END-PR_START
+	EX	DE,HL
+	LDIR
+	LD	HL,MESS_1
+	CALL	4467H
+	JP	402DH
+;
+MESS_1	DEFM	'New Printer Driver Ver 1.0',0AH
+	DEFM	'Written 23-Dec-84.',0DH
+;
+PR_START
+PR_1	CALL	05D1H
+	JR	Z,PR_2
+	LD	A,(3840H)
+	AND	4
+	JR	Z,PR_1
+	RET
+PR_2	LD	A,C
+	LD	(37E8H),A
+	RET
+PR_END	NOP
+;
+	END	START
