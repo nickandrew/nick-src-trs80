@@ -6,18 +6,24 @@
 
 FILE *fpin,*fpout;
 int  i;
-char table[18][8];
-char *wordy[18] ={"0","5","6","7","9a","11","12","12p","13","14",
+char table[18][10];
+/*
+	char *wordy[18] ={"0","5","6","7","9a","11","12","12p","13","14",
 		"15","15a","16","18","19","20","21","22"};
+*/
+char *wordy[18] ={"5","6","7","9a","11","12","12p","13","14",
+	"15","15a","16","17","18","19","20","21","22"};
+
 char instr[80],outstr[80];
 char *cp,*ccp,*scp;
 char code[4],value[7];
+
 main(argc,argv)
 int argc;
 char *argv[];
 {
    if (argc!=3) {
-      printf("usage: tax1 inputfile outputfile\n");
+      printf("usage: %s inputfile outputfile\n",*argv);
       exit(1);
    }
 
@@ -40,7 +46,7 @@ char *argv[];
       space(&cp);
       /* clear table entries */
       for (i=0;i<18;i++) {
-	 strcpy(table[i],"");
+	 table[i][0] = 0;
       }
       while (*cp!='\n') {
 	 ccp=code;
@@ -67,4 +73,9 @@ char *argv[];
    }
    printf("End of program\n");
 }
-space(charptr) char *charptr; { while (*cp==' ') cp++; }
+
+space(charptr)
+char *charptr;
+{
+    while (*cp==' ') cp++;
+}
