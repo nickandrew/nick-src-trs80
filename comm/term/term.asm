@@ -1,19 +1,45 @@
+;Term15/asm: Terminal program.
 ;*************************************
-;* term15/asm: terminal program.     *
+;* term15/asm: Terminal program.     *
 ;* Nick Andrew, 04-Apr-84.           *
-;* Version 1.5  17-Dec-85.           *
+;* Version 1.4b 16-Jun-85.           *
+;* Version 1.5  13-May-86            *
 ;*                                   *
 ;*                                   *
 ;* Now working on ascii file send    *
 ;* and complete UART control         *
 ;*                                   *
 ;*************************************
+;
+*GET	DOSCALLS
+;
 ;I/O Port Assignments.
 RDDATA	EQU	0F8H	;Uart Read data port.
 WRDATA	EQU	0F8H	;Uart Write data port.
 RDSTAT	EQU	0F9H	;Uart Read status port.
 WRSTAT	EQU	0F9H	;Uart Write status port.
 PTRADD	EQU	0FDH	;Printer port.
+;
+;Setup info.....
+_5_BIT		EQU	00H	;....00..
+_6_BIT		EQU	04H	;....01..
+_7_BIT		EQU	08H	;....10..
+_8_BIT		EQU	0CH	;....11..
+_BIT_RESET	EQU	0F3H	;mask bit count bits
+;
+_1_STOP		EQU	40H	;01......
+_2_STOP		EQU	0C0H	;11...... ;1.5=10......
+_STOP_RESET	EQU	3FH	;mask stop bits
+;
+_PAR_ON		EQU	4	;bit 4
+_PAR_EV		EQU	5	;bit 5
+;
+_BAUD_300	EQU	3	;If rts reset
+_BAUD_1200	EQU	2	;If rts reset
+_BAUD_2400	EQU	2	;If rts set
+_BAUD_FAST	EQU	5	;RTS bit
+_BAUD_RESET	EQU	0FCH	;Reset _baud_300 etc
+;
 ;Uart Status Bits.
 _DSR	EQU	7	;1=DSR set to 0
 _BREAK	EQU	6	;1=BREAK signal seen
@@ -21,12 +47,13 @@ _FE	EQU	5	;1=framing error
 _OE	EQU	4	;1=overrun error
 _PE	EQU	3	;1=parity error
 _EMPTY	EQU	2	;1=buffer empty
-DAV	EQU	1	;Data Available 1=true
-CTS	EQU	0	;Clear to send: 1=true
+_DAV	EQU	1	;Data Available 1=true
+_CTS	EQU	0	;Clear to send: 1=true
+;
 ;Printer Ready & Waiting value.
 PTRRDY	EQU	3FH
 ;Cpu speed (to nearest 100 Khz)
-CPU	EQU	30
+CPU	EQU	35
 ;Translation Table Hi-Byte addresses.
 PDATA	EQU	8000H
 TTVDUI	EQU	80H
@@ -37,6 +64,7 @@ MNAME	EQU	8610H
 UARTCD	EQU	8630H	;Codes to program into uart.
 PTRBUF	EQU	87H
 TTPTR	EQU	88H
+;
 ;Flag Addresses defined.
 STATUS	EQU	00H	;Various Status flags.
 PSADD	EQU	01H	;Curr. Ptr buffer read locn.
@@ -44,13 +72,15 @@ PPADD	EQU	02H	;Current Ptr buffer poke locn.
 SNDON	EQU	03H	;Holds Send=on character.
 SNDOFF	EQU	04H	;Holds Send=off character.
 UARTPG	EQU	05H	;# codes for uart setting.
+;
 ;Bits defined for flag: 'status'
-FULDPX	EQU	0	;1=Full Duplex.
+FULDPX	EQU	0	;Full Duplex.
 ECHOCR	EQU	1	;Echo c/r on Half duplex.
 PTROUT	EQU	2	;Printer output.
 WTSND	EQU	3	;Wait-to-send flag.
 WTSTAT	EQU	4	;1=allowed to send.
 DATAOK	EQU	7	;Must be ON for correct table.
+;
 ;Keyboard Ctrl Character names.
 NULL	EQU	00H
 EOT	EQU	04H	;Ctrl-D (End of Transmission)
@@ -64,37 +94,27 @@ XON	EQU	11H	;Continue transmission.
 XOFF	EQU	13H	;Stop transmission.
 NAK	EQU	15H	;Negative Acknowledge.
 DEL	EQU	7FH	;Delete
+;
 ;General equates
-STAKLN	EQU	80H	;Length of Stack.
+STACK_LEN	EQU	80H	;Length of Stack.
 CLS	EQU	01C9H
-SCRMES	EQU	4467H
 GETKEY	EQU	002BH
 READLN	EQU	0040H	;Read a whole line from kbd.
 NUMCOM	EQU	7	;Number of Commands.
+;
+	COM	'<Term 1.5  25-May-86>'
 ;Start of Program.
-	ORG	5200H
-STACK	DEFS	STAKLN
+	ORG	5200H+STACK_LEN
 START
+	LD	SP,START
 	LD	HL,TITLE
-	CALL	SCRMES
-	LD	SP,STACK+STAKLN
+	CALL	MESS
 	LD	IX,FLAGS
 ;reset UART.
-	LD	HL,UART_CLR
-	LD	B,(HL)
-ULOOP	INC	HL
-	LD	A,(HL)
-	OUT	(WRSTAT),A
-	DJNZ	ULOOP
+	CALL	RSUART
 ;
 	LD	(IX+STATUS),0
 	JP	MMENU
-;
-UART_CLR	;codes to clear UART.
-	DEFB	4
-	DEFB	82H,50H,0CEH,37H
-;
-TITLE	DEFM	'Terminal Prog Ver 1.5  12-May-85.',CR
 ;Send a single character to the Uart.
 SEND1	PUSH	AF
 	CP	XOFF
@@ -108,7 +128,7 @@ SEND1	PUSH	AF
 	POP	AF
 	JR	RET_NZ
 WSEND1	IN	A,(RDSTAT)
-	BIT	CTS,A
+	BIT	_CTS,A
 	JR	Z,WSEND1
 	POP	AF
 	CP	(IX+SNDOFF)
@@ -119,11 +139,12 @@ WSEV01	OUT	(WRDATA),A
 ;receive 0 or 1 chars from Uart.
 ;on exit: NZ set if char recvd.
 RECV0	IN	A,(RDSTAT)
-	BIT	DAV,A
+	BIT	_DAV,A
 	JR	NZ,RECV01
 	BIT	_OE,A
 	JR	Z,NO_OE
 	LD	A,0
+	JR	RECV02
 NO_OE	BIT	PTROUT,(IX+STATUS)
 	LD	A,0
 	RET	Z
@@ -131,10 +152,13 @@ NO_OE	BIT	PTROUT,(IX+STATUS)
 	XOR	A
 	RET
 RECV01	BIT	_PE,A
-	JR	Z,RECV_1
+	JR	NZ,RECV02
 	BIT	_FE,A
-	JR	Z,RECV_1
-	LD	A,(RDDATA)
+	JR	NZ,RECV02
+	BIT	_OE,A
+	JR	NZ,RECV02
+	JR	RECV_1
+RECV02	LD	A,(RDDATA)
 	LD	A,37H
 	OUT	(WRSTAT),A
 	XOR	A
@@ -152,6 +176,13 @@ RET_NZ	OR	A
 	RET	NZ
 	CP	1
 	RET
+;
+MESS	LD	A,(HL)
+	OR	A
+	RET	Z
+	CALL	33H
+	INC	HL
+	JR	MESS
 ;
 ;Empty printer buffer character by character.
 EMPTY	PUSH	AF
@@ -272,7 +303,6 @@ PRINT2	OR	A
 	CALL	PRINT1
 	RET
 ;Type two characters on the printer.
-TYPE2	OR	A
 	RET	Z
 	CALL	TYPE1
 	LD	A,B
@@ -347,7 +377,7 @@ RCHAR	PUSH	AF
 	BIT	PTROUT,(IX+STATUS)
 	JR	Z,RCHV02
 	CALL	TRPTR
-	CALL	TYPE2
+;;	CALL	TYPE2
 RCHV02	POP	HL
 	POP	DE
 	POP	BC
@@ -377,11 +407,9 @@ KBDIN1	CALL	KBDIN0
 ;Send a QUIT. signal to the host.
 SQUIT	LD	A,3FH
 	OUT	(WRSTAT),A
-	LD	HL,M_QUIT
-	CALL	SCRMES
-;delay 1/10 sec (= 4 ticks)
+;delay 6 ticks, 3/20 sec.
 	LD	A,(4040H)
-	ADD	A,4
+	ADD	A,6
 	LD	B,A
 Q_DELAY	LD	A,(4040H)
 	CP	B
@@ -390,17 +418,15 @@ Q_DELAY	LD	A,(4040H)
 	OUT	(WRSTAT),A
 	RET
 ;
-M_QUIT	DEFM	LF,'Quit.',CR
 ;
 ;
-TERM	CALL	CLS
+TERM	CALL	SCR_RESTORE
 	BIT	DATAOK,(IX+STATUS)
 	JR	NZ,TERV20
 	LD	HL,NODMES
-	CALL	SCRMES
+	CALL	MESS
 	RET
-NODMES	DEFM	'Terminal Data not in memory.'
-	DEFB	CR
+NODMES	DEFM	'Terminal Data not in memory.',CR,0
 TERV20	SET	WTSTAT,(IX+STATUS)
 	CALL	RSUART
 	LD	A,14
@@ -415,34 +441,48 @@ LOOV01	CALL	RCHAR
 ;
 BREAK	LD	A,(3880H)	;shift
 	BIT	0,A
-	RET	Z
+	JR	Z,LOOP_EXIT
 	CALL	SQUIT
 	JR	LOOV01
+;
+LOOP_EXIT
+	CALL	SCR_SAVE
+	RET
+;
+SCR_SAVE
+	LD	HL,(4020H)
+	LD	(SAVED_CURS),HL
+	LD	HL,3C00H
+	LD	DE,SAVED_SCREEN
+	LD	BC,1024
+	LDIR
+	RET
 ;
 ;Program Uart for correct parity etc...
 RSUART	PUSH	AF
 	PUSH	BC
 	PUSH	HL
-	LD	B,(IX+UARTPG)
-	LD	HL,UARTCD
-RSUV01	LD	A,(HL)
+	LD	HL,UART_CLR
+	LD	B,(HL)
+ULOOP	INC	HL
+	LD	A,(HL)
 	OUT	(WRSTAT),A
-	INC	HL
-	DJNZ	RSUV01
+	NOP
+	NOP
+	NOP
+	DJNZ	ULOOP
+;
 	POP	HL
 	POP	BC
 	POP	AF
 	RET
-FCB	DEFS	32
-FCBBUF	DEFS	256
-STRBUF	DEFS	32
-COMBUF	DEFS	64
+;
 LOADFL	LD	HL,STRBUF
 	LD	B,31
 	CALL	0040H
 	LD	HL,STRBUF
 	LD	DE,FCB
-	CALL	441CH	;EXTRACT
+	CALL	DOS_EXTRACT
 	LD	HL,EXT1
 	LD	DE,FCB
 	CALL	4473H
@@ -452,15 +492,15 @@ LOADFL	LD	HL,STRBUF
 	SET	7,A
 	CALL	4409H
 	RET
-EXT1	DEFM	'TRM'
-	DEFB	00H
+;
+EXT1	DEFM	'TRM',0
 ;
 PMACH	BIT	DATAOK,(IX+STATUS)
 	RET	Z
 	LD	HL,MACMES
-	CALL	SCRMES
+	CALL	MESS
 	LD	HL,8610H
-	CALL	SCRMES
+	CALL	MESS
 	RET
 ;
 SENDF	;send a file in ascii format.
@@ -473,7 +513,7 @@ SF_01	LD	A,(HL)
 	INC	HL
 	JR	SF_01
 SF_02	LD	DE,FCB
-	CALL	441CH
+	CALL	DOS_EXTRACT
 	JP	NZ,FILE_ERR
 	LD	HL,FCBBUF
 	LD	B,0
@@ -483,12 +523,12 @@ SF_02	LD	DE,FCB
 SLOOP	LD	DE,FCB
 	CALL	13H
 	JP	NZ,SFINI
-WS_SF	PUSH	AF
-	CALL	SEND1
+WS_SF	CALL	SEND1
+	BIT	FULDPX,(IX+STATUS)
+	JR	NZ,WS_NOECHO
 	CALL	TRVDUO
 	CALL	PRINT2
-	POP	AF
-	CALL	CHAR_DELAY
+WS_NOECHO
 	CALL	RCHAR
 	BIT	WTSTAT,(IX+STATUS)
 	JR	NZ,SLOOP
@@ -508,33 +548,19 @@ WAIT_RDY
 	JR	Z,WAIT_RDY
 	JR	SLOOP
 ;
-CHAR_DELAY
-	CP	0DH
-	LD	BC,0
-	PUSH	AF
-	CALL	Z,0060H
-	POP	AF
-	CALL	Z,0060H
-	LD	BC,1800H
-	CALL	0060H
-	RET
-;
-MAX_SEC	DEFB	0
+MAX_SEC	NOP
 ;
 FILE_ERR
 	OR	80H
 	CALL	4409H
 	RET
 ;
-SFINI	LD	A,(FLAGS+STATUS)
-	BIT	FULDPX,A
-	RET	NZ	;Test for Honeywell!!
-	LD	HL,EOF_STRING
-FIN_LP	LD	A,(HL)
+SFINI	RET
+SEND_STR	LD	A,(HL)
 	OR	A
 	RET	Z
 	PUSH	HL
-FIN_01	CALL	SEND1
+	CALL	SEND1
 	CALL	TRVDUO
 	CALL	PRINT2
 FIN_03A	CALL	RCHAR
@@ -542,21 +568,25 @@ FIN_03A	CALL	RCHAR
 	JR	Z,FIN_03A
 	POP	HL
 	INC	HL
-	JR	FIN_LP
+	JR	SEND_STR
 ;
-;
-EOF_STRING
-	DEFM	'***','EOF','***',CR,NULL
-CHAR	NOP
-;
+SCR_RESTORE			;restore screen.
+	LD	HL,SAVED_SCREEN
+	LD	DE,3C00H
+	LD	BC,1024
+	LDIR
+	LD	HL,(SAVED_CURS)
+	LD	(4020H),HL
+	RET
 ;
 MACMES	DEFM	'Terminal Type: '
-	DEFB	03H
+	DEFB	0
 ;Main Menu routine: set up as an infinite loop.
 ;Breakout must be via subroutine.
 MMENU
+	LD	SP,START
 	LD	HL,MMMES
-	CALL	SCRMES
+	CALL	MESS
 	LD	HL,COMBUF
 	LD	B,59
 	CALL	READLN
@@ -566,72 +596,62 @@ MMENU
 ;Execute command in COMBUF.
 EXCOMM	LD	HL,COMBUF
 	LD	A,(HL)
-	CP	60H	;Lower Case only
+	CP	'a'
 	JR	C,EXCV01
-	SUB	20H
+	AND	5FH
 EXCV01	CP	CR
 	RET	Z
 	LD	HL,COMTAB
-	LD	BC,NUMCOM
+	LD	BC,COMEND-COMTAB
 	CPIR
 	JR	Z,EXCV02
 	LD	HL,M_NTFND
-	CALL	SCRMES
+	CALL	MESS
 	RET
 ;
-M_NTFND	DEFM	'Command Not found.',CR
+M_NTFND	DEFM	'Command Not found.',CR,0
 ;
-EXCV02	DEC	L
-	LD	A,L
-	ADD	A,A
-	LD	L,A
+EXCV02	DEC	HL
+	LD	DE,COMTAB
+	OR	A
+	SBC	HL,DE
+	ADD	HL,HL
 	LD	DE,COMVEC
-	LD	H,0
 	ADD	HL,DE
 	LD	E,(HL)
 	INC	HL
 	LD	D,(HL)
 	EX	DE,HL
 	JP	(HL)	;Jump to routine.
-MMMES	DEFM	LF,'Enter command, or ? if unknown.'
-	DEFB	LF
-	DEFM	'=> '
-	DEFB	03H
+;
+MMMES	DEFM	CR,'Enter command'
+	DEFB	CR
+	DEFM	'Main => '
+	DEFB	0
 ;Help: prints command names & functions.
 HELP	LD	HL,HPMES
-	CALL	SCRMES
+	CALL	MESS
 	RET
-HPMES	DEFM	'Main Menu: Allowable Commands'
-	DEFB	LF
-	DEFM	'<D> Return to Dos.             '
-	DEFM	'<T> Enter Terminal mode        '
-	DEFB	LF
-	DEFM	'<P> Toggle Printer on/off      '
-	DEFM	'<L> Load Terminal Data         '
-	DEFB	LF
-	DEFM	'<S> Send file in ascii         '
-	DEFM	'<?> Help (this list)           '
-	DEFB	LF
-	DEFM	'<M> Print Machine type         '
-	DEFB	CR
+;
 PTRTG2	BIT	PTROUT,(IX+STATUS)
 	JR	Z,PTRV20
 	RES	PTROUT,(IX+STATUS)
 	LD	HL,OFFMS2
-	CALL	SCRMES
+	CALL	MESS
 	RET
+;
 PTRV20	SET	PTROUT,(IX+STATUS)
 	XOR	A
 	LD	(IX+PSADD),A
 	LD	(IX+PPADD),A
 ;
 	LD	HL,ONMES2
-	CALL	SCRMES
+	CALL	MESS
 	RET
-ONMES2	DEFM	'Printer is now ON.'
-	DEFB	0DH
-OFFMS2	DEFM	'Printer is now OFF.'
-	DEFW	0DH
+;
+ONMES2	DEFM	'Printer is now ON.',CR,0
+OFFMS2	DEFM	'Printer is now OFF.',CR,0
+;
 ;Prepare to go to Terminal Routine.
 TERM2	LD	HL,COMBUF+1
 	LD	A,(HL)
@@ -650,27 +670,30 @@ LOAD2	LD	HL,COMBUF+1
 	CP	CR
 	JR	NZ,LOAD3
 	LD	HL,REQMES
-	CALL	SCRMES
+	CALL	MESS
 	RET
 REQMES	DEFM	'Requires filename after command.'
-	DEFB	0DH
+	DEFB	0DH,0
 LOAD3	RES	DATAOK,(IX+STATUS)
 	INC	HL
 	CALL	LDATA
 	RET
+;
 SAVE2	LD	HL,COMBUF+1
 	LD	A,(HL)
 	CP	CR
 	JR	NZ,SAVE3
 	LD	HL,REQMES
-	CALL	SCRMES
+	CALL	MESS
 	RET
+;
 SAVE3	INC	HL
 	CALL	SDATA
 	RET
+;
 ;Load data from disk (full sector read)
 LDATA	LD	DE,FCB
-	CALL	441CH	;EXTRACT
+	CALL	DOS_EXTRACT
 	RET	NZ
 	LD	HL,EXT1
 	LD	DE,FCB
@@ -678,18 +701,19 @@ LDATA	LD	DE,FCB
 	LD	DE,FCB
 	LD	HL,FCBBUF
 	LD	B,0
-	CALL	4424H	;OPEN>EX
+	CALL	DOS_OPEN_EX
 	RET	NZ
 	LD	B,10
 	LD	DE,PDATA
 LDAV01	PUSH	BC
 	PUSH	DE
 	LD	DE,FCB
-	CALL	4436H	;READ>SC
+	CALL	DOS_READ_SECT
 	JR	Z,LDAV02
 	POP	DE
 	POP	BC
 	RET
+;
 LDAV02	LD	HL,FCBBUF
 	POP	DE
 	LD	BC,100H
@@ -697,9 +721,11 @@ LDAV02	LD	HL,FCBBUF
 	POP	BC
 	DJNZ	LDAV01
 	LD	DE,FCB
-	CALL	4428H
+	CALL	DOS_CLOSE
 	RET
+;
 SDATA	RET
+;
 NUSEND	DEFS	12
 	PUSH	AF
 	PUSH	BC
@@ -712,7 +738,9 @@ NUSEND	DEFS	12
 	POP	BC
 	POP	AF
 	RET
-NURECV	DEFS	12
+;
+NURECV
+	DEFS	12
 	PUSH	BC
 	PUSH	DE
 	PUSH	HL
@@ -721,25 +749,127 @@ NURECV	DEFS	12
 	POP	DE
 	POP	BC
 	RET
-;New origin for Command Table and Command Vectors.
-	ORG	7F00H
-COMTAB	DEFB	'D'	;Back to Dos.
-	DEFB	'T'	;Terminal.
-	DEFB	'P'	;Toggle Printer on/off.
-	DEFB	'L'	;Load machine data.
-	DEFB	'S'	;Ascii File send.
-	DEFB	'?'	;Help on commands.
-	DEFB	'M'	;machine type.
-	DEFB	NULL
-	ORG	7F40H
-COMVEC	DEFW	402DH	;'D': Back to Dos.
-	DEFW	TERM2	;'T': Terminal.
-	DEFW	PTRTG2	;'P': Toggle Printer.
-	DEFW	LOAD2	;'L': Load Data.
-	DEFW	SENDF	;'S': Send file.
-	DEFW	HELP	;'?': Help message.
-	DEFW	PMACH	;'M': Machine
-	DEFW	0000H
+;
+OPTION
+;;	CALL	PRINT_STAT
+	LD	HL,M_BITS
+	CALL	ASK
+	JP	C,MMENU
+	LD	HL,IN_BUFF
+OPT_LOOP
+	LD	A,(HL)
+	INC	HL
+	CP	'7'
+	JR	Z,BITS_7
+	CP	'8'
+	JR	Z,BITS_8
+	CP	'1'
+	JR	Z,BAUD_1200
+	CP	'2'
+	JR	Z,BAUD_2400
+	CP	'3'
+	JR	Z,BAUD_300
+	AND	5FH
+	CP	'N'
+	JR	Z,PARI_NO
+	CP	'E'
+	JR	Z,PARI_EV
+	CP	'O'
+	JR	Z,PARI_OD
+	JP	RE_SETUP
+;
+BITS_7
+	LD	A,(SETUP_BITS)
+	AND	_BIT_RESET
+	OR	_7_BIT
+	LD	(SETUP_BITS),A
+	JP	OPT_LOOP
+BITS_8	LD	A,(SETUP_BITS)
+	AND	_BIT_RESET
+	OR	_8_BIT
+	LD	(SETUP_BITS),A
+	JP	OPT_LOOP
+;
+PARI_NO	LD	A,(SETUP_BITS)
+	RES	_PAR_ON,A
+	LD	(SETUP_BITS),A
+	JP	OPT_LOOP
+PARI_EV	LD	A,(SETUP_BITS)
+	SET	_PAR_ON,A
+	SET	_PAR_EV,A
+	LD	(SETUP_BITS),A
+	JP	OPT_LOOP
+;
+PARI_OD	LD	A,(SETUP_BITS)
+	SET	_PAR_ON,A
+	RES	_PAR_EV,A
+	LD	(SETUP_BITS),A
+	JP	OPT_LOOP
+BAUD_1200
+	LD	A,(SETUP_BITS)
+	AND	_BAUD_RESET
+	OR	_BAUD_1200
+	LD	(SETUP_BITS),A
+	LD	A,(SETUP_SIGS)
+	RES	_BAUD_FAST,A
+	LD	(SETUP_SIGS),A
+	JP	OPT_LOOP
+BAUD_2400
+	LD	A,(SETUP_BITS)
+	AND	_BAUD_RESET
+	OR	_BAUD_2400
+	LD	(SETUP_BITS),A
+	LD	A,(SETUP_SIGS)
+	SET	_BAUD_FAST,A
+	LD	(SETUP_SIGS),A
+	JP	OPT_LOOP
+BAUD_300
+	LD	A,(SETUP_BITS)
+	AND	_BAUD_RESET
+	OR	_BAUD_300
+	LD	(SETUP_BITS),A
+	LD	A,(SETUP_SIGS)
+	RES	_BAUD_FAST,A
+	LD	(SETUP_SIGS),A
+	JP	OPT_LOOP
+;
+WHAT
+	LD	A,CR
+	CALL	33H
+	LD	B,_BIT_RESET.XOR.255
+	LD	A,(SETUP_BITS)
+	AND	B
+	CP	_7_BIT
+	LD	HL,M_7BITS
+	JR	Z,BITS_PRINT
+	CP	_8_BIT
+	LD	HL,M_8BITS
+	JR	Z,BITS_PRINT
+	LD	HL,M_UNKBITS
+BITS_PRINT
+	CALL	MESS
+;Now print parity status
+	LD	A,(SETUP_BITS)
+	LD	HL,M_NOPAR
+	BIT	_PAR_ON,A
+	JR	Z,PAR_PRINT
+	LD	HL,M_EVPAR
+	BIT	_PAR_EV,A
+	JR	NZ,PAR_PRINT
+	LD	HL,M_ODPAR
+PAR_PRINT
+	CALL	MESS
+	JP	MMENU
+;
+ASK	CALL	MESS
+	LD	HL,IN_BUFF
+	LD	B,60
+	CALL	40H
+	RET
+;
+RE_SETUP
+	CALL	RSUART
+	JP	MMENU
 ;
 PRINT_CHAR
 	LD	HL,(BUFF_POS)
@@ -759,9 +889,78 @@ PC_1A
 PC_1	LD	A,B
 	CALL	033AH
 	RET
-	RET
 ;
-BUFF_POS
-	DEFW	8A00H
+M_7BITS	DEFM	'Bits:   7',CR,0
+M_8BITS	DEFM	'Bits:   8',CR,0
+M_UNKBITS DEFM	'Bits:   Unknown',CR,0
+M_NOPAR	DEFM	'Parity: NONE',CR,0
+M_EVPAR	DEFM	'Parity: EVEN',CR,0
+M_ODPAR	DEFM	'Parity: ODD',CR,0
+;
+M_BITS	DEFM	CR,'Enter desired USART config:',CR
+	DEFM	'<7>  7 bits',CR
+	DEFM	'<8>  8 bits',CR
+	DEFM	'<N>  No   parity',CR
+	DEFM	'<E>  Even parity',CR
+	DEFM	'<O>  Odd  parity',CR
+	DEFM	'<1>  1200 bps',CR
+	DEFM	'<2>  2400 bps',CR
+	DEFM	'<3>   300 bps',CR
+	DEFM	'Usart Opt => ',0
+;
+;New origin for Command Table and Command Vectors.
+COMTAB	DEFB	'X'	;Back to Dos.
+	DEFB	'T'	;Terminal.
+	DEFB	'P'	;Toggle Printer on/off.
+	DEFB	'L'	;Load machine data.
+	DEFB	'S'	;Ascii File send.
+	DEFB	'?'	;Help on commands.
+	DEFB	'M'	;machine type.
+	DEFB	'O'	;options.
+	DEFB	'W'	;what is status
+COMEND	DEFB	NULL
+;
+COMVEC	DEFW	DOS	;'X': Back to Dos.
+	DEFW	TERM2	;'T': Terminal.
+	DEFW	PTRTG2	;'P': Toggle Printer.
+	DEFW	LOAD2	;'L': Load Data.
+	DEFW	SENDF	;'S': Send file.
+	DEFW	HELP	;'?': Help message.
+	DEFW	PMACH	;'M': Machine
+	DEFW	OPTION	;'O': Setup options.
+	DEFW	WHAT	;'W': What is status.
+	DEFW	0
+;
+UART_CLR	;codes to clear UART.
+	DEFB	4
+		DEFB	82H
+		DEFB	50H
+SETUP_BITS	DEFB	0CEH	;8,n,1
+SETUP_SIGS	DEFB	17H
+;
+HPMES	DEFM	'Allowable Commands',CR
+	DEFM	'<X> Return to Dos.             '
+	DEFM	'<T> Enter Terminal mode        ',CR
+	DEFM	'<P> Toggle Printer output      '
+	DEFM	'<L> Load Terminal Data         ',CR
+	DEFM	'<S> Send file in ascii         '
+	DEFM	'<?> Help (this list)           ',CR
+	DEFM	'<M> Print Machine type         '
+	DEFM	'<O> Baud rate options          ',CR
+	DEFM	'<W> What is Usart status',CR
+	DEFB	0
+;
+TITLE	DEFM	'Terminal Prog Ver 1.5a 30-May-87.',CR,0
+;
+SAVED_CURS	DEFW	3C00H
+SAVED_SCREEN	DEFS	1024
+;
+FCB		DEFS	32
+FCBBUF		DEFS	256
+STRBUF		DEFS	32
+COMBUF		DEFS	64
+;
+IN_BUFF	DEFS	64
+BUFF_POS	DEFW	8A00H
 ;
 	END	START
