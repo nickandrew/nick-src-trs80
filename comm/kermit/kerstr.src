@@ -14,13 +14,13 @@ ERMES4	DB	'?Unable to receive initiate',CR,'$'
 ERMES5	DB	'?Unable to receive file name',CR,'$'
 ERMES6	DB	'?Unable to receive end of file',CR,'$'
 ERMS10	DB	'?Unable to receive data',CR,'$'
-ERMS11 DB	'?System DOS error',CR,'$'
+ERMS11	DB	'?System DOS error',CR,'$'
 ERMS14	DB	'?Unable to receive an acknowledgement from the host',CR,'$'
 ERMS15	DB	CR,'?Unable to find file',CR,'$'
 ERMS16	DB	'?Unable to rename file$'
-ERMS17 DB	CR,'?System DOS error$'
-ERMS18 DB	CR,'?Unable to tell host that the session is finished$'
-ERMS19 DB	CR,'?Unable to tell host to logout$'
+ERMS17	DB	CR,'?System DOS error$'
+ERMS18	DB	CR,'?Unable to tell host that the session is finished$'
+ERMS19	DB	CR,'?Unable to tell host to logout$'
 INFMS3	DB	BELL,'Completed$'
 INFMS4	DB	BELL,'Failed$'
 INFMS5	DB	'%Renaming file to $'
@@ -53,7 +53,7 @@ TOPHLP	DB	CR,'BYE to host (LOGOUT) and exit to DOS'
 	DB	CR,'LOG the terminal session to a file'
 	DB	CR,'LOGOUT the host'
 	DB	CR,'RECEIVE file from host'
-	DB	CR,'SEND file to host'	
+	DB	CR,'SEND file to host'
 	DB	CR,'SET a parameter'
 	DB	CR,'SHOW the parameters'
 	DB	CR,'STATUS of Kermit$'
@@ -91,10 +91,10 @@ INTHLP	DB	CR,'?  This message'
 ONSTR	DB	' on$'
 OFFSTR	DB	' off$'
 LOCST	DB	CR,'Local echo$'
-DEFSTR DB	' default$'
-ASCSTR DB	' ASCII$'
+DEFSTR	DB	' default$'
+ASCSTR	DB	' ASCII$'
 BINSTR	DB	' binary$'
-TYPHLP DB	CR,'ASCII     BINARY     DEFAULT$'
+TYPHLP	DB	CR,'ASCII     BINARY     DEFAULT$'
 SPDHLP	DB	CR,'     50     75     110   134.5    150   300   600    1200'
 	DB	CR,'   1800   2000    2400    3600   4800  7200  9600   19200$'
 VTEMST	DB	CR,'VT52 emulation$'
@@ -108,7 +108,7 @@ PARST	DB	CR,'Parity: $'
 BCKST	DB	CR,'Block check type: $'
 BCKST1	DB	'-character$'
 PNONST	DB	'none$'
-PMRKST	DB	'mark$' 
+PMRKST	DB	'mark$'
 PSPCST	DB	'space$'
 PODDST	DB	'odd$'
 PEVNST	DB	'even$'
@@ -127,17 +127,17 @@ SCRERR	DB	28,26,26,26,26,26,26,'$'		;location for errors
 SCREND	DB	28,26,26,26,26,26,26,26,26,26,26,26,26,'$'	;location of last line
 RPPOS	DB	28,26,26,26,26,26,26,26,31,'RPack: $'
 SPPOS	DB	28,26,26,26,26,26,26,26,26,26,26,31,'SPack: $'
-TA	DB	1BH,'$',0,0		;cursor up
-TB	DB	1AH,'$',0,0		;cursor down
-TC	DB	19H,'$',0,0		;cursor right
-TD	DB	18H,'$',0,0		;cursor left
-CLRTOP	DB	1CH,1FH,'$',0		;clear screen
+TA	DB	1BH,'$',0,0	;cursor up
+TB	DB	1AH,'$',0,0	;cursor down
+TC	DB	19H,'$',0,0	;cursor right
+TD	DB	18H,'$',0,0	;cursor left
+CLRTOP	DB	1CH,1FH,'$',0	;clear screen
 TF	DB	'$',0,0,'$'
 TG	DB	'$',0,0,'$'
-TH	DB	1CH,'$',0,0		;cursor home
-TI	DB	1BH,'$',0,0		;reverse line feed
-TJ	DB	1FH,'$',0,0		;clear to end  of screen
-TK	DB	1EH,'$'			;clear  to end of line
+TH	DB	1CH,'$',0,0	;cursor home
+TI	DB	1BH,'$',0,0	;reverse line feed
+TJ	DB	1FH,'$',0,0	;clear to end  of screen
+TK	DB	1EH,'$'		;clear  to end of line
 ;
 ;	COMND tables
 ;
@@ -208,7 +208,7 @@ TYPTAB	DB	03H		;Three entries
 PRTTAB	DB	01H		;Only one port known at this point
 	DB	08H,'STANDARD$'
 ;;;	DW	MNPORT,MNPORT			;********
-	DEFW	RDDATA,RDDATA			;********
+	DEFW	RDDATA,RDDATA	;********
 				;what the hell for??
 YESTAB	DB	02H		;Two entries.
 	DB	02H,'NO$',00H,00H
@@ -218,7 +218,7 @@ CMER01	DB	CR,'?Ambiguous$'
 CMER02	DB	CR,'?Illegal input file spec$'
 CMIN00	DB	' Confirm with <ENTER>, Cancel with <BREAK>$'
 CMCRLF	DB	CR,'$'
-SPDTAB	DB	10H			;16 entries
+SPDTAB	DB	10H		;16 entries
 	DB	2,'50$',0,0
 	DB	02H,'75$',11H,11H
 	DB	03H,'110$',22H,22H
