@@ -1,0 +1,7 @@
+In July 1984 I was so enamoured of Unix that I thought I should write
+a Unix-like OS for the TRS-80. It was beyond my capabilities, but I
+didn't find that out until I had written a few hundred lines of
+assembler code.
+
+This code doesn't do anything - or maybe it shows a couple of processes
+competing for resources.
