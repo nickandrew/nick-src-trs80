@@ -1,0 +1,161 @@
+;scrub: Remove bit 7 from files and convert from CPM
+;	    to TRS-80 format.
+;
+*GET	DOSCALLS.HDR
+*GET	EXTERNAL.HDR
+*GET	ASCII.HDR
+;
+	ORG	PROG_START
+	DEFW	BASE
+	DEFW	THIS_PROG_END
+	DEFW	TERM_ABORT
+	DEFW	0
+;End of program load info.
+;
+	COM	'<scrub 1.0a 10-Aug-86>'
+	ORG	BASE+100H
+START	LD	SP,START
+;
+	LD	A,(HL)
+	CP	CR
+	JP	Z,USAGE
+;
+SCRUB	LD	A,(HL)
+	OR	A
+	JR	Z,EXIT
+	CP	CR
+	JR	Z,EXIT
+	LD	(ARG),HL
+	CP	'-'
+	JR	Z,PARAM
+	CALL	SCRUBFILE
+NEXT	LD	HL,(ARG)
+	CALL	BYP_WORD
+	JR	SCRUB
+;
+PARAM	INC	HL
+	LD	A,(HL)
+	CP	'C'
+	JR	NZ,NEXT
+	LD	A,(C_FLAG)
+	XOR	1
+	LD	(C_FLAG),A
+	JR	NEXT
+;
+EXIT	XOR	A
+	JP	TERMINATE
+;
+SCRUBFILE
+	LD	DE,FCB_SCRUB
+	CALL	EXTRACT
+	JP	NZ,NOFILE
+	LD	HL,BUF_SCRUB
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,NOFILE
+;
+LOOP	LD	DE,FCB_SCRUB
+	CALL	$GET
+	JP	NZ,EOF
+	AND	7FH
+	CP	CR
+	JR	Z,CRDEL
+	CP	1AH	;^Z
+	JR	Z,CTRLZ
+	CP	LF
+	JR	Z,LFDEL
+OUTPUT	LD	DE,($STDOUT)
+	CALL	$PUT
+	JR	LOOP
+;
+LFDEL	LD	A,(C_FLAG)
+	OR	A
+	LD	A,LF
+	JR	Z,OUTPUT
+	LD	A,CR		;change lonely LF to CR.
+	JR	OUTPUT
+;
+CTRLZ	LD	A,(C_FLAG)
+	OR	A
+	LD	A,CR
+	JR	Z,OUTPUT	;if not '-c', ^Z asis.
+	RET			;eof assumed after ^Z.
+;
+CRDEL	LD	DE,($STDOUT)
+	CALL	$PUT
+	LD	A,(C_FLAG)
+	OR	A
+	JR	Z,LOOP		;ignore any following.
+	LD	DE,FCB_SCRUB
+	CALL	$GET
+	JR	NZ,EOF
+	AND	7FH
+	CP	LF
+	JR	NZ,OUTPUT	;output diff char
+	JR	LOOP		;ignore lf.
+;
+EOF	RET			;return for next file.
+;
+USAGE	LD	HL,M_USAGE
+	LD	DE,($STDOUT_DEF)
+	CALL	MESS_0
+	LD	A,1
+	JP	TERMINATE
+;
+NOFILE	LD	HL,M_NOFILE
+	LD	DE,($STDOUT_DEF)
+	CALL	MESS_0
+	LD	HL,(ARG)
+	CALL	MESS_WORD
+	LD	A,CR
+	CALL	$PUT
+	RET			;go for next file.
+;
+BYP_SP	LD	A,(HL)
+	CP	' '
+	RET	NZ
+	INC	HL
+	JR	BYP_SP
+;
+BYP_WORD
+	LD	A,(HL)
+	CP	CR
+	RET	Z
+	OR	A
+	RET	Z
+	CP	' '
+	JR	Z,BYP_SP
+	INC	HL
+	JR	BYP_WORD
+;
+;
+MESS_WORD
+	LD	A,(HL)
+	CP	CR
+	RET	Z
+	CP	' '
+	RET	Z
+	OR	A
+	RET	Z
+	CALL	$PUT
+	INC	HL
+	JR	MESS_WORD
+;
+*GET	ROUTINES
+;
+M_SCRUB	DEFM	'scrub: ',0
+M_NOFILE	DEFM	'scrub: Cannot open ',0
+M_USAGE	DEFM	'scrub: remove bit 7 from files (ie: wordstar)',CR
+	DEFM	'usage: scrub [-c] files ...',CR
+	DEFM	'eg:    scrub myfile.txt',CR,0
+;
+C_FLAG	DEFB	0	;default OFF.
+ARG	DEFW	0	;current file.
+;
+;
+FCB_SCRUB	DEFS	32
+BUF_SCRUB	DEFS	256
+;
+THIS_PROG_END	EQU	$
+;
+	END	START
