@@ -11,13 +11,16 @@
  *            #endif
  *
  */
+
 #include STDIO/CSH
+
 #define  MAXINCL  20
 #define  LINELEN  255
 #define  NAMELEN  80
 #define  MAXDEFS  100
 #define  DEFLEN   12
 #define  MAXDEFLEN 1200
+
 FILE *fout;                /* Output file pointer         */
 int  nocomment;            /* Delete comments from source */
 int  ignore;               /* True if inside false #if    */
@@ -25,14 +28,15 @@ int  line;                 /* Global line counter         */
 int  is_unix;              /* Flag for Unix system        */
 int  is_trs80;             /* Flag for TRS-80 system      */
 int  *curr_line;           /* Current line pointer        */
-int  *curr_file;           /* Current filename            */
+char *curr_file;           /* Current filename            */
 char *curr_text;           /* Current line text of file   */
 char defines[MAXDEFLEN];
 int  trueif;               /* Count of true ifs           */
 int  falseif;              /* Count of false ifs          */
 int  numdef;               /* Number of active #defines   */
 char auxname[NAMELEN];
-main(argc,argv)
+
+int  main(argc,argv)
 int  argc;
 char *argv[];
 {
@@ -49,10 +53,10 @@ char *argv[];
       }
    process(argv[1]);
    fclose(fout);
-   exit(0);
+   return 0;
 }
 
-process(name)
+int process(name)
 char *name;
 {
    FILE *fp;
@@ -75,7 +79,7 @@ char *name;
       if (thisline[i]=='#') handlepp(thisline,fp,&i);
       else {
          i=0;
-         while (c=thisline[i]) {
+         while (c=thisline[i], c != 0) {
             if (c=='\'') handlesq(thisline,&i);
             else
             if (c=='"')  handledq(thisline,fp,&i);
@@ -91,19 +95,19 @@ char *name;
    fclose(fp);
 }
 
-whitencr(c)
+int whitencr(c)
 char c;
 {
    return((c==' ') || (c=='\t') || (c=='\f'));
 }
 
-white(c)
+int white(c)
 char c;
 {
    return(whitencr(c) || (c=='\n'));
 }
 
-handlesq(string,ip)
+int handlesq(string,ip)
 int  *ip;
 char string[];
 {
@@ -129,20 +133,20 @@ char string[];
    *ip=cp-string;
 }
 
-escchr(c)
+int escchr(c)
 char c;
 {
    return((c=='n') || (c=='t') || (c=='b') || (c=='r') ||
           (c=='f') || (c=='\\')|| (c=='\'')|| isoctal(c) );
 }
 
-isoctal(c)
+int isoctal(c)
 char c;
 {
    return( (c>='0') && (c<='7'));
 }
 
-handledq(string,fp,ip)
+int handledq(string,fp,ip)
 char string[];
 FILE *fp;
 int  *ip;
@@ -163,7 +167,7 @@ int  *ip;
    *ip=cp-string;
 }
 
-handleco(string,fp,ip)
+int handleco(string,fp,ip)
 char string[];
 FILE *fp;
 int  *ip;
@@ -185,7 +189,7 @@ int  *ip;
    *ip=cp-string;
 }
 
-handlepp(string,fp,ip)
+int handlepp(string,fp,ip)
 char string[];
 FILE *fp;
 int  *ip;
@@ -209,7 +213,7 @@ int  *ip;
    else if (!ignore)  fputs(string,fout);
 }
 
-hinclude(cp)
+int hinclude(cp)
 char *cp;
 {
    char delim,file[NAMELEN],stddir[NAMELEN],*fname,*last_file;
@@ -238,14 +242,14 @@ char *cp;
    fprintf(fout,"# %d %s\n",*last_line,last_file);
 }
 
-error(str1,str2)
+int error(str1,str2)
 char *str1,*str2;
 {
    printf(str1,str2);
    exit(-1);
 }
 
-verberr(flag,str1,str2)
+int verberr(flag,str1,str2)
 char *str1,*str2;
 int  flag;
 {
@@ -254,13 +258,13 @@ int  flag;
    if (flag) exit(flag);
 }
 
-cputc(c)
+int cputc(c)
 char c;
 {
    if (!ignore) putc(c,fout);
 }
 
-hif(cp)
+int hif(cp)
 char *cp;
 {
    verberr(1,curr_text,"#if construct not supported");
