@@ -1,79 +1,76 @@
 /*
-**  Ankhmai1.c : Last changed 26-Nov-88
+**  @(#) ankhmai1.c - Process Zeta's incoming files - 11 Mar 90
 **
 **  Process all incoming files, including:
 **
-**      Arcmail, Fidonews, Nodediffs
+**      Arcmail,	(unarc & process the bundles later)
+**	Bundles,	(process)
+**	Fidonews,	(remove oldest and unarc)
+**	News files	(delete oldest from queue then queue)
+**	Nodediffs	(remove)
 **
+**  1.2  12 Apr 90
+**	Add processing of PKT????.NET files (with a password)
+**  1.1  11 Mar 90
+**	If fidonews cannot unarc, let it be processed next time
+**	Add FIFO processing (deletion) of received News files
+**  1.0  17 Jul 89
+**	Base version
 */
 
 #include <stdio.h>
 
-/*  Command heads and tails */
+#include "ankhmail.h"
 
-char    pktdis[]  = "pktdis -r ";
-char    unarc1[]  = "unarc ";
-char    unarc2[]  = " -e";
-char    copy[]    = "cp ";
-char    drive0[]  = ":0 ";
-char    drive1[]  = ":1 ";
+main(argc, argv)
+int	argc;
+char	*argv[];
+{
+	if (argc > 1) {
+		if (!strcmp(argv[1], "-p")) p_flag = 1;
+		if (!strcmp(argv[1], "-P")) p_flag = 1;
+		if (!strcmp(argv[1], "-d")) d_flag = 1;
+		if (!strcmp(argv[1], "-D")) d_flag = 1;
+	}
 
-/*  Mask filenames to trigger processing */
+	pac = NULL;
+	if ((inf = fopen(infiles, "r+")) == NULL) {
+		fputs("Cannot open infiles\n", stderr);
+		exit(1);
+	}
 
-char    arc1mask[] = "A0000004.???";
-char    arc2mask[] = "A0000001.???";
-char    fnewsmask[] = "FNEWS???.ARC";
-char    fidomask[] =  "FIDO???.NWS";
-char    ndiffmask[] = "NODEDIFF.???";
+	for (;;) {
+		filepos = ftell(inf);
+		if (fgets(line, 80, inf) == NULL) break;
 
-/*  Other usefile filenames */
+		/* conventions for file status:
+		'.' - Processed (arcmail)
+		'-' - Processed and removed
+		' ' - Unprocessed
+		'Q' - In a queue
+		'P' - Partially processed
+		'E' - In error (human intervention required)
+		*/
 
-char    infiles[] = "infiles";
-char    packets[] = "packets";
-char    nabapkt[] = "a000a000.pkt/poof:2";
-char    acsfa[] = "a2c9a25b.fa/poof:2";
+		if (*line == '.' || *line == '-') continue;
 
-char    line[80],cmd[80],fn[80],findline[80],findfn[80];
-char    proctype;
-char    nextfn[80];
+		proctype = procfile();   /* process the file */
+		if (fp != NULL) fclose(fp);      /* clean up */
 
-int     retcode=0, arccode,fncode,ndcode, is_pkts=0;
-int     group_ok = 0;
-int     filepos,findpos,oldpos;
+		if (proctype != 0) {
+			/* rewrite the line */
+			fseek(inf, filepos, 0);
+			*line = proctype;
+			fputs(line, inf);
+		}
+	}
 
-FILE    *inf,*fp,*pac;
-extern  int     chkwild(), arcnext();
+	fclose(inf);
 
-main() {
-    pac = 0;
-    if ((inf=fopen(infiles,"r+"))==NULL) {
-        fputs("Cannot open infiles\n",stderr);
-        exit(1);
-    }
+	if (p_flag) procpac();	/* process file "packets" */
+	if (d_flag) packdis();	/* process "packets" using packdis */
 
-    for (;;) {
-        filepos = ftell(inf);
-        if (fgets(line,80,inf)==NULL) break;
-
-        if (*line != ' ')        /* processed */
-            continue;
-
-        proctype = procfile();   /* process the file */
-        if (fp!=NULL) fclose(fp);      /* clean up */
-
-        if (proctype != 0) {
-            /* rewrite the line */
-            fseek(inf,filepos,0);
-            *line = proctype;
-            fputs(line,inf);
-        }
-    }
-
-    fclose(inf);
-
-    procpac();    /* process file "packets" */
-
-    exit(retcode);
+	exit(retcode);
 }
 
 
@@ -81,239 +78,309 @@ main() {
 
 int     procfile() {
 
-    getfn(line,fn);
+	getfn(line, fn);
 
-    fputs("Requires processing: ",stderr);
-    fputs(fn,stderr);
-    fputs("\n",stderr);
+	if (*line == ' ') {
+		msg3("Requires processing: ", fn, "\n");
+	}
 
-    if (chkwild(arc1mask,fn)!=0) return procarc();
-    if (chkwild(arc2mask,fn)!=0) return procarc();
-    if (chkwild(fnewsmask,fn)!=0) return procfnews();
-    if (chkwild(ndiffmask,fn)!=0) return procndiff();
+	if (chkwild(arc1mask, fn) != 0) return procarc();
+	if (chkwild(arc2mask, fn) != 0) return procarc();
+	if (chkwild(fnewsmask, fn) != 0) return procfnews();
+	if (chkwild(ndiffmask, fn) != 0) return procndiff();
+	if (chkwild(newsmask, fn) != 0) return procnews();
+	if (chkwild(netmask, fn) != 0) return procnet();
 
-    return '?';
+	return '?';
 }
 
 /*  procarc : Process an arcmail file
- *
- *  Unarc onto drive 1.
- *  If error, do not set status as processed
- *  Write the name of each subfile into file "packets"
- *  Write the arcfile name into file "packets"
- *  Contents of "packets" file gets processed after ankhmail
- */
+**
+**  Unarc the bundles
+**  If disk full, set 'P' for partially processed
+**  If error, set 'E' status
+**  Write the name of each subfile into file "packets" with an ' '
+**  Write the arcfile name into file "packets" with an 'A'
+**  Contents of "packets" file gets processed after ankhmail
+*/
 
 int     procarc() {
 
-    fixfn(fn);
-    if ((fp=fopen(fn,"r"))==NULL) return ' ';
+	if (*line == 'E') {
+		/* there was a previous error. Say so */
+		msg3("Arcmail ", fn, " is in error.\n");
+		return 0;
+	}
 
-    strcpy(cmd,unarc1);
-    strcat(cmd,fn);
-    strcat(cmd,unarc2);
-    fputs(cmd,stderr);
-    fputs("\n",stderr);
+	fixfn(fn);
+	if ((fp = fopen(fn, "r")) == NULL) return ' ';
 
-    arccode = system(cmd);
-    retcode += arccode;
+	strcpy(cmd, unarc1);
+	strcat(cmd, fn);
+	msg3("", cmd, "\n");
 
-    if (arccode) {
-        fputs("Cannot unarc arcmail named ",stderr);
-        fputs(fn,stderr);
-        fputs("\n",stderr);
-        return ' ';
-    }
+	arccode = system(cmd);
+	retcode += arccode;
 
-    for (;;) {
+	if (arccode) {
+		msg3("Cannot unarc Arcmail ", fn, ", code = ");
+		itoa(arccode, string);		/* hope its ok */
+		msg3(string, "\n", "");
 
-        arccode = arcnext(fp,nextfn);
-        if (arccode == -1) return 'P';
-        if (arccode == 0) break;
+		if (arccode == 4) return 'P';
+		return 'E';
+	}
 
-        fputs("Contains packet ",stderr);
-        fputs(nextfn,stderr);
-        fputs("\n",stderr);
+	for (;;) {
 
-        if (pac == 0) {
-            pac = fopen(packets,"a");
-            if (pac == NULL) {
-                fputs("Cannot open 'packets'\n",stderr);
-                return ' ';
-            }
-        }
+		arccode = arcnext(fp, nextfn);
+		if (arccode == -1) return 'P';
+		if (arccode == 0) break;
 
-        fputs("  ",pac);
-        fixfn(nextfn);
-        fputs(nextfn,pac);
-        fputs("\n",pac);
-    }
+		msg3("Contains bundle ", nextfn, "\n");
 
-    /* put arcfile name AFTER packets, so we can remove once
-       all packets are processed */
+		if (pac == NULL) {
+			pac = fopen(packets, "a");
+			if (pac == NULL) {
+				fputs("Cannot open 'packets'\n", stderr);
+				return ' ';
+			}
+		}
 
-    fputs("A ",pac);
-    fputs(fn,pac);
-    fputs("\n",pac);
+		fixfn(nextfn);
+		fputs("  ", pac);
+		fputs(nextfn, pac);
+		fputs("\n", pac);
+	}
 
+	/* put arcfile name AFTER bundles, so we can remove once
+	** all bundles are processed
+	*/
+
+	fputs("A ", pac);
+	fputs(fn, pac);
+	fputs("\n", pac);
+
+	return '.';
 }
 
 /*  process contents of "packets" file.
- *  For each unprocessed filename
- *      try to load into message base
- *      If successful, remove packet & set process flag
- *  If all packets in arcmail "group" OK,
- *      then remove the arcmail file
- */
+**  For each unprocessed filename
+**      try to load into message base (packdis)
+**      If successful, remove bundle & set process flag
+**  If all bundles in arcmail "group" OK,
+**      then remove the arcmail file
+*/
 
 int     procpac() {
 
-    if (pac != NULL) fclose(pac);
-    if ((pac=fopen(packets,"r+"))==NULL) {
-        fputs("Cannot reopen packets\n",stderr);
-        retcode += 3;
-        return;
-    }
+	if (pac != NULL) fclose(pac);
+	if ((pac = fopen(packets, "r+")) == NULL) {
+		fputs("Cannot reopen 'packets'\n", stderr);
+		retcode += 3;
+		return;
+	}
 
-    group_ok = 1;
+	group_ok = 1;
 
-    for (;;) {
-        filepos = ftell(pac);
-        if (fgets(line,80,pac)==NULL) break;
-        getfn(line,fn);
-        fixfn(fn);
+	for (;;) {
+		filepos = ftell(pac);
+		if (fgets(line, 80, pac) == NULL) break;
+		getfn(line, fn);
+		fixfn(fn);
 
-        if (*line == 'A') {
-            if (!group_ok) {
-                fputs("Cannot remove ",stderr);
-                fputs(fn,stderr);
-                fputs(", it is not fully processed\n",stderr);
-                group_ok = 1;
-                continue;
-            }
-            /* remove! */
-            unlink(fn);
-            proctype = 'R';
-            /* rewrite the line */
-            fseek(pac,filepos,0);
-            *line = proctype;
-            fputs(line,pac);
-            continue;
-        }
-                                                                       if (*line != ' ')        /* processed */
-            continue;
+		if (*line == 'A') {
+			if (!group_ok) {
+				msg3("Cannot remove ", fn,
+					", it is not fully processed\n");
+				group_ok = 1;
+				continue;
+			}
+			/* remove! */
+			unlink(fn);
+			proctype = 'R';
+			/* rewrite the line */
+			fseek(pac, filepos, 0);
+			*line = proctype;
+			fputs(line, pac);
+			continue;
+		}
 
-        proctype = do_pkt();
+		if (*line != ' ')        /* processed */
+			continue;
 
-        if (proctype != 0) {
-            /* rewrite the line */
-            fseek(pac,filepos,0);
-            *line = proctype;
-            fputs(line,pac);
-        }
-    }
+		proctype = do_pkt();
+
+		if (proctype != 0) {
+			/* rewrite the line */
+			fseek(pac, filepos, 0);
+			*line = proctype;
+			fputs(line, pac);
+		}
+	}
 }
+
+/* packdis ...
+**	Call packdis to process contents of the "packets" file
+**	In just the same way that routine procpac above does it
+*/
+
+packdis() {
+	if (pac != NULL) fclose(pac);
+	strcpy(cmd, "packdis -pr");
+
+	arccode = system(cmd);
+	retcode += arccode;
+
+	if (arccode) {
+		fputs("Packdis could not complete.\n", stderr);
+		fputs("Packdis return code = ", stderr);
+		itoa(arccode, string);
+		msg3(string, "\n", "");
+	}
+}
+
+/* do_pkt:
+**	Call packdis to process one bundle
+*/
 
 int  do_pkt() {
 
-    if ((fp=fopen(fn,"r"))==NULL) {
-        group_ok = 0;
-        fputs("Cannot open ",stderr);
-        fputs(fn,stderr);
-        fputs("\n",stderr);
-        return ' ';
-    }
-    fclose(fp);
+	if ((fp = fopen(fn, "r")) == NULL) {
+		group_ok = 0;
+		msg3("Cannot open ", fn, "\n");
+		return ' ';
+	}
 
-    fputs("About to disassemble packet '",stderr);
-    fputs(fn,stderr);
-    fputs("'\n",stderr);
+	fclose(fp);
 
-    strcpy(cmd,pktdis);
-    strcat(cmd,fn);
+	msg3("Processing bundle '", fn, "'\n");
 
-    arccode = system(cmd);
-    retcode += arccode;
+	strcpy(cmd, pktdis);
+	strcat(cmd, fn);
 
-    if (arccode) {
-        fputs("Could not pktdis it.\n",stderr);
-        group_ok = 0;
-        return ' ';
-    }
+	arccode = system(cmd);
+	retcode += arccode;
 
-    /* processed, remove */
+	if (arccode) {
+		fputs("Could not process the bundle.\n", stderr);
+		fputs("Packdis return code = ", stderr);
+		itoa(arccode, string);
+		msg3(string, "\n", "");
 
-    unlink(fn);
-    return '-';
+		group_ok = 0;
+		return ' ';
+	}
+
+	/* processed, remove */
+
+	unlink(fn);
+	return '-';
 }
 
 /*  procfnews : Process the Fnews received weekly */
 
 int     procfnews() {
 
-    fixfn(fn);
-    if ((fp=fopen(fn,"r"))==NULL) return ' ';
+	if (*line != ' ') return 0;
+	fixfn(fn);
+	if ((fp=fopen(fn, "r")) == NULL) return ' ';
 
-    /* first : copy the arc file to drive 0 */
-    strcpy(cmd,copy);
-    strcat(cmd,fn);
-    strcat(cmd,drive1);
-    strcat(cmd,fn);
-    strcat(cmd,drive0);
+	/* Unarc the fidonews (onto drive 1) */
+	strcpy(cmd, unarc1);
+	strcat(cmd, fn);
 
-    fputs(cmd,stderr);
-    fputs("\n",stderr);
+	arccode = system(cmd);
+	retcode += arccode;
 
-    fncode = system(cmd);
-    if (fncode) {
-        retcode += fncode;
-        fputs("Could not copy to drive 0\n",stderr);
-        return 'P';
-    }
+	if (arccode) {
+		fputs("Cannot unarc fidonews\n", stderr);
+		if (arccode == 4)
+			fputs("Disk is full, try again\n", stderr);
+		return ' ';
+	}
 
-    /* Second : Remove the file from drive 1 */
-    strcpy(cmd,fn);
-    strcat(cmd,drive1);
-    unlink(cmd);
+	/* Find the oldest arced fnews and delete it */
+	if (find(fnewsmask, 'Q') == 1) {
+		unlink(findfn);
+		*findline = '-';
+		fseek(inf, findpos, 0);
+		fputs(findline, inf);
+		fseek(inf, oldpos, 0);
+	}
 
-    /* Third  : Find the oldest arced fnews and delete it */
-    if (find(fnewsmask,'Q')==1) {
-        unlink(findfn);
-        *findline = '-';
-        fseek(inf,findpos,0);
-        fputs(findline,inf);
-        fseek(inf,oldpos,0);
-    }
-
-    /* Fourth : Unarc the fidonews (onto drive 1) */
-    strcpy(cmd,unarc1);
-    strcat(cmd,fn);
-    strcat(cmd,unarc2);
-
-    arccode = system(cmd);
-    retcode += arccode;
-
-    if (arccode) {
-        fputs("Cannot unarc fidonews\n",stderr);
-        return 'P';
-    }
-
-    /* Last : enqueue the arced fidonews */
-    return 'Q';
+	/* Last : enqueue the arced fidonews */
+	return 'Q';
 }
 
 /*  Procndiff ... Process nodediff by removing it */
 
-int     procndiff() {
+int	procndiff() {
 
-    fixfn(fn);
-    if ((fp=fopen(fn,"r"))==NULL) return ' ';
+	if (*line != ' ') return 0;
+	fixfn(fn);
+	if ((fp = fopen(fn, "r")) == NULL)
+		return ' ';
+	fclose(fp);
 
-    unlink(fn);
+	msg3("Unlinking nodediff file ", fn, "\n");
+	unlink(fn);
 
-    return '-';
+	return '-';
 }
 
+/*  Procnews ... Process a NEWSxxxx.NWS file received
+**	How?  Delete the oldest one in the queue; add this one to the queue
+*/
+
+procnews() {
+
+	if (*line != ' ') return 0;
+
+	if (find(newsmask, 'Q') == 1) {
+		unlink(findfn);
+		*findline = '-';
+		fseek(inf, findpos, 0);
+		fputs(findline, inf);
+		fseek(inf, oldpos, 0);
+	}
+
+	/* Last : enqueue the news file */
+	return 'Q';
+}
+
+/*  Procnet ... Process a PKT????.NET file
+**	Add password, and run packdis on it
+*/
+
+procnet() {
+	if (*line != ' ') return 0;
+
+	if ((fp = fopen(fn, "r")) == NULL)
+		return ' ';
+	fclose(fp);
+
+	msg3("Processing bundle '", fn, "'\n");
+
+	strcpy(cmd, pktdis);
+	strcat(cmd, fn);
+	/* add secret password */
+	strcat(cmd, "/poof");
+
+	arccode = system(cmd);
+	retcode += arccode;
+
+	if (arccode) {
+		fputs("Could not process the bundle.\n", stderr);
+		return ' ';
+	}
+
+	/* processed, remove */
+
+	unlink(fn);
+	return '-';
+
+}
 
 /*  fixfn : Change first char of name & extension to alpha */
 
@@ -321,42 +388,57 @@ fixfn(cp)
 char    *cp;
 {
 
-    if (*cp>='0' && *cp<='9') *cp += 0x11;
+	if (*cp >= '0' && *cp <= '9') *cp += 0x11;
 
-    while (*cp && *cp!=SEP) ++cp;
+	while (*cp && *cp != SEP) ++cp;
 
-    if (*cp==SEP) {
-        ++cp;
-        if (*cp>='0' && *cp<='9') *cp += 0x11;
-    }
+	if (*cp == SEP) {
+		++cp;
+		if (*cp >= '0' && *cp <= '9') *cp += 0x11;
+	}
 }
 
-int     find(mask,status)
-char    *mask,status;
+/* find the first filename & status match in INFILES */
+
+int	find(mask, status)
+char	*mask, status;
 {
 
-    oldpos = ftell(inf);
-    rewind(inf);
+	oldpos = ftell(inf);
+	rewind(inf);
 
-    for (;;) {
-        findpos = ftell(inf);
-        if (fgets(findline,80,inf)==NULL) break;
+	for (;;) {
+		findpos = ftell(inf);
+		if (fgets(findline, 80, inf) == NULL) break;
 
-        if (*findline != status) continue;
+		if (*findline != status) continue;
 
-        getfn(findline,findfn);
-        if (chkwild(mask,findfn)==1) return 1;
-    }
+		getfn(findline, findfn);
+		if (chkwild(mask, findfn) == 1) return 1;
+	}
 
-    fseek(inf,oldpos,0);
-    return 0;
+	fseek(inf, oldpos, 0);
+	return 0;
 }
 
-getfn(cp1,cp2)
-char    *cp1,*cp2;
+/* get the filename part from a \n-terminated string */
+
+getfn(cp1, cp2)
+char    *cp1, *cp2;
 {
-    cp1 += 2;
-    while (*cp1 && *cp1!='\n') *cp2++ = *cp1++;
-    *cp2 = 0;
+	cp1 += 2;
+	while (*cp1 && *cp1 != '\n') *cp2++ = *cp1++;
+	*cp2 = 0;
 }
 
+/* print 3 strings on stderr */
+
+msg3(s1, s2, s3)
+char	*s1, *s2, *s3;
+{
+	fputs(s1, stderr);
+	fputs(s2, stderr);
+	fputs(s3, stderr);
+}
+
+/* end of program */
