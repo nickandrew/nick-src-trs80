@@ -1,0 +1,106 @@
+;MDtoCIM/asm: File to convert sectors to memory image
+;(/cmd) file format.
+;
+; Usage:  MDTOCIM infile outfile
+;
+;This file is specifically to convert Dick Smith's
+;Disk/Memory diagnmostic program to /CIM format
+;but the structure in general is valid for all.
+;
+	COM	'<mdtocim 1.1  15-Nov-86>'
+;
+ADDRESS		EQU	80H	;start address
+LENGTH		EQU	64	;number of sectors
+;
+	ORG	5200H
+*GET DOSCALLS	;Dos Call addresses.
+;
+START	CALL	OPEN_2
+	LD	A,ADDRESS
+	LD	(ST_ADDR),A
+	LD	B,LENGTH
+LOOP	CALL	WR_HEADER
+	CALL	COPY_256
+	DJNZ	LOOP
+	CALL	WR_FOOTER
+	CALL	CLOSE_2
+	JP	DOS
+;
+OPEN_2
+	LD	DE,FCB_IN
+	CALL	DOS_EXTRACT
+	LD	DE,FCB_OUT
+	CALL	DOS_EXTRACT
+	LD	DE,FCB_IN
+	LD	HL,BUF_IN
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	JP	NZ,DOS_ERROR
+	LD	DE,FCB_OUT
+	LD	HL,BUF_OUT
+	LD	B,0
+	CALL	DOS_OPEN_NEW
+	JP	NZ,DOS_ERROR
+	RET
+;
+WR_HEADER	PUSH	BC
+	LD	A,1
+	CALL	WRITE_1
+	LD	A,2
+	CALL	WRITE_1
+	XOR	A
+	CALL	WRITE_1
+	LD	A,(ST_ADDR)
+	INC	A
+	LD	(ST_ADDR),A
+	DEC	A
+	CALL	WRITE_1
+	POP	BC
+	RET
+;
+COPY_256	PUSH	BC
+	LD	B,0
+V0_COPY	CALL	READ_1
+	CALL	WRITE_1
+	DJNZ	V0_COPY
+	POP	BC
+	RET
+;
+WR_FOOTER	LD	A,2
+	CALL	WRITE_1
+	LD	A,2
+	CALL	WRITE_1
+	XOR	A
+	CALL	WRITE_1
+	XOR	A
+	CALL	WRITE_1
+	RET
+;
+CLOSE_2	LD	DE,FCB_IN
+	CALL	DOS_CLOSE
+	LD	DE,FCB_OUT
+	CALL	DOS_CLOSE
+	RET
+;
+WRITE_1	PUSH	BC
+	LD	DE,FCB_OUT
+	CALL	$PUT
+	JP	NZ,DOS_ERROR
+	POP	BC
+	RET
+;
+READ_1	PUSH	BC
+	LD	DE,FCB_IN
+	CALL	$GET
+	JP	NZ,DOS_ERROR
+	POP	BC
+	RET
+;
+ST_ADDR	DEFB	0
+FCB_IN	DEFS	20H
+FCB_OUT	DEFS	20H
+BUF_IN	DEFS	256
+BUF_OUT	DEFS	256
+;
+	END	START
+;
