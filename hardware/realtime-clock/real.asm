@@ -1,14 +1,17 @@
-;real/asm: get time off real time clock.
-	COM	'<Real Time clock driver V2.1 23-Feb-85>'
+;real: get time off real time clock.
 ;
-;dos equates.
-HIMEM	EQU	4049H
-DOS	EQU	402DH
-DOS_ENQUEUE EQU	4410H
+*GET	EXTERNAL.HDR
+*GET	DOSCALLS.HDR
 ;
-	ORG	5300H
+	COM	'<Real 2.1c 25-Jun-86>'
+	ORG	BASE+100H
 START
 	LD	HL,(HIMEM)
+	LD	A,H
+	CP	0FFH
+	JR	NZ,SET_HIMEM
+	LD	HL,EXTERNALS-1
+SET_HIMEM
 	LD	DE,EN_CODE-ST_CODE
 	OR	A
 	SBC	HL,DE
