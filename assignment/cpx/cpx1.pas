@@ -2,8 +2,8 @@ program cpx1(input,output,result);
 
 const  maxseq = 7;
        maximp = 1;                 {only imps 0 and 1}
-       propagation = 1;            {propagation delay}
-       toint = 5;                  {timeout interval}
+       propagation = 10;           {propagation delay}
+       toint = 25;                 {timeout interval}
        errorprob = 0;              {line error probability %}
        hostrdyprob = 100;          {host ready prob %}
        maxtick = 100;              {length of run}
@@ -53,21 +53,12 @@ var
     r, s : frame;
     tick : integer;
     j    : impnr;
-     seed : real;
-
-function rndr : real;
-   begin
-   seed := 125.0 * (seed + 1.0);
-   seed := seed -8192.0 * trunc(seed/8192);
-   rndr := (seed + 0.5) / 8192;
-end;
-
 
 procedure wait;
 var x: char;
 begin
-{  repeat x:= inkey
-      until (ord(x) = 13);  }
+   repeat  x:=inkey
+      until (ord(x) = 13);
 end;
 
 procedure inc(var k : sequencenr);
@@ -117,7 +108,7 @@ begin
       channel[me][temp].f    := s;
       channel[me][temp].arrivaltime := tick + propagation;
       nextsend[me] := (temp + 1) mod (propagation + 1);
-   end else errorcount[me] := errorcount[me] + 1;
+   end;
 
    write('Imp',me:3);
    if (err <= 100-errorprob)
@@ -186,7 +177,6 @@ begin {protocol5}
 
       if (buffer[me][seq1].timer = toint) then begin
          {there has been a timeout}
-         tocount[me] := tocount[me] + 1;
          writeln('Imp',me:3,' Timeout on frame',seq1:2,
                  ' at time:',tick:4);
          writeln(result,'Imp',me:3,' Timeout on frame',seq1:2,
@@ -211,8 +201,10 @@ begin {protocol5}
          inc(nexttosend[me]);
       end;
    end else begin
-
       {retransmit an appropriate frame}
+
+{? nbuffered? ?}
+
       s.info := buffer[me][nexttosend[me]].winfo;
       senddata(nexttosend[me],me);
       inc(nexttosend[me]);
@@ -226,7 +218,7 @@ procedure initialise;
 var  i,j : integer;
    index : integer;
 begin
-   rewrite(result,'result');
+   rewrite(result);
    for j:= 0 to maximp do begin
       nexttosend[j]    := 0;
       ackexpected[j]   := 0;
@@ -251,8 +243,8 @@ procedure printresults;
 var i : integer;
 begin {printresults}
    writeln(result);
-   writeln(result,'Parameters - Protocol 5');
-   writeln(result,'-----------------------');
+   writeln(result,'Parameters');
+   writeln(result,'----------');
    writeln(result,'Propagation delay : ',propagation:4);
    writeln(result,'Timeout interval  : ',toint:4);
    writeln(result,'Error Probability : ',errorprob:4);
@@ -281,3 +273,5 @@ begin    {program}
    end;
    printresults;
 end.
+
+
