@@ -1,24 +1,19 @@
 
 
-      Help for the STTY command - 22-Jun-86
+      Help for the STTY command - 07-May-89
       -------------------------------------
 
-  STTY is a non-interactive, parameter driven command to let
-users change their Zeta terminal configuration temporarily or
-permanently (across subsequent calls to Zeta). Usage is:
+  STTY is a non-interactive, parameter driven command to let users change their Zeta terminal configuration temporarily or permanently (across subsequent calls to Zeta). Usage is:
 
         ** Don't type in the square brackets!! **
 
   STTY  [[-]bell] [[-]lf] [[-]cursor] [[-]echoe]
-        [16] [24] [32] [40] [64] [80]
+        [16] [24]
+        [32] [40] [64] [80]
         [load] [save] [show]
 
-  Any number of the above parameters may be given and they
-may be given in any order, separated by spaces. Parameters
-are interpreted in strict left-to-right order. A description
-of each parameter follows:
+  Any number of the above parameters may be given and they may be given in any order, separated by spaces. Parameters are interpreted in strict left-to-right order. A description of each parameter follows:
 
-5
 
 BELL:   Turns the prompting bell on. '-bell' turns it off.
 
@@ -33,11 +28,11 @@ ECHOE:  If your system has non-destructive backspace. Use
  16 or 24:       The number of lines on your VDU
  32, 40, 64, 80: The number of columns on your VDU
 
-LOAD:   Load your SAVEd configuration off disk.
+LOAD:   Load your SAVEd configuration from disk.
 
 SAVE:   Save set configuration to disk for future calls
 
-SHOW:   Provide 1-line summary of current status.
+SHOW:   Provide a 1-line summary of current status.
 
 5
-
+0
