@@ -5,7 +5,7 @@ const  maxseq = 7;
        propagation = 1;            {propagation delay}
        toint = 5;                  {timeout interval}
        errorprob = 0;              {line error probability %}
-       hostrdyprob = 40;           {host ready prob %}
+       hostrdyprob = 100;          {host ready prob %}
        maxtick = 100;              {length of run}
        maxmessage = 101;           {maximum messages}
 
@@ -138,6 +138,7 @@ begin
       temp := nextsend[me];
       channel[me][temp].f := s;
       channel[me][temp].arrivaltime := tick + propagation;
+      nextsend[me] := (temp + 1) mod (propagation + 1);
    end
       else errorcount[me] := errorcount[me] + 1;
 end;
@@ -179,28 +180,34 @@ begin {protocol6}
 
          {frame does not need to be 'removed' from channel}
 
-         {temp is the first frame outside the window}
-         temp:=(frameexpected[me]+(maxseq+1) div 2)
-               mod (maxseq + 1);
+         if (r.kind = data) then begin
+            {temp is the first frame outside the window}
+            temp:=(frameexpected[me]+(maxseq+1) div 2)
+                  mod (maxseq + 1);
 
-         {if frame is within receivers window}
-         if between(frameexpected[me],r.seq,temp) then begin
-            recbuff[me][r.seq].xinfo := r.info;
-            recbuff[me][r.seq].used  := true;
+            {if frame is within receivers window}
+           if between(frameexpected[me],r.seq,temp) then begin
+               recbuff[me][r.seq].xinfo := r.info;
+               recbuff[me][r.seq].used  := true;
 
-            {send message or group of messages if possible}
-            framenr := frameexpected[me];
-            while (recbuff[me][framenr]) do begin
-               r.info := recbuff[me][framenr].xinfo;
-               recbuff[me][framenr].used := false;
-               tohost(me,r);
-               {ack gets sent in next outgoing frame}
-               inc(frameexpected[me]);
-               inc(framenr);
+               {send message or group of messages if possible}
+               framenr := frameexpected[me];
+               while (recbuff[me][framenr].used) do begin
+                  r.info := recbuff[me][framenr].xinfo;
+                  recbuff[me][framenr].used := false;
+                  tohost(me,r);
+                  {ack gets sent in next outgoing frame}
+                  inc(frameexpected[me]);
+                  inc(framenr);
+               end;
+            end else begin
+               writeln('Imp',me:3,' Out-of-order frame',
+                channel[you][i].f.seq:4,' Arrived at',tick:4);
             end;
          end else begin
-            writeln('Imp',me:3,' Out-of-order frame',
-             channel[you][i].f.seq:4,' Arrived at',tick:4);
+            {notify receiving ACK frame}
+            writeln(result,'Imp',me:3,' RCVD ack for frame ',
+                    r.ack:2,' at time:',tick:4);
          end;
 
          {process ack field within frame just received}
@@ -238,14 +245,14 @@ begin {protocol6}
 
       {use a smaller sender window ...(maxseq + 1)/2 }
 
-      if (nbuffered[me] < (maxseq + 1)/2) then begin
-         if (hostready) then begin
-            {send new frame with ack for last frame received}
-            nbuffered[me] := nbuffered[me] + 1;
-            s.info := fromhost(me);
-            senddata(nexttosend[me],me);
-            inc(nexttosend[me]);
-         end;
+      if (nbuffered[me] < (maxseq + 1)/2) and
+         (hostready) then begin
+
+         {send new frame with ack for last frame received}
+         nbuffered[me] := nbuffered[me] + 1;
+         s.info := fromhost(me);
+         senddata(nexttosend[me],me);
+         inc(nexttosend[me]);
       end else begin
          {send an ack frame ... it can be garbled too}
          sendack(me);
