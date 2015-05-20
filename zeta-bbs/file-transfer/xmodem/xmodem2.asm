@@ -1,49 +1,215 @@
-;xmodem2: Xmf source code file 2
-;Last updated: 09-Oct-87
+;xmodem2: Xmodem source code file 2
+;Last updated: 05 Aug 89
 ;
-SEND_NAK
-	LD	B,1H		;wait for no chars recvd.
+GET_BLK	XOR	A
+	LD	(NNAKS),A	;No of NAKs sent
+;
+GBL_01	LD	B,9	 	;wait 9 sec for SOH
+;(exact 10 second wait seems to confuse Prophet TBBS / Binkley ?)
 	CALL	GET_BYTE
-	CALL	POSS_ABRT
-	JR	NC,SEND_NAK
+	JR	C,GBL_02	;Nothing received
 ;
-;Send "C" if CRC && first block && nnaks<5
+	CALL	POSS_ABRT
+	OR	A
+	JR	Z,GBL_01	;ignore padding zeroes.
+	CP	SOH
+	JR	Z,GBL_03	;Block header seen
+	CP	SYN
+	JP	Z,TL_HDR	;Telink header
+	CP	CAN
+	JP	Z,SNDR_CANCELS	;the sender cancels it.
+	CP	EOT
+	SCF	
+	RET	Z		;scf & ret if EOT
+	JP	GBL_12		;Junk received so NAK
+;
+GBL_03
+	LD	B,CHARTIMEOUT	;try to get block number
+	CALL	GET_BYTE
+	JR	C,GBL_04	;No block number
+	LD	(BLK1),A
+	LD	B,CHARTIMEOUT	;get inverse.
+	CALL	GET_BYTE
+	JR	C,GBL_04	;No inverse block number
+	CPL	
+	LD	D,A
+	LD	A,(BLK1)
+	CP	D
+	JR	NZ,GBL_05	;Inverse does not match
+;
+	LD	(BLK_RCV),A	;block # being received.
+	LD	HL,DATABUF
+	LD	B,128
+AFQ	PUSH	BC
+	LD	B,CHARTIMEOUT
+	CALL	GET_BYTE
+	POP	BC
+	JR	C,GBL_06	;No character received
+	LD	(HL),A
+	INC	HL
+	DJNZ	AFQ
+;
 	LD	A,(CRCMODE)
 	OR	A
-	JR	NZ,SN_2
+	JR	NZ,TRY_R_CRC
+;Get, calculate, and compare an 8 bit checksum.
+	LD	B,CHARTIMEOUT
+	CALL	GET_BYTE
+	JR	C,GBL_07	;no checksum
+	LD	(CHECKSUM),A
+	CALL	CALC_SUM
+	LD	D,A
+	LD	A,(CHECKSUM)
+	CP	D
+	JR	Z,CHECK_SEQ
+	JR	NZ,GBL_09	;bad checksum
+;
+GBL_02
+	LD	HL,MR_NOSOH
+	JR	MSG_NAK
+;
+GBL_04
+	LD	HL,MR_NOBN
+	JR	MSG_NAK
+;
+GBL_05
+	LD	HL,MR_NOINV
+	JR	MSG_NAK
+;
+GBL_06
+	LD	HL,MR_NOCHAR
+	JR	MSG_NAK
+;
+GBL_07
+	LD	HL,MR_NOSUM
+	JR	MSG_NAK
+;
+GBL_08
+	LD	HL,MR_NOCRC
+	JR	MSG_NAK
+;
+GBL_09
+	LD	HL,MR_BADSUM
+	JR	MSG_NAK
+;
+GBL_10
+	LD	HL,MR_BADCRC
+	JR	MSG_NAK
+;
+GBL_11
+	LD	HL,MR_BADSEQ
+	JR	MSG_NAK
+;
+GBL_12
+	LD	HL,MR_JUNK
+	JR	MSG_NAK
+;
+MSG_NAK
+	CALL	LOG_MSG_2
+	CALL	SEND_NAK
+	JP	NZ,GBL_01	;NOT too many NAKs
+;I cancel.
+	CALL	SEND_CANS
+	JP	AHD
+;
+;
+TRY_R_CRC
+	LD	B,CHARTIMEOUT
+	CALL	GET_BYTE
+	JR	C,GBL_08
+	LD	(CRC_LOW+1),A
+	LD	B,CHARTIMEOUT
+	CALL	GET_BYTE
+	JR	C,GBL_08
+	LD	(CRC_LOW),A	;backwards! msb first!
+	CALL	CALC_CRC
+	LD	DE,(CRC_LOW)
+	OR	A
+	SBC	HL,DE		;compare HL to (crc_low)
+	JR	NZ,GBL_10
+	JR	CHECK_SEQ
+;
+CHECK_SEQ
+	LD	A,(BLK_RCV)	;block just received
+	LD	B,A
+	LD	A,(BLK_SNT)	;previous last block OK
+	CP	B
+	JR	Z,AFR		;if same ACK & discard
+	INC	A
+	CP	B
+	JP	NZ,GBL_11	;if out of sequence
+	RET			;store & ACK later.
+;
+AFR	CALL	SEND_ACK	;send ACK
+	JP	GET_BLK		;throw away.
+;
+TL_HDR
+	LD	B,131
+TLH_1
+	PUSH	BC
+	LD	B,CHARTIMEOUT
+	CALL	GET_BYTE
+	POP	BC
+	JR	C,TLH_2		;Ignore loop if a timeout
+	DJNZ	TLH_1
+TLH_2
+	CALL	SEND_ACK	;Ack the shit anyway
+	JP	GET_BLK
+;
+;-------------------------------
+;
+SEND_NAK
+SN_0
+	LD	B,1		;wait 1 second for clear line
+	CALL	GET_BYTE
+	CALL	POSS_ABRT
+	JR	NC,SN_0
+;
+;Send "C" if first block && nnaks<6
+;
+	LD	A,(FIRST_BLK)
+	OR	A
+	JR	Z,SN_1		;send NAK
+;
+	LD	A,(NNAKS)
+	CP	6
+	JR	NC,SN_1		;send NAK
+;
+SN_3	LD	A,CRCNAK
+	CALL	PUT_BYTE
+	LD	HL,M_S_CRCNAK
+	CALL	VDU_PUTS
+	JR	SN_6
+;
 SN_1	LD	A,NAK
 	CALL	PUT_BYTE
 	LD	HL,M_S_NAK
 	CALL	VDU_PUTS
 	JR	SN_6
 ;
-SN_2
-	LD	A,(FIRST_BLK)
-	OR	A
-	JR	Z,SN_1		;send ordinary NAK
-	LD	A,(NNAKS)
-	CP	5
-	JR	NC,SN_1
-;
-SN_3	LD	A,CRCNAK
-	CALL	PUT_BYTE
-	LD	HL,M_S_CRCNAK
-	CALL	VDU_PUTS
 SN_6	LD	A,(NNAKS)	;increment NAK count
 	INC	A
 	LD	(NNAKS),A
 	CP	MAX_NAKS
-	JP	C,AFL		;try again.
-;I cancel.
-	CALL	AGD		;send CAN codes
-	JP	AHD
+	RET	C		;live to try another day
+	RET			;Z.
 ;
+;-------------------------------
 SEND_ACK
 	LD	A,ACK
 	CALL	PUT_BYTE
+;
+	IF	SEALINK.EQ.1
+	LD	A,(BLK_SNT)
+	CALL	PUT_BYTE
+	LD	A,(BLK_SNT)
+	CPL
+	CALL	PUT_BYTE
+	ENDIF
+;
 	RET	
 ;
-;
+;-------------------------------
 SNDR_CANCELS
 ;the sender cancels the transfer, or the receiver (me)
 ;sends 10 NAKs in a row.
@@ -51,8 +217,10 @@ SNDR_CANCELS
 	CALL	VDU_PUTS
 	LD	HL,M_CAN_HIM	;He cancels
 	CALL	VDU_PUTS
-	CALL	AGD		;send CAN codes
+	CALL	SEND_CANS
 	JP	AHD		;aborted.
+;
+;-------------------------------
 ;
 SEND_HDR
 	LD	A,(BLK_SNT)
@@ -66,16 +234,17 @@ SEND_HDR
 	CALL	PUT_BYTE
 	RET	
 ;
-;
+;-------------------------------
 SEND_BLK
 	LD	HL,DATABUF
 	LD	B,80H
-AFV	LD	A,(HL)
+SB_01	LD	A,(HL)
 	CALL	PUT_BYTE
 	INC	HL
-	DJNZ	AFV
-	CALL	POSS_ABRT
+	DJNZ	SB_01
 	RET	
+;
+;-------------------------------
 ;
 SEND_CHECK
 	LD	A,(CRCMODE)
@@ -85,51 +254,71 @@ SEND_CHECK
 	CALL	PUT_BYTE
 	CALL	POSS_ABRT	;check if abort desired.
 	RET	
+;
 SEND_CRC
 	CALL	CALC_CRC
 	PUSH	HL
-	LD	A,H		;backwards! msb first!
+	LD	A,H		;msb first!
 	CALL	PUT_BYTE
 	POP	HL
-	LD	A,L		;backwards!
+	LD	A,L		;lsb second!
 	CALL	PUT_BYTE
 	CALL	POSS_ABRT
 	RET
 ;
+;-------------------------------
 ;
-AFX	LD	B,10		;wait 10 sec
+WAIT_RESP
+	LD	B,11		;wait 10 sec
 	CALL	GET_BYTE
 	CALL	POSS_ABRT
 	LD	HL,M_TIME2
-	JR	C,AFY
+	JR	C,AFY_2		;timeout
 	CP	ACK
-	RET	Z
+	RET	Z		;ack
 	CP	CAN
-	JP	Z,HE_RCVR_CANS
+	JR	Z,AFY_4		;cancel
 	CP	NAK
-	JR	Z,AFY_0
+	JR	Z,AFY_0		;nak
 	CP	CRCNAK
-	JR	Z,AFY_1
-	JR	AFX
+	JR	Z,AFY_1		;crcnak
+	JR	WAIT_RESP	;some other character
 ;
 AFY_0
 	LD	HL,M_NAK
-	JR	AFY
+	JR	AFY_2
 AFY_1	LD	HL,M_CRCNAK
-	JR	AFY
-AFY	LD	A,(NNAKS)
+	JR	AFY_2
+AFY_2
+AFY
+	LD	A,(NNAKS)
 	INC	A
 	LD	(NNAKS),A
 	CP	MAX_NAKS
-	JR	C,AFY_2
+	JR	C,AFY_3
 ;
 	LD	HL,M_10_NAKS
 	CALL	VDU_PUTS
 	JR	AGC
 ;
-AFY_2	CALL	VDU_PUTS
+AFY_3	CALL	VDU_PUTS
 	SCF
 	RET
+;
+;I'm sending and HE cancels the transfer.
+AFY_4
+	LD	B,1
+	CALL	GET_BYTE
+	JR	C,WAIT_RESP	;Nothing received
+	CP	CAN
+	JR	NZ,WAIT_RESP	;Didnt get 2nd CAN
+	LD	HL,M_CAN
+	CALL	VDU_PUTS
+	LD	HL,MS_RCAN
+	CALL	LOG_MSG_2
+;
+	CALL	SEND_CANS
+	JP	AHD
 ;
 KEY_ABRT
 	PUSH	AF		;abort if break hit.
@@ -137,7 +326,7 @@ KEY_ABRT
 	BIT	02H,A
 	JR	NZ,KA_001
 	LD	A,(CD_STAT)	;or if carrier falls
-	BIT	1,A
+	BIT	CDS_DISCON,A
 	JR	NZ,KA_001
 	POP	AF
 	RET	
@@ -159,30 +348,22 @@ PA_001	POP	AF
 AGC
 	LD	HL,M_CAN_WHO
 	CALL	VDU_PUTS
-	CALL	AGD
+	CALL	SEND_CANS
 	JP	AHD
 ;
-;I'm sending and HE cancels the transfer.
-HE_RCVR_CANS
-	LD	B,1
-	CALL	GET_BYTE
-	JP	C,AFX		;Nothing received
-	CP	CAN
-	JP	NZ,AFX		;Didnt get 2nd CAN
-	LD	HL,M_CAN
-	CALL	VDU_PUTS
-	CALL	AGD
-	JP	AHD
-;
-AGD	CALL	WAIT_ONE	;wait for no chars
+SEND_CANS
+	CALL	WAIT_ONE	;wait for no chars
 	LD	A,CAN
 	CALL	PUT_BYTE
 	LD	HL,M_S_CAN
 	CALL	VDU_PUTS
-	CALL	WAIT_ONE
 	LD	A,CAN		;send another
 	CALL	PUT_BYTE
+	LD	HL,M_S_CAN
+	CALL	VDU_PUTS
 	RET
+;
+;Wait until the line was clear for 1/10 second
 ;
 WAIT_ONE
 	LD	B,1
@@ -190,7 +371,8 @@ WAIT_ONE
 	RET	C
 	JR	WAIT_ONE
 ;
-INC_SNT	LD	A,(BLK_SNT)
+INC_SNT
+	LD	A,(BLK_SNT)
 	INC	A
 	LD	(BLK_SNT),A
 	RET	
@@ -205,13 +387,23 @@ F_CLOSE
 	POP	AF
 	JP	DOSERR
 ;
+;-------------------------------
+;
+XTWIRL
+	RET			;Intentional !!
+	LD	A,0
+	LD	(37E0H),A
+	RET
+;
+;-------------------------------
+;
 READ_BLK
 	LD	A,(BLK_STORED)
 	DEC	A
 	LD	(BLK_STORED),A
-	JP	M,AGI
+	JP	M,AGI		;If empty, fill buffer
 	JR	NZ,RB_01	;If >0 blocks now stored
-	CALL	TWIRL		;Start the drive up
+	CALL	XTWIRL		;Start the drive up
 RB_01
 	LD	HL,(AID)
 	LD	DE,DATABUF
@@ -219,8 +411,9 @@ RB_01
 	LD	(AID),HL
 	RET	
 ;
-AGI	LD	A,(FIL_EOF)
-	CP	1H
+AGI
+	LD	A,(FIL_EOF)
+	CP	1
 	SCF	
 	RET	Z
 				;This is the READ file.
@@ -235,7 +428,7 @@ AGK	PUSH	DE
 	CP	1CH
 	JR	Z,AGM
 	PUSH	AF
-	CALL	AGD		;cancel
+	CALL	SEND_CANS
 	LD	HL,M_ERROR
 	CALL	LOG_2
 	POP	AF
@@ -271,6 +464,8 @@ AGP	LD	(BLK_STORED),A
 	LD	(AID),HL
 	JP	READ_BLK
 ;
+;-------------------------------
+;
 WRITE_BLK
 	LD	DE,(AID)
 	LD	HL,DATABUF
@@ -284,7 +479,7 @@ WRITE_BLK
 	JR	Z,AGR		;Write them to disk
 	CP	MAX_BLOCKS-1
 	RET	NZ		;not "nearly full"
-	CALL	TWIRL		;Spin the disk
+	CALL	XTWIRL		;Spin the disk
 	RET
 ;
 AGR
@@ -295,7 +490,7 @@ AGR_0	LD	A,(BLK_STORED)
 	JR	Z,WROTE_ALL
 	LD	C,A
 	CP	1
-	JR	NZ,FULL_SECTOR
+	JR	NZ,FULL_SECTOR		;Write a full sector
 	LD	DE,(AID)
 AGS	LD	B,80H
 AGT	PUSH	DE
@@ -334,12 +529,14 @@ FULL_SECTOR
 ;
 CANT_WRITE
 	PUSH	AF
-	CALL	AGD		;send cancel
+	CALL	SEND_CANS
 	LD	HL,M_DSKFUL
 	CALL	LOG_2
 	POP	AF
 	CALL	DISP_DOS_ERROR
 	JP	AHD
+;
+;-------------------------------
 ;
 ;Carry flag is set if there is a timeout.
 GET_BYTE
@@ -350,8 +547,8 @@ GB_1	LD	D,40		;=1 sec
 	CALL	KEY_ABRT	;if abort
 GB_2
 	LD	A,(CD_STAT)
-	BIT	1,A
-	JR	NZ,GB_3
+	BIT	CDS_DISCON,A
+	JR	NZ,GB_3		;If disconnect
 	IN	A,(RDSTAT)
 	BIT	DAV,A
 	JR	NZ,GB_4
@@ -371,18 +568,20 @@ GB_4	IN	A,(RDDATA)
 	OR	A
 	RET
 ;
+;-------------------------------
+;
 INIT_AHC
 	CALL	KEY_ABRT
 	CALL	POSS_ABRT
 	LD	B,1
 	CALL	GET_BYTE
-	JR	C,IAHC_1
+	JR	C,IAHC_1	;timeout
 	CP	NAK
-	JR	Z,IAHC_2
+	JR	Z,IAHC_2	;nak
 	CP	CAN
-	JP	Z,AGC
+	JP	Z,AGC		;can
 	CP	CRCNAK
-	JR	NZ,IAHC_1
+	JR	NZ,IAHC_1	;anything not CRCNAK
 	LD	A,1
 	LD	(CRCMODE),A	;Set CRC mode
 	LD	HL,M_CRCNAK
@@ -390,13 +589,14 @@ INIT_AHC
 	LD	A,NAK		;to fool the rest
 	CP	A
 	RET
+;
 IAHC_1	DEC	E
 	JR	NZ,INIT_AHC
 	LD	HL,M_TIME1	;timeout waiting for
 	CALL	LOG_2		;initial nak.
 	LD	HL,M_TIME1
 	CALL	VDU_PUTS
-	CALL	AGD
+	CALL	SEND_CANS
 	JP	AHD
 ;
 IAHC_2
@@ -406,6 +606,8 @@ IAHC_2
 	CALL	VDU_PUTS
 	CP	A
 	RET
+;
+;-------------------------------
 ;
 AHD				;filexfer aborted exit.
 	LD	HL,M_ABORTED
@@ -452,6 +654,7 @@ QUIET_0	LD	A,(QUIET)
 	OR	A
 	CALL	Z,MESS_0
 	RET
+;
 QUIET_PUT
 	PUSH	BC
 	LD	B,A
@@ -581,13 +784,14 @@ NUM_SECT
 	CALL	MESS_0
 	RET
 ;
+;-------------------------------
 ;send character
 PUT_BYTE
 	PUSH	AF
 	CALL	KEY_ABRT	;check if abort reqd.
 BS_1
 	LD	A,(CD_STAT)
-	BIT	1,A
+	BIT	CDS_DISCON,A
 	JR	NZ,BS_2		;Carrier check.
 	IN	A,(RDSTAT)
 	BIT	CTS,A
@@ -649,7 +853,7 @@ FC_04	LD	A,(HL)
 ;
 DOSERR	PUSH	AF
 	CALL	CONFIG
-	LD	A,30
+	LD	A,50
 	CALL	SEC10		;token delay
 	POP	AF
 	PUSH	AF
@@ -678,6 +882,14 @@ LOG_ERR	PUSH	AF
 	CALL	LOG_MSG
 	RET
 ;
+LOG_MSG_2
+	PUSH	HL
+	LD	DE,$DO
+	CALL	MESS_0
+	POP	HL
+	CALL	LOG_MSG
+	RET
+;
 MESS_NOCR
 	LD	A,(HL)
 	CP	ETX
@@ -690,147 +902,12 @@ MESS_NOCR
 	INC	HL
 	JR	MESS_NOCR
 ;
-$$PUT	LD	DE,$2
-	JP	$PUT
 MESS_0	LD	A,(HL)
 	OR	A
 	RET	Z
-	CALL	$$PUT
+	LD	DE,$2
+	CALL	$PUT
 	INC	HL
 	JR	MESS_0
 ;
-;Get useful routines.
-*GET	ROUTINES
-;
-;Special flags & stuff.
-QUIET		DEFB	0	;1=Quiet output
-OVERWRITE	DEFB	0	;1=O/write existing file
-CRCMODE		DEFB	0	;1=In CRC mode
-TELINK		DEFB	0	;1=In Telink mode
-EX_FLAG		DEFB	0	;1=Exmodem on sending
-NOLOG		DEFB	0	;No logging actions.
-;
-CRC_LOW		DEFW	0	;CRC as received
-OLD_CRC		DEFW	0	;CRC calculated.
-CHECKSUM	DEFB	0	;Checksum calculated
-MAX_TOREAD	DEFB	0	;blks to read firstly.
-;
-M_S_ACK	DEFM	'ACK ',0
-M_R_ACK	DEFM	'ack ',0
-M_S_ENQ	DEFM	'ENQ ',0
-M_R_ENQ	DEFM	'enq ',0
-M_EXMODEM
-	DEFM	'Exmodem! ',0
-M_S_EOT	DEFM	'EOT ',0
-M_R_EOT	DEFM	'eot ',0
-M_S_NAK	DEFM	'NAK ',0
-M_NAK	DEFM	'nak ',0
-M_CRCNAK	DEFM	'crcnak ',0
-M_S_CRCNAK	DEFM	'CRCNAK ',0
-M_S_CAN	DEFM	'CAN ',0
-M_CAN	DEFM	'can ',0
-M_CAN_WHO
-	DEFM	'(Someone cancels) ',0
-M_CAN_HIM
-	DEFM	'(He cancels) ',0
-M_10_NAKS
-	DEFM	'(he sends too many naks) ',0
-M_TIME2	DEFM	'timeout ',0
-M_ABRT	DEFM	'Aborted!',CR,0
-;
-ARG	DEFW	0
-NEWARG	DEFW	0
-M7_TRY	DEFB	0
-M7_POSN	DEFW	0
-M7_FIELD DEFS	11	;FFFFFFFFeee
-;
-M_RECVNG
-	DEFM	'xmodem: receiving ',0
-M_SENDING
-	DEFM	'xmodem: sending ',0
-M_LOG_ERROR
-	DEFM	'*** xmf log file error',0
-;
-M_USAGE	DEFM	CR
-	DEFM	' Illegal arguments given. Usage is:',CR
-	DEFM	'Single file interactive mode:',CR
-	DEFM	'xmodem',CR
-	DEFM	'For multi file send/receive mode:',CR
-	DEFM	'xmodem [-coqn] [-s files ...] [-r files ...]',CR,CR
-	DEFM	'Putting you into interactive mode now:',CR,0
-M_BDFL	DEFM	'Illegal Filename for a Zeta file!',CR
-	DEFM	'Use a name like ABCDEFGH.EXT',CR,0
-;
-M_SRDY1	DEFM	'Sending ',0
-M_SRDY2	DEFM	', ',0
-M_SRDY3	DEFM	' blocks (',0
-M_SRDY4	DEFM	'K). Start your local XMODEM receive now.',CR,0
-;
-M_RRDY	DEFM	CR,'Ready to receive - start your XMODEM module',CR,0
-M_CANNOT	DEFM	'You must be a member to download that',CR,0
-M_EXISTS	DEFM	'That filename already exists',CR
-	DEFM	'Upload with a different name',CR,0
-M_FINI
-	DEFM	CR,'File transfer completed.',CR,CR,0
-M_KILLED
-	DEFM	'XMF killed file',CR,0
-M_ABORTED
-	DEFM	'<Aborted>',CR,0
-M_BUSTED
-	DEFM	'<Busted>',CR,0
-M_SENDEX
-	DEFM	'<Exists>',CR,0
-M_RECVNO
-	DEFM	'<Nonexistant>',CR,0
-M_ERROR	DEFM	'<Dos Error>',CR,0
-M_DSKFUL
-	DEFM	'<Disk Full>',CR,0
-M_TIME1
-	DEFM	'init-nak timeout ',CR,0
-M_DISAL	DEFM	'<Disallowed>',CR,0
-M_FNID
-	DEFM	'File requested not in directory.',CR
-	DEFM	'Check filename and disk directory.',CR,0
-M_S_OR_R
-	DEFM	'Tell Zeta to Send or Receive file (S or R): ',0
-M_FILE	DEFM	'Filename? ',0
-M_SIGNON	DEFM	CR,'xmodem: EXmodem File Transfer utility plus CRC checking.',CR
-	DEFM	'Xmodem protocol transfers only.',CR
-	DEFM	'usage is: xmodem [-coqn] [-s files ...] [-r files ...]',CR,CR,0
-M_NOVIS	DEFM	CR,'Sorry, you must be a MEMBER to send files.',CR,0
-;
-BLK1	DEFB	0
-;
-DATABUF	DC	80H,0		;Block buffer.
-ZEROCRC	DEFW	0		;Must be imm. after DATABUF
-;
-AID	DEFW	BIG_BUFF	;Current read/write addr.
-FIRST_BLK	DEFB	0	;1=First blk of transfer
-BLK_RCV		DEFB	0	;block # being received
-BLK_SNT		DEFB	0	;block # being sent
-NNAKS		DEFB	0	;number of NAKs sent
-FIL_EOF		DEFB	0	;1=no more blks to read
-BLK_STORED	DEFB	0	;# blocks stored
-XFABRT		DEFB	0	;flag 1=abort desired.
-EOFB		DEFB	0	;EOF value 1-128 of blk.
-;
-FCB_1	DEFS	32		;FCB.
-BUFF_1	DEFS	256		;File Buffer...
-;
-FCB_LOG	DEFM	'xferlog.zms:2',CR
-	DC	32-12,0
-BUFF_LOG DEFS	256
-;
-B_DATE	DEFM	'DD-MMM-YY '
-B_TIME	DEFM	'HH:MM:SS ',0
-;
-B_TYPE	DEFM	'S '
-B_FILE	DEFM	'abcdefgh.xyz/password:1',CR,0
-;
-MSGBLK	DEFM	'xx  ',0
-;
-STRING	DEFS	64
-;
-IN_BUFF	DC	64,0
-;
-;End of Xmf2
+;End of Xmodem2
