@@ -1,4 +1,42 @@
-;mail5.asm: mail subroutines, on 11-Mar-89
+;@(#) mail5.asm - mail subroutines, on 28 Jun 89
+;
+;Store fields of a header in buffers
+HDR_STORE
+	CALL	BGETC		;bypass dummy byte
+	CALL	BGETC		;bypass # of lines
+;
+	LD	HL,B_FROM
+	CALL	HDR_GETNCR
+;
+	LD	HL,B_TO
+	CALL	HDR_GETNCR
+;
+	LD	HL,B_DATE
+	CALL	HDR_GETNCR
+;
+	LD	HL,B_SUBJ
+	CALL	HDR_GETNCR
+	RET
+;
+HDR_GETNCR
+	LD	B,80
+HGN_01
+	PUSH	BC
+	PUSH	HL
+	CALL	BGETC
+	POP	HL
+	POP	BC
+	JR	NZ,HGN_02
+	CP	CR
+	JR	Z,HGN_02
+	OR	A
+	JR	Z,HGN_02
+	LD	(HL),A
+	INC	HL
+	DJNZ	HGN_01
+HGN_02
+	LD	(HL),0
+	RET
 ;
 RET_NZ
 	OR	A
@@ -13,6 +51,24 @@ RET_Z
 MESS	PUSH	DE
 	LD	DE,$2
 	CALL	MESS_0
+	POP	DE
+	RET
+;
+MESS_CR
+	PUSH	DE
+	LD	DE,$2
+MCR_01
+	LD	A,(HL)
+	PUSH	AF
+	CALL	$PUT
+	POP	AF
+	CP	CR
+	JR	Z,MCR_02
+	OR	A
+	JR	Z,MCR_02
+	INC	HL
+	JR	MCR_01
+MCR_02
 	POP	DE
 	RET
 ;
@@ -213,12 +269,16 @@ PUT	PUSH	DE
 	RET
 ;
 TXT_GET_PUT_CR
+	PUSH	DE
+TGPC_01
 	CALL	BGETC
 	PUSH	AF
-	CALL	PUT
+	LD	DE,$2
+	CALL	$PUT
 	POP	AF
 	CP	CR
-	JR	NZ,TXT_GET_PUT_CR
+	JR	NZ,TGPC_01
+	POP	DE
 	RET
 ;
 CPHLDE	LD	A,H
