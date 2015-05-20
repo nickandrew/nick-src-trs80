@@ -1,6 +1,6 @@
 /* Zetasource
 **  survey1.c ... Ask the non-member some survey questions
-**  Ver 1.0  on 11-Oct-87
+**  Ver 1.0a on 23-Jan-88
 */
 
 #include <stdio.h>
@@ -15,6 +15,8 @@ main() {
     init();
     signon();
     while (question());
+    fputs("\n",out);
+    fclose(out);
     std_out("\n\nThanks for taking the time to answer this survey.\n");
     exit(0);
 }
@@ -36,7 +38,10 @@ init() {
         exit(1);
     }
 
-    fputs("\n-----\n",out);
+    fputs("-----\n",out);
+    getuname(line);
+    fputs(line,out);
+    fputs("\n",out);
 }
 
 signon() {
