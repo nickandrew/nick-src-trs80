@@ -116,6 +116,8 @@ var i,j : integer;
 begin
    writeln(puzzles);
    writeln(puzzles);
+   writeln(puzzles,'Clues: ',chars[clue1],'=',l[clue1].val:1,
+                   ', ',chars[clue2],'=',l[clue2].val:1,'.');
    writeln(puzzles,'+---+---+---+---+');
    for i:=1 to 4 do begin
       write(puzzles,'| ');
