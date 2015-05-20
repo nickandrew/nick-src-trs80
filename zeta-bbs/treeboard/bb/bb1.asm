@@ -1,4 +1,4 @@
-; @(#) bb1.asm - BB code file #1, on 16 May 89
+; @(#) bb1.asm - BB code file #1, on 30 Jul 89
 ;
 START	LD	SP,START
 	CALL	INIT		;Initialise the input buffer
@@ -15,7 +15,7 @@ START	LD	SP,START
 ;
 	CALL	SETUP		;Setup everything
 ;
-	CALL	FIX_MFD		;Tree initialisation
+	CALL	FIX_MFD		;First topic initialisation
 ;
 MAIN				;Main section
 	LD	SP,START
@@ -42,8 +42,6 @@ MAIN_2				;parse first word
 	JP	Z,EXIT_CMD
 	CP	'M'		;<M>ove
 	JP	Z,MOVE2_CMD
-	CP	'L'		;<L>ist
-	JP	Z,LIST_CMD
 	CP	'E'		;<E>nter
 	JP	Z,ENTER_CMD
 	CP	'S'		;<S>can
@@ -289,10 +287,8 @@ SETUP
 	CALL	FILE_SETUP		;Open all files
 	XOR	A
 	LD	(MY_TOPIC),A
-	LD	(MY_LEVEL),A
 	LD	HL,OPTIONS
 	LD	(HL),0
-	SET	FO_CURR,(HL)		;current only.
 	SET	FO_NORM,(HL)		;not expert.
 	CALL	INFO_SETUP
 	RET
@@ -622,7 +618,7 @@ SCNM_Q	LD	A,1
 ; ------------------------------
 ;
 DO_SCAN
-	;scan through the file for messages
+	;scan through the database for messages
 	;matching criteria fwd/bkwd etc..
 	XOR	A
 	LD	(BACKWARD),A
@@ -679,25 +675,10 @@ DS_04	LD	HL,(A_MSG_POSN)
 ;This code checks whether a message is in a 'SEEN'
 ;topic or not
 ;******************************************************
-	LD	A,(HL)		;is message's topic.
-	PUSH	HL
-	LD	HL,TOPIC_MASK
-	AND	(HL)
-	POP	HL
-	LD	B,A
-	LD	A,(MY_TOPIC)	;my topic
+	LD	B,(HL)		;is message's topic.
+	LD	A,(MY_TOPIC)
 	CP	B
 	JP	NZ,DS_07	;msg not in seeable topic
-;If topic is restricted, check userids against topic No.
-;Message is given the same status as "private"...
-	CALL	IF_SYSOP
-	JR	NZ,DS_04Z	;allow it if sysop
-	LD	A,(HL)		;get topic its in.
-	AND	0FCH		;Mask out lower topics
-	CP	068H		;general>fidonet>admin
-	JP	Z,DS_05		;do not allow anybody
-	JR	NZ,DS_04C
-DS_04C				;more tests
 DS_04Z
 				;allow it.
 ;******************************************************
@@ -714,6 +695,7 @@ DS_04Z
 	JR	Z,DS_05
 	CALL	PUTCR
 	JR	FIN_SCAN
+;
 DS_05	LD	HL,(MSG_NUM)
 	EX	DE,HL
 	LD	HL,(LAST_MSG)
@@ -875,8 +857,6 @@ CHK_DATE
 ; ------------------------------
 ;
 INFO_SETUP
-	CALL	SET_MASK
-;
 	LD	HL,0
 	LD	(N_MSG_TOP),HL
 	LD	(A_TOP_1ST),HL
@@ -886,14 +866,13 @@ INFO_SETUP
 	OR	L
 	RET	Z
 ;
-;Count how many messages can be seen by topic number
+;Count how many messages are in this topic
+;
 	LD	BC,(N_MSG)
 	LD	HL,MSG_TOPIC
 	LD	DE,0
 	LD	IX,MY_TOPIC
-	LD	IY,TOPIC_MASK
 CNT_1	LD	A,(HL)
-	AND	(IY)
 	CP	(IX)
 	JR	NZ,CNT_1A
 	INC	DE
@@ -908,19 +887,19 @@ CNT_1A	INC	HL
 	LD	A,H
 	OR	L
 	RET	Z
+;Find the last message in this topic
 	EX	DE,HL
 CNT_2	DEC	HL
 	LD	A,(HL)
-	AND	(IY)
 	CP	(IX)
 	JR	NZ,CNT_2
 CNT_2A	LD	DE,MSG_TOPIC
 	OR	A
 	SBC	HL,DE
 	LD	(A_TOP_LAST),HL
+;Find the first message in this topic
 	LD	HL,MSG_TOPIC
 CNT_3	LD	A,(HL)
-	AND	(IY)
 	CP	(IX)
 	JR	Z,CNT_3A
 	INC	HL
@@ -929,46 +908,12 @@ CNT_3A	LD	DE,MSG_TOPIC
 	OR	A
 	SBC	HL,DE
 	LD	(A_TOP_1ST),HL
-	RET			;finished.
-;
-; ------------------------------
-;
-;convert topic number to integer.
-TOP_INT
-;
-	LD	E,A		;a=topic
-	AND	3
-	LD	B,A
-	LD	C,49
-	INC	B
-	LD	A,-49
-TI_1	ADD	A,C
-	DJNZ	TI_1
-	LD	D,A
-	LD	A,E
-	AND	1CH
-	SRL	A
-	SRL	A
-	LD	B,A
-	INC	B
-	LD	C,7
-	LD	A,-7
-TI_2	ADD	A,C
-	DJNZ	TI_2
-	ADD	A,D
-	LD	D,A
-	LD	A,E
-	AND	0E0H
-	RLCA
-	RLCA
-	RLCA
-	ADD	A,D
-	LD	D,A
 	RET
 ;
 ; ------------------------------
 ;
-INIT	XOR	A
+INIT
+	XOR	A
 	LD	HL,IN_BUFF
 	LD	(HL),A
 	LD	(CHAR_POSN),HL
