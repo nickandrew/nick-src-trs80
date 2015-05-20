@@ -1,4 +1,4 @@
-; @(#) bb4.asm - Message entry, 03 Jul 89
+; @(#) bb4.asm - Message entry, 30 Jul 89
 ;
 ;Enter command ... manual message entry
 ENTER_CMD
@@ -1135,16 +1135,6 @@ ASK_PRIV
 ;
 ; ------------------------------
 ;
-HMS_H	DEFB	0
-HMS_M	DEFB	0
-HMS_S	DEFB	0
-;
-DMY_D	DEFB	0
-DMY_M	DEFB	0
-DMY_Y	DEFB	0
-;
-; ------------------------------
-;
 ADD_DATE
 	LD	HL,HDR_TIME
 	LD	A,(HL)
@@ -1166,7 +1156,7 @@ ADD_DATE
 	LD	A,(HL)
 	LD	(DMY_Y),A
 ;
-	LD	DE,DMY_D
+	LD	DE,DMY_BUF
 	CALL	DMY_ASCII
 	LD	HL,DMY_STRING
 	LD	DE,(MEM_PTR)
@@ -1174,11 +1164,9 @@ ADD_DATE
 	EX	DE,HL
 	LD	(HL),' '
 	INC	HL
-;;	LD	(HL),' '
-;;	INC	HL
 	LD	(MEM_PTR),HL
 ;
-	LD	DE,HMS_H
+	LD	DE,HMS_BUF
 	CALL	HMS_ASCII
 	LD	HL,HMS_STRING
 	LD	DE,(MEM_PTR)
@@ -1398,7 +1386,6 @@ SAVE_ERROR
 ;
 PRT_TOPIC_STAT
 	LD	A,(MY_TOPIC)
-	CALL	TOP_INT
 	CALL	TOP_ADDR
 	LD	DE,19
 	ADD	HL,DE
