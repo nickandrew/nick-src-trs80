@@ -1,4 +1,4 @@
-; @(#) bbdata.asm - Data for treeboard, 16 May 89
+; @(#) bbdata.asm - Data for treeboard, 30 Jul 89
 ;
 ;Meanings of bits of status byte for each topic (offset 19)
 TOP_ECHO	EQU	0	;Bit #0, 1=echomail topic
@@ -29,11 +29,11 @@ M_RCVR		DEFM	CR,'To:      ',0
 M_DATE		DEFM	CR,'Date:    ',0
 M_SUBJ		DEFM	CR,'Subject: ',0
 M_NOWAT		DEFM	'Now at topic ',0
-M_UNDER		DEFM	CR,'Topics under ',0
-M_WHRTO		DEFM	'Where to (number, U, or <enter> to stay): ',0
+M_MOVEWHR	DEFM	'Move where (number, or ? for list): ',0
 M_WHOTO		DEFM	'To:      ',0
 M_FWDWHO	DEFM	'To:      ',0
 M_MOVWHR	DEFM	'Move msgs to which topic? (by name): ',0
+M_NOTOPICN	DEFM	'No such topic number.',CR,0
 M_WHTSUBJ	DEFM	'Subject: ',0
 M_FROMFILE	DEFM	'Filename: ',0
 M_DESTSTR	DEFM	'Not a user: ',0
@@ -76,8 +76,6 @@ M_NOTCRTR
 	DEFM	'Sorry you''re not the creator of this topic',CR,0
 M_TPNTMT
 	DEFM	'Sorry this topic has messages.',CR,0
-M_ACTSUB
-	DEFM	'Sorry this topic has Sub-Topics.',CR,0
 M_TRSEDIT
 	DEFM	'Type L then H then retype the line',CR,0
 M_MAXLIN
@@ -94,14 +92,10 @@ M_UPWRD
 M_UPTO	DEFM	'<U>  Move up to ',0
 M_DWNWRD
 	DEFM	CR,0
-M_NOBELO
-	DEFM	'  NO Sub-Topics.',CR,0
 M_NOPERMS
 	DEFM	CR,'Sorry.',CR,0
 M_OPTIONS
 	DEFM	CR,'   Your current options are:',CR,0
-M_CURR	DEFM	'#1  You see this topic only',CR,0
-M_LOWR	DEFM	'#2  You see all topics beneath this',CR,0
 M_NORM	DEFM	'#3  Long menus',CR,0
 M_EXP	DEFM	'#4  Short menus',CR,0
 M_WITHMSG
@@ -130,11 +124,6 @@ M_SPACES	DEFM	'   ',0
 M_NO		DEFM	'  (No)',CR,0
 M_YES		DEFM	'  (Yes)',CR,0
 M_QUIT		DEFM	'  (Quit)',CR,0
-M_ATBOTM
-	DEFM	'I can''t create topics below this.',CR,0
-M_SUBUSED
-	DEFM	'Sorry but the tree at this level is full.',CR
-	DEFM	'I can''t create any new subtopics here.',CR,0
 M_GETTPC
 	DEFM	CR,'New sub-topic name? ',0
 M_ALRDYTOP
@@ -143,6 +132,8 @@ M_TPCMDE
 	DEFM	'New sub-topic created successfully.',CR,0
 M_TPCLNG
 	DEFM	'Name too long. Limit it to 15 characters.',CR,0
+M_SUBUSED
+	DEFM	'All subtopics are used up! Cannot create any more.',CR,0
 M_TYPEIN
 	DEFM	'Please type in your message now;',CR
 	DEFM	'Enter two consecutive empty lines to finish.',CR,CR,0
@@ -247,15 +238,15 @@ MENU_QUEST
 MU_MAIN	DEFM	CR
 	DEFM	'<R>  Read Messages           <S>  Scan Messages',CR
 	DEFM	'<E>  Enter Message           <K>  Kill Messages',CR
-	DEFM	'<T>  Treewalk (read Msgs)    <L>  List subtopics',CR
-	DEFM	'<M>  Move Up or Down         <O>  Change/List Options',CR
+	DEFM	'<T>  Treewalk (read Msgs)',CR
+	DEFM	'<M>  Move (change topic)     <O>  Change/List Options',CR
 	DEFM	'<X>  Exit                    <#>  Special commands',CR
 	DEFM	0
 ;
 MU_SPEC
 	DEFM	'      Special functions',CR
 	DEFM	'<M>  Move messages           <#>  Main functions',CR
-	DEFM	'<C>  Create new subtopic     <D>  Delete this topic',CR
+	DEFM	'<C>  Create new topic        <D>  Delete this topic',CR
 	DEFM	'<F>  Forward messages        <R>  Resend message',CR
 	DEFM	'<S>  Change topic status',CR
 	DEFM	0
@@ -267,8 +258,6 @@ MU_DS1	DEFM	'<A>  ALL Messages           <M>  Messages to you',CR
 ;
 MU_OPT
 	DEFM	CR,'   Set your desired options..',CR
-	DEFM	'<1>     You see this topic only',CR
-	DEFM	'<2>     You see all topics beneath this',CR
 	DEFM	'<3>     Long menus',CR
 	DEFM	'<4>     Short menus',CR
 	DEFM	'<enter> Change nothing',CR,0
@@ -276,18 +265,18 @@ MU_OPT
 MU_QUEST
 	DEFM	'<L> List, <E> Edit, <C> Continue, <A> Abort, <S> Save',CR,0
 MX_MAIN
-	DEFM	'MAIN: (R,S,E,K,T,L,M,O,X,#)',CR,0
+	DEFM	'MAIN: (R,S,E,K,T,M,O,X,#)',CR,0
 MX_SPEC
 	DEFM	'Spec: (M,C,D,F,R,S,#)',CR,0
 MX_DS1	DEFM	'Msg Select (M,U,A,F,<enter> or range)',CR,0
-MX_OPT	DEFM	'Options: (1,2,3,4,<enter>)',CR,0
+MX_OPT	DEFM	'Options: (3,4,<enter>)',CR,0
 MX_QUEST
 	DEFM	'Msg: (L,E,C,A,S)',CR,0
 ;
-CL_MAIN		DEFM	'RSEKTLMOX#',0
+CL_MAIN		DEFM	'RSEKTMOX#',0
 CL_SPEC		DEFM	'MCDFRS#',0
 CL_DS1		DEFM	'MUAF',0
-CL_OPT		DEFM	'1234',0
+CL_OPT		DEFM	'34',0
 CL_QUEST	DEFM	'LECAS',0
 ;
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -300,21 +289,9 @@ MFD_DATA
 ;
 GENERAL	DEFM	'General',0
 ;
-MOVE_RND
-	DEFM	8,'U1234567'
-;
 DUMMY_READ
 DUMMY_KILL
 	DEFM	';M',CR,0
-;
-ADD_AND
-	DEFB	20H,0E0H,00H
-	DEFB	04H,1CH,00H
-	DEFB	01H,03H,0E0H
-	DEFB	00H,00H,0FCH
-;
-MASK_DATA
-	DEFB	00H,0E0H,0FCH,0FFH
 ;
 M_LINE		DEFB	0	;Editing printed line number
 CHAR_FLAG	DEFB	0
@@ -338,8 +315,6 @@ KILL_QUERY	DEFB	0
 MOVE_QUERY	DEFB	0
 ;
 OPTIONS		DEFB	0
-FO_CURR		EQU	0	;current topic
-FO_LOWR		EQU	1	;current and below
 FO_NORM		EQU	2	;normal mode
 FO_EXP		EQU	3	;expert.
 ;
@@ -359,9 +334,7 @@ A_TOP_1ST	DEFW	0
 A_TOP_LAST	DEFW	0
 ;
 MY_TOPIC	DEFB	0
-MY_LEVEL	DEFB	0
 TR_TOPIC	DEFB	0	;For 'T' command
-TR_LEVEL	DEFB	0	;For 'T' command
 TR_OPTIONS	DEFB	0
 TR_NEWFLAG	DEFB	0	;1=new topic
 TR_SKIP		DEFB	0	;1=skip rest of topic
@@ -419,12 +392,12 @@ FM_NETSENT	EQU	5			;**
 ;						;**
 ;**************************************************
 ;
-TXT_FCB	DEFM	'MSGTXT.ZMS',CR
-	DC	32-11,0
-HDR_FCB	DEFM	'MSGHDR.ZMS',CR
-	DC	32-11,0
-TOP_FCB	DEFM	'MSGTOP.ZMS',CR
-	DC	32-11,0
+TXT_FCB	DEFM	'MSGTXT.ZMS:2',CR
+	DC	32-13,0
+HDR_FCB	DEFM	'MSGHDR.ZMS:2',CR
+	DC	32-13,0
+TOP_FCB	DEFM	'MSGTOP.ZMS:2',CR
+	DC	32-13,0
 FILE_FCB
 	DC	32,0
 ;
