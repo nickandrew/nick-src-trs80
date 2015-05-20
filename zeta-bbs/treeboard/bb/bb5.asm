@@ -1,4 +1,4 @@
-;BB5.asm: BB subroutines, on 13-Dec-88
+;BB5.asm: BB subroutines, on 30 Jul 89
 ;
 ; ------------------------------
 ;
@@ -15,22 +15,6 @@ HDR_PRNT			;print a header.
 	CALL	BGETC		;bypass dummy byte
 	CALL	BGETC		;bypass # of lines
 ;
-	LD	A,(HDR_LINES)
-	CP	4		;min size before msg
-	JR	C,HPR_1
-	LD	HL,M_SPACES
-	CALL	MESS
-	LD	A,'('
-	CALL	PUT
-	LD	A,(HDR_LINES)
-	LD	L,A
-	LD	H,0
-	CALL	PRINT_NUMB
-	LD	HL,M_LINES
-	CALL	MESS
-	LD	A,')'
-	CALL	PUT
-HPR_1
 	CALL	PUTCR
 ;
 	LD	HL,M_SNDR
@@ -465,52 +449,6 @@ TEXT_POSN
 	JP	NZ,ERROR
 	RET
 ;
-SUB_LEVEL
-	LD	C,0
-	AND	0FFH
-	JR	Z,SL_1
-	LD	C,1
-	AND	1FH
-	JR	Z,SL_1
-	LD	C,2
-	AND	03H
-	JR	Z,SL_1
-	LD	C,3
-SL_1	LD	B,0
-	LD	HL,ADD_AND
-	ADD	HL,BC
-	ADD	HL,BC
-	ADD	HL,BC
-	LD	E,(HL)
-	INC	HL
-	LD	D,(HL)
-	INC	HL
-	LD	B,(HL)
-	RET
-;
-SUB_NEXT
-	LD	B,A
-	ADD	A,E
-	AND	D
-	SCF
-	RET	Z
-	LD	C,A
-	LD	A,D
-	CPL
-	AND	B
-	OR	C
-	RET
-;
-SUB_NONEX
-	PUSH	HL
-	PUSH	DE
-	CALL	TOP_INT
-	CALL	TOP_ADDR
-	LD	A,(HL)
-	POP	DE
-	POP	HL
-	OR	A
-	RET
 ;
 CHK_CHAR
 	LD	C,(HL)
@@ -537,10 +475,6 @@ FIND_TOP_NUM
 	CALL	FTN_COPY
 	RET	NZ		;if invalid name
 ;
-	LD	HL,GENERAL
-	LD	DE,FTN_NAME
-	CALL	STRCMP_CI
-	RET	NZ		;if not General at start
 ;
 	XOR	A
 	LD	(FTN_TOP),A
@@ -549,19 +483,19 @@ FTN_1	LD	HL,(FTN_STR)
 	LD	A,(HL)
 	OR	A
 	JR	Z,FTN_EXIT
-	CALL	FTN_COPY	;copy next portion of str
-	RET	NZ
 	LD	A,(FTN_TOP)
-	CALL	SUB_LEVEL	;set D & E
-	LD	A,(FTN_TOP)
-	PUSH	AF
-FTN_2	POP	AF
-	CALL	SUB_NEXT
-	JR	C,FTN_BAD
-	PUSH	AF
-	CALL	FTN_CMP		;if unassigned
+	CP	200		;MAX_TOPICS
+	JR	Z,FTN_BAD
+;
+	CALL	FTN_CMP
 	JR	NZ,FTN_2
-	POP	AF
+;
+;Found!
+	JR	FTN_EXIT
+;
+FTN_2
+	LD	A,(FTN_TOP)
+	INC	A
 	LD	(FTN_TOP),A
 	JR	FTN_1
 ;
@@ -576,15 +510,12 @@ FTN_EXIT
 	RET
 ;
 FTN_CMP
-	PUSH	HL
-	PUSH	DE
-	CALL	TOP_INT
+	LD	A,(FTN_TOP)
 	CALL	TOP_ADDR
 	LD	A,(HL)
 	OR	A
 	JR	NZ,FTNC_1
-	POP	DE
-	POP	HL
+	XOR	A
 	CP	1
 	RET
 FTNC_1
@@ -603,20 +534,17 @@ FTNC_3	LD	A,(DE)
 	OR	A
 	JR	Z,FTNC_5
 FTNC_4
-	POP	DE
-	POP	HL
-	JR	FTN_BAD
-FTNC_5	POP	DE
-	POP	HL
-	JR	FTN_EXIT
+	XOR	A
+	CP	1
+	RET
+FTNC_5	CP	A
+	RET
 ;
 FTN_COPY
 	LD	HL,(FTN_STR)
 	LD	DE,FTN_NAME
 	LD	B,15
 FTNC_6	LD	A,(HL)
-	CP	'>'
-	JR	Z,FTNC_7
 	OR	A
 	JR	Z,FTNC_8
 	CP	CR
@@ -628,7 +556,6 @@ FTNC_6	LD	A,(HL)
 	XOR	A
 	CP	1
 	RET
-FTNC_7	INC	HL
 FTNC_8	LD	(FTN_STR),HL
 	XOR	A
 	LD	(DE),A
