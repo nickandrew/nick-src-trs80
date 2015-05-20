@@ -1,7 +1,65 @@
-Usage: shell
+3ST Start of Shell help
 
-        The Zeta Shell is a command processor. A little like the MS-DOS command.com, a little like Unix's sh. Shell's primary function is to let you type full-line commands which are then executed. The list of commands which can be executed by the shell can be obtained with the CMDS command.
+      Help on the shell
+      -----------------
 
-        Shell has some inbuilt commands also.  The most important of these is EXIT, which terminates the Shell and returns to the previously executing program.  Shell may execute itself re-entrantly.
+   Firstly if you are just a beginning user of Zeta you don't
+need to know anything about the shell other than that it
+lets you type in full-line commands which it then executes
+for you.
+   But if you want to utilise the full power of the shell....
+
+5
+
+   Zeta's shell lets you execute commands from either your
+keyboard (ie. through the modem) or from a file of commands
+held on Zeta's disks. You can upload your own command files
+to Zeta and execute them with the shell.
+
+    The shell is re-entrant. This means while you are running
+it you can run another copy of it. While the new copy is
+running the old one lies dormant. When you exit from the new
+shell control is returned to the old. You can run up to
+about 8 simultaneous shells on Zeta  (48K ram available).
+
+    Command file execution is also re-entrant. So within
+one command file execution you can go into an interactive
+(ie. keyboard driven) shell, or into another command file
+driven shell. (Or more than one if you like).
+
+    If you are in too many shells, you won't be able to
+execute any commands, because memory will be full. To get out
+of this, type EXIT to remove some of your shell levels.
+    Typing EXIT from the bottom shell will cause the shell
+to be reinitialised.
+
+    Shell command format and usage is:
+
+   SHELL              - run an interactive shell
+   SHELL filename     - execute commands stored in file
+                        called FILENAME.SHL. You can upload
+                        and execute your own .SHL files. You
+                        are ENCOURAGED to do this.
+
+    Inbuilt shell commands are:
+
+   EXIT               - returns you to the previous running
+                        program (at this stage, ONLY a shell).
+
+   IFZERO             - Executes a command if the last command
+                        returned with a zero code. For use by
+                        shell program developers.
+
+
+   ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   + I understand if you may be confused at this stage, +
+   + for Zeta is adding features which are rarely found +
+   + even on MAINFRAMES. There is possibly nothing else +
+   + like it in the MICRO world .... you have to go to  +
+   + UNIX to get real computing power.                  +
+   +                                                    +
+   +   Likewise do not make the mistake of assuming     +
+   + that ZETA is just another toy BBS system.          +
+   ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 0
