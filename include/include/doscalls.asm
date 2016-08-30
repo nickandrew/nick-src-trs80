@@ -1,4 +1,4 @@
-; doscalls: dos type equates of 2002-06-20
+; doscalls: dos type equates of 2016-08-30
 ; Also common Dos error messages & numbers.
 ;
 *LIST OFF
@@ -26,7 +26,7 @@ DOS_OPEN_EX	EQU	4424H	;open existing file
 DOS_CLOSE	EQU	4428H	;close file
 DOS_KILL	EQU	442CH	;kill FCB's associated file
 DOS_LOAD	EQU	4430H	;load a program file
-DOS/EXECUTE	EQU	4433H	;load and commence execution of a program file
+DOS_EXECUTE	EQU	4433H	;load and commence execution of a program file
 DOS_READ_SECT	EQU	4436H	;read file's record
 DOS_WRIT_SECT	EQU	4439H	;write file's record
 DOS_REWIND	EQU	443FH	;set NEXT to 0/0/0.
