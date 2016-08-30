@@ -3,35 +3,47 @@ Newdos Edas 4.2c command summary
 
 Prepared by Nick Andrew, 28-Jan-85.
 
+Updated 2016-08-30 by referencing:
+  https://archive.org/stream/EDAS_5th_Ed._1983_sys/EDAS_5th_Ed._1983_Misosys#page/n65/mode/2up
+
  Nedas obeys the following commands:
 
 Cmd    Usage           Function
 -------------------------------
 A      see below       Assemble source code
-B      B or B402D      Back to Dos or Jump to hex address
-C      ?               Copy lines?
-D      D120 or D#,*    Delete lines
+B      B or B402D      Back to Dos or Branch to hex address
+C      ?               Change STRING1 to STRING2 through a range of text lines
+C                      Also copy a block of lines to another location
+D      D120 or D#,*    Delete specified lines
 E      E120 or E#      Edit line from memory
 F      Fstring or F    Find a string
-H      H120 or H#,*    Print lines on printer with line #s.
-I      I100,10 or I    Insert lines
-K      Kfilespec       Kill file off disk (default /ASM)
-L      Lfilespec or L  Load file
-M      ?               Move lines?
+H      H120 or H#,*    Hardcopy print lines on printer with line #s.
+I      I100,10 or I    Insert text lines
+K      Kfilespec       Delete file from disk (default /ASM)
+L      Lfilespec or L  Load file from disk
+M      ?               Move a block of text from one location to another
 N      N100,10 or N    Renumber lines
-O      O               Print memory usage?
-P      P100,200 or P   Print out source lines on VDU
+P      P100,200 or P   Display source text on VDU
+Q                      Query a directory (appears in a later version of EDAS)
 R      R100,10 or R    Replace current line & insert
-S      S               Swap source u/l case conversion
-T      T10,70 or T#,*  Type source to printer no line #s.
-U      U               Memory usage?
+S      S               Switch source u/l case conversion
+T      T10,70 or T#,*  Type source to printer without line #s.
+U      U               Display memory utilisation
+V                      View a file on the disk (appears in a later version of EDAS)
 W      see below       Write file to disk
 X      X               Kill assembler portion of nedas
+Z                      Command reserved for user (appears in a later version of EDAS)
+1                      Alter printed lines per page and page length
+
 ------------------------------------------------------
 Other commands:
-<UP-ARROW>             Move up a line
-<DN-ARROW>             Move down a line
-1 or (number)          Unknown!
+<CLEAR>                Clear the CRT screen
+<UP-ARROW>             Move up a source line
+<DN-ARROW>             Move down a source line
+<RT-ARROW>             TAB key
+<SHIFT-RT-ARROW>       Page forward one screen (F2 on Model II)
+<PAUSE>                Pause any operation (shift-@ for Model I/III, HOLD for Model II)
+
 ------------------------------------------------------
 Format of the A (Assemble) command:
 Usage: A filespec/cmd filespec/ref switches
@@ -39,17 +51,19 @@ Switches may be any of:
       -CI  write an object file with no control information
            (core image)
       -IM  assemble straight to memory
-      -XR  write a cross reference file for this assembly
       -LP  list onto printer
-      -WS  print a symbol table after assembly
-      -NC  dont print false conditional blocks
-      -WO  ???
-      -NE  dont list all bytes made using DEFM etc..
-      -WE  wait on any errors
+      -NC  don't print false conditional blocks
+      -NE  don't list all bytes made using DEFM etc..
       -NH  no header
-      -NO  ???
       -NL  do not list the source code during assembly
       -NM  do not list expansion of macros
+      -NO  no-op
+	  -SL  suppress local label listing
+      -WE  wait on any errors
+      -WO  assemble with object code generation (the default)
+      -WS  print a sorted symbol table during assembly
+      -XR  write a cross reference file for use by XREF/CMD
+
 -------------------------------------------------------
 Format of the WRITE command
 Usage: W(switches)filespec
@@ -68,28 +82,32 @@ IFDEF          True if a symbol is defined
 IFNDEF         True if a symbol is not defined
 IFREF          True if a symbol has been referenced
 PAGE           Do a page throw on a listing pass (assemble)
-TITLE          Print a title or titles?
+TITLE          Invokes a heading title for listings
 IFEQ           True if the two parameters are equal
-IFGT           True if Param1 > Param2 ?
-IFLT           True if Param1 < Param2 ?
-IFNE           True if Param1 <> Param2
+IFGT           True if numeric Param1 > Param2 ?
+IFLT           True if numeric Param1 < Param2 ?
+IFNE           True if numeric Param1 <> Param2
 IFEQ$          Like IFEQ except for strings
 IFGT$          Like IFGT except for strings
 IFLT$           ""  IFLT
 IFNE$           ""  IFNE
-SUBTTL         ?
-SPACE          ?
+SUBTTL         Invokes a heading sub-title for listings
+SPACE          Generates extra line feeds during a listing
 IF             start a conditional block.
 ELSE           used between IF and ENDIF
 ENDIF          end a conditional block
-LORG           ?
-ERR            ?
+LORG           Establishes a load origin for executable object code files
+ERR            Forces an assembly error
+DB             Specifies a data byte or string of bytes. Equivalent to DEFB, DEFM and DM
 DC num1,byte   the same as num1 occurrences of BYTE
-DW             same as DEFW
+DS             Reserves a region of storage for program use. Equivalent to DEFS
+DW             Specifies a 16-bit word or sequence of words. Same as DEFW
+DEFL           Establishes a value for a label which can be altered during the assembly
+
 -------------------------------------------------------
 Column 1 pseudo-ops:
-*MOD           define a new code segment
-*LIST ON/OFF   turn listing pass on/off
 *GET filename  include source file into assembly
-*SEARCH fname  search object library for undefined symbols
+*LIST ON/OFF   turn listing pass on/off
+*MOD exp       Advances the "module" character substitution string and optionally sets/resets the prefix ("?" in labels is substituted with "exp")
+*SEARCH lib    Searches the Partitioned Data Set (PDS) "lib" to resolve undefined references
 -------------------------------------------------------
