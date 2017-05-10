@@ -1,10 +1,10 @@
-#	@(#) $Id$
+#	Makefile for trs80/library
 #
 
 PACKAGE=	trs80-library
 VERSION=	1.x
 
-SOURCES=	asm source
+SOURCES=	lib
 
 MISC=		$(PACKAGE).html Makefile
 
