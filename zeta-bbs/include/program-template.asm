@@ -70,7 +70,8 @@ DB_LOOP
 *GET	CINIT
 *GET	CALL
 ;
-*GET	THISPROG1
+;;Substitute with name of main program
+;;*GET	THISPROG1
 ;
 ;;*GET	BB7FUNC
 ;;*GET	ATOI		;Requires ctype
