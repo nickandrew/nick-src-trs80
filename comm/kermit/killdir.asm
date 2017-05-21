@@ -1,0 +1,91 @@
+;killdir/src
+;get a directory for a drive
+DIR	LD	HL,(402DH)	;intercept the @exit
+	LD	(ARGBLK),HL	;vector
+	LD	A,(402FH)
+	LD	(ARGBLK+2),A
+	LD	HL,(4030H)	;intercept the @abort
+	LD	(ARGBLK+3),HL	;vector
+	LD	A,(4032H)
+	LD	(ARGBLK+5),A
+	LD	HL,(4409H)	;intercept the @error
+	LD	(ARGBLK+6),HL	;vector
+	LD	A,(440BH)
+	LD	(ARGBLK+8),A
+	LD	(ARGBLK+9),SP
+	LD	HL,(CMDPTR)
+DIR1A	LD	A,(HL)
+	CP	CR
+	JR	Z,DIR1B
+	CP	' '
+	JR	Z,DIR1AA
+	CP	'0'
+	JP	M,DIRERR	;legal drive number?
+	CP	'9'+1
+	JP	P,DIRERR
+	JR	DIR1C
+DIR1AA	INC	HL
+	JR	DIR1A
+DIR1B	LD	A,'1'		;default to drive 1
+DIR1C	LD	(DIRSPEC),A
+	LD	A,0C3H		;replace dos vectors
+	LD	(402DH),A
+	LD	(4030H),A
+	LD	(4409H),A
+	LD	HL,DIR1D	;route back to kermit
+	LD	(402EH),HL
+	LD	(4031H),HL
+	LD	(440AH),HL
+	LD	HL,DNAM14	;execute the command
+	JP	4405H		;DIR :X
+DIR1D	LD	HL,(ARGBLK)	;return here after 
+	LD	(402DH),HL	;execution and fix
+	LD	A,(ARGBLK+2)	;dos
+	LD	(402FH),A
+	LD	HL,(ARGBLK+3)
+	LD	(4030H),HL
+	LD	A,(ARGBLK+5)
+	LD	(4032H),A
+	LD	HL,(ARGBLK+6)
+	LD	(4409H),HL
+	LD	A,(ARGBLK+8)
+	LD	(440BH),A
+	LD	HL,(ARGBLK+9)
+	LD	SP,HL		;all done
+	JP	KERMIT
+DIRERR	LD	DE,BADDRV	;bad drive name
+	CALL	PRTSTR
+	JP	KERMIT
+;kill a trs-80 file
+ERA	LD	A,CMIFI		; PARSE A FILE-SPEC
+	LD	DE,KFCB		; INTO FCB
+	CALL	COMND
+	JP	KERMIT
+	LD	A,CMCFM
+	CALL	COMND
+	JP	KERMT3
+	LD	DE,KFCB
+	CALL	@OPEN
+	JP	Z,ERA1		; FOUND it
+	LD	DE,ERMS15	;"UNABLE TO FIND FILE"
+	CALL	PRTSTR
+	JP	KERMIT
+ERA1	LD	DE,KFCB
+	CALL	@KILL
+	JR	NZ,ERA2
+	LD	DE,INMS18	;" FILE KILLED"
+	CALL	PRTSTR
+	JP	KERMIT
+ERA2	CALL	ERRORD
+	JP	KERMIT
+ESCPR	LD	A,(ESCCHR)	; GET THE ESCAPE CHAR.
+	CP	' '		; IS IT A CONTROL CHAR?
+	JP	P,ESCPR2
+	LD	DE,INMS10	; OUTPUT CONTROL-.
+	CALL	PRTSTR
+	LD	A,(ESCCHR)
+	OR	100O		; DE-CONTROLIFY.
+ESCPR2	CALL	CONOUT
+	LD	A,20H
+	CALL	CONOUT
+	RET
