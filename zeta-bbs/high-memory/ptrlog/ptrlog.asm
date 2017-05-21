@@ -6,7 +6,9 @@
 *GET	PROGNUMB
 ;
 	COM	'<Ptrlog 1.3b 02-Apr-88>'
+;
 	ORG	BASE+100H
+;
 START	LD	SP,START
 ;
 ;Allocate a page for the 1k buffer.
