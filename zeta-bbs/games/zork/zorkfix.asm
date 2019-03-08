@@ -39,6 +39,9 @@ M_WARN2	DEFM	'Please rephrase your last "read" command.',0DH,0
 BUFF_POS	DEFW	0
 SRCH_POS	DEFW	0
 ;
+; Check for a '$' character in an input string pointed to by HL
+; and terminated by 0x0d or 0x00. If a '$' is found then
+; substitute with '%' and return NZ, otherwise return Z.
 CHECKD	LD	A,(HL)
 	CP	0DH
 	RET	Z
