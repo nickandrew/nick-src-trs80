@@ -1,5 +1,5 @@
 ;times.lib: Some routines for time handling.
-;Last updated 04-Dec-88
+;Last updated 02-Jan-89
 ;
 	IFREF	DMY_ASCII
 DMY_ASCII
@@ -76,7 +76,47 @@ $MN_DATA
 ;
 	ENDIF	;$month_name
 ;
+	IFREF	GETTIME
+GETTIME
+	PUSH	DE
+	LD	A,(4043H)
+	LD	(DE),A
+	INC	DE
+	LD	A,(4042H)
+	LD	(DE),A
+	INC	DE
+	LD	A,(4041H)
+	LD	(DE),A
+	POP	DE
+	RET
+	ENDIF	;gettime
+;
+	IFREF	GETDATE
+GETDATE
+	PUSH	DE
+	LD	A,(4045H)
+	LD	(DE),A
+	INC	DE
+	LD	A,(4046H)
+	LD	(DE),A
+	INC	DE
+	LD	A,(4044H)
+	LD	(DE),A
+	POP	DE
+	RET
+	ENDIF	;getdate
+;
 DMY_STRING	DEFM	'dd mmm yy',0
 HMS_STRING	DEFM	'hh:mm:ss',0
+;
+DMY_BUF
+DMY_D	DEFB	0
+DMY_M	DEFB	0
+DMY_Y	DEFB	0
+;
+HMS_BUF
+HMS_H	DEFB	0
+HMS_M	DEFB	0
+HMS_S	DEFB	0
 ;
 ;End of times.lib
