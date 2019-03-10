@@ -2,7 +2,9 @@
 ;Last modified: 07-Aug-87
 ;
 ;
-*GET	RS232
+; Normally here I would do: *GET RS232
+; However nested includes triggers an assembler bug "PAST END OF FILE" under
+; some unknown conditions involving the length of the source file(s).
 ;
 OK	EQU	0
 TIMEOUT	EQU	1
