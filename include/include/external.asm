@@ -55,7 +55,7 @@ MEM_TABLE	EQU	0FF62H	;W- addr swapped-in pages
 USR_NAME	EQU	0FF68H	;W- name string
 USR_NUMBER	EQU	0FF6AH	;W- user #
 USR_LOGOUT	EQU	0FF6CH	;J- log off user
-;;SECOND		EQU	0FF6FH	;C- wait 'A' sec
+SECOND		EQU	0FF6FH	;C- wait 'A' sec
 ;;MESSAGE		EQU	0FF72H	;C- msg to device
 ;;LIST		EQU	0FF75H	;C- list file to $2o
 PRIV_1		EQU	0FF78H	;B- first privileges

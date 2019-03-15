@@ -1,26 +1,47 @@
-;special: set up special routines.
+; Some functions and two tables are to be copied into high memory, and
+; initialise a jump table (defined in EXTERNAL) so they can be called
+; by other programs.
 ;
+; Functions available:
+;   This module    Public name    What does it do
+;   -----------    -----------    ------------------------------------------
+;   DETECT         CARR_DETECT    Test if there's modem carrier
+;   HANGUP         TEL_HANGUP     Hang up the phone
+;   PICKUP         TEL_PICKUP     Pick up the phone
+;   WAIT1          SECOND         Wait 'n' seconds
+;   NOCARR         LOST_CARRIER   Jumps to USR_LOGOUT
+;   TIMEOUT        IO_TIMEOUT     Jumps to USR_LOGOUT
+;   LOGOUT         USR_LOGOUT     Registers a disconnect and jumps away(?)
+;   $ALLOC_PAGE    ALLOC_PAGE     Allocate a new 1kb physical page
+;   $FREE_PAGE     FREE_PAGE      Free a specified 1kb page
+;   $SWAP_PAGE     SWAP_PAGE      Map physical page A into logical page B
+;
+; Tables copied:
+;   $MEM_OWNER     MEM_OWNER      256 bytes of page owners
+;   $MEM_TABLE     MEM_TABLE      48 bytes mapping physical to logical page
+
 *GET	DOSCALLS
 *GET	EXTERNAL
 *GET	ASCII
 *GET	RS232
 ;
-	COM	'<Special 1.3g 02-Apr-88>'
+	COM	'<Special 1.3g+ 2019-03-15>'
 	ORG	BASE+100H
 ;
-START	LD	SP,START
-	LD	HL,(HIMEM)
+START	LD	SP,START	; Provide 256 bytes of stack under this code
+				; to avoid clobbering high memory
+	LD	HL,(HIMEM)	; Current high memory address
 	LD	A,H
 	CP	0FFH
 	JR	NZ,NOT_FF
 	LD	HL,EXTERNALS-1
-NOT_FF	LD	DE,EN_CODE-ST_CODE
+NOT_FF	LD	DE,EN_CODE-ST_CODE	; Length of the code to be relocated
 	OR	A
 	SBC	HL,DE
-	LD	(HIMEM),HL
+	LD	(HIMEM),HL	; Reserve space for the code to be relocated
 ;
 	INC	HL
-	LD	(ORIGIN),HL
+	LD	(ORIGIN),HL	; Start of destination addresses
 	LD	DE,ST_CODE
 	OR	A
 	SBC	HL,DE
@@ -42,63 +63,68 @@ NOT_FF	LD	DE,EN_CODE-ST_CODE
 ;;	ADD	HL,DE
 ;;	LD	(RELOC4+1),HL
 ;
-	LD	BC,EN_CODE-ST_CODE
-	LD	DE,(ORIGIN)
-	LD	HL,ST_CODE
-	LDIR
+	LD	BC,EN_CODE-ST_CODE	; Length of the code to be relocated
+	LD	DE,(ORIGIN)		; Start of destination addresses
+	LD	HL,ST_CODE		; Start of source addresses
+	LDIR				; Copy all the code into place
 ;
-	LD	A,0C3H
-	LD	(CARR_DETECT),A
-	LD	(TEL_HANGUP),A
-	LD	(TEL_PICKUP),A
-	LD	(SECOND),A
-;;	LD	(MESSAGE),A
-;;	LD	(LIST),A
-	LD	(LOST_CARRIER),A
-	LD	(IO_TIMEOUT),A
-	LD	(USR_LOGOUT),A
-	LD	(ALLOC_PAGE),A
-	LD	(FREE_PAGE),A
-	LD	(SWAP_PAGE),A
+; Patch the addresses of several functions into the high memory jump table.
 ;
+; Calculate the difference between the loaded address of each function
+; and the start of the code block to be relocated. This difference is
+; added to the destination start address to find the relocated address
+; of each function.
+;
+; new_address = old_address + (ORIGIN) - ST_CODE
 	LD	HL,(ORIGIN)
 	LD	DE,ST_CODE
 	OR	A
-	SBC	HL,DE
-	EX	DE,HL
+	SBC	HL,DE		; HL = (ORIGIN) - ST_CODE
+	EX	DE,HL		; DE = (ORIGIN) - ST_CODE
 ;
+	LD	A,0C3H		; 0xc3 is a JP instruction
+;
+	LD	(CARR_DETECT),A
 	LD	HL,DETECT
 	ADD	HL,DE
 	LD	(CARR_DETECT+1),HL
 ;
+	LD	(TEL_HANGUP),A
 	LD	HL,HANGUP
 	ADD	HL,DE
 	LD	(TEL_HANGUP+1),HL
 ;
+	LD	(TEL_PICKUP),A
 	LD	HL,PICKUP
 	ADD	HL,DE
 	LD	(TEL_PICKUP+1),HL
 ;
+	LD	(SECOND),A
 	LD	HL,WAIT1
 	ADD	HL,DE
 	LD	(SECOND+1),HL
 ;
+	LD	(LOST_CARRIER),A
 	LD	HL,NOCARR
 	ADD	HL,DE
 	LD	(LOST_CARRIER+1),HL
 ;
+	LD	(IO_TIMEOUT),A
 	LD	HL,TIMEOUT
 	ADD	HL,DE
 	LD	(IO_TIMEOUT+1),HL
 ;
+;;	LD	(MESSAGE),A
 ;;	LD	HL,PMESS
 ;;	ADD	HL,DE
 ;;	LD	(MESSAGE+1),HL
 ;
+;;	LD	(LIST),A
 ;;	LD	HL,L_FILE
 ;;	ADD	HL,DE
 ;;	LD	(LIST+1),HL
 ;
+	LD	(USR_LOGOUT),A
 	LD	HL,LOGOUT
 	ADD	HL,DE
 	LD	(USR_LOGOUT+1),HL
@@ -111,14 +137,17 @@ NOT_FF	LD	DE,EN_CODE-ST_CODE
 	ADD	HL,DE
 	LD	(MEM_TABLE),HL
 ;
+	LD	(ALLOC_PAGE),A
 	LD	HL,$ALLOC_PAGE
 	ADD	HL,DE
 	LD	(ALLOC_PAGE+1),HL
 ;
+	LD	(FREE_PAGE),A
 	LD	HL,$FREE_PAGE
 	ADD	HL,DE
 	LD	(FREE_PAGE+1),HL
 ;
+	LD	(SWAP_PAGE),A
 	LD	HL,$SWAP_PAGE
 	ADD	HL,DE
 	LD	(SWAP_PAGE+1),HL
@@ -127,7 +156,19 @@ NOT_FF	LD	DE,EN_CODE-ST_CODE
 ;
 ORIGIN	DEFW	0
 ;
+;************************************************************************
+; Code from ST_CODE to EN_CODE will be relocated into high memory.
+;************************************************************************
 ST_CODE
+
+;************************************************************************
+;  NAME: DETECT (public 'CALL CARR_DETECT')
+;  USES: AF
+;  Tests the DSR bit of RDSTAT. If it's set, there's no carrier and
+;  so reset bit 2 of SYS_STAT. Otherwise there's carrier and set bit 2
+;  of SYS_STAT.
+;  RETURNS: Z if carrier, NZ if no carrier.
+;************************************************************************
 DETECT
 	PUSH	HL
 	LD	HL,SYS_STAT
@@ -140,7 +181,7 @@ DETECT
 	POP	HL
 	RET
 DETECT_LOST
-	RES	2,(HL)
+	RES	2,(HL)		; no carrier
 	POP	HL
 	RET
 ;
@@ -186,20 +227,26 @@ PICKUP	PUSH	AF
 	POP	AF
 	RET
 ;
-;wait 'A' seconds routine.
-WAIT1	PUSH	BC
+;************************************************************************
+;  NAME: WAIT1 (public 'CALL SECOND')
+;    IN: Register A: Number of seconds to wait (0 == 256)
+;  USES: AF
+;  Wait 'n' seconds.
+;************************************************************************
+
+WAIT1	PUSH	BC		; BC will be clobbered, so save it
 W1_2	PUSH	AF
-	LD	B,40
-	LD	A,(TICKER)
+	LD	B,40		; There are 40 ticks per second
+	LD	A,(TICKER)	; TICKER is updated asynchronously
 	LD	C,A
 W1_3	LD	A,(TICKER)
 	CP	C
 	LD	C,A
-	JR	Z,W1_3
-	DJNZ	W1_3
+	JR	Z,W1_3		; Loop while the value of TICKER hasn't changed
+	DJNZ	W1_3		; Loop until 40 ticks have elapsed
 	POP	AF
 	DEC	A
-	JR	NZ,W1_2
+	JR	NZ,W1_2		; Loop until 'n' seconds have passed
 	POP	BC
 	RET
 ;
@@ -306,7 +353,7 @@ $SWAP_PAGE
 	ADD	A,A	;*4
 	LD	B,A
 	LD	A,C
-	LD	C,10H
+	LD	C,10H		; Port 0x10 somehow controls page mapping
 	DI
 	OUT	(C),A
 	LD	HL,(MEM_TABLE)
