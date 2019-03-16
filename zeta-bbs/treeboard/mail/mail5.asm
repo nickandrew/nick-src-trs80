@@ -38,6 +38,8 @@ HGN_02
 	LD	(HL),0
 	RET
 ;
+; ------------------------------
+;
 RET_NZ
 	OR	A
 	RET	NZ
@@ -71,6 +73,8 @@ MCR_01
 MCR_02
 	POP	DE
 	RET
+;
+; ------------------------------
 ;
 MENU
 	LD	(CONTROL),HL
@@ -158,6 +162,8 @@ MU_5
 	POP	HL
 	JR	MU_1
 ;
+; ------------------------------
+;
 GET_STRING
 	PUSH	HL
 	LD	HL,(CHAR_POSN)
@@ -184,6 +190,8 @@ GS_002	LD	A,(HL)
 	LD	(HL),0
 	RET
 ;
+; ------------------------------
+;
 GET_CHAR
 	LD	HL,(CHAR_POSN)
 	LD	A,(HL)
@@ -196,6 +204,8 @@ GET_CHAR
 	LD	A,CR
 GC_1	CP	A
 	RET
+;
+; ------------------------------
 ;
 IF_CHAR	LD	HL,(CHAR_POSN)	;Set NZ if no more chars
 	LD	A,(HL)
@@ -214,6 +224,8 @@ IF_NUM	CP	'0'
 	RET
 IN_1	CP	A
 	RET
+;
+; ------------------------------
 ;
 GET_NUM
 	LD	HL,0
@@ -255,12 +267,16 @@ O_FLO	LD	HL,0C000H	;sufficiently big
 ;
 ;to stop all such 65536-65537 attempts.
 ;
+; ------------------------------
+;
 ;
 FUNC	LD	HL,(FUNCTION)
 	LD	A,H
 	OR	L
 	RET	Z
 	JP	(HL)
+;
+; ------------------------------
 ;
 PUT	PUSH	DE
 	LD	DE,$2
