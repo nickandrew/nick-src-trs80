@@ -92,16 +92,6 @@ HGN_02
 ;
 ; ------------------------------
 ;
-IF_VISITOR
-	LD	A,(PRIV_2)
-	BIT	IS_VISITOR,A
-	RET
-;
-IF_SYSOP
-	LD	A,(PRIV_1)
-	BIT	IS_SYSOP,A
-	RET
-;
 RET_NZ
 	OR	A
 	RET	NZ
@@ -358,6 +348,12 @@ CPHLDE	LD	A,H
 	CP	E
 	RET
 ;
+TOP_ADDR
+	CALL	MUL_20
+	LD	DE,TOPIC_DAT
+	ADD	HL,DE
+	RET
+;
 MUL_20	LD	L,A
 	LD	H,0
 	ADD	HL,HL
@@ -561,12 +557,6 @@ FTNC_8	LD	(FTN_STR),HL
 	LD	(DE),A
 	RET
 ;
-TOP_ADDR
-	CALL	MUL_20
-	LD	DE,TOPIC_DAT
-	ADD	HL,DE
-	RET
-;
 PUTCR
 	LD	A,CR
 	CALL	PUT
@@ -575,6 +565,18 @@ PUTCR
 GET_$2
 	LD	DE,$2
 	CALL	$GET
+	RET
+;
+; ------------------------------
+;
+IF_VISITOR
+	LD	A,(PRIV_2)
+	BIT	IS_VISITOR,A
+	RET
+;
+IF_SYSOP
+	LD	A,(PRIV_1)
+	BIT	IS_SYSOP,A
 	RET
 ;
 ;End of bb5
