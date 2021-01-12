@@ -5,7 +5,12 @@
 ;   2. ld51manr.djvu
 
 ; LDOS for the Model 1 and Model 3 have many different call vectors. The differences,
-; so far as they can be determined, are in the top IF blocks.
+; so far as they can be determined, are in the top IF blocks. The documentation says:
+; "Most locations that differ from the Model I version of LDOS were moved for
+; compatibility with Model III TRSDOS."
+;
+; System vectors prefixed with "@" are considered to be consistent from release to release.
+; Data storage assignments postfixed with "$" are considered consistent from release to release.
 
 ; The label names are taken from the source materials. The different manuals sometimes
 ; publish a different name for the same thing:
@@ -151,6 +156,52 @@ DCTBYT		EQU	479CH	; Recover a byte field from drive code table (C: drive, A: byt
 DIRRD		EQU	4B10H	; Read a directory sector (B: DEC, C: drive)
 DIRWR		EQU	4B1FH	; Write a directory sector (B: DEC, C: drive)
 RDSSEC		EQU	4B45H	; Read the system sector (HL: buf, D: cyl, E: sec, C: drive)
+
+; Documented memory addresses (Model 3)
+KIDCB$		EQU	4015H	; Keyboard DCB
+DODCB$		EQU	401DH	; Video DCB
+PRDCB$		EQU	4025H	; Printer DCB (to 402CH)
+@DVRHK		EQU	4033H	; Device Driver hook from ROM for byte I/O
+DBGSV$		EQU	405DH	; DEBUG and SYSTEM storage area - DO NOT USE (to 407CH)
+TIME$		EQU	4217H	; Contains time of day
+DATE$		EQU	421AH	; Contains the current date
+@ICNFG		EQU	421DH	; Initialize configuration
+JDCB$		EQU	4220H	; Storage area for DCB address during JCL execution
+JRET$		EQU	4222H	; Storage area for RET address during JCL execution
+INBUF$		EQU	4225H	; Buffer area of 64 bytes for user command input
+JFCB$		EQU	4265H	; JCL FCB during DO processing
+@KITSK		EQU	4285H	; Task processing during KBD scan
+TIMER$		EQU	4288H	; This is the 33.333 ms heartbeat
+DFLAG$		EQU	4289H	; The system device flag
+SFCB$		EQU	42A1H	; FCB for loading system overlays
+KISV$		EQU	42B8H	; Save KI DCB vector
+DOSV$		EQU	42BAH	; Save DO DCB vector
+PRSV$		EQU	42BCH	; Save PR DCB vector
+KIJCL$		EQU	42BEH	; Save KIJCL DCB vector
+JLDCB$		EQU	42C2H	; Joblog DCB
+SIDCB$		EQU	42C8H	; Standard Input DCB
+SODCB$		EQU	42CEH	; Standard Output DCB
+S1DCB$		EQU	42D4H	; Spare DCB
+S2DCB$		EQU	42DAH	; Spare DCB
+S3DCB$		EQU	42E0H	; Spare DCB
+S4DCB$		EQU	42E6H	; Spare DCB
+;		EQU	42ECH	; Storage for 2 character device names
+SBUFF$		EQU	4300H	; A 256 byte buffer for system disk I/O
+EXTDBG$		EQU	4400H	; Vector to extended DEBUG
+@DBGHK		EQU	4405H	; Used with DEBUG (do not use)
+HIGH$		EQU	4411H	; Contains the highest unused RAM address
+OVRLY$		EQU	4414H	; Current system overlay resident
+OSVER$		EQU	441FH	; Contains the operating system version number
+PDRIV$		EQU	4423H	; Currently accessed drive - physical address (1, 2, 4, or 8)
+LDRIV$		EQU	4427H	; Currently accessed drive - logical number (0-7)
+SFLAG$		EQU	442BH	; System bit flag
+INTIM$		EQU	4473H	; Contains an image of the interrupt latch
+INTVCT$		EQU	4475H	; Eight vectors - one for each bit of the interrupt latch
+CFCB$		EQU	4485H	; File control block for commands (to 44A4H)
+TCB$		EQU	4500H	; Interrupt Task Table (to 4517H)
+DCT$		EQU	4700H	; Area reserved for the Drive Code Table (to 474FH)
+USTOR$		EQU	4DFEH	; Points to an 8 byte user storage area
+;  4E00H - 51FFH = LDOS Overlay Area
 
 ; Supervisory Calls (System calls: load A register, do RST 28H)
 
