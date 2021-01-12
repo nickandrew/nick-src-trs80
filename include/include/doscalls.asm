@@ -9,12 +9,12 @@ DOS_DISP_ERROR	EQU	4030H	;error displayed exit
 DOS_COMMAND	EQU	4405H	;enter DOS and execute a command
 DOS_ERROR	EQU	4409H	;DOS error exit
 DOS_DEBUG	EQU	440DH	;enter DEBUG
-DOS_ENQUEUE	EQU	4410H	;enqueue user timer interrupt routine
+;DOS_ENQUEUE	EQU	4410H	;Model 1/3 specific; see below
 DOS_DEQUEUE	EQU	4413H	;dequeue user timer interrupt routine
 DOS_ROTATE	EQU	4416H	;Keep drives rotating
 DOS_CALL	EQU	4419H	;dos-call execute a DOS command and return
-DOS_EXTRACT	EQU	441CH	;filename extract
-DOS_OPEN_NEW	EQU	4420H	;open new/exist file
+DOS_EXTRACT	EQU	441CH	;extract a filespec
+DOS_OPEN_NEW	EQU	4420H	;open new/existing file
 DOS_OPEN_EX	EQU	4424H	;open existing file
 DOS_CLOSE	EQU	4428H	;close file
 DOS_KILL	EQU	442CH	;kill FCB's associated file
@@ -24,12 +24,12 @@ DOS_READ_SECT	EQU	4436H	;read file's record
 DOS_WRIT_SECT	EQU	4439H	;write file's record
 DOS_WRIT_VRFY	EQU	443CH	;write file's record with verify read
 DOS_REWIND	EQU	443FH	;set NEXT to 0/0/0.
-DOS_POSIT	EQU	4442H	;position to relrec
-DOS_BACK_RECD	EQU	4445H	;position back 1 recd
-DOS_POS_EOF	EQU	4448H	;position to END
-DOS_ALLOCATE	EQU	444BH	;allocate file space
+DOS_POSIT	EQU	4442H	;position FCB to a specified file record
+DOS_BACK_RECD	EQU	4445H	;position back 1 record
+DOS_POS_EOF	EQU	4448H	;position FCB to EOF
+DOS_ALLOCATE	EQU	444BH	;allocate file space (incompatible with TRSDOS/LDOS)
 DOS_POS_RBA	EQU	444EH	;position to RBA
-DOS_WRITE_EOF	EQU	4451H	;from fcb to directory
+DOS_WRITE_EOF	EQU	4451H	;from fcb to directory (incompatible with TRSDOS/LDOS)
 DOS_POWERUP	EQU	445BH	;Select and power up the specified drive
 DOS_TEST_MOUNT	EQU	445EH	;Test for mounted diskette
 DOS_NAME_ENQ	EQU	4461H	;*name routine enqueue
@@ -40,7 +40,7 @@ MESS_PR		EQU	446AH	;send a message to the printer
 ;
 DOS_TIME	EQU	446DH	;convert clock time to HH:MM:SS format
 DOS_DATE	EQU	4470H	;convert date to MM/DD/YY format
-DOS_EXTEND	EQU	4473H	;add deflt extnsn
+DOS_EXTEND	EQU	4473H	;Insert default name extension into filespec
 ;
 $GET		EQU	0013H	;read byte from dev
 DOS_READ_BYTE	EQU	0013H	;read byte from file
@@ -67,10 +67,12 @@ DCB$VDU		EQU	401DH
 TICKER		EQU	4040H	;Interrupt tick..
 HIMEM		EQU	4049H
 COM_BUFF	EQU	4318H
+DOS_ENQUEUE	EQU	4410H	;enqueue user timer interrupt routine
 	ENDIF
 ;
 	IFDEF	MODEL3
 HIMEM		EQU	4411H
 COM_BUFF	EQU	4422H
+DOS_ENQUEUE	EQU	447BH	;enqueue user timer interrupt routine
 	ENDIF
 ;
