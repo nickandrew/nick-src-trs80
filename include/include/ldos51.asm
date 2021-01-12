@@ -18,68 +18,68 @@
 ;   MULT vs @MULT
 
 	IFDEF	MODEL1
-@CKEOF		EQU	444BH	; Check for EOF at the current logical record number (DE: FCB)
-@LOC		EQU	445AH	; Calculate the current logical record number (DE: FCB)
-@LOF		EQU	445DH	; Calculate the EOF logical record number (DE: FCB)
-@RREAD		EQU	4454H	; Re-read current sector (DE: FCB)
-@RWRIT		EQU	4457H	; Rewrite current sector (DE: FCB)
-@SKIP		EQU	4460H	; Skip next logical record (DE: FCB)
-@WEOF		EQU	444EH	; Update the directory entry with the current EOF (DE: FCB)
-@FEXT		EQU	4473H	; Insert a default file extension (DE: FCB, HL: 3-char ext)
-@FNAME		EQU	44BBH	; Recover filename and extension from directory (DE: buf, B: DEC, C)
-DIRCYL		EQU	4B65H	; Return directory cylinder# for the requested drive
+@RAMDIR		EQU	4396H	; Read visible files or get freespace (HL, B, C)
 @CMD		EQU	4400H	; Normal return to LDOS (same as @EXIT)
 @CMNDI		EQU	4405H	; Return to LDOS and execute command line in HL
-@DODIR		EQU	4463H	; Read visible files or find freespace and display (C, B, HL)
-@PARAM		EQU	4476H	; Parse optional parameter string (DE: table, HL: cmdline)
-@RAMDIR		EQU	4396H	; Read visible files or get freespace (HL, B, C)
 @ADTSK		EQU	4410H	; Add an interrupt level task to the RTC task table
-@KLTSK		EQU	4419H	; Remove task assignment from the task table
 @RMTSK		EQU	4413H	; Remove interrupt level task from task control block table
 @RPTSK		EQU	4416H	; Exit the task process executing and replace task vector address
-@LOGER		EQU	447EH	; Issue a log message to the Job Log (HL: buf)
-@LOGOT		EQU	447BH	; Display and log a message (HL: buf)
-@MSG		EQU	4479H	; Send a message to any device (DE: FCB, HL: buf)
-@DATE		EQU	4470H	; Get current date in display format (HL: buffer)
+@KLTSK		EQU	4419H	; Remove task assignment from the task table
+@CKEOF		EQU	444BH	; Check for EOF at the current logical record number (DE: FCB)
+@WEOF		EQU	444EH	; Update the directory entry with the current EOF (DE: FCB)
+@RREAD		EQU	4454H	; Re-read current sector (DE: FCB)
+@RWRIT		EQU	4457H	; Rewrite current sector (DE: FCB)
+@LOC		EQU	445AH	; Calculate the current logical record number (DE: FCB)
+@LOF		EQU	445DH	; Calculate the EOF logical record number (DE: FCB)
+@SKIP		EQU	4460H	; Skip next logical record (DE: FCB)
+@DODIR		EQU	4463H	; Read visible files or find freespace and display (C, B, HL)
 @TIME		EQU	446DH	; Get current time in display format (HL: buffer)
-DIVEA		EQU	4B7BH	; Do 8 bit unsigned integer divide (E / A)
-MULTEA		EQU	4B6CH	; Do 8 bit x 8 bit unsigned integer multiplication (A x E)
-DIVIDE		EQU	44C4H	; Divide 16 bit unsigned by 8 bit unsigned (HL / A)
-MULT		EQU	44C1H	; Multiply 16 bit x 8 bit = 24 bit (HL * A)
+@DATE		EQU	4470H	; Get current date in display format (HL: buffer)
+@FEXT		EQU	4473H	; Insert a default file extension (DE: FCB, HL: 3-char ext)
+@PARAM		EQU	4476H	; Parse optional parameter string (DE: table, HL: cmdline)
+@MSG		EQU	4479H	; Send a message to any device (DE: FCB, HL: buf)
+@LOGOT		EQU	447BH	; Display and log a message (HL: buf)
+@LOGER		EQU	447EH	; Issue a log message to the Job Log (HL: buf)
 @CKDRV		EQU	44B8H	; Check a drive exists and contains a formatted diskette (C: drive)
+@FNAME		EQU	44BBH	; Recover filename and extension from directory (DE: buf, B: DEC, C)
+MULT		EQU	44C1H	; Multiply 16 bit x 8 bit = 24 bit (HL * A)
+DIVIDE		EQU	44C4H	; Divide 16 bit unsigned by 8 bit unsigned (HL / A)
+DIRCYL		EQU	4B65H	; Return directory cylinder# for the requested drive
+MULTEA		EQU	4B6CH	; Do 8 bit x 8 bit unsigned integer multiplication (A x E)
+DIVEA		EQU	4B7BH	; Do 8 bit unsigned integer divide (E / A)
 ENDIF
 
 	IFDEF	MODEL3
+@DATE		EQU	3033H	; Get current date in display format (HL: buffer)
+@TIME		EQU	3036H	; Get current time in display format (HL: buffer)
+@ADTSK		EQU	403DH	; Add an interrupt level task to the RTC task table
+@RMTSK		EQU	4040H	; Remove interrupt level task from task control block table
+@RPTSK		EQU	4043H	; Exit the task process executing and replace task vector address
+@KLTSK		EQU	4046H	; Remove task assignment from the task table
+@CKDRV		EQU	4209H	; Check a drive exists and contains a formatted diskette (C: drive)
+				; Could be documented wrongly as 4290H
+@LOGOT		EQU	428AH	; Display and log a message (HL: buf)
+@LOGER		EQU	428DH	; Issue a log message to the Job Log (HL: buf)
+@RAMDIR		EQU	4290H	; Read visible files or get freespace (HL, B, C)
+@FNAME		EQU	4293H	; Recover filename and extension from directory (DE: buf, B: DEC, C)
+@CMD		EQU	4296H	; Normal return to LDOS (same as @EXIT)
+@CMNDI		EQU	4299H	; Return to LDOS and execute command line in HL
+@MSG		EQU	4402H	; Send a message to any device (DE: FCB, HL: buf)
+@DODIR		EQU	4419H	; Read visible files or find freespace and display (C, B, HL)
+@FEXT		EQU	444BH	; Insert a default file extension (DE: FCB, HL: 3-char ext)
+MULT		EQU	444EH	; Multiply 16 bit x 8 bit = 24 bit (HL * A)
+DIVIDE		EQU	4451H	; Divide 16 bit unsigned by 8 bit unsigned (HL / A)
+@PARAM		EQU	4454H	; Parse optional parameter string (DE: table, HL: cmdline)
 @CKEOF		EQU	4458H	; Check for EOF at the current logical record number (DE: FCB)
-@LOC		EQU	446DH	; Calculate the current logical record number (DE: FCB)
-@LOF		EQU	4470H	; Calculate the EOF logical record number (DE: FCB)
+@WEOF		EQU	445BH	; Update the directory entry with the current EOF (DE: FCB)
 @RREAD		EQU	445EH	; Re-read current sector (DE: FCB)
 @RWRIT		EQU	4461H	; Rewrite current sector (DE: FCB)
 @SKIP		EQU	4464H	; Skip next logical record (DE: FCB)
-@WEOF		EQU	445BH	; Update the directory entry with the current EOF (DE: FCB)
-@FEXT		EQU	444BH	; Insert a default file extension (DE: FCB, HL: 3-char ext)
-@FNAME		EQU	4293H	; Recover filename and extension from directory (DE: buf, B: DEC, C)
+@LOC		EQU	446DH	; Calculate the current logical record number (DE: FCB)
+@LOF		EQU	4470H	; Calculate the EOF logical record number (DE: FCB)
 DIRCYL		EQU	4B64H	; Return directory cylinder# for the requested drive
-@CMD		EQU	4296H	; Normal return to LDOS (same as @EXIT)
-@CMNDI		EQU	4299H	; Return to LDOS and execute command line in HL
-@DODIR		EQU	4419H	; Read visible files or find freespace and display (C, B, HL)
-@PARAM		EQU	4454H	; Parse optional parameter string (DE: table, HL: cmdline)
-@RAMDIR		EQU	4290H	; Read visible files or get freespace (HL, B, C)
-@ADTSK		EQU	403DH	; Add an interrupt level task to the RTC task table
-@KLTSK		EQU	4046H	; Remove task assignment from the task table
-@RMTSK		EQU	4040H	; Remove interrupt level task from task control block table
-@RPTSK		EQU	4043H	; Exit the task process executing and replace task vector address
-@LOGER		EQU	428DH	; Issue a log message to the Job Log (HL: buf)
-@LOGOT		EQU	428AH	; Display and log a message (HL: buf)
-@MSG		EQU	4402H	; Send a message to any device (DE: FCB, HL: buf)
-@DATE		EQU	3033H	; Get current date in display format (HL: buffer)
-@TIME		EQU	3036H	; Get current time in display format (HL: buffer)
-DIVEA		EQU	4B7AH	; Do 8 bit unsigned integer divide (E / A)
 MULTEA		EQU	4B6BH	; Do 8 bit x 8 bit unsigned integer multiplication (A x E)
-DIVIDE		EQU	4451H	; Divide 16 bit unsigned by 8 bit unsigned (HL / A)
-MULT		EQU	444EH	; Multiply 16 bit x 8 bit = 24 bit (HL * A)
-@CKDRV		EQU	4209H	; Check a drive exists and contains a formatted diskette (C: drive)
-						; Could be documented wrongly as 4290H
+DIVEA		EQU	4B7AH	; Do 8 bit unsigned integer divide (E / A)
 ENDIF
 
 ; Program Control Routines
