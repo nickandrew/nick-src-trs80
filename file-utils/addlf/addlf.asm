@@ -11,7 +11,8 @@
 	DEFW	TERMINATE
 ;End of program load info.
 ;
-	COM	'<addlf 1.0  07-Aug-86>'
+	ORG	BASE
+	DEFM	'<addlf 1.0  07-Aug-86>'
 	ORG	BASE+100H
 START	LD	SP,START
 ;
