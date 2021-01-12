@@ -1,7 +1,5 @@
-; doscalls: dos type equates of 2016-08-30
+; doscalls: dos type equates of 2021-01-12
 ; Also common Dos error messages & numbers.
-;
-*LIST OFF
 ;
 MODEL1	EQU	-1	;Change to 0 for model III.
 			;Change to -1 for model I.
@@ -29,6 +27,7 @@ DOS_LOAD	EQU	4430H	;load a program file
 DOS_EXECUTE	EQU	4433H	;load and commence execution of a program file
 DOS_READ_SECT	EQU	4436H	;read file's record
 DOS_WRIT_SECT	EQU	4439H	;write file's record
+DOS_WRIT_VRFY	EQU	443CH	;write file's record with verify read
 DOS_REWIND	EQU	443FH	;set NEXT to 0/0/0.
 DOS_POSIT	EQU	4442H	;position to relrec
 DOS_BACK_RECD	EQU	4445H	;position back 1 recd
@@ -41,8 +40,8 @@ DOS_TEST_MOUNT	EQU	445EH	;Test for mounted diskette
 DOS_NAME_ENQ	EQU	4461H	;*name routine enqueue
 DOS_NAME_DEQ	EQU	4464H	;*name routine dequeue
 ;
-MESS_DO		EQU	4467H
-MESS_PR		EQU	446AH
+MESS_DO		EQU	4467H	;send a message to the display
+MESS_PR		EQU	446AH	;send a message to the printer
 ;
 DOS_TIME	EQU	446DH	;convert clock time to HH:MM:SS format
 DOS_DATE	EQU	4470H	;convert date to MM/DD/YY format
@@ -80,4 +79,3 @@ HIMEM		EQU	4411H
 COM_BUFF	EQU	4422H
 	ENDIF
 ;
-*LIST ON
