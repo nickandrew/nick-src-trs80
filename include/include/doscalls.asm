@@ -1,12 +1,7 @@
 ; doscalls: dos type equates of 2021-01-12
 ; Also common Dos error messages & numbers.
 ;
-MODEL1	EQU	-1	;Change to 0 for model III.
-			;Change to -1 for model I.
-;
-MODEL3	EQU	.NOT.MODEL1
-;
-;
+
 CURSOR		EQU	4020H	; cursor position?
 DOS		EQU	402DH	;no error exit
 DOS_NOERROR	EQU	402DH	;no error
@@ -67,14 +62,14 @@ DE_BAD_FSPEC	EQU	30H
 DE_EXISTS	EQU	35H
 ;
 ; Common addresses.
-	IF	MODEL1
+	IFDEF	MODEL1
 DCB$VDU		EQU	401DH
 TICKER		EQU	4040H	;Interrupt tick..
 HIMEM		EQU	4049H
 COM_BUFF	EQU	4318H
 	ENDIF
 ;
-	IF	MODEL3
+	IFDEF	MODEL3
 HIMEM		EQU	4411H
 COM_BUFF	EQU	4422H
 	ENDIF
