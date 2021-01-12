@@ -1,9 +1,12 @@
 ;ptrdump version 2 because I lost version 1.
+;  Prints the contents of a file on the printer
 ;
 *GET	DOSCALLS
+@PRT	EQU	003BH	; Output a byte to the printer (A: byte)
 ;
-	COM	'<ptrdump 2.0  07-Jan-86 Trs-80 M1>'
-	COM	'<usage: ptrdump filename>'
+	ORG	5200H
+	DEFM	'<ptrdump 2.0  07-Jan-86 Trs-80 M1>'
+	DEFM	'<usage: ptrdump filename>'
 	ORG	5300H
 START	LD	SP,START
 	LD	DE,FCB
@@ -17,7 +20,7 @@ START	LD	SP,START
 LOOP	LD	DE,FCB
 	CALL	$GET
 	JP	NZ,DOS
-	CALL	3BH
+	CALL	@PRT
 	JR	LOOP
 ;
 BUFF	DEFS	256
