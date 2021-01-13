@@ -7,6 +7,9 @@
 **
 */
 
+#include <string.h>
+#include <stdlib.h>
+
 #include        "cc.h"
 
 int     sargc;
@@ -20,7 +23,8 @@ char    *argv[];
         sargc = argc;
         sargv = argv;
 
-        swend = (swnext = swq) + SWTABSZ - SWSIZ;
+		swnext = swq;
+        swend = swnext + SWTABSZ - SWSIZ;
         stagelast = stage + STAGELIMIT;
 
         swactive =              /* not in switch */
@@ -253,7 +257,7 @@ setops()
         op2[11] =       op[11] = add;   /* heir11 */
         op2[12] =       op[12] = sub;
         op2[13] =       op[13] = mult;  /* heir12 */
-        op2[14] =       op[14] = div;
+        op2[14] =       op[14] = op_div;
         op2[15] =       op[15] = mod;
 }
 

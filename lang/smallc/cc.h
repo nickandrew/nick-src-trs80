@@ -188,6 +188,8 @@ extern char
         pline[LINESIZE],        /* parsing buffer */
         mline[LINESIZE],        /* macro buffer */
         swq[SWTABSZ],           /* switch queue */
+        *swnext,                /* address of next entry */
+        *swend,                 /* address of last table entry */
         *line,                  /* points to pline or mline */
         *lptr,                  /* ptr to either */
         *glbptr,                /* ptrs to next entries */
@@ -211,8 +213,6 @@ extern int
         opsize,                 /* size of operator in bytes */
         swactive,               /* true inside a switch */
         swdefault,              /* default label #, else 0 */
-        *swnext,                /* address of next entry */
-        *swend,                 /* address of last table entry */
         wq[WQTABSZ],            /* while queue */
         *wqptr,                 /* ptr to next entry */
         litptr,                 /* ptr to next entry */
@@ -259,7 +259,7 @@ extern int
         heir14();
 
 extern int
-        add(), and(), asl(), asr(), div(), eq(), ge(), gt(),
+        add(), and(), asl(), asr(), op_div(), eq(), ge(), gt(),
         le(), lt(), mod(), mult(), ne(), or(), sub(), uge(),
         ugt(), ule(), ult(), xor();
 
