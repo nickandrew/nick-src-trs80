@@ -313,14 +313,14 @@ experr()
         {
 
         error("invalid expression");
-        const(0);
+        const1(0);
         junk();
 }
 
 callfunction(ptr)
 char    *ptr;
         {
-        int     nargs, const, val;
+        int     nargs, i_const, val;
         char        *exname();
 
         nargs = 0;
@@ -337,7 +337,7 @@ char    *ptr;
                 if (endst())
                         break;
 
-                expression(&const, &val);
+                expression(&i_const, &val);
 
                 if (ptr == NULL)
                         swapstk();

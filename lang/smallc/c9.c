@@ -43,7 +43,7 @@ mult()
 **      (quotient in primary, remainder in secondary)
 */
 
-div()
+op_div()
         {
 
         call("CCDIV");
@@ -57,7 +57,7 @@ div()
 mod()
         {
 
-        div();
+        op_div();
         swap();
 }
 

@@ -5,6 +5,8 @@
 **
 */
 
+#include <stdlib.h>
+
 #include        "cc.h"
 
 /*
@@ -206,20 +208,20 @@ int     label, parens;
 constexpr(val)
 int     *val;
         {
-        int     const;
+        int     i_const;
         char    *before, *start;
 
         setstage(&before, &start);
-        expression(&const, val);
+        expression(&i_const, val);
         clearstage(before, NULL);
 
-        if (const == 0)
+        if (i_const == 0)
                 error("must be constant expression");
 
-        return (const);
+        return (i_const);
 }
 
-const(val)
+const1(val)
 int     val;
         {
 

@@ -46,10 +46,10 @@ int     (*testfunc)(), dropval, endval,(*heir)(), lval[];
                 }
                 else if (hits)  {
                         dropout(k, testfunc, droplab, lval);
-                        const(endval);
+                        const1(endval);
                         jump(endlab = getlabel());
                         postlabel(droplab);
-                        const(dropval);
+                        const1(dropval);
                         postlabel(endlab);
                         lval[LVSTYPE] = lval[LVPTYPE] = lval[LVCONST] = lval[7] = 0;
                         return (0);
@@ -71,7 +71,7 @@ int     (*testfunc)();
         if (k)
                 rvalue(lval);
         else if (lval[LVCONST])
-                const(lval[LVCONVL]);
+                const1(lval[LVCONVL]);
 
         (*testfunc)(exit1);
 }
@@ -164,7 +164,7 @@ int     (*oper)(), (*oper2)(), (*heir)();
                                 const2(lval2[LVCONVL] << dbltest(lval, lval2));
                         }
                         else    {
-                                const(lval2[LVCONVL] << dbltest(lval, lval2));
+                                const1(lval2[LVCONVL] << dbltest(lval, lval2));
                                 smartpop(lval2, start);
                         }
                 }
@@ -205,7 +205,7 @@ int     (*oper)(), (*oper2)(), (*heir)();
                 if (oper == sub)        {
                         if ((lval[LVPTYPE] == CINT) & (lval2[LVPTYPE] == CINT))     {
                                 swap();
-                                const(1);
+                                const1(1);
                                 asr();
                         }
                 }
@@ -248,7 +248,7 @@ int     (*oper)();
                 return (left - right);
         else if (oper == mult)
                 return (left * right);
-        else if (oper == div)
+        else if (oper == op_div)
                 return (left / right);
         else if (oper == mod)
                 return (left % right);
@@ -256,8 +256,8 @@ int     (*oper)();
                 return (0);
 }
 
-expression(const, val)
-int     *const, *val;
+expression(pi_const, val)
+int     *pi_const, *val;
         {
         int     lval[LVALUE];
 
@@ -265,11 +265,11 @@ int     *const, *val;
                 rvalue(lval);
 
         if (lval[LVCONST])    {
-                *const = 1;
+                *pi_const = 1;
                 *val = lval[LVCONVL];
         }
         else
-                *const = 0;
+                *pi_const = 0;
 }
 
 heir1(lval)
@@ -281,7 +281,7 @@ int     lval[];
         k = plunge1(heir3, lval);
 
         if (lval[LVCONST])
-                const(lval[LVCONVL]);
+                const1(lval[LVCONVL]);
 
         if (match("|="))
                 oper = or;
@@ -296,7 +296,7 @@ int     lval[];
         else if (match("*="))
                 oper = mult;
         else if (match("/="))
-                oper = div;
+                oper = op_div;
         else if (match("%="))
                 oper = mod;
         else if (match(">>="))

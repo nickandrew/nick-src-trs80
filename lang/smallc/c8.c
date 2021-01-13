@@ -5,6 +5,8 @@
 **
 */
 
+#include <stdlib.h>
+
 #include        "cc.h"
 
 char    exbuff[32];             /* external name buffer */
@@ -142,7 +144,7 @@ getloc(sym)
 char    *sym;
         {
 
-        const(getint(sym + OFFSET, OFFSIZE) - csp);
+        const1(getint(sym + OFFSET, OFFSIZE) - csp);
         ol("ADD\tHL,SP");
 }
 
@@ -460,7 +462,7 @@ int     newsp, save;
         if (save)
                 swap();
 
-        const(k);
+        const1(k);
         ol("ADD\tHL,SP");
         ol("LD\tSP,HL");
 
