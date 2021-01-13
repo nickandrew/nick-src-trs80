@@ -180,12 +180,12 @@ doif()
 
 doexpr()
         {
-        int     const, val;
+        int     i_const, val;
         char    *before, *start;
 
         for (;;)        {
                 setstage(&before, &start);
-                expression(&const, &val);
+                expression(&i_const, &val);
                 clearstage(before, start);
 
                 if (ch != ',')
@@ -263,7 +263,8 @@ dofor()
 
 doswitch()
         {
-        int     wq[4], endlab, swact, swdef, *swnex, *swptr;
+        int     wq[4], endlab, swact, swdef;
+        char    *swnex, *swptr;
 
         swact = swactive;
         swdef = swdefault;

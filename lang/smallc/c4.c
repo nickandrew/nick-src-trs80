@@ -5,6 +5,8 @@
 **
 */
 
+#include <stdlib.h>
+
 #include        "cc.h"
 
 ifline()
