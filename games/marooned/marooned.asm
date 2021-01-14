@@ -1060,7 +1060,7 @@ PAPER2	DEFM	'=*=*=*=*=*=*=*=*='
 	DEFB	0DH
 	DEFM	'* DON'
 	DEFB	39
-	DEFM	'T LOOK UP *
+	DEFM	'T LOOK UP *'
 	DEFB	0DH
 	DEFM	'=*=*=*=*=*=*=*=*=^'
 LABLE1	LD	HL,LABLE2
@@ -1070,7 +1070,7 @@ PLCRD1	LD	HL,PLCRD2
 	JP	RETURN
 PLCRD2	DEFM	'=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*='
 	DEFB	0DH
-	DEFM	'>GO NORTH TO COMPLETE THIS ADVENTURE<
+	DEFM	'>GO NORTH TO COMPLETE THIS ADVENTURE<'
 	DEFB	0DH
 	DEFM	'=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=^'
 OPEN1	LD	A,E
