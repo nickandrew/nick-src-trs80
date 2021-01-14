@@ -1,4 +1,4 @@
-;external.hdr: definitions for external constants
+;external.asm: definitions for external constants
 ;and high memory locations.
 ;last modified 31-Dec-88.
 ;
@@ -20,7 +20,7 @@ $KI	EQU	0FF00H		;8- keyboard
 $DO	EQU	0FF08H		;8- display
 $SI	EQU	0FF10H		;8- serial in
 $SO	EQU	0FF18H		;8- serial out
-$2I	EQU	0FF20H		;8- keyboard OR serial in
+DCB_2I	EQU	0FF20H		;8- keyboard OR serial in
 $2O	EQU	0FF28H		;8- Screen AND serial out
 ;;$PR	EQU	0FF30H		;8- printer OR screen
 ;;$TA	EQU	0FF38H		;8- type-ahead.
