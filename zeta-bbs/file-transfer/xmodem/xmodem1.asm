@@ -190,10 +190,10 @@ BYP_WORD
 ;
 NO_PAR
 	LD	HL,M_SIGNON	;Print signon msg.
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 NP_01	LD	HL,M_S_OR_R	;cmd mode
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	HL,B_TYPE	;Get S or R.
 	LD	B,1
@@ -211,7 +211,7 @@ NP_01	LD	HL,M_S_OR_R	;cmd mode
 	CP	'R'
 	JR	NZ,NP_01
 NP_02	LD	HL,M_FILE
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	HL,B_FILE	;Get filename.
 	LD	B,23
@@ -235,7 +235,7 @@ NP_04	LD	(HL),0
 ;
 NO_TRANSFER
 	LD	HL,M_HUH	;Dumb sounding Hunh?
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 ;
 	LD	A,0
@@ -301,7 +301,7 @@ CU_03	INC	HL
 ;
 USAGE
 	LD	HL,M_USAGE
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	XOR	A
 	CP	1		;send to interactive
@@ -409,7 +409,7 @@ START2
 	LD	HL,M_ERROR
 	CALL	LOG_2
 	LD	HL,M_BDFL
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	A,1		;bad filename on recv.
 	JP	EXIT_EXMF
@@ -466,7 +466,7 @@ EXIST_1
 	LD	HL,M_SENDEX
 	CALL	LOG_2
 	LD	HL,M_EXISTS	;file already exists
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	A,2
 	JP	EXIT_EXMF
@@ -719,7 +719,7 @@ SEND
 	LD	HL,M_ERROR
 	CALL	LOG_2
 	LD	HL,M_BDFL	;If bad extract (send)
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	RET			;loop to send next file.
 ;
@@ -764,7 +764,7 @@ BUST_EM
 	LD	HL,M_BUSTED
 	CALL	LOG_2
 	LD	HL,M_CANNOT
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	A,19H
 	JR	IS_ERROR

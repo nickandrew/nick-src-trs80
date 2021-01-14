@@ -7,7 +7,7 @@
 ;
 	IFREF	PRINT_NUMB
 PRINT_NUMB
-	LD	DE,$2
+	LD	DE,DCB_2O
 	JR	PRINT_NUMB_DEV
 ;
 	ENDIF	;print_numb
@@ -653,7 +653,7 @@ MESS_0
 ;puts: Put a string to $stdout_def.
 	IFREF	PUTS
 PUTS	PUSH	DE
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	FPUTS
 	POP	DE
 	RET
@@ -689,9 +689,8 @@ _FG2	LD	(HL),0
 	RET
 	ENDIF	;fgets
 ;
-;List: List a file to $2, allow abort with ^C
+;List: List a file to DCB_2O, allow abort with ^C
 	IFREF	LIST
-	ERR	'List should no longer be used'
 LIST	LD	DE,_L_DCB
 	CALL	EXTRACT
 	LD	HL,_L_BUFF
@@ -707,13 +706,13 @@ _L_LP	LD	DE,_L_DCB
 	RET
 _L_NE	OR	A
 	RET	Z
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	CALL	$GET
 	CP	1
 	JR	NZ,_L_LP
 	LD	A,CR
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	RET
 ;
@@ -765,7 +764,7 @@ _EXT_04
 ;std_out: Output byte to $STDOUT
 	IFREF	STD_OUT
 STD_OUT
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	RET
 	ENDIF
@@ -773,7 +772,7 @@ STD_OUT
 ;std_in: Input byte from $STDIN
 	IFREF	STD_IN
 STD_IN
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	RET
 	ENDIF
@@ -985,7 +984,7 @@ _LN_LOOP
 	RET
 ;
 _LN_NEOF
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	CALL	$GET
 	JR	_LN_LOOP

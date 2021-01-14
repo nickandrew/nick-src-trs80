@@ -126,7 +126,7 @@ MOREPRINT
 	JR	NZ,MORE_08
 ;
 ;entire line fits in 'width' chars. Print the whole thing.
-	LD	DE,$2
+	LD	DE,DCB_2O
 	LD	HL,MO_STRING
 	CALL	MESS_0
 	LD	HL,0
@@ -142,7 +142,7 @@ MORE_09
 	DEC	HL
 	DJNZ	MORE_09
 ;No space found - print the whole lot anyway, followed by CR
-	LD	DE,$2
+	LD	DE,DCB_2O
 	LD	HL,MO_STRING
 	CALL	MESS_0
 	LD	A,CR
@@ -158,7 +158,7 @@ MORE_10
 	LD	(HL),0
 ; Print the left string
 	LD	HL,MO_STRING
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	A,CR
 	CALL	$PUT
@@ -191,7 +191,7 @@ MORE_10A
 	LD	(OUTPUT_MODE),A
 ;
 	LD	HL,(MOREMSG)		;Print - more -
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 ;
 ;Wait for a keypress
@@ -199,7 +199,7 @@ MORE_10A
 ; if CR, set lines to print to 1
 ; (dummy) if 'Q', set stack again and return to morepipe's caller
 MORE_11
-	LD	DE,$2
+	LD	DE,DCB_2I
 	CALL	$GET
 	OR	A
 	JR	Z,MORE_11
@@ -247,7 +247,7 @@ MORE_Q
 MORE_ERASE
 	PUSH	AF
 	LD	HL,(MORECLEAR)
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	A,OM_COOKED
 	LD	(OUTPUT_MODE),A

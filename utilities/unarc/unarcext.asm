@@ -28,7 +28,6 @@ $KBD	EQU	4015H		;Kbd device driver
 $VDU	EQU	401DH		;VDU device driver
 ;
 ;Aliased devices...
-$2	EQU	0FF20H
 $S	EQU	0FF10H
 ;
 ;Rom / Dos System calls.

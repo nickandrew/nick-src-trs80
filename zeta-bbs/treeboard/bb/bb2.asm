@@ -32,7 +32,7 @@ KILLMESSAGE
 	LD	A,1
 	LD	(KILL_QUERY),A
 KMSG_1
-	CALL	GET_$2
+	CALL	GET_2I
 	CP	1
 	JR	Z,KMSG_Q
 ;make sure message is TO me or FROM me or SYSOP.
@@ -77,7 +77,7 @@ KMSG_3
 	CALL	PRINT_NUMB
 	CALL	PUTCR
 ;allow chance to abort.
-	CALL	GET_$2
+	CALL	GET_2I
 	CP	1
 	JR	Z,KMSG_Q
 ;
