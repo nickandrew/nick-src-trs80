@@ -1,4 +1,4 @@
-;rs232.hdr: Equates for the Rs-232 interface
+;rs232.asm: Equates for the RS-232 interface
 ;Last updated: 05-Jan-88
 ;
 RDSTAT	EQU	0F9H
@@ -26,4 +26,4 @@ SUB	EQU	1AH
 ;
 TSYNC	EQU	0AEH
 ;
-;End of rs232.hdr
+;End of rs232.asm

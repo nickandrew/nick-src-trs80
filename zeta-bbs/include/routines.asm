@@ -1,5 +1,8 @@
 ;routines.lib: Common routines for global label search.
 ;Last updated: 28 Jun 89.
+
+*GET	RS232		; routines.asm depends on constants defined in rs232.asm
+
 ;
 ;PRINT_NUMB. Print a number in HL to unit $stdout_def.
 ;sets up TENS&ONES for suffix printing.
