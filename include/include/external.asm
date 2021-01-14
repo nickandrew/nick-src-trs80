@@ -20,8 +20,8 @@ $KI	EQU	0FF00H		;8- keyboard
 $DO	EQU	0FF08H		;8- display
 $SI	EQU	0FF10H		;8- serial in
 $SO	EQU	0FF18H		;8- serial out
-DCB_2I	EQU	0FF20H		;8- keyboard OR serial in
-$2O	EQU	0FF28H		;8- Screen AND serial out
+DCB_2I	EQU	0FF20H		;8- keyboard OR serial in (equivalent to DCB_2O)
+DCB_2O	EQU	0FF28H		;8- Screen AND serial out (equivalent to DCB_2I)
 ;;$PR	EQU	0FF30H		;8- printer OR screen
 ;;$TA	EQU	0FF38H		;8- type-ahead.
 ;
@@ -57,7 +57,7 @@ USR_NUMBER	EQU	0FF6AH	;W- user #
 USR_LOGOUT	EQU	0FF6CH	;J- log off user
 SECOND		EQU	0FF6FH	;C- wait 'A' sec
 ;;MESSAGE		EQU	0FF72H	;C- msg to device
-;;LIST		EQU	0FF75H	;C- list file to $2o
+;;LIST		EQU	0FF75H	;C- list file to DCB_2O
 PRIV_1		EQU	0FF78H	;B- first privileges
 PRIV_2		EQU	0FF79H	;B- second.
 ;Definitions for privilege bits PRIV_1
