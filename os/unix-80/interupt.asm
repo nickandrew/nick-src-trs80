@@ -23,12 +23,12 @@ INTERRUPT	DI
 NEXT_PROCESS	POP	AF
 	IFGT	SAVED_REGS,11
 	EXX		;Swap register set.
-	EX	AF,AF
+	EX	AF,AF'
 	PUSH	HL
 	PUSH	DE
 	PUSH	BC
 	PUSH	AF
-	EX	AF,AF	;Swap register set back.
+	EX	AF,AF'	;Swap register set back.
 	EXX
 	ENDIF
 ;
@@ -115,12 +115,12 @@ NEXT_PROCESS	POP	AF
 ;
 	IFGT	SAVED_REGS,11
 	EXX
-	EX	AF,AF
+	EX	AF,AF'
 	POP	AF
 	POP	BC
 	POP	DE
 	POP	HL
-	EX	AF,AF
+	EX	AF,AF'
 	EXX
 	ENDIF
 ;
