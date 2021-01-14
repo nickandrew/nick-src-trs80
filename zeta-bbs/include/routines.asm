@@ -690,8 +690,8 @@ _FG2	LD	(HL),0
 	ENDIF	;fgets
 ;
 ;List: List a file to DCB_2O, allow abort with ^C
-	IFREF	LIST
-LIST	LD	DE,_L_DCB
+	IFREF	LIST_FILE
+LIST_FILE	LD	DE,_L_DCB
 	CALL	EXTRACT
 	LD	HL,_L_BUFF
 	LD	B,0
@@ -719,7 +719,7 @@ _L_NE	OR	A
 _L_DCB	DEFS	32
 _L_BUFF	DEFS	256
 ;
-	ENDIF	;ifref list
+	ENDIF	;ifref list_file
 ;
 ;Extract: Extract a filespec... Doesn't use SYS1.
 	IFREF	EXTRACT
