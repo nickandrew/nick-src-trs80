@@ -893,7 +893,7 @@ _SPTENS		DEFB	0
 _SPONES		DEFB	0
 _SPPOS		DEFW	0
 ;
-	ENDIF	SPUTNUM
+	ENDIF	;ifref SPUTNUM
 ;
 ;get_number: Convert a string ptd to by HL to a number HL
 	IFREF	GET_NUMBER
@@ -940,7 +940,7 @@ IF_NUM:		;check if ascii numeric
 	RET	NC
 	CP	A
 	RET
-	ENDIF	IF_NUM
+	ENDIF	;ifref IF_NUM
 ;
 ;sec10: Delay A x 0.1 seconds
 	IFREF	SEC10
@@ -960,7 +960,7 @@ S1_2	LD	A,(TICKER)
 	JR	NZ,S1_1
 	POP	BC
 	RET
-	ENDIF	SEC10
+	ENDIF	;ifref SEC10
 ;
 ;list_nostop: list a file without allowing aborting.
 	IFREF	LIST_NOSTOP
