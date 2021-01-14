@@ -29,7 +29,7 @@ FILL_MEM	PUSH	DE
 ;
 ; 'Alloc': Allocate BC bytes from High Memory and
 ;returns address in HL.
-ALLOC	LD	HL,(HIMEM)
+ALLOC	LD	HL,(UNIX80_HIMEM)
 	OR	A
 	SBC	HL,BC
 	PUSH	HL
@@ -40,7 +40,7 @@ ALLOC	LD	HL,(HIMEM)
 	POP	DE
 	POP	HL
 	JR	C,ERR_ALLOC	;Not enough memory.
-	LD	(HIMEM),HL	;Store new HIMEM.
+	LD	(UNIX80_HIMEM),HL	;Store new HIMEM.
 	INC	HL
 	CP	A		;Set Z no error status.
 	RET
@@ -52,7 +52,7 @@ ERR_ALLOC	LD	A,6
 ;
 ; Unalloc: Re-allocate BC bytes.
 UNALLOC	PUSH	HL
-	LD	HL,(HIMEM)
+	LD	HL,(UNIX80_HIMEM)
 	ADD	HL,BC
 	PUSH	HL
 	LD	DE,END_FREE_MEM+1	;Last address.
@@ -60,7 +60,7 @@ UNALLOC	PUSH	HL
 	SBC	HL,DE
 	POP	HL
 	JR	NC,ERR_UNALLOC	;Can't UNALLOC stack!
-	LD	(HIMEM),HL
+	LD	(UNIX80_HIMEM),HL
 	POP	HL
 	CP	A	;Set Z no error status.
 	RET
