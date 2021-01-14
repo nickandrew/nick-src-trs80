@@ -7,7 +7,7 @@ SYSOPONLY	EQU	1	;Only the Sysop may run
 REDIRDIS	EQU	1	;1 to disable redirection
 STACKSIZE	EQU	1000H	;Size of the stack
 ;
-*GET	DOSCALLS:0
+*GET	DOSCALLS
 ;
 	IF	ZETA
 *GET	EXTERNAL
