@@ -21,7 +21,7 @@ INTERRUPT	DI
 ;
 ; Now Save all registers.
 NEXT_PROCESS	POP	AF
-	IFGT	SAVED_REGS,11
+	IF	SAVED_REGS.gt.11
 	EXX		;Swap register set.
 	EX	AF,AF'
 	PUSH	HL
@@ -32,7 +32,7 @@ NEXT_PROCESS	POP	AF
 	EXX
 	ENDIF
 ;
-	IFGT	SAVED_REGS,7	;if 8 or 12.
+	IF	SAVED_REGS.gt.7	;if 8 or 12.
 	PUSH	IY		;save IX & IY.
 	PUSH	IX
 	ENDIF
@@ -108,12 +108,12 @@ NEXT_PROCESS	POP	AF
 	POP	HL
 ;
 ;Now for optional extra registers.
-	IFGT	SAVED_REGS,7
+	IF	SAVED_REGS.gt.7
 	POP	IX	;Restore IX & IY.
 	POP	IY
 	ENDIF
 ;
-	IFGT	SAVED_REGS,11
+	IF	SAVED_REGS.gt.11
 	EXX
 	EX	AF,AF'
 	POP	AF
