@@ -523,34 +523,3 @@ textseg()
 
 /*      outstr(";\tCSEG\n");    */
 }
-
-/* dumpsym ... dump the symbol table */
-dumpsym(flag)
-int flag;
-{
-    FILE *st;
-    char *cp;
-
-    if (flag == 1) {
-        char x;
-        scanf(" %c", &x);
-        if (x != 'y')
-            return;
-    }
-
-    if ((st = fopen("symloc", "w")) == NULL)
-        return;
-
-    cp = STARTLOC;
-
-    while (cp < ENDLOC)
-        fputc(*(cp++), st);
-    fclose(st);
-    if ((st = fopen("symglb", "w")) == NULL)
-        return;
-    cp = STARTGLB;
-
-    while (cp < ENDGLB)
-        fputc(*(cp++), st);
-    fclose(st);
-}

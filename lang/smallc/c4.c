@@ -252,35 +252,6 @@ char c;
     return (c);
 }
 
-/*
-**      search for symbol match
-**
-**      on return cptr points to slot found or empty slot
-*/
-
-search(sname, buf, len, end, max, off)
-char *sname, *buf, *end;
-int len, max, off;
-{
-
-    cptr = cptr2 = buf + ((hash(sname) % (max - 1)) * len);
-
-    while (*cptr != 0) {
-        if (astreq(sname, cptr + off, NAMEMAX))
-            return (1);
-
-        if ((cptr = cptr + len) >= end)
-            cptr = buf;
-
-        if (cptr == cptr2) {
-            cptr = NULL;
-            return 0;
-        }
-    }
-
-    return (0);
-}
-
 hash(sname)
 char *sname;
 {
