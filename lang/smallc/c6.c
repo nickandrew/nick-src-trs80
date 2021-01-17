@@ -140,7 +140,7 @@ int     lval[];
     blanks();
 
     if ((ch == '[') | (ch == '('))  {
-        lval[5] = 1;
+        lval[LVSECR] = 1;
 
         for (;;)        {
             hierpos = lval[LVHIER];

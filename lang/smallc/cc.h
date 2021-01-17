@@ -59,6 +59,9 @@
 #define LVPTYPE     2
 #define LVCONST     3
 #define LVCONVL     4
+#define LVSECR      5
+#define LVOPFP      6
+#define LVSTGP      7
 #define LVHIER      8           /* Position of Lvalue in type hierarchy */
 
 /*

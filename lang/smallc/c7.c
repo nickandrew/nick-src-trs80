@@ -102,7 +102,7 @@ int     dir;
                 store(lval);
             return incval;
         }
-        if (lval[5])    {
+        if (lval[LVSECR])    {
                 push();
                 rvalue(lval);
                 inc(dir * incval);
@@ -112,7 +112,7 @@ int     dir;
         }
         else    {
                 move();
-                lval[5] = 1;
+                lval[LVSECR] = 1;
         }
 
         rvalue(lval);
@@ -177,8 +177,8 @@ int     label, parens;
                 return;
         }
 
-        if (lval[7])    {
-                oper = lval[6];
+        if (lval[LVSTGP])    {
+                oper = lval[LVOPFP];
 
                 if ((oper == eq) | (oper == ule))
                         zerojump(eq0, label, lval);
@@ -189,7 +189,7 @@ int     label, parens;
                 else if (oper == ge)
                         zerojump(ge0, label, lval);
                 else if (oper == uge)
-                        clearstage(lval[7], NULL);
+                        clearstage(lval[LVSTGP], NULL);
                 else if (oper == lt)
                         zerojump(lt0, label, lval);
                 else if (oper == ult)

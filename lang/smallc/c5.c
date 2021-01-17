@@ -13,9 +13,9 @@
 **      lval[2] LVPTYPE - type of pointer or array - 0 for others
 **      lval[3] LVCONST - true if constant expression
 **      lval[4] LVCONVL - value of constant expression
-**      lval[5]         - true if secondary register altered
-**      lval[6]         - function address of highest/last binary operator
-**      lval[7]         - stage address of "oper 0" code - 0 otherwise
+**      lval[5] LVSECR  - true if secondary register altered
+**      lval[6] LVOPFP  - function address of highest/last binary operator
+**      lval[7] LVSTGP  - stage address of "oper 0" code - 0 otherwise
 **      lval[8] LVHIER  - Position of Lvalue within type hierarchy
 */
 
@@ -51,7 +51,7 @@ int     (*testfunc)(), dropval, endval,(*heir)(), lval[];
                         postlabel(droplab);
                         const1(dropval);
                         postlabel(endlab);
-                        lval[LVSTYPE] = lval[LVPTYPE] = lval[LVCONST] = lval[7] = 0;
+                        lval[LVSTYPE] = lval[LVPTYPE] = lval[LVCONST] = lval[LVSTGP] = 0;
                         return (0);
                 }
                 else
@@ -137,15 +137,15 @@ int     (*oper)(), (*oper2)(), (*heir)();
         char    *before, *start;
 
         setstage(&before, &start);
-        lval[5] = 1;
-        lval[7] = 0;
+        lval[LVSECR] = 1;
+        lval[LVSTGP] = 0;
 
         if (lval[LVCONST])    {
                 if (plunge1(heir, lval2))
                         rvalue(lval2);
 
                 if (lval[LVCONVL] == 0)
-                        lval[7] = stagenext;
+                        lval[LVSTGP] = stagenext;
 
                 const2(lval[LVCONVL] << dbltest(lval2, lval));
         }
@@ -156,7 +156,7 @@ int     (*oper)(), (*oper2)(), (*heir)();
 
                 if (lval2[LVCONST])   {
                         if (lval2[LVCONVL] == 0)
-                                lval[7] = start;
+                                lval[LVSTGP] = start;
 
                         if (oper == add)        {
                                 csp = csp + 2;
@@ -189,16 +189,16 @@ int     (*oper)(), (*oper2)(), (*heir)();
                 if (lval[LVCONST] = lval[LVCONST] & lval2[LVCONST])       {
                         lval[LVCONVL] = calc(lval[LVCONVL], oper, lval2[LVCONVL]);
                         clearstage(before, NULL);
-                        lval[5] = 0;
+                        lval[LVSECR] = 0;
                 }
                 else    {
                         if ((lval[LVPTYPE] == 0) & (lval2[LVPTYPE] == 0))   {
                                 (*oper)();
-                                lval[6] = oper;
+                                lval[LVOPFP] = oper;
                         }
                         else    {
                                 (*oper2)();
-                                lval[6] = oper2;
+                                lval[LVOPFP] = oper2;
                         }
                 }
 
@@ -333,7 +333,7 @@ int     lval[];
                         if (heir1(lval2))
                                 rvalue(lval2);
 
-                        lval[5] = lval2[5];
+                        lval[LVSECR] = lval2[LVSECR];
                 }
         }
 
