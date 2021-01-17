@@ -242,7 +242,7 @@ char **lvstgpp;
         return (k);
     }
 
-    putint(0, lval, lvsymp, lvopfpp, lvstgpp, LVALUE << LBPW);
+    putint(0, lval, LVALUE << LBPW);
 
     if (symname(ssname, YES)) {
         if (ptr = findloc(ssname)) {
