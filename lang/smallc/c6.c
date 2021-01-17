@@ -5,6 +5,7 @@
 **
 */
 
+#include <stdio.h>
 #include        "cc.h"
 
 heir13(lval, lvsymp, lvopfpp, lvstgpp)
