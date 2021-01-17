@@ -19,6 +19,23 @@
 **      lval[8] LVHIER  - Position of Lvalue within type hierarchy
 */
 
+/* Initialise all elements of an lval to 0 */
+init_lval(lval, lvsymp, lvopfpp, lvstgpp)
+int lval[];
+char **lvsymp;
+int (**lvopfpp)();
+char **lvstgpp;
+{
+    int i;
+
+    for (i = 0; i <= LVHIER; ++i)
+        lval[i] = 0;
+
+    *lvsymp = 0;
+    *lvopfpp = 0;
+    *lvstgpp = 0;
+}
+
 /*
 **      skim over terms adjoining || and && operators
 */
@@ -98,8 +115,7 @@ char **lvstgpp;
 	int (*lv2opfp)();
 	char *lv2stgp;
 
-    lv2sym = 0;
-	lv2opfp = 0;
+    init_lval(lval2, &lv2sym, &lv2opfp, &lv2stgp);
     k = plunge1(heir, lval, lvsymp, lvopfpp, lvstgpp);
 
     if (nextop(opstr) == 0)
@@ -277,7 +293,7 @@ int *pi_const, *val;
 	int (*lvopfp)();
 	char *lvstgp;
 
-    lvsym = 0;
+    init_lval(lval, &lvsym, &lvopfp, &lvstgp);
     if (heir1(lval, &lvsym, &lvopfp, &lvstgp))
         rvalue(lval, &lvsym, &lvopfp, &lvstgp);
 
@@ -300,7 +316,7 @@ char **lvstgpp;
 	char *lv2stgp;
     int (*oper)();
 
-    lv2sym = 0;
+    init_lval(lval2, &lv2sym, &lv2opfp, &lv2stgp);
     k = plunge1(heir3, lval, lvsymp, lvopfpp, lvstgpp);
 
     if (lval[LVCONST])

@@ -162,6 +162,7 @@ int label, parens;
 	char *lvstgp;
     char *before, *start;
 
+    init_lval(lval, &lvsym, &lvopfp, &lvstgp);
     if (parens)
         needtoken("(");
 

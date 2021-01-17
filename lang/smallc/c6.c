@@ -138,6 +138,7 @@ char **lvstgpp;
 	char *lv2stgp;
     char *ptr, *before, *start;
 
+    init_lval(lval2, &lv2sym, &lv2opfp, &lv2stgp);
     k = primary(lval, lvsymp, lvopfpp, lvstgpp);
     ptr = *lvsymp;
     blanks();
