@@ -101,7 +101,6 @@ int (**lvopfpp)();
             error("Must be a pointer or a variable");
             return 0;
         }
-        fprintf(stderr, "step: adjusting by %d\n", incval);
     } else
         fprintf(stderr, "step: No symbol table entry\n");
 

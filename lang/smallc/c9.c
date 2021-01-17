@@ -157,7 +157,6 @@ inc(n)
 int n;
 {
 
-    fprintf(stderr, "Increment value is: %d\n", n);
     while (n > 0) {
         ol("INC\tHL");
         --n;

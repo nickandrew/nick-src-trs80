@@ -299,7 +299,6 @@ char **lvstgpp;
         }
 
 
-        fprintf(stderr, "* Cd %s\n", ssname);
         ptr = addsym(ssname, ftype, CINT, 0, &glbptr, STATIC);
         lval[LVHIER] = 0;
         *lvsymp = ptr;
