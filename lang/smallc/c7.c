@@ -10,21 +10,21 @@
 #include        "cc.h"
 
 /*
-**      true if val1 -> int ptr or int array and val2 not ptr or array
+**      true if lval1 -> int ptr or int array and lval2 not ptr or array
 */
 
-dbltest(val1, val2)
-int     val1[], val2[];
+dbltest(lval1, lval2)
+int     lval1[], lval2[];
         {
 
         char *ptr;
         int  hierpos;
-        if (ptr=val2[LVSYM])
-            if (ptr[IDENT+val2[LVHIER]] != VARIABLE)
+        if (ptr=lval2[LVSYM])
+            if (ptr[IDENT+lval2[LVHIER]] != VARIABLE)
                     return 0;
 
-        if (ptr=val1[LVSYM]) {
-            hierpos=val1[LVHIER];
+        if (ptr=lval1[LVSYM]) {
+            hierpos=lval1[LVHIER];
             if (ptr[IDENT+hierpos]==VARIABLE)
                     return 0;
             if (ptr[IDENT+hierpos+1]==ARRAY
@@ -34,13 +34,13 @@ int     val1[], val2[];
             else return 1;
         }
                     
-        if (val1[2] != CINT)
+        if (lval1[2] != CINT)
                 return (0);
 
-        if (val2[2])
+        if (lval2[2])
                 return (0);
 
-        fprintf(stderr,"* dbltest: val1 not in sym tab\n");
+        fprintf(stderr,"* dbltest: lval1 not in sym tab\n");
         return (1);
 }
 
