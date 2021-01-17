@@ -186,8 +186,8 @@ int     (*oper)(), (*oper2)(), (*heir)();
         }
 
         if (oper)       {
-                if (lval[LVCONST] = lval[3] & lval2[LVCONST])       {
-                        lval[LVCONVL] = calc(lval[4], oper, lval2[LVCONVL]);
+                if (lval[LVCONST] = lval[LVCONST] & lval2[LVCONST])       {
+                        lval[LVCONVL] = calc(lval[LVCONVL], oper, lval2[LVCONVL]);
                         clearstage(before, NULL);
                         lval[5] = 0;
                 }
