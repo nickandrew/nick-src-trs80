@@ -86,12 +86,13 @@ char *name;
 **      fetch object indirect to primary reference
 */
 
-indirect(lval)
+indirect(lval, lvsymp)
 int lval[];
+char **lvsymp;
 {
 
     char *ptr;
-    ptr = lval[LVSYM];
+    ptr = *lvsymp;
 
     if (ptr != 0) {
         if (ptr[lval[LVHIER] + IDENT] != VARIABLE) {
@@ -118,12 +119,13 @@ int lval[];
 **      fetch a static memory cell into primary register
 */
 
-getmem(lval)
+getmem(lval, lvsymp)
 int lval[];
+char **lvsymp;
 {
     char *sym;
 
-    sym = lval[LVSYM];
+    sym = *lvsymp;
 
     if ((sym[IDENT] != POINTER) && (sym[TYPE] == CCHAR)) {
         ot("LD\tA,(");
@@ -155,12 +157,13 @@ char *sym;
 **      store primary register into static cell
 */
 
-putmem(lval)
+putmem(lval, lvsymp)
 int lval[];
+char **lvsymp;
 {
     char *sym;
 
-    sym = lval[LVSYM];
+    sym = *lvsymp;
 
     if ((sym[IDENT] != POINTER) & (sym[TYPE] == CCHAR)) {
         ol("LD\tA,L");
@@ -179,12 +182,13 @@ int lval[];
 **      put on the stack the type object in primary register
 */
 
-putstk(lval)
+putstk(lval, lvsymp)
 int lval[];
+char **lvsymp;
 {
 
     char *ptr;
-    ptr = lval[LVSYM];
+    ptr = *lvsymp;
 
     if (ptr != 0) {
         if (ptr[lval[LVHIER] + IDENT] == POINTER) {
@@ -202,7 +206,6 @@ int lval[];
         fprintf(stderr, "* putstk: no link to symbol table\n");
         exit(1);
     }
-
 
 /*    if (lval[LVSTYPE] == CCHAR) {
 **      ol("LD\tA,L");
@@ -270,8 +273,9 @@ push()
 **      unpush or pop as required
 */
 
-smartpop(lval, start)
+smartpop(lval, lvsymp, start)
 int lval[];
+char **lvsymp;
 char *start;
 {
 
@@ -384,9 +388,10 @@ int label;
 **      test primary against zero and jump if false
 */
 
-zerojump(oper, label, lval)
+zerojump(oper, label, lval, lvsymp)
 int label, lval[];
 int (*oper)();
+char **lvsymp;
 {
 
     clearstage(lval[LVSTGP], NULL);     /* clear conventional code */

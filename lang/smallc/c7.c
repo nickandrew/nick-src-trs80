@@ -13,17 +13,18 @@
 **      true if lval1 -> int ptr or int array and lval2 not ptr or array
 */
 
-dbltest(lval1, lval2)
+dbltest(lval1, lv1symp, lval2, lv2symp)
 int lval1[], lval2[];
+char **lv1symp, **lv2symp;
 {
 
     char *ptr;
     int hierpos;
-    if (ptr = lval2[LVSYM])
+    if (ptr = *lv2symp)
         if (ptr[IDENT + lval2[LVHIER]] != VARIABLE)
             return 0;
 
-    if (ptr = lval1[LVSYM]) {
+    if (ptr = *lv1symp) {
         hierpos = lval1[LVHIER];
         if (ptr[IDENT + hierpos] == VARIABLE)
             return 0;
@@ -36,10 +37,10 @@ int lval1[], lval2[];
             return 1;
     }
 
-    if (lval1[2] != CINT)
+    if (lval1[LVSTYPE] != CINT)
         return (0);
 
-    if (lval2[2])
+    if (lval2[LVSTYPE])
         return (0);
 
     fprintf(stderr, "* dbltest: lval1 not in sym tab\n");
@@ -50,20 +51,21 @@ int lval1[], lval2[];
 **      determine type of binary operation
 */
 
-result(lval, lval2)
+result(lval, lvsymp, lval2, lv2symp)
 int lval[], lval2[];
+char **lvsymp, **lv2symp;
 {
 
     char *ptr1, *ptr2;
-    ptr1 = lval[LVSYM];
-    ptr2 = lval2[LVSYM];
+    ptr1 = *lvsymp;
+    ptr2 = *lv2symp;
     if (ptr1 && ptr2) {
         if ((ptr1[IDENT + lval[LVHIER]] == POINTER)
             & (ptr2[IDENT + lval2[LVHIER]] == POINTER))
             lval[LVPTYPE] = 0;
     } else if (ptr2) {
         if (ptr2[IDENT + lval2[LVHIER]] == POINTER) {
-            lval[LVSYM] = lval2[LVSYM];
+            *lvsymp = *lv2symp;
             lval[LVSTYPE] = lval2[LVSTYPE];
             lval[LVPTYPE] = lval2[LVPTYPE];
             lval[LVHIER] = lval2[LVHIER];
@@ -71,16 +73,17 @@ int lval[], lval2[];
     }
 }
 
-int step(dir, lval)
+int step(dir, lval, lvsymp)
 int lval[];
 int dir;
+char **lvsymp;
 {
 
     char *ptr;
     int incval, hierpos;
 
     incval = lval[LVPTYPE] >> 2;
-    if (ptr = lval[LVSYM]) {
+    if (ptr = *lvsymp) {
         hierpos = lval[LVHIER];
         if (ptr[IDENT + hierpos] == POINTER) {
             if (ptr[IDENT + hierpos + 1] != VARIABLE || ptr[TYPE] == CINT)
@@ -98,53 +101,56 @@ int dir;
         fprintf(stderr, "step: No symbol table entry\n");
 
     if (lval[LVSTYPE] == 0) {
-        rvalue(lval);
+        rvalue(lval, lvsymp);
         inc(dir * incval);
-        store(lval);
+        store(lval, lvsymp);
         return incval;
     }
     if (lval[LVSECR]) {
         push();
-        rvalue(lval);
+        rvalue(lval, lvsymp);
         inc(dir * incval);
         pop();
-        store(lval);
+        store(lval, lvsymp);
         return incval;
     } else {
         move();
         lval[LVSECR] = 1;
     }
 
-    rvalue(lval);
+    rvalue(lval, lvsymp);
     inc(dir * incval);
-    store(lval);
+    store(lval, lvsymp);
     return incval;
 }
 
-store(lval)
+store(lval, lvsymp)
 int lval[];
+char **lvsymp;
 {
 
     if (lval[LVSTYPE])
-        putstk(lval);
+        putstk(lval, lvsymp);
     else
-        putmem(lval);
+        putmem(lval, lvsymp);
 }
 
-rvalue(lval)
+rvalue(lval, lvsymp)
 int lval[];
+char **lvsymp;
 {
 
-    if ((lval[LVSYM] != 0) & (lval[LVSTYPE] == 0))
-        getmem(lval);
+    if ((*lvsymp != 0) & (lval[LVSTYPE] == 0))
+        getmem(lval, lvsymp);
     else
-        indirect(lval);
+        indirect(lval, lvsymp);
 }
 
 test(label, parens)
 int label, parens;
 {
     int lval[LVALUE];
+    char *lvsym;
     char *before, *start;
 
     if (parens)
@@ -153,8 +159,8 @@ int label, parens;
     for (;;) {
         setstage(&before, &start);
 
-        if (heir1(lval))
-            rvalue(lval);
+        if (heir1(lval, &lvsym))
+            rvalue(lval, &lvsym);
 
         if (match(","))
             clearstage(before, start);
@@ -181,21 +187,21 @@ int label, parens;
         oper = lval[LVOPFP];
 
         if ((oper == eq) | (oper == ule))
-            zerojump(eq0, label, lval);
+            zerojump(eq0, label, lval, &lvsym);
         else if ((oper == ne) | (oper == ugt))
-            zerojump(ne0, label, lval);
+            zerojump(ne0, label, lval, &lvsym);
         else if (oper == gt)
-            zerojump(gt0, label, lval);
+            zerojump(gt0, label, lval, &lvsym);
         else if (oper == ge)
-            zerojump(ge0, label, lval);
+            zerojump(ge0, label, lval, &lvsym);
         else if (oper == uge)
             clearstage(lval[LVSTGP], NULL);
         else if (oper == lt)
-            zerojump(lt0, label, lval);
+            zerojump(lt0, label, lval, &lvsym);
         else if (oper == ult)
-            zerojump(ult0, label, lval);
+            zerojump(ult0, label, lval, &lvsym);
         else if (oper == le)
-            zerojump(le0, label, lval);
+            zerojump(le0, label, lval, &lvsym);
         else
             testjump(label);
     } else
@@ -238,8 +244,9 @@ int val;
     nl();
 }
 
-constant(lval)
+constant(lval, lvsymp)
 int lval[];
+char **lvsymp;
 {
 
     lval[LVCONST] = 1;

@@ -54,7 +54,7 @@
 /*      LVALUE  = Length of array */
 #define LVALUE  9
 
-#define LVSYM       0
+/* #define LVSYM       0 -- obsoleted by separate arg lvsym */
 #define LVSTYPE     1
 #define LVPTYPE     2
 #define LVCONST     3
