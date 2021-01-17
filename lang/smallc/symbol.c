@@ -7,6 +7,20 @@
 
 #include "cc.h"
 
+/* Return a 16-bit hash of a symbol name */
+
+hash(sname)
+char *sname;
+{
+
+    xi = 0;
+
+    while (xc = *sname++)
+        xi = (xi << 1) + xc;
+
+    return (xi);
+}
+
 /*
 **      search for symbol match
 **

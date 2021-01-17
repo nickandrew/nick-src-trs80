@@ -252,18 +252,6 @@ char c;
     return (c);
 }
 
-hash(sname)
-char *sname;
-{
-
-    xi = 0;
-
-    while (xc = *sname++)
-        xi = (xi << 1) + xc;
-
-    return (xi);
-}
-
 setstage(before, start)
 char **before, **start;
 {
