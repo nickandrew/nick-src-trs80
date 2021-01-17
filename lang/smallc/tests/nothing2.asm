@@ -1,21 +1,19 @@
-;extern char *line;
+;main() {
 	COM	'<small c compiler output>'
 *MOD
-;
-;main(argc,argv)
-;int  argc;
 _MAIN:
 	DEBUG	'main'
-;char *argv[];
-;{
-;argc=2;
-	LD	HL,4
+;    int a;
+;    a = 1;
+	PUSH	BC
+	LD	HL,0
 	ADD	HL,SP
 	PUSH	HL
-	LD	HL,2
+	LD	HL,1
 	POP	DE
 	CALL	CCPINT
 ;}
+	POP	BC
 	RET
 ;
 	END
