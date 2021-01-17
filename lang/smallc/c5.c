@@ -152,7 +152,7 @@ int (**lvopfpp)(), (**lv2opfpp)();
     lval[LVSTGP] = 0;
 
     if (lval[LVCONST]) {
-        if (plunge1(heir, lval2, lv2symp, lvopfpp))
+        if (plunge1(heir, lval2, lv2symp, lv2opfpp))
             rvalue(lval2, lv2symp, lv2opfpp);
 
         if (lval[LVCONVL] == 0)
