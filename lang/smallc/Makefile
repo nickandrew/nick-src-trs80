@@ -11,5 +11,11 @@ clean:
 reformat:
 	indent $(SRCS) cc.h
 
+# Compile all the test files.
+# Verify behaviour by doing a "git diff" against tests/*.asm
+
+test:
+	for i in tests/*.c ; do b=$$(basename $$i .c) ; ./cc80 -l $$i > tests/$$b.asm ; done
+
 $(OBJ): cc.h
 	gcc -std=c89 -g -c $(SRCS)
