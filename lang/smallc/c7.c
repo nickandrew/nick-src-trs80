@@ -158,8 +158,8 @@ int label, parens;
 {
     int lval[LVALUE];
     char *lvsym;
-	int (*lvopfp)();
-	char *lvstgp;
+    int (*lvopfp)();
+    char *lvstgp;
     char *before, *start;
 
     init_lval(lval, &lvsym, &lvopfp, &lvstgp);

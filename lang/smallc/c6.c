@@ -134,8 +134,8 @@ char **lvstgpp;
 {
     int k, lval2[LVALUE], hierpos;
     char *lv2sym;
-	int (*lv2opfp)();
-	char *lv2stgp;
+    int (*lv2opfp)();
+    char *lv2stgp;
     char *ptr, *before, *start;
 
     init_lval(lval2, &lv2sym, &lv2opfp, &lv2stgp);
@@ -163,7 +163,8 @@ char **lvstgpp;
 
                 setstage(&before, &start);
                 lval2[LVCONST] = 0;
-                plunge2(0, 0, heir1, lval2, &lv2sym, &lv2opfp, &lv2stgp, lval2, &lv2sym, &lv2opfp, &lv2stgp);
+                plunge2(0, 0, heir1, lval2, &lv2sym, &lv2opfp, &lv2stgp, lval2, &lv2sym, &lv2opfp,
+                        &lv2stgp);
                 needtoken("]");
 
                 if (ptr[IDENT + hierpos] != VARIABLE)

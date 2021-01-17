@@ -406,7 +406,7 @@ int (**lvopfpp)();
 char **lvstgpp;
 {
 
-    clearstage(*lvstgpp, NULL);     /* clear conventional code */
+    clearstage(*lvstgpp, NULL); /* clear conventional code */
     (*oper) (label);
 }
 

@@ -71,7 +71,7 @@ char **lvstgpp;
             const1(dropval);
             postlabel(endlab);
             lval[LVSTYPE] = lval[LVPTYPE] = lval[LVCONST] = 0;
-			*lvstgpp = 0;
+            *lvstgpp = 0;
             return (0);
         } else
             return (k);
@@ -112,8 +112,8 @@ char **lvstgpp;
 {
     int k, lval2[LVALUE];
     char *lv2sym;
-	int (*lv2opfp)();
-	char *lv2stgp;
+    int (*lv2opfp)();
+    char *lv2stgp;
 
     init_lval(lval2, &lv2sym, &lv2opfp, &lv2stgp);
     k = plunge1(heir, lval, lvsymp, lvopfpp, lvstgpp);
@@ -128,7 +128,8 @@ char **lvstgpp;
         if (nextop(opstr)) {
             bump(opsize);
             opindex = opindex + opoff;
-            plunge2(op[opindex], op2[opindex], heir, lval, lvsymp, lvopfpp, lvstgpp, lval2, &lv2sym, &lv2opfp, &lv2stgp);
+            plunge2(op[opindex], op2[opindex], heir, lval, lvsymp, lvopfpp, lvstgpp, lval2, &lv2sym,
+                    &lv2opfp, &lv2stgp);
         } else
             return (0);
     }
@@ -172,7 +173,7 @@ char **lvstgpp, **lv2stgpp;
 
     setstage(&before, &start);
     lval[LVSECR] = 1;
-	*lvstgpp = 0;
+    *lvstgpp = 0;
 
     if (lval[LVCONST]) {
         if (plunge1(heir, lval2, lv2symp, lv2opfpp, lv2stgpp))
@@ -181,7 +182,8 @@ char **lvstgpp, **lv2stgpp;
         if (lval[LVCONVL] == 0)
             *lvstgpp = stagenext;
 
-        const2(lval[LVCONVL] << dbltest(lval2, lv2symp, lv2opfpp, lv2stgpp, lval, lvsymp, lvopfpp, lvstgpp));
+        const2(lval[LVCONVL] <<
+               dbltest(lval2, lv2symp, lv2opfpp, lv2stgpp, lval, lvsymp, lvopfpp, lvstgpp));
     } else {
         push();
         if (plunge1(heir, lval2, lv2symp, lv2opfpp, lv2stgpp))
@@ -194,9 +196,11 @@ char **lvstgpp, **lv2stgpp;
             if (oper == add) {
                 csp = csp + 2;
                 clearstage(before, NULL);
-                const2(lval2[LVCONVL] << dbltest(lval, lvsymp, lvopfpp, lvstgpp, lval2, lv2symp, lv2opfpp, lv2stgpp));
+                const2(lval2[LVCONVL] <<
+                       dbltest(lval, lvsymp, lvopfpp, lvstgpp, lval2, lv2symp, lv2opfpp, lv2stgpp));
             } else {
-                const1(lval2[LVCONVL] << dbltest(lval, lvsymp, lvopfpp, lvstgpp, lval2, lv2symp, lv2opfpp, lv2stgpp));
+                const1(lval2[LVCONVL] <<
+                       dbltest(lval, lvsymp, lvopfpp, lvstgpp, lval2, lv2symp, lv2opfpp, lv2stgpp));
                 smartpop(lval2, lv2symp, lv2opfpp, lv2stgpp, start);
             }
         } else {
@@ -224,10 +228,10 @@ char **lvstgpp, **lv2stgpp;
         } else {
             if ((lval[LVPTYPE] == 0) & (lval2[LVPTYPE] == 0)) {
                 (*oper) ();
-				*lvopfpp = oper;
+                *lvopfpp = oper;
             } else {
                 (*oper2) ();
-				*lvopfpp = oper2;
+                *lvopfpp = oper2;
             }
         }
 
@@ -290,8 +294,8 @@ int *pi_const, *val;
 {
     int lval[LVALUE];
     char *lvsym;
-	int (*lvopfp)();
-	char *lvstgp;
+    int (*lvopfp)();
+    char *lvstgp;
 
     init_lval(lval, &lvsym, &lvopfp, &lvstgp);
     if (heir1(lval, &lvsym, &lvopfp, &lvstgp))
@@ -312,8 +316,8 @@ char **lvstgpp;
 {
     int k, lval2[LVALUE];
     char *lv2sym;
-	int (*lv2opfp)();
-	char *lv2stgp;
+    int (*lv2opfp)();
+    char *lv2stgp;
     int (*oper)();
 
     init_lval(lval2, &lv2sym, &lv2opfp, &lv2stgp);
@@ -358,14 +362,16 @@ char **lvstgpp;
             rvalue(lval, lvsymp, lvopfpp, lvstgpp);
         }
 
-        plunge2(oper, oper, heir1, lval, lvsymp, lvopfpp, lvstgpp, lval2, &lv2sym, &lv2opfp, &lv2stgp);
+        plunge2(oper, oper, heir1, lval, lvsymp, lvopfpp, lvstgpp, lval2, &lv2sym, &lv2opfp,
+                &lv2stgp);
 
         if (oper)
             pop();
     } else {
         if (oper) {
             rvalue(lval, lvsymp, lvopfpp, lvstgpp);
-            plunge2(oper, oper, heir1, lval, lvsymp, lvopfpp, lvstgpp, lval2, &lv2sym, &lv2opfp, &lv2stgp);
+            plunge2(oper, oper, heir1, lval, lvsymp, lvopfpp, lvstgpp, lval2, &lv2sym, &lv2opfp,
+                    &lv2stgp);
         } else {
             if (heir1(lval2, &lv2sym, &lv2opfp, &lv2stgp))
                 rvalue(lval2, &lv2sym, &lv2opfp, &lv2stgp);
