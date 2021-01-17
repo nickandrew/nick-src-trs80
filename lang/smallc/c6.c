@@ -129,6 +129,7 @@ char **lvstgpp;
 heir14(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
+int (**lvopfpp)();
 char **lvstgpp;
 {
     int k, lval2[LVALUE], hierpos;
@@ -228,6 +229,7 @@ char **lvstgpp;
 primary(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
+int (**lvopfpp)();
 char **lvstgpp;
 {
     char *ptr, *findloc(), *findglb(), *addsym();
