@@ -86,9 +86,10 @@ char *name;
 **      fetch object indirect to primary reference
 */
 
-indirect(lval, lvsymp)
+indirect(lval, lvsymp, lvopfpp)
 int lval[];
 char **lvsymp;
+int (**lvopfpp)();
 {
 
     char *ptr;
@@ -119,9 +120,10 @@ char **lvsymp;
 **      fetch a static memory cell into primary register
 */
 
-getmem(lval, lvsymp)
+getmem(lval, lvsymp, lvopfpp)
 int lval[];
 char **lvsymp;
+int (**lvopfpp)();
 {
     char *sym;
 
@@ -157,9 +159,10 @@ char *sym;
 **      store primary register into static cell
 */
 
-putmem(lval, lvsymp)
+putmem(lval, lvsymp, lvopfpp)
 int lval[];
 char **lvsymp;
+int (**lvopfpp)();
 {
     char *sym;
 
@@ -182,9 +185,10 @@ char **lvsymp;
 **      put on the stack the type object in primary register
 */
 
-putstk(lval, lvsymp)
+putstk(lval, lvsymp, lvopfpp)
 int lval[];
 char **lvsymp;
+int (**lvopfpp)();
 {
 
     char *ptr;
@@ -273,9 +277,10 @@ push()
 **      unpush or pop as required
 */
 
-smartpop(lval, lvsymp, start)
+smartpop(lval, lvsymp, lvopfpp, start)
 int lval[];
 char **lvsymp;
+int (**lvopfpp)();
 char *start;
 {
 
@@ -388,10 +393,11 @@ int label;
 **      test primary against zero and jump if false
 */
 
-zerojump(oper, label, lval, lvsymp)
+zerojump(oper, label, lval, lvsymp, lvopfpp)
 int label, lval[];
 int (*oper)();
 char **lvsymp;
+int (**lvopfpp)();
 {
 
     clearstage(lval[LVSTGP], NULL);     /* clear conventional code */

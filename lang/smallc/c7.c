@@ -13,9 +13,10 @@
 **      true if lval1 -> int ptr or int array and lval2 not ptr or array
 */
 
-dbltest(lval1, lv1symp, lval2, lv2symp)
+dbltest(lval1, lv1symp, lv1opfpp, lval2, lv2symp, lv2opfpp)
 int lval1[], lval2[];
 char **lv1symp, **lv2symp;
+int (**lv1opfpp)(), (**lv2opfpp)();
 {
 
     char *ptr;
@@ -51,9 +52,10 @@ char **lv1symp, **lv2symp;
 **      determine type of binary operation
 */
 
-result(lval, lvsymp, lval2, lv2symp)
+result(lval, lvsymp, lvopfpp, lval2, lv2symp, lv2opfpp)
 int lval[], lval2[];
 char **lvsymp, **lv2symp;
+int (**lvopfpp)(), (**lv2opfpp)();
 {
 
     char *ptr1, *ptr2;
@@ -73,10 +75,11 @@ char **lvsymp, **lv2symp;
     }
 }
 
-int step(dir, lval, lvsymp)
+int step(dir, lval, lvsymp, lvopfpp)
 int lval[];
 int dir;
 char **lvsymp;
+int (**lvopfpp)();
 {
 
     char *ptr;
@@ -101,49 +104,51 @@ char **lvsymp;
         fprintf(stderr, "step: No symbol table entry\n");
 
     if (lval[LVSTYPE] == 0) {
-        rvalue(lval, lvsymp);
+        rvalue(lval, lvsymp, lvopfpp);
         inc(dir * incval);
-        store(lval, lvsymp);
+        store(lval, lvsymp, lvopfpp);
         return incval;
     }
     if (lval[LVSECR]) {
         push();
-        rvalue(lval, lvsymp);
+        rvalue(lval, lvsymp, lvopfpp);
         inc(dir * incval);
         pop();
-        store(lval, lvsymp);
+        store(lval, lvsymp, lvopfpp);
         return incval;
     } else {
         move();
         lval[LVSECR] = 1;
     }
 
-    rvalue(lval, lvsymp);
+    rvalue(lval, lvsymp, lvopfpp);
     inc(dir * incval);
-    store(lval, lvsymp);
+    store(lval, lvsymp, lvopfpp);
     return incval;
 }
 
-store(lval, lvsymp)
+store(lval, lvsymp, lvopfpp)
 int lval[];
 char **lvsymp;
+int (**lvopfpp)();
 {
 
     if (lval[LVSTYPE])
-        putstk(lval, lvsymp);
+        putstk(lval, lvsymp, lvopfpp);
     else
-        putmem(lval, lvsymp);
+        putmem(lval, lvsymp, lvopfpp);
 }
 
-rvalue(lval, lvsymp)
+rvalue(lval, lvsymp, lvopfpp)
 int lval[];
 char **lvsymp;
+int (**lvopfpp)();
 {
 
     if ((*lvsymp != 0) & (lval[LVSTYPE] == 0))
-        getmem(lval, lvsymp);
+        getmem(lval, lvsymp, lvopfpp);
     else
-        indirect(lval, lvsymp);
+        indirect(lval, lvsymp, lvopfpp);
 }
 
 test(label, parens)
@@ -151,6 +156,7 @@ int label, parens;
 {
     int lval[LVALUE];
     char *lvsym;
+	int (*lvopfp)();
     char *before, *start;
 
     if (parens)
@@ -159,8 +165,8 @@ int label, parens;
     for (;;) {
         setstage(&before, &start);
 
-        if (heir1(lval, &lvsym))
-            rvalue(lval, &lvsym);
+        if (heir1(lval, &lvsym, &lvopfp))
+            rvalue(lval, &lvsym, &lvopfp);
 
         if (match(","))
             clearstage(before, start);
@@ -184,24 +190,24 @@ int label, parens;
     }
 
     if (lval[LVSTGP]) {
-        oper = lval[LVOPFP];
+        oper = lvopfp;
 
         if ((oper == eq) | (oper == ule))
-            zerojump(eq0, label, lval, &lvsym);
+            zerojump(eq0, label, lval, &lvsym, &lvopfp);
         else if ((oper == ne) | (oper == ugt))
-            zerojump(ne0, label, lval, &lvsym);
+            zerojump(ne0, label, lval, &lvsym, &lvopfp);
         else if (oper == gt)
-            zerojump(gt0, label, lval, &lvsym);
+            zerojump(gt0, label, lval, &lvsym, &lvopfp);
         else if (oper == ge)
-            zerojump(ge0, label, lval, &lvsym);
+            zerojump(ge0, label, lval, &lvsym, &lvopfp);
         else if (oper == uge)
             clearstage(lval[LVSTGP], NULL);
         else if (oper == lt)
-            zerojump(lt0, label, lval, &lvsym);
+            zerojump(lt0, label, lval, &lvsym, &lvopfp);
         else if (oper == ult)
-            zerojump(ult0, label, lval, &lvsym);
+            zerojump(ult0, label, lval, &lvsym, &lvopfp);
         else if (oper == le)
-            zerojump(le0, label, lval, &lvsym);
+            zerojump(le0, label, lval, &lvsym, &lvopfp);
         else
             testjump(label);
     } else
@@ -244,9 +250,10 @@ int val;
     nl();
 }
 
-constant(lval, lvsymp)
+constant(lval, lvsymp, lvopfpp)
 int lval[];
 char **lvsymp;
+int (**lvopfpp)();
 {
 
     lval[LVCONST] = 1;
