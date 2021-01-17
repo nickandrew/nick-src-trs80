@@ -169,8 +169,8 @@ int label, parens;
     for (;;) {
         setstage(&before, &start);
 
-        if (heir1(lval, &lvsym, &lvopfp))
-            rvalue(lval, &lvsym, &lvopfp);
+        if (heir1(lval, &lvsym, &lvopfp, &lvstgp))
+            rvalue(lval, &lvsym, &lvopfp, &lvstgp);
 
         if (match(","))
             clearstage(before, start);
