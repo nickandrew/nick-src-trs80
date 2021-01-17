@@ -60,8 +60,8 @@
 #define LVCONST     3
 #define LVCONVL     4
 #define LVSECR      5
-/* #define LVOPFP      6 -- obsoleted by separte arg lvopfp */
-#define LVSTGP      7
+/* #define LVOPFP      6 -- obsoleted by separate arg lvopfp */
+/* #define LVSTGP      7 -- obsoleted by separate arg lvstgpp */
 #define LVHIER      8           /* Position of Lvalue in type hierarchy */
 
 /*

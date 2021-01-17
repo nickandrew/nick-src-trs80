@@ -15,7 +15,7 @@
 **      lval[4] LVCONVL - value of constant expression
 **      lval[5] LVSECR  - true if secondary register altered
 **      lval[6] LVOPFP  - function address of highest/last binary operator => replaced by lvopfpp
-**      lval[7] LVSTGP  - stage address of "oper 0" code - 0 otherwise
+**      lval[7] LVSTGP  - stage address of "oper 0" code - 0 otherwise => replaced by lvstgpp
 **      lval[8] LVHIER  - Position of Lvalue within type hierarchy
 */
 
@@ -23,18 +23,19 @@
 **      skim over terms adjoining || and && operators
 */
 
-skim(opstr, testfunc, dropval, endval, heir, lval, lvsymp, lvopfpp)
+skim(opstr, testfunc, dropval, endval, heir, lval, lvsymp, lvopfpp, lvstgpp)
 char *opstr;
 int (*testfunc)(), dropval, endval, (*heir)(), lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
     int k, hits, droplab, endlab;
 
     hits = 0;
 
     for (;;) {
-        k = plunge1(heir, lval, lvsymp, lvopfpp);
+        k = plunge1(heir, lval, lvsymp, lvopfpp, lvstgpp);
 
         if (nextop(opstr)) {
             bump(opsize);
@@ -44,15 +45,16 @@ int (**lvopfpp)();
                 droplab = getlabel();
             }
 
-            dropout(k, testfunc, droplab, lval, lvsymp, lvopfpp);
+            dropout(k, testfunc, droplab, lval, lvsymp, lvopfpp, lvstgpp);
         } else if (hits) {
-            dropout(k, testfunc, droplab, lval, lvsymp, lvopfpp);
+            dropout(k, testfunc, droplab, lval, lvsymp, lvopfpp, lvstgpp);
             const1(endval);
             jump(endlab = getlabel());
             postlabel(droplab);
             const1(dropval);
             postlabel(endlab);
-            lval[LVSTYPE] = lval[LVPTYPE] = lval[LVCONST] = lval[LVSTGP] = 0;
+            lval[LVSTYPE] = lval[LVPTYPE] = lval[LVCONST] = 0;
+			*lvstgpp = 0;
             return (0);
         } else
             return (k);
@@ -63,15 +65,16 @@ int (**lvopfpp)();
 **      test for early dropout from || or && evaluations
 */
 
-dropout(k, testfunc, exit1, lval, lvsymp, lvopfpp)
+dropout(k, testfunc, exit1, lval, lvsymp, lvopfpp, lvstgpp)
 int k, exit1, lval[];
 int (*testfunc)();
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
     if (k)
-        rvalue(lval, lvsymp, lvopfpp);
+        rvalue(lval, lvsymp, lvopfpp, lvstgpp);
     else if (lval[LVCONST])
         const1(lval[LVCONVL]);
 
@@ -82,32 +85,34 @@ int (**lvopfpp)();
 **      plunge to a lower level
 */
 
-plunge(opstr, opoff, heir, lval, lvsymp, lvopfpp)
+plunge(opstr, opoff, heir, lval, lvsymp, lvopfpp, lvstgpp)
 char *opstr;
 int opoff, lval[];
 int (*heir)();
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
     int k, lval2[LVALUE];
     char *lv2sym;
 	int (*lv2opfp)();
+	char *lv2stgp;
 
     lv2sym = 0;
 	lv2opfp = 0;
-    k = plunge1(heir, lval, lvsymp, lvopfpp);
+    k = plunge1(heir, lval, lvsymp, lvopfpp, lvstgpp);
 
     if (nextop(opstr) == 0)
         return (k);
 
     if (k)
-        rvalue(lval, lvsymp, lvopfpp);
+        rvalue(lval, lvsymp, lvopfpp, lvstgpp);
 
     for (;;) {
         if (nextop(opstr)) {
             bump(opsize);
             opindex = opindex + opoff;
-            plunge2(op[opindex], op2[opindex], heir, lval, lvsymp, lvopfpp, lval2, &lv2sym, &lv2opfp);
+            plunge2(op[opindex], op2[opindex], heir, lval, lvsymp, lvopfpp, lvstgpp, lval2, &lv2sym, &lv2opfp, &lv2stgp);
         } else
             return (0);
     }
@@ -117,17 +122,18 @@ int (**lvopfpp)();
 **      unary plunge to lower level
 */
 
-plunge1(heir, lval, lvsymp, lvopfpp)
+plunge1(heir, lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 int (*heir)();
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
     char *before, *start;
     int k;
 
     setstage(&before, &start);
-    k = (*heir) (lval, lvsymp, lvopfpp);
+    k = (*heir) (lval, lvsymp, lvopfpp, lvstgpp);
 
     if (lval[LVCONST])
         clearstage(before, NULL);
@@ -139,50 +145,51 @@ int (**lvopfpp)();
 **      binary plunge to lower level
 */
 
-plunge2(oper, oper2, heir, lval, lvsymp, lvopfpp, lval2, lv2symp, lv2opfpp)
+plunge2(oper, oper2, heir, lval, lvsymp, lvopfpp, lvstgpp, lval2, lv2symp, lv2opfpp, lv2stgpp)
 int lval[], lval2[];
 int (*oper)(), (*oper2)(), (*heir)();
 char **lvsymp, **lv2symp;
 int (**lvopfpp)(), (**lv2opfpp)();
+char **lvstgpp, **lv2stgpp;
 {
     char *before, *start;
 
     setstage(&before, &start);
     lval[LVSECR] = 1;
-    lval[LVSTGP] = 0;
+	*lvstgpp = 0;
 
     if (lval[LVCONST]) {
-        if (plunge1(heir, lval2, lv2symp, lv2opfpp))
-            rvalue(lval2, lv2symp, lv2opfpp);
+        if (plunge1(heir, lval2, lv2symp, lv2opfpp, lv2stgpp))
+            rvalue(lval2, lv2symp, lv2opfpp, lv2stgpp);
 
         if (lval[LVCONVL] == 0)
-            lval[LVSTGP] = stagenext;
+            *lvstgpp = stagenext;
 
-        const2(lval[LVCONVL] << dbltest(lval2, lv2symp, lv2opfpp, lval, lvsymp, lvopfpp));
+        const2(lval[LVCONVL] << dbltest(lval2, lv2symp, lv2opfpp, lv2stgpp, lval, lvsymp, lvopfpp, lvstgpp));
     } else {
         push();
-        if (plunge1(heir, lval2, lv2symp, lv2opfpp))
-            rvalue(lval2, lv2symp, lv2opfpp);
+        if (plunge1(heir, lval2, lv2symp, lv2opfpp, lv2stgpp))
+            rvalue(lval2, lv2symp, lv2opfpp, lv2stgpp);
 
         if (lval2[LVCONST]) {
             if (lval2[LVCONVL] == 0)
-                lval[LVSTGP] = start;
+                *lvstgpp = start;
 
             if (oper == add) {
                 csp = csp + 2;
                 clearstage(before, NULL);
-                const2(lval2[LVCONVL] << dbltest(lval, lvsymp, lvopfpp, lval2, lv2symp, lv2opfpp));
+                const2(lval2[LVCONVL] << dbltest(lval, lvsymp, lvopfpp, lvstgpp, lval2, lv2symp, lv2opfpp, lv2stgpp));
             } else {
-                const1(lval2[LVCONVL] << dbltest(lval, lvsymp, lvopfpp, lval2, lv2symp, lv2opfpp));
-                smartpop(lval2, lv2symp, lv2opfpp, start);
+                const1(lval2[LVCONVL] << dbltest(lval, lvsymp, lvopfpp, lvstgpp, lval2, lv2symp, lv2opfpp, lv2stgpp));
+                smartpop(lval2, lv2symp, lv2opfpp, lv2stgpp, start);
             }
         } else {
-            smartpop(lval2, lv2symp, lv2opfpp, start);
+            smartpop(lval2, lv2symp, lv2opfpp, lv2stgpp, start);
             if ((oper == add) | (oper == sub)) {
-                if (dbltest(lval, lvsymp, lvopfpp, lval2, lv2symp, lv2opfpp))
+                if (dbltest(lval, lvsymp, lvopfpp, lvstgpp, lval2, lv2symp, lv2opfpp, lv2stgpp))
                     doublereg();
 
-                if (dbltest(lval2, lv2symp, lv2opfpp, lval, lvsymp, lvopfpp)) {
+                if (dbltest(lval2, lv2symp, lv2opfpp, lv2stgpp, lval, lvsymp, lvopfpp, lvstgpp)) {
                     swap();
                     doublereg();
 
@@ -217,7 +224,7 @@ int (**lvopfpp)(), (**lv2opfpp)();
         }
 
         if ((oper == sub) | (oper == add))
-            result(lval, lvsymp, lvopfpp, lval2, lv2symp, lv2opfpp);
+            result(lval, lvsymp, lvopfpp, lvstgpp, lval2, lv2symp, lv2opfpp, lv2stgpp);
     }
 }
 
@@ -268,10 +275,11 @@ int *pi_const, *val;
     int lval[LVALUE];
     char *lvsym;
 	int (*lvopfp)();
+	char *lvstgp;
 
     lvsym = 0;
-    if (heir1(lval, &lvsym, &lvopfp))
-        rvalue(lval, &lvsym, &lvopfp);
+    if (heir1(lval, &lvsym, &lvopfp, &lvstgp))
+        rvalue(lval, &lvsym, &lvopfp, &lvstgp);
 
     if (lval[LVCONST]) {
         *pi_const = 1;
@@ -280,18 +288,20 @@ int *pi_const, *val;
         *pi_const = 0;
 }
 
-heir1(lval, lvsymp, lvopfpp)
+heir1(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
     int k, lval2[LVALUE];
     char *lv2sym;
 	int (*lv2opfp)();
+	char *lv2stgp;
     int (*oper)();
 
     lv2sym = 0;
-    k = plunge1(heir3, lval, lvsymp, lvopfpp);
+    k = plunge1(heir3, lval, lvsymp, lvopfpp, lvstgpp);
 
     if (lval[LVCONST])
         const1(lval[LVCONVL]);
@@ -329,114 +339,124 @@ int (**lvopfpp)();
     if (lval[LVSTYPE]) {
         if (oper) {
             push();
-            rvalue(lval, lvsymp, lvopfpp);
+            rvalue(lval, lvsymp, lvopfpp, lvstgpp);
         }
 
-        plunge2(oper, oper, heir1, lval, lvsymp, lvopfpp, lval2, &lv2sym, &lv2opfp);
+        plunge2(oper, oper, heir1, lval, lvsymp, lvopfpp, lvstgpp, lval2, &lv2sym, &lv2opfp, &lv2stgp);
 
         if (oper)
             pop();
     } else {
         if (oper) {
-            rvalue(lval, lvsymp, lvopfpp);
-            plunge2(oper, oper, heir1, lval, lvsymp, lvopfpp, lval2, &lv2sym, &lv2opfp);
+            rvalue(lval, lvsymp, lvopfpp, lvstgpp);
+            plunge2(oper, oper, heir1, lval, lvsymp, lvopfpp, lvstgpp, lval2, &lv2sym, &lv2opfp, &lv2stgp);
         } else {
-            if (heir1(lval2, &lv2sym, &lv2opfp))
-                rvalue(lval2, &lv2sym, &lv2opfp);
+            if (heir1(lval2, &lv2sym, &lv2opfp, &lv2stgp))
+                rvalue(lval2, &lv2sym, &lv2opfp, &lv2stgp);
 
             lval[LVSECR] = lval2[LVSECR];
         }
     }
 
-    store(lval, lvsymp, lvopfpp);
+    store(lval, lvsymp, lvopfpp, lvstgpp);
     return (0);
 }
 
-heir3(lval, lvsymp, lvopfpp)
+heir3(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
-    return (skim("||", eq0, 1, 0, heir4, lval, lvsymp, lvopfpp));
+    return (skim("||", eq0, 1, 0, heir4, lval, lvsymp, lvopfpp, lvstgpp));
 }
 
-heir4(lval, lvsymp, lvopfpp)
+heir4(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
-    return (skim("&&", ne0, 0, 1, heir5, lval, lvsymp, lvopfpp));
+    return (skim("&&", ne0, 0, 1, heir5, lval, lvsymp, lvopfpp, lvstgpp));
 }
 
-heir5(lval, lvsymp, lvopfpp)
+heir5(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
-    return (plunge("|", 0, heir6, lval, lvsymp, lvopfpp));
+    return (plunge("|", 0, heir6, lval, lvsymp, lvopfpp, lvstgpp));
 }
 
-heir6(lval, lvsymp, lvopfpp)
+heir6(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
-    return (plunge("^", 1, heir7, lval, lvsymp, lvopfpp));
+    return (plunge("^", 1, heir7, lval, lvsymp, lvopfpp, lvstgpp));
 }
 
-heir7(lval, lvsymp, lvopfpp)
+heir7(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
-    return (plunge("&", 2, heir8, lval, lvsymp, lvopfpp));
+    return (plunge("&", 2, heir8, lval, lvsymp, lvopfpp, lvstgpp));
 }
 
-heir8(lval, lvsymp, lvopfpp)
+heir8(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
-    return (plunge("== !=", 3, heir9, lval, lvsymp, lvopfpp));
+    return (plunge("== !=", 3, heir9, lval, lvsymp, lvopfpp, lvstgpp));
 }
 
-heir9(lval, lvsymp, lvopfpp)
+heir9(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
-    return (plunge("<= >= < >", 5, heir10, lval, lvsymp, lvopfpp));
+    return (plunge("<= >= < >", 5, heir10, lval, lvsymp, lvopfpp, lvstgpp));
 }
 
-heir10(lval, lvsymp, lvopfpp)
+heir10(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
-    return (plunge(">> <<", 9, heir11, lval, lvsymp, lvopfpp));
+    return (plunge(">> <<", 9, heir11, lval, lvsymp, lvopfpp, lvstgpp));
 }
 
-heir11(lval, lvsymp, lvopfpp)
+heir11(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
-    return (plunge("+ -", 11, heir12, lval, lvsymp, lvopfpp));
+    return (plunge("+ -", 11, heir12, lval, lvsymp, lvopfpp, lvstgpp));
 }
 
-heir12(lval, lvsymp, lvopfpp)
+heir12(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
-    return (plunge("* / %", 13, heir13, lval, lvsymp, lvopfpp));
+    return (plunge("* / %", 13, heir13, lval, lvsymp, lvopfpp, lvstgpp));
 }

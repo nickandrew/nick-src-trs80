@@ -13,10 +13,11 @@
 **      true if lval1 -> int ptr or int array and lval2 not ptr or array
 */
 
-dbltest(lval1, lv1symp, lv1opfpp, lval2, lv2symp, lv2opfpp)
+dbltest(lval1, lv1symp, lv1opfpp, lv1stgpp, lval2, lv2symp, lv2opfpp, lv2stgpp)
 int lval1[], lval2[];
 char **lv1symp, **lv2symp;
 int (**lv1opfpp)(), (**lv2opfpp)();
+char **lv1stgpp, **lv2stgpp;
 {
 
     char *ptr;
@@ -52,10 +53,11 @@ int (**lv1opfpp)(), (**lv2opfpp)();
 **      determine type of binary operation
 */
 
-result(lval, lvsymp, lvopfpp, lval2, lv2symp, lv2opfpp)
+result(lval, lvsymp, lvopfpp, lvstgpp, lval2, lv2symp, lv2opfpp, lv2stgpp)
 int lval[], lval2[];
 char **lvsymp, **lv2symp;
 int (**lvopfpp)(), (**lv2opfpp)();
+char **lvstgpp, **lv2stgpp;
 {
 
     char *ptr1, *ptr2;
@@ -75,7 +77,7 @@ int (**lvopfpp)(), (**lv2opfpp)();
     }
 }
 
-int step(dir, lval, lvsymp, lvopfpp)
+int step(dir, lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 int dir;
 char **lvsymp;
@@ -104,51 +106,51 @@ int (**lvopfpp)();
         fprintf(stderr, "step: No symbol table entry\n");
 
     if (lval[LVSTYPE] == 0) {
-        rvalue(lval, lvsymp, lvopfpp);
+        rvalue(lval, lvsymp, lvopfpp, lvstgpp);
         inc(dir * incval);
-        store(lval, lvsymp, lvopfpp);
+        store(lval, lvsymp, lvopfpp, lvstgpp);
         return incval;
     }
     if (lval[LVSECR]) {
         push();
-        rvalue(lval, lvsymp, lvopfpp);
+        rvalue(lval, lvsymp, lvopfpp, lvstgpp);
         inc(dir * incval);
         pop();
-        store(lval, lvsymp, lvopfpp);
+        store(lval, lvsymp, lvopfpp, lvstgpp);
         return incval;
     } else {
         move();
         lval[LVSECR] = 1;
     }
 
-    rvalue(lval, lvsymp, lvopfpp);
+    rvalue(lval, lvsymp, lvopfpp, lvstgpp);
     inc(dir * incval);
-    store(lval, lvsymp, lvopfpp);
+    store(lval, lvsymp, lvopfpp, lvstgpp);
     return incval;
 }
 
-store(lval, lvsymp, lvopfpp)
+store(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
 {
 
     if (lval[LVSTYPE])
-        putstk(lval, lvsymp, lvopfpp);
+        putstk(lval, lvsymp, lvopfpp, lvstgpp);
     else
-        putmem(lval, lvsymp, lvopfpp);
+        putmem(lval, lvsymp, lvopfpp, lvstgpp);
 }
 
-rvalue(lval, lvsymp, lvopfpp)
+rvalue(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
 {
 
     if ((*lvsymp != 0) & (lval[LVSTYPE] == 0))
-        getmem(lval, lvsymp, lvopfpp);
+        getmem(lval, lvsymp, lvopfpp, lvstgpp);
     else
-        indirect(lval, lvsymp, lvopfpp);
+        indirect(lval, lvsymp, lvopfpp, lvstgpp);
 }
 
 test(label, parens)
@@ -157,6 +159,7 @@ int label, parens;
     int lval[LVALUE];
     char *lvsym;
 	int (*lvopfp)();
+	char *lvstgp;
     char *before, *start;
 
     if (parens)
@@ -189,25 +192,25 @@ int label, parens;
         return;
     }
 
-    if (lval[LVSTGP]) {
+    if (lvstgp) {
         oper = lvopfp;
 
         if ((oper == eq) | (oper == ule))
-            zerojump(eq0, label, lval, &lvsym, &lvopfp);
+            zerojump(eq0, label, lval, &lvsym, &lvopfp, &lvstgp);
         else if ((oper == ne) | (oper == ugt))
-            zerojump(ne0, label, lval, &lvsym, &lvopfp);
+            zerojump(ne0, label, lval, &lvsym, &lvopfp, &lvstgp);
         else if (oper == gt)
-            zerojump(gt0, label, lval, &lvsym, &lvopfp);
+            zerojump(gt0, label, lval, &lvsym, &lvopfp, &lvstgp);
         else if (oper == ge)
-            zerojump(ge0, label, lval, &lvsym, &lvopfp);
+            zerojump(ge0, label, lval, &lvsym, &lvopfp, &lvstgp);
         else if (oper == uge)
-            clearstage(lval[LVSTGP], NULL);
+            clearstage(lvstgp, NULL);
         else if (oper == lt)
-            zerojump(lt0, label, lval, &lvsym, &lvopfp);
+            zerojump(lt0, label, lval, &lvsym, &lvopfp, &lvstgp);
         else if (oper == ult)
-            zerojump(ult0, label, lval, &lvsym, &lvopfp);
+            zerojump(ult0, label, lval, &lvsym, &lvopfp, &lvstgp);
         else if (oper == le)
-            zerojump(le0, label, lval, &lvsym, &lvopfp);
+            zerojump(le0, label, lval, &lvsym, &lvopfp, &lvstgp);
         else
             testjump(label);
     } else
@@ -250,10 +253,11 @@ int val;
     nl();
 }
 
-constant(lval, lvsymp, lvopfpp)
+constant(lval, lvsymp, lvopfpp, lvstgpp)
 int lval[];
 char **lvsymp;
 int (**lvopfpp)();
+char **lvstgpp;
 {
 
     lval[LVCONST] = 1;
