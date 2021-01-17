@@ -9,16 +9,16 @@
 
 #include        "cc.h"
 
-char    exbuff[32];             /* external name buffer */
+char exbuff[32];                /* external name buffer */
 
 /*
 **      print all assembler info before any code is generated
 */
 
 header()
-        {
-        ol("COM\t'<small c compiler output>'");
-        outstr("*MOD\n");
+{
+    ol("COM\t'<small c compiler output>'");
+    outstr("*MOD\n");
 }
 
 /*
@@ -26,9 +26,9 @@ header()
 */
 
 trailer()
-        {
+{
 
-        ol("END");
+    ol("END");
 }
 
 /*
@@ -36,22 +36,24 @@ trailer()
 */
 
 char *exname(s)
-char    *s;
-        {
+char *s;
+{
 
-        char        *p;
+    char *p;
 
-        p = exbuff;
+    p = exbuff;
 
-        *p++ = '_';
+    *p++ = '_';
 
-        while (*s) {
-            if (*s>='a' && *s<='z') *p++ = (*s++ & 95);
-            else *p++ = *s++;
-        }
-        *p++ = 0;
+    while (*s) {
+        if (*s >= 'a' && *s <= 'z')
+            *p++ = (*s++ & 95);
+        else
+            *p++ = *s++;
+    }
+    *p++ = 0;
 
-        return (exbuff);
+    return (exbuff);
 }
 
 /*
@@ -59,12 +61,12 @@ char    *s;
 */
 
 entry()
-        {
+{
 
-        external(ssname);
-        outstr(exname(ssname));
-        col();
-        nl();
+    external(ssname);
+    outstr(exname(ssname));
+    col();
+    nl();
 }
 
 /*
@@ -72,8 +74,8 @@ entry()
 */
 
 external(name)
-char    *name;
-        {
+char *name;
+{
 
 /*      outstr(";\textrn\t");   */
 /*      outstr(exname(name));   */
@@ -85,23 +87,24 @@ char    *name;
 */
 
 indirect(lval)
-int     lval[];
-        {
+int lval[];
+{
 
     char *ptr;
-    ptr=lval[LVSYM];
+    ptr = lval[LVSYM];
 
-    if (ptr!=0) {
-        if (ptr[lval[LVHIER]+IDENT] != VARIABLE) {
+    if (ptr != 0) {
+        if (ptr[lval[LVHIER] + IDENT] != VARIABLE) {
             call("CCGINT");
         } else {
-            if (ptr[TYPE]==CCHAR)
-                    call("CCGCHAR");
-            else    call("CCGINT");
+            if (ptr[TYPE] == CCHAR)
+                call("CCGCHAR");
+            else
+                call("CCGINT");
         }
         return;
     } else {
-        fprintf(stderr,"* indirect: no link to symbol table\n");
+        fprintf(stderr, "* indirect: no link to symbol table\n");
         exit(1);
     }
 
@@ -116,25 +119,24 @@ int     lval[];
 */
 
 getmem(lval)
-int     lval[];
-        {
-        char    *sym;
+int lval[];
+{
+    char *sym;
 
-        sym = lval[LVSYM];
+    sym = lval[LVSYM];
 
-        if ((sym[IDENT] != POINTER) && (sym[TYPE] == CCHAR)) {
-                ot("LD\tA,(");
-                outstr(exname(sym + NAME));
-            outstr( ")" );
-                nl();
-                call("CCSXT");
-        }
-        else {
-                ot("LD\tHL,(");
-                outstr(exname(sym + NAME));
-            outstr( ")" );
-                nl();
-        }
+    if ((sym[IDENT] != POINTER) && (sym[TYPE] == CCHAR)) {
+        ot("LD\tA,(");
+        outstr(exname(sym + NAME));
+        outstr(")");
+        nl();
+        call("CCSXT");
+    } else {
+        ot("LD\tHL,(");
+        outstr(exname(sym + NAME));
+        outstr(")");
+        nl();
+    }
 }
 
 /*
@@ -142,11 +144,11 @@ int     lval[];
 */
 
 getloc(sym)
-char    *sym;
-        {
+char *sym;
+{
 
-        const1(getint(sym + OFFSET, OFFSIZE) - csp);
-        ol("ADD\tHL,SP");
+    const1(getint(sym + OFFSET, OFFSIZE) - csp);
+    ol("ADD\tHL,SP");
 }
 
 /*
@@ -154,24 +156,23 @@ char    *sym;
 */
 
 putmem(lval)
-int     lval[];
-        {
-        char    *sym;
+int lval[];
+{
+    char *sym;
 
-        sym = lval[LVSYM];
+    sym = lval[LVSYM];
 
-        if ((sym[IDENT] != POINTER) & (sym[TYPE] == CCHAR))     {
-                ol("LD\tA,L");
-                ot("LD\t(");
-                outstr(exname(sym + NAME));
-            outstr( "),A" );
-        }
-        else    {
-                ot("LD\t(");
-                outstr(exname(sym + NAME));
-            outstr( "),HL" );
-        }
-        nl();
+    if ((sym[IDENT] != POINTER) & (sym[TYPE] == CCHAR)) {
+        ol("LD\tA,L");
+        ot("LD\t(");
+        outstr(exname(sym + NAME));
+        outstr("),A");
+    } else {
+        ot("LD\t(");
+        outstr(exname(sym + NAME));
+        outstr("),HL");
+    }
+    nl();
 }
 
 /*
@@ -179,26 +180,26 @@ int     lval[];
 */
 
 putstk(lval)
-int  lval[];
+int lval[];
 {
 
     char *ptr;
-    ptr=lval[LVSYM];
+    ptr = lval[LVSYM];
 
-    if (ptr!=0) {
-        if (ptr[lval[LVHIER]+IDENT] == POINTER) {
+    if (ptr != 0) {
+        if (ptr[lval[LVHIER] + IDENT] == POINTER) {
             call("CCPINT");
             return;
         } else {
             if (lval[LVSTYPE] == CCHAR) {
                 ol("LD\tA,L");
                 ol("LD\t(DE),A");
-            } else 
+            } else
                 call("CCPINT");
             return;
         }
     } else {
-        fprintf(stderr,"* putstk: no link to symbol table\n");
+        fprintf(stderr, "* putstk: no link to symbol table\n");
         exit(1);
     }
 
@@ -216,10 +217,10 @@ int  lval[];
 */
 
 move()
-        {
+{
 
-        ol("LD\tD,H");
-        ol("LD\tE,L");
+    ol("LD\tD,H");
+    ol("LD\tE,L");
 }
 
 /*
@@ -227,9 +228,9 @@ move()
 */
 
 swap()
-        {
+{
 
-        ol("EX\tDE,HL");   /* peephole() uses trailing ";;" */
+    ol("EX\tDE,HL");            /* peephole() uses trailing ";;" */
 }
 
 /*
@@ -238,9 +239,9 @@ swap()
 */
 
 immed()
-        {
+{
 
-        ot("LD\tHL,");
+    ot("LD\tHL,");
 }
 
 /*
@@ -249,9 +250,9 @@ immed()
 */
 
 immed2()
-        {
+{
 
-        ot("LD\tDE,");
+    ot("LD\tDE,");
 }
 
 /*
@@ -259,10 +260,10 @@ immed2()
 */
 
 push()
-        {
+{
 
-        ol("PUSH\tHL");
-        csp = csp - BPW;
+    ol("PUSH\tHL");
+    csp = csp - BPW;
 }
 
 /*
@@ -270,16 +271,16 @@ push()
 */
 
 smartpop(lval, start)
-int     lval[];
-char    *start;
-        {
+int lval[];
+char *start;
+{
 
 /*        if (lval[LVSECR])         */
-/*                pop();            */ /* secondary was used */
+    /*                pop();            *//* secondary was used */
 /*        else                      */
 /*                unpush(start);        */
 
-        pop();
+    pop();
 }
 
 /*
@@ -287,10 +288,10 @@ char    *start;
 */
 
 pop()
-        {
+{
 
-        ol("POP\tDE");
-        csp = csp + BPW;
+    ol("POP\tDE");
+    csp = csp + BPW;
 }
 
 /*
@@ -298,9 +299,9 @@ pop()
 */
 
 swapstk()
-        {
+{
 
-        ol("EX\t(SP),HL");
+    ol("EX\t(SP),HL");
 }
 
 /*
@@ -308,9 +309,9 @@ swapstk()
 */
 
 sw()
-        {
+{
 
-        call("CCSWITCH");
+    call("CCSWITCH");
 }
 
 /*
@@ -318,12 +319,12 @@ sw()
 */
 
 call(sname)
-char    *sname;
-        {
+char *sname;
+{
 
-        ot("CALL\t");
-        outstr(sname);
-        nl();
+    ot("CALL\t");
+    outstr(sname);
+    nl();
 }
 
 /*
@@ -331,9 +332,9 @@ char    *sname;
 */
 
 ret()
-        {
+{
 
-        ol("RET");
+    ol("RET");
 }
 
 /*
@@ -341,14 +342,14 @@ ret()
 */
 
 callstk()
-        {
+{
 
-        immed();
-        outstr("$+5");
-        nl();
-        swapstk();
-        ol("JP\t(HL)");
-        csp = csp + BPW;
+    immed();
+    outstr("$+5");
+    nl();
+    swapstk();
+    ol("JP\t(HL)");
+    csp = csp + BPW;
 }
 
 /*
@@ -356,12 +357,12 @@ callstk()
 */
 
 jump(label)
-int     label;
-        {
+int label;
+{
 
-        ot("JP\t");
-        printlabel(label);
-        nl();
+    ot("JP\t");
+    printlabel(label);
+    nl();
 }
 
 /*
@@ -369,14 +370,14 @@ int     label;
 */
 
 testjump(label)
-int     label;
-        {
+int label;
+{
 
-        ol("LD\tA,H");
-        ol("OR\tL");
-        ot("JP\tZ,");
-        printlabel(label);
-        nl();
+    ol("LD\tA,H");
+    ol("OR\tL");
+    ot("JP\tZ,");
+    printlabel(label);
+    nl();
 }
 
 /*
@@ -384,12 +385,12 @@ int     label;
 */
 
 zerojump(oper, label, lval)
-int     label, lval[];
-int     (*oper)();
-        {
+int label, lval[];
+int (*oper)();
+{
 
-        clearstage(lval[LVSTGP], NULL);      /* clear conventional code */
-        (*oper)(label);
+    clearstage(lval[LVSTGP], NULL);     /* clear conventional code */
+    (*oper) (label);
 }
 
 /*
@@ -397,13 +398,13 @@ int     (*oper)();
 */
 
 defstorage(size)
-int     size;
-        {
+int size;
+{
 
-        if (size == 1)
-                ot("DEFB\t");
-        else
-                ot("DEFW\t");
+    if (size == 1)
+        ot("DEFB\t");
+    else
+        ot("DEFW\t");
 }
 
 /*
@@ -411,9 +412,9 @@ int     size;
 */
 
 point()
-        {
+{
 
-        ol("DEFW\t$+2");
+    ol("DEFW\t$+2");
 }
 
 /*
@@ -421,58 +422,58 @@ point()
 */
 
 modstk(newsp, save)
-int     newsp, save;
-        {
-        int     k;
+int newsp, save;
+{
+    int k;
 
-        k = newsp - csp;
+    k = newsp - csp;
 
-        if (k == 0)
-                return (newsp);
-
-        if (k >= 0)     {
-                if (k < 7)      {
-                        if (k & 1)      {
-                                ol("INC\tSP");
-                                k--;
-                        }
-
-                        while (k)       {
-                                ol("POP\tBC");
-                                k = k - BPW;
-                        }
-
-                        return (newsp);
-                }
-        }
-
-        if (k < 0)      {
-                if (k > -7)     {
-                        if (k & 1)      {
-                                ol("DEC\tSP");
-                                k++;
-                        }
-
-                        while (k)       {
-                                ol("PUSH\tBC");
-                                k = k + BPW;
-                        }
-
-                        return (newsp);
-                }
-        }
-
-        if (save)
-                swap();
-
-        const1(k);
-        ol("ADD\tHL,SP");
-        ol("LD\tSP,HL");
-
-        if (save)
-                swap();
-
+    if (k == 0)
         return (newsp);
+
+    if (k >= 0) {
+        if (k < 7) {
+            if (k & 1) {
+                ol("INC\tSP");
+                k--;
+            }
+
+            while (k) {
+                ol("POP\tBC");
+                k = k - BPW;
+            }
+
+            return (newsp);
+        }
+    }
+
+    if (k < 0) {
+        if (k > -7) {
+            if (k & 1) {
+                ol("DEC\tSP");
+                k++;
+            }
+
+            while (k) {
+                ol("PUSH\tBC");
+                k = k + BPW;
+            }
+
+            return (newsp);
+        }
+    }
+
+    if (save)
+        swap();
+
+    const1(k);
+    ol("ADD\tHL,SP");
+    ol("LD\tSP,HL");
+
+    if (save)
+        swap();
+
+    return (newsp);
 }
 
 /*
@@ -480,9 +481,9 @@ int     newsp, save;
 */
 
 doublereg()
-        {
+{
 
-        ol("ADD\tHL,HL");
+    ol("ADD\tHL,HL");
 }
 
 /*
@@ -490,7 +491,7 @@ doublereg()
 */
 
 dataseg()
-        {
+{
 
 /*      outstr(";\tDSEG\n");    */
 }
@@ -500,7 +501,7 @@ dataseg()
 */
 
 textseg()
-        {
+{
 
 /*      outstr(";\tCSEG\n");    */
 }
@@ -509,24 +510,29 @@ textseg()
 dumpsym(flag)
 int flag;
 {
-        FILE *st;
-        char *cp;
+    FILE *st;
+    char *cp;
 
-        if (flag==1) {
-            char x;
-            scanf(" %c",&x);
-            if (x!='y') return;
-        }
+    if (flag == 1) {
+        char x;
+        scanf(" %c", &x);
+        if (x != 'y')
+            return;
+    }
 
-        if ((st=fopen("symloc","w"))==NULL) return;
+    if ((st = fopen("symloc", "w")) == NULL)
+        return;
 
-        cp = STARTLOC;
+    cp = STARTLOC;
 
-        while (cp < ENDLOC) fputc(*(cp++), st);
-        fclose(st);
-        if ((st=fopen("symglb","w"))==NULL) return;
-        cp = STARTGLB;
+    while (cp < ENDLOC)
+        fputc(*(cp++), st);
+    fclose(st);
+    if ((st = fopen("symglb", "w")) == NULL)
+        return;
+    cp = STARTGLB;
 
-        while (cp < ENDGLB) fputc(*(cp++), st);
-        fclose(st);
+    while (cp < ENDGLB)
+        fputc(*(cp++), st);
+    fclose(st);
 }

@@ -12,12 +12,12 @@
 **      machine dependent parameters
 */
 
-#define BPW     2       /* bytes per word */
-#define LBPW    1       /* log2(BPW) */
-#define SBPC    1       /* stack bytes per character */
-#define SCHAR   1       /* Size of character in bytes */
-#define SINT    2       /* Size of plain integer */
-#define SSHORT  1       /* One-byte short */
+#define BPW     2               /* bytes per word */
+#define LBPW    1               /* log2(BPW) */
+#define SBPC    1               /* stack bytes per character */
+#define SCHAR   1               /* Size of character in bytes */
+#define SINT    2               /* Size of plain integer */
+#define SSHORT  1               /* One-byte short */
 
 /*
 **      symbol table format
@@ -181,91 +181,83 @@
 */
 
 extern char
-        optimize,               /* optimize output of staging buffer */
-        monitor,                /* monitor function headers? */
-        stage[STAGESIZE],       /* output staging buffer */
-        symtab[SYMTBSZ],        /* symbol table */
-        litq[LITABSZ],          /* literal pool */
-        macn[MACNSIZE],         /* macro name buffer */
-        macq[MACQSIZE],         /* macro string buffer */
-        pline[LINESIZE],        /* parsing buffer */
-        mline[LINESIZE],        /* macro buffer */
-        swq[SWTABSZ],           /* switch queue */
-        *swnext,                /* address of next entry */
-        *swend,                 /* address of last table entry */
-        *line,                  /* points to pline or mline */
-        *lptr,                  /* ptr to either */
-        *glbptr,                /* ptrs to next entries */
-        *locptr,                /* ptr to next local symbol */
-        *stagenext,             /* next addr in stage */
-        *stagelast,             /* last addr in stage */
-        quote[2],               /* literal string for '"' */
-        *cptr,                  /* work ptrs to any char buffer */
-        *cptr2,
-        *cptr3,
-        typearr[HIER_LEN],      /* Hierarchy of types */
-        msname[NAMESIZE],       /* macro symbol name array */
-        ssname[NAMESIZE],       /* static symbol name array */
-        xc,                     /* character workspace */
-        *xcp;                   /* char pointer workspace */
+ optimize,                      /* optimize output of staging buffer */
+ monitor,                       /* monitor function headers? */
+ stage[STAGESIZE],              /* output staging buffer */
+ symtab[SYMTBSZ],               /* symbol table */
+ litq[LITABSZ],                 /* literal pool */
+ macn[MACNSIZE],                /* macro name buffer */
+ macq[MACQSIZE],                /* macro string buffer */
+ pline[LINESIZE],               /* parsing buffer */
+ mline[LINESIZE],               /* macro buffer */
+ swq[SWTABSZ],                  /* switch queue */
+*swnext,                        /* address of next entry */
+*swend,                         /* address of last table entry */
+*line,                          /* points to pline or mline */
+*lptr,                          /* ptr to either */
+*glbptr,                        /* ptrs to next entries */
+*locptr,                        /* ptr to next local symbol */
+*stagenext,                     /* next addr in stage */
+*stagelast,                     /* last addr in stage */
+ quote[2],                      /* literal string for '"' */
+*cptr,                          /* work ptrs to any char buffer */
+*cptr2, *cptr3, typearr[HIER_LEN],      /* Hierarchy of types */
+ msname[NAMESIZE],              /* macro symbol name array */
+ ssname[NAMESIZE],              /* static symbol name array */
+ xc,                            /* character workspace */
+*xcp;                           /* char pointer workspace */
 
 extern int
-        nogo,                   /* > 0 disables goto statements */
-        noloc,                  /* > 0 disables block locals */
-        opindex,                /* index to matched operator */
-        opsize,                 /* size of operator in bytes */
-        swactive,               /* true inside a switch */
-        swdefault,              /* default label #, else 0 */
-        wq[WQTABSZ],            /* while queue */
-        *wqptr,                 /* ptr to next entry */
-        litptr,                 /* ptr to next entry */
-        macptr,                 /* macro buffer index */
-        pptr,                   /* ptr to parsing buffer */
-        ch,                     /* current character of line being scanned */
-        nch,                    /* next character of line being scanned */
-        declared,            /* # of local bytes declared, else -1 when done */
-        iflevel,                /* #if... nest level */
-        skiplevel,              /* level at which #if... skipping started */
-        func1,                  /* true for first function */
-        nxtlab,                 /* next avail label */
-        litlab,                 /* label # assigned to literal pool */
-        csp,                    /* compiler relative stk ptr */
-        argstk,                 /* function argument sp */
-        argtop,
-        ncmp,                   /* # open compound statements */
-        errflag,                /* non-zero after 1st error in statement */
-        eof,                    /* set non-zero after final input eof */
-        files,                  /* non-zero if filelist specified on cmdline*/
-        filearg,                /* current file arg index */
-        glbflag,                /* non-zero if internal globals */
-        ctext,                  /* non-zero to intermix c-source */
-        ccode,                  /* non-zero when parsing c-code */
+ nogo,                          /* > 0 disables goto statements */
+ noloc,                         /* > 0 disables block locals */
+ opindex,                       /* index to matched operator */
+ opsize,                        /* size of operator in bytes */
+ swactive,                      /* true inside a switch */
+ swdefault,                     /* default label #, else 0 */
+ wq[WQTABSZ],                   /* while queue */
+*wqptr,                         /* ptr to next entry */
+ litptr,                        /* ptr to next entry */
+ macptr,                        /* macro buffer index */
+ pptr,                          /* ptr to parsing buffer */
+ ch,                            /* current character of line being scanned */
+ nch,                           /* next character of line being scanned */
+ declared,                      /* # of local bytes declared, else -1 when done */
+ iflevel,                       /* #if... nest level */
+ skiplevel,                     /* level at which #if... skipping started */
+ func1,                         /* true for first function */
+ nxtlab,                        /* next avail label */
+ litlab,                        /* label # assigned to literal pool */
+ csp,                           /* compiler relative stk ptr */
+ argstk,                        /* function argument sp */
+ argtop, ncmp,                  /* # open compound statements */
+ errflag,                       /* non-zero after 1st error in statement */
+ eof,                           /* set non-zero after final input eof */
+ files,                         /* non-zero if filelist specified on cmdline */
+ filearg,                       /* current file arg index */
+ glbflag,                       /* non-zero if internal globals */
+ ctext,                         /* non-zero to intermix c-source */
+ ccode,                         /* non-zero when parsing c-code */
                                 /* zero when parsing assembly code */
-        lastst,                 /* last executed statement type */
-        xi,                     /* integer workspace */
-        *xip;                   /* int pointer workspace */
+ lastst,                        /* last executed statement type */
+ xi,                            /* integer workspace */
+*xip;                           /* int pointer workspace */
 
-extern FILE
-    *input,                /* file pointer for input file */
-    *input2,               /* file pointer for "include" file */
-    *output,               /* file pointer for output file */
-    *listfp;               /* file pointer to list device */
-
-extern int
-        (*oper)(),             /* address of binary operator function */
-        (*(op[16]))(),         /* function addresses of binary operators */
-        (*(op2[16]))();        /* same for unsigned operators */
+extern FILE *input,             /* file pointer for input file */
+*input2,                        /* file pointer for "include" file */
+*output,                        /* file pointer for output file */
+*listfp;                        /* file pointer to list device */
 
 extern int
-        heir1(), heir3(), heir4(), heir5(), heir6(), heir7(),
-        heir8(), heir9(), heir10(), heir11(), heir12(), heir13(),
-        heir14();
+ (*oper)(),                     /* address of binary operator function */
+ (* (op[16]))(),                /* function addresses of binary operators */
+ (* (op2[16]))();               /* same for unsigned operators */
 
 extern int
-        add(), and(), asl(), asr(), op_div(), eq(), ge(), gt(),
-        le(), lt(), mod(), mult(), ne(), or(), sub(), uge(),
-        ugt(), ule(), ult(), xor();
+heir1(), heir3(), heir4(), heir5(), heir6(), heir7(),
+heir8(), heir9(), heir10(), heir11(), heir12(), heir13(), heir14();
 
 extern int
-        dec(), eq0(), ge0(), gt0(), inc(), le0(), lt0(), ne0(), ult0();
+add(), and(), asl(), asr(), op_div(), eq(), ge(), gt(),
+le(), lt(), mod(), mult(), ne(), or(), sub(), uge(), ugt(), ule(), ult(), xor();
 
+extern int dec(), eq0(), ge0(), gt0(), inc(), le0(), lt0(), ne0(), ult0();

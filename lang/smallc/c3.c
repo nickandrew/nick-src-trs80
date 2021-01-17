@@ -10,148 +10,143 @@
 #include        "cc.h"
 
 junk()
-        {
+{
 
-        if (an(inbyte()))
-                while (an(ch))
-                        gch();
-        else
-                while (an(ch) == 0)     {
-                        if (ch == 0)
-                                break;
+    if (an(inbyte()))
+        while (an(ch))
+            gch();
+    else
+        while (an(ch) == 0) {
+            if (ch == 0)
+                break;
 
-                        gch();
-                }
+            gch();
+        }
 
-        blanks();
+    blanks();
 }
 
 endst()
-        {
+{
 
-        blanks();
-        return ((streq(lptr, ";") | (ch == 0)));
+    blanks();
+    return ((streq(lptr, ";") | (ch == 0)));
 }
 
 illname()
-        {
+{
 
-        error("illegal symbol");
-        junk();
+    error("illegal symbol");
+    junk();
 }
 
 multidef(sname)
-char    *sname;
-        {
-        char string[32];
-        sprintf(string,"%s already defined",sname);
-        error(string);
+char *sname;
+{
+    char string[32];
+    sprintf(string, "%s already defined", sname);
+    error(string);
 }
 
 needtoken(str)
-char    *str;
-        {
+char *str;
+{
 
-        if (match(str) == 0)
-                error("missing token");
+    if (match(str) == 0)
+        error("missing token");
 }
 
 needlval()
-        {
+{
 
-        error("must be an lvalue");
+    error("must be an lvalue");
 }
 
 char *findglb(sname)
-char    *sname;
-        {
+char *sname;
+{
 
-       if (search(sname,
-            STARTGLB,
-            SYMMAX,
-            ENDGLB,
-            NUMGLBS,
-            NAME))
-                return (cptr);
+    if (search(sname, STARTGLB, SYMMAX, ENDGLB, NUMGLBS, NAME))
+        return (cptr);
 
-        return NULL;
+    return NULL;
 }
 
 char *findloc(sname)
-char    *sname;
-        {
+char *sname;
+{
 
-        cptr = locptr;
+    cptr = locptr;
 
-        while (cptr > STARTLOC) {
-                cptr = cptr - SYMMAX;
+    while (cptr > STARTLOC) {
+        cptr = cptr - SYMMAX;
 
-                if (astreq(sname, cptr+NAME, NAMEMAX))
-                        return (cptr);
+        if (astreq(sname, cptr + NAME, NAMEMAX))
+            return (cptr);
 
-        }
+    }
 
-        return NULL;
+    return NULL;
 }
 
 char *addsym(sname, tarray, type, value, lgptrptr, class)
-char    *sname;
-char    tarray[];
-int     type;
-int     value;
-char    **lgptrptr;
-int     class;
+char *sname;
+char tarray[];
+int type;
+int value;
+char **lgptrptr;
+int class;
 {
-        int i;
-        char        *s;
+    int i;
+    char *s;
 
-        if (lgptrptr == &glbptr)        {
-                if (cptr2 = findglb(sname)) {
-                    fprintf(stderr,"Addsym: %s already a global\n",sname);
-                        return (cptr2);
-            }
-
-                if (cptr == 0)  {
-                        error("global symbol table overflow");
-                        return 0;
-                }
-        } else {
-                if (locptr > (ENDLOC - SYMMAX)) {
-                        error("local symbol table overflow");
-                        exit(1);
-                }
-
-            if (*lgptrptr != locptr)
-                    fprintf(stderr,"Addsym: illegal lgptrptr\n");
-                cptr = locptr;
+    if (lgptrptr == &glbptr) {
+        if (cptr2 = findglb(sname)) {
+            fprintf(stderr, "Addsym: %s already a global\n", sname);
+            return (cptr2);
         }
 
-        for (i=0;i<HIER_LEN;++i) {
-            cptr[IDENT+i] = tarray[i];
+        if (cptr == 0) {
+            error("global symbol table overflow");
+            return 0;
         }
-        cptr[TYPE] = type;
-        cptr[CLASS] = class;
-        putint(value, cptr + OFFSET, OFFSIZE);
-        cptr3 = cptr2 = cptr + NAME;
-
-        while (an(*sname))
-                *cptr2++ = *sname++;
-
-        *cptr2 = 0;             /* null terminate in symtab */
-        if (lgptrptr == &locptr)        {
-                locptr = cptr + SYMMAX;
+    } else {
+        if (locptr > (ENDLOC - SYMMAX)) {
+            error("local symbol table overflow");
+            exit(1);
         }
 
-        return cptr;
+        if (*lgptrptr != locptr)
+            fprintf(stderr, "Addsym: illegal lgptrptr\n");
+        cptr = locptr;
+    }
+
+    for (i = 0; i < HIER_LEN; ++i) {
+        cptr[IDENT + i] = tarray[i];
+    }
+    cptr[TYPE] = type;
+    cptr[CLASS] = class;
+    putint(value, cptr + OFFSET, OFFSIZE);
+    cptr3 = cptr2 = cptr + NAME;
+
+    while (an(*sname))
+        *cptr2++ = *sname++;
+
+    *cptr2 = 0;                 /* null terminate in symtab */
+    if (lgptrptr == &locptr) {
+        locptr = cptr + SYMMAX;
+    }
+
+    return cptr;
 }
 
 char *nextsym(entry)
-char    *entry;
-        {
+char *entry;
+{
 
-        entry = entry + SYMMAX;
+    entry = entry + SYMMAX;
 
-        return (entry);
+    return (entry);
 }
 
 /*
@@ -160,17 +155,17 @@ char    *entry;
 */
 
 getint(addr, len)
-char    *addr;
-int     len;
-        {
-        int i;
+char *addr;
+int len;
+{
+    int i;
 
-        i = *(addr + --len);
+    i = *(addr + --len);
 
-        while (len--)
-                i = (i << 8) | *(addr + len) & 255;
+    while (len--)
+        i = (i << 8) | *(addr + len) & 255;
 
-        return (i);
+    return (i);
 }
 
 /*
@@ -179,14 +174,14 @@ int     len;
 */
 
 putint(i, addr, len)
-char    *addr;
-int     i, len;
-        {
+char *addr;
+int i, len;
+{
 
-        while (len--)   {
-                *addr++ = i;
-                i = i >> 8;
-        }
+    while (len--) {
+        *addr++ = i;
+        i = i >> 8;
+    }
 }
 
 /*
@@ -194,27 +189,27 @@ int     i, len;
 */
 
 symname(sname, ucase)
-char    *sname;
-int     ucase;
-        {
-        int     k;
+char *sname;
+int ucase;
+{
+    int k;
 
-        blanks();
+    blanks();
 
-        if (alpha(ch) == 0)
-                return (0);
+    if (alpha(ch) == 0)
+        return (0);
 
-        k = 0;
+    k = 0;
 
-        while (an(ch))  {
-                        sname[k] = gch();
+    while (an(ch)) {
+        sname[k] = gch();
 
-                if (k < NAMEMAX)
-                        ++k;
-        }
+        if (k < NAMEMAX)
+            ++k;
+    }
 
-        sname[k] = 0;
-        return (1);
+    sname[k] = 0;
+    return (1);
 }
 
 /*
@@ -222,9 +217,9 @@ int     ucase;
 */
 
 getlabel()
-        {
+{
 
-        return (++nxtlab);
+    return (++nxtlab);
 }
 
 /*
@@ -232,12 +227,12 @@ getlabel()
 */
 
 postlabel(label)
-int     label;
-        {
+int label;
+{
 
-        printlabel(label);
-        col();
-        nl();
+    printlabel(label);
+    col();
+    nl();
 }
 
 /*
@@ -245,11 +240,11 @@ int     label;
 */
 
 printlabel(label)
-int     label;
-        {
+int label;
+{
 
-        outstr("$?");
-        outdec(label);
+    outstr("$?");
+    outdec(label);
 }
 
 /*
@@ -257,10 +252,10 @@ int     label;
 */
 
 alpha(c)
-char    c;
-        {
+char c;
+{
 
-    return (  ((c >= 'a') & (c <= 'z'))
+    return (((c >= 'a') & (c <= 'z'))
             | ((c >= 'A') & (c <= 'Z'))
             | (c == '_'));
 }
@@ -270,10 +265,10 @@ char    c;
 */
 
 numeric(c)
-char    c;
-        {
+char c;
+{
 
-        return ((c >= '0') & (c <= '9'));
+    return ((c >= '0') & (c <= '9'));
 }
 
 /*
@@ -281,129 +276,127 @@ char    c;
 */
 
 an(c)
-char    c;
-        {
+char c;
+{
 
-        return ((alpha(c)) | (numeric(c)));
+    return ((alpha(c)) | (numeric(c)));
 }
 
 addwhile(ptr)
-int     ptr[];
-        {
+int ptr[];
+{
 
-        ptr[WQSP] = csp;
-        ptr[WQLOOP] = getlabel();
-        ptr[WQEXIT] = getlabel();
+    ptr[WQSP] = csp;
+    ptr[WQLOOP] = getlabel();
+    ptr[WQEXIT] = getlabel();
 
-        if (wqptr == WQMAX)     {
-                error("too many active loops");
-                exit(1);
-        }
+    if (wqptr == WQMAX) {
+        error("too many active loops");
+        exit(1);
+    }
 
-        xi = 0;
+    xi = 0;
 
-        while (xi < WQSIZ)
-                *wqptr++ = ptr[xi++];
+    while (xi < WQSIZ)
+        *wqptr++ = ptr[xi++];
 }
 
 delwhile()
-        {
-
-        int *readwhile();
-        if (readwhile()!=NULL)
-                wqptr = wqptr - WQSIZ;
-}
-
-int     *readwhile()
 {
 
-        if (wqptr == wq)        {
-                error("no active loops");
-                return (0);
-        }
-        else
-                return (wqptr - WQSIZ);
+    int *readwhile();
+    if (readwhile() != NULL)
+        wqptr = wqptr - WQSIZ;
+}
+
+int *readwhile()
+{
+
+    if (wqptr == wq) {
+        error("no active loops");
+        return (0);
+    } else
+        return (wqptr - WQSIZ);
 }
 
 white()
-        {
+{
 
-        if (*lptr == ' ')
-                return (1);
+    if (*lptr == ' ')
+        return (1);
 
-        if (*lptr == 9)
-                return (1);
+    if (*lptr == 9)
+        return (1);
 
-        return (0);
+    return (0);
 }
 
 gch()
-        {
+{
 
-        if (xc = ch)
-                bump(1);
+    if (xc = ch)
+        bump(1);
 
-        return (xc);
+    return (xc);
 }
 
 bump(n)
-int     n;
-        {
+int n;
+{
 
-        if (n)
-                lptr = lptr + n;
-        else
-                lptr = line;
+    if (n)
+        lptr = lptr + n;
+    else
+        lptr = line;
 
-        if (ch = nch = *lptr)
-                nch = *(lptr + 1);
+    if (ch = nch = *lptr)
+        nch = *(lptr + 1);
 }
 
 kill()
-        {
+{
 
-        *line = 0;
-        bump(0);
+    *line = 0;
+    bump(0);
 }
 
 inbyte()
-        {
+{
 
-        while (ch == 0) {
-                if (eof)
-                        return (0);
+    while (ch == 0) {
+        if (eof)
+            return (0);
 
-                preprocess();
-        }
+        preprocess();
+    }
 
-        return (gch());
+    return (gch());
 }
 
 inline()
-        {
-        FILE        *unit;
+{
+    FILE *unit;
 
-        for (;;)        {
-                if (input == NULL)
-                        openin();
+    for (;;) {
+        if (input == NULL)
+            openin();
 
-                if (eof)
-                        return;
+        if (eof)
+            return;
 
-                if ((unit = input2) == NULL)
-                        unit = input;
+        if ((unit = input2) == NULL)
+            unit = input;
 
-                if (fgets(line, LINEMAX, unit) == NULL) {
-                        fclose(unit);
+        if (fgets(line, LINEMAX, unit) == NULL) {
+            fclose(unit);
 
-                        if (input2 != NULL)
-                                input2 = NULL;
-                        else
-                                input = NULL;
-                }
-                else    {
-                        bump(0);
-                        return;
-                }
+            if (input2 != NULL)
+                input2 = NULL;
+            else
+                input = NULL;
+        } else {
+            bump(0);
+            return;
         }
+    }
 }
