@@ -6,7 +6,7 @@ F_SYS80	EQU	0
 F_ATERM	EQU	0
 ;
 *GET	DOSCALLS
-*GET	TERMINAL
+*GET    RS232
 ;
 	COM	'<getfiles 1.0 05-Apr-86>'
 ;
@@ -139,7 +139,7 @@ RS_INIT
 	OUT	(WRSTAT),A		;Zeta
 	LD	A,40H			;Zeta
 	OUT	(WRSTAT),A		;Zeta
-	LD	A,0EH			;Zeta‚
+	LD	A,0EH			;Zeta
 	OUT	(WRSTAT),A		;Zeta
 	LD	A,05H			;Zeta
 	OUT	(WRSTAT),A		;Zeta
