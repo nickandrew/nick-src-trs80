@@ -31,7 +31,7 @@ TOPSTACK			;The top of stack if zeta
 	IF	DEBUGF
 *GET	DEBUGF
 	ELSE
-DEBUG	MACRO	#$STR
+DEBUG	MACRO	#STR
 	ENDM
 	ENDIF
 ;

@@ -30,9 +30,9 @@ TOVDU3
 ;
 	JP	(HL)
 ;
-DEBUG	MACRO	#$STR
+DEBUG	MACRO	#STR
 	CALL	TOVDU
-	DEFM	#$STR,' ',0
+	DEFM	#STR,' ',0
 	ENDM
 ;
 ;End of debugf
