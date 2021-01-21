@@ -1,6 +1,8 @@
 ;debug: Help debug C compiler output
 ;Last updated: 06-Mar-89
 ;
+; Function TOVDU prints out the string in memory which immediately
+; follows CALL TOVDU, and jumps past the string to return.
 TOVDU	POP	HL
 TOVDU1
 	LD	A,(HL)
