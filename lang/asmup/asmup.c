@@ -5,30 +5,34 @@
 #include <stdio.h>
 #include <ctype.h>
 
-char buf[81], *cp, q;
+char buf[81], c, *cp, q;
 
 main()
 {
     while (fgets(buf, 80, stdin) != NULL) {
         cp = buf;
+
         while (*cp) {
 
             /* ignore the innards of strings etc */
             if (*cp == '\'' || *cp == '"') {
                 q = *cp;
                 while (*++cp != q && *cp) ;
-                cp = (q ? ++cp : cp);
+                cp = cp + 1;
                 continue;
             }
 
-            /* bypass conversion if comment */
-            if (*cp == ';')
+            /* bypass conversion for rest of line if comment */
+            c = *cp;
+            if (c == ';')
                 break;
 
-            if (*cp >= 'a' && *cp <= 'z')
-                *cp = toupper(*cp);
+            if (c >= 'a' && c <= 'z')
+                *cp = toupper(c);
+
             ++cp;
         }
+
         fputs(buf, stdout);
     }
 }
