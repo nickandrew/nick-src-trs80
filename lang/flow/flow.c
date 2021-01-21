@@ -4,7 +4,7 @@
 */
 
 #include <stdio.h>
-#include "flow/h"     /* flow.h */
+#include "flow.h"
 
 main(argc,argv)
 int  argc;

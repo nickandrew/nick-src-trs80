@@ -1,4 +1,3 @@
-
 /*  uechoarc : A filter for echoarc messages
  *  Converted by Nick Andrew
  */
