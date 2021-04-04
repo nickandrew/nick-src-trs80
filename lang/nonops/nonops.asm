@@ -2,7 +2,7 @@
 ; files to form 'DC  number,00h'.
 ; Version 1.1 06-Feb-85.
 ;
-*GET	DOSCALLS:1
+*GET	DOSCALLS
 ;
 	ORG	5200H
 START	LD	DE,FCB_INP

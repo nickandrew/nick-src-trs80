@@ -1,10 +1,13 @@
 ;dumprom: Dump the nicemodem rom
+;  Usage: dumprom filename/bin
+
 *GET	DOSCALLS
 CR	EQU	0DH
 LF	EQU	0AH
 ;
-	COM	'<dumprom 1.0  11-Nov-86>'
-	ORG	5300H
+	ORG	5200H
+	DEFM	'<dumprom 1.0  2021-01-13 from 11-Nov-86>'
+	DEFS	256			; 256 bytes of low stack
 START	LD	SP,START
 	LD	DE,FCB_OUT
 	CALL	DOS_EXTRACT

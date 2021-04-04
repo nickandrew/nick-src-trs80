@@ -6,7 +6,8 @@
 RS	EQU	1EH	;magic numbers
 US	EQU	1FH	;magic numbers
 ;
-	COM	'<Unpack version 0.1 - 21-Sep-86>'
+	ORG	5200H
+	DEFM	'<Unpack version 0.1 - 21-Sep-86>'
 	ORG	5300H
 START	LD	SP,START
 	LD	A,(HL)
