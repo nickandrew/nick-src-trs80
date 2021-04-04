@@ -1,4 +1,4 @@
-;external.hdr: definitions for external constants
+;external.asm: definitions for external constants
 ;and high memory locations.
 ;last modified 31-Dec-88.
 ;
@@ -7,21 +7,21 @@
 MAX_LOWMEM	EQU	0B400H
 ;
 ;First 256 bytes of externals follow.....
-ALLOC_PAGE	EQU	0FE00H	;C- allocate a page #
-FREE_PAGE	EQU	0FE03H	;C- unalloc a page
-SWAP_PAGE	EQU	0FE06H	;C- swap a page in.
+ALLOC_PAGE	EQU	0FE00H	;C- allocate a page # (See special.asm)
+FREE_PAGE	EQU	0FE03H	;C- unalloc a page (See special.asm)
+SWAP_PAGE	EQU	0FE06H	;C- swap a page in. (See special.asm)
 PROCESS		EQU	0FE09H	;B- Current process #
 ;;BRK		EQU	0FE0AH	;C- Set top of addr space
 SYS_CALL	EQU	0FE0DH	;C- Any system call
 ;
 ;
-;Device equates.
+;Device equates. Initialised by zeta-bbs/comm/devices/devices.asm
 $KI	EQU	0FF00H		;8- keyboard
 $DO	EQU	0FF08H		;8- display
 $SI	EQU	0FF10H		;8- serial in
 $SO	EQU	0FF18H		;8- serial out
-$2I	EQU	0FF20H		;8- keyboard OR serial in
-$2O	EQU	0FF28H		;8- Screen AND serial out
+DCB_2I	EQU	0FF20H		;8- keyboard OR serial in (equivalent to DCB_2O)
+DCB_2O	EQU	0FF28H		;8- Screen AND serial out (equivalent to DCB_2I)
 ;;$PR	EQU	0FF30H		;8- printer OR screen
 ;;$TA	EQU	0FF38H		;8- type-ahead.
 ;
@@ -30,7 +30,6 @@ $KBD	EQU	4015H		;Kbd device driver
 $VDU	EQU	401DH		;VDU device driver
 ;
 ;Aliased devices...
-$2	EQU	0FF20H
 $S	EQU	0FF10H
 ;
 ;Rom / Dos System calls.
@@ -39,25 +38,25 @@ $PUT	EQU	001BH		;write a byte
 $CTL	EQU	0023H		;device control
 ;
 ;High Memory ZETA System calls and data
-LOST_CARRIER	EQU	0FF40H	;J- Lost Carrier
-IO_TIMEOUT	EQU	0FF43H	;J- Timeout.
-CARR_DETECT	EQU	0FF46H	;C- Chk Carrier
-TEL_HANGUP	EQU	0FF49H	;C- Hang up.
-TEL_PICKUP	EQU	0FF4CH	;C- Pick up.
+LOST_CARRIER	EQU	0FF40H	;J- Lost Carrier (See special.asm)
+IO_TIMEOUT	EQU	0FF43H	;J- Timeout. (See special.asm)
+CARR_DETECT	EQU	0FF46H	;C- Chk Carrier (See special.asm)
+TEL_HANGUP	EQU	0FF49H	;C- Hang up. (See special.asm)
+TEL_PICKUP	EQU	0FF4CH	;C- Pick up. (See special.asm)
 SER_CHAR	EQU	0FF4FH	;B- Last char typed
 INPUT_BUFFER	EQU	0FF50H	;16- Buff for $TA
 ;Replace chars_sent & chars_recvd by these:
-MEM_OWNER	EQU	0FF60H	;W- addr page owners
-MEM_TABLE	EQU	0FF62H	;W- addr swapped-in pages
+MEM_OWNER	EQU	0FF60H	;W- addr page owners (See special.asm)
+MEM_TABLE	EQU	0FF62H	;W- addr swapped-in pages (See special.asm)
 ;
 ;;BUFFER		EQU	0FF64H	;W- buffer space
 ;;FCB		EQU	0FF66H	;W- fcb space
 USR_NAME	EQU	0FF68H	;W- name string
 USR_NUMBER	EQU	0FF6AH	;W- user #
-USR_LOGOUT	EQU	0FF6CH	;J- log off user
-SECOND		EQU	0FF6FH	;C- wait 'A' sec
+USR_LOGOUT	EQU	0FF6CH	;J- log off user (See special.asm)
+SECOND		EQU	0FF6FH	;C- wait 'A' sec (See special.asm)
 ;;MESSAGE		EQU	0FF72H	;C- msg to device
-;;LIST		EQU	0FF75H	;C- list file to $2o
+;;LIST		EQU	0FF75H	;C- list file to DCB_2O
 PRIV_1		EQU	0FF78H	;B- first privileges
 PRIV_2		EQU	0FF79H	;B- second.
 ;Definitions for privilege bits PRIV_1

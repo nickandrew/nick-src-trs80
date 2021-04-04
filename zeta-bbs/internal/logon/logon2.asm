@@ -3,14 +3,14 @@
 HI_VISITOR
 	CALL	WAIT_KEY
 	LD	HL,M_VISIT
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	HL,F_VISIT
 	CALL	LIST_NOSTOP
 ;
 	IF	NEWCOND		;Visitors must agree say Y
 HV_1A	LD	HL,M_AGREE
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 HV_2	LD	HL,YN_BUFF
 	LD	B,1
@@ -24,13 +24,13 @@ HV_2	LD	HL,YN_BUFF
 	JR	NZ,HV_1A
 ;user doesn't like to use the system!
 	LD	HL,M_STUFFED
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	A,2
 	JP	TERM_DISCON	;Un-civil behaviour.
 ;
 HV_3	LD	HL,M_AGRD
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 ;
 	ENDIF			;newcond
@@ -86,7 +86,7 @@ REGISTER			;Register a new person.
 	CALL	PUTS_0
 ;
 WHPASS	LD	HL,M_WHPASS	;ask for a password
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	HL,PASS_BUFF
 	LD	B,12
@@ -101,7 +101,7 @@ WHPASS	LD	HL,M_WHPASS	;ask for a password
 	CP	4
 	JR	NC,REG_00A
 	LD	HL,M_PASS_SHRT
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	JR	WHPASS		;try again.
 REG_00A
@@ -110,7 +110,7 @@ REG_00A
 	CALL	INSTR
 	JR	NZ,REG_00B
 	LD	HL,M_PASS_NAME
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	JR	WHPASS
 ;

@@ -1,5 +1,8 @@
 ;routines.lib: Common routines for global label search.
 ;Last updated: 28 Jun 89.
+
+*GET	RS232		; routines.asm depends on constants defined in rs232.asm
+
 ;
 ;PRINT_NUMB. Print a number in HL to unit $stdout_def.
 ;sets up TENS&ONES for suffix printing.
@@ -7,7 +10,7 @@
 ;
 	IFREF	PRINT_NUMB
 PRINT_NUMB
-	LD	DE,$2
+	LD	DE,DCB_2O
 	JR	PRINT_NUMB_DEV
 ;
 	ENDIF	;print_numb
@@ -653,7 +656,7 @@ MESS_0
 ;puts: Put a string to $stdout_def.
 	IFREF	PUTS
 PUTS	PUSH	DE
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	FPUTS
 	POP	DE
 	RET
@@ -689,10 +692,9 @@ _FG2	LD	(HL),0
 	RET
 	ENDIF	;fgets
 ;
-;List: List a file to $2, allow abort with ^C
-	IFREF	LIST
-	ERR	'List should no longer be used'
-LIST	LD	DE,_L_DCB
+;List: List a file to DCB_2O, allow abort with ^C
+	IFREF	LIST_FILE
+LIST_FILE	LD	DE,_L_DCB
 	CALL	EXTRACT
 	LD	HL,_L_BUFF
 	LD	B,0
@@ -707,20 +709,20 @@ _L_LP	LD	DE,_L_DCB
 	RET
 _L_NE	OR	A
 	RET	Z
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	CALL	$GET
 	CP	1
 	JR	NZ,_L_LP
 	LD	A,CR
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	RET
 ;
 _L_DCB	DEFS	32
 _L_BUFF	DEFS	256
 ;
-	ENDIF	;ifref list
+	ENDIF	;ifref list_file
 ;
 ;Extract: Extract a filespec... Doesn't use SYS1.
 	IFREF	EXTRACT
@@ -765,7 +767,7 @@ _EXT_04
 ;std_out: Output byte to $STDOUT
 	IFREF	STD_OUT
 STD_OUT
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	RET
 	ENDIF
@@ -773,7 +775,7 @@ STD_OUT
 ;std_in: Input byte from $STDIN
 	IFREF	STD_IN
 STD_IN
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	RET
 	ENDIF
@@ -893,7 +895,7 @@ _SPTENS		DEFB	0
 _SPONES		DEFB	0
 _SPPOS		DEFW	0
 ;
-	ENDIF	SPUTNUM
+	ENDIF	;ifref SPUTNUM
 ;
 ;get_number: Convert a string ptd to by HL to a number HL
 	IFREF	GET_NUMBER
@@ -940,7 +942,7 @@ IF_NUM:		;check if ascii numeric
 	RET	NC
 	CP	A
 	RET
-	ENDIF	IF_NUM
+	ENDIF	;ifref IF_NUM
 ;
 ;sec10: Delay A x 0.1 seconds
 	IFREF	SEC10
@@ -960,7 +962,7 @@ S1_2	LD	A,(TICKER)
 	JR	NZ,S1_1
 	POP	BC
 	RET
-	ENDIF	SEC10
+	ENDIF	;ifref SEC10
 ;
 ;list_nostop: list a file without allowing aborting.
 	IFREF	LIST_NOSTOP
@@ -985,7 +987,7 @@ _LN_LOOP
 	RET
 ;
 _LN_NEOF
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	CALL	$GET
 	JR	_LN_LOOP

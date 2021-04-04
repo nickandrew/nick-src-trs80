@@ -35,7 +35,7 @@ TRACE	DEFW	0	; link - used by NEWDOS
 	LD	DE,3C00H+47	; screen pos to display PC
 	LD	B,4		; number of digits
 
-V	XOR	A
+_V	XOR	A
 	ADD	HL,HL	; shift one hex digit (4 bits)..
 	ADC	A,A	; ..out of HL into A
 	ADD	HL,HL
@@ -51,7 +51,7 @@ V	XOR	A
 
 	LD	(DE),A	; place digit on screen
 	INC	DE	; next screen pos
-	DJNZ	V	; next digit (if any)
+	DJNZ	_V	; next digit (if any)
 	RET
 TRCEND	EQU	$
 

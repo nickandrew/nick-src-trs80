@@ -36,7 +36,7 @@ START
 	JR	Z,ANS_01
 ;
 	LD	HL,M_42
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0		;Print a cute message
 	LD	A,2
 	JP	TERMINATE	;if already logged on
@@ -215,7 +215,7 @@ CD_300_2
 	CALL	LOG_MSG
 ;
 	LD	HL,M_TOOSLOW
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 ;
 	LD	A,100		;Delay 10 full seconds
@@ -249,7 +249,7 @@ CDFOUND
 ;
 	CALL	T_STR
 	LD	HL,TIMDAT	;Output time/date
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	HL,M_ZETA	;Output Zeta message
 	CALL	MESS_0
@@ -647,9 +647,9 @@ DTR_ON
 	RET
 ;
 ROUTE_DEV
-	LD	HL,($2+1)	;Route devices
+	LD	HL,(DCB_2I+1)	;Route devices
 	LD	($KBD+1),HL
-	LD	HL,($2+1)
+	LD	HL,(DCB_2O+1)
 	LD	($VDU+1),HL
 ;
 	CALL	SET_STDDEV
@@ -659,7 +659,7 @@ ROUTE_DEV
 ;
 SET_STDDEV
 ;Set standard devices.
-	LD	HL,$2
+	LD	HL,DCB_2O
 	LD	($STDOUT),HL
 	LD	($STDIN),HL
 	LD	($STDOUT_DEF),HL
@@ -861,7 +861,7 @@ LF_01
 	LD	DE,FCB_LIST
 	CALL	$GET
 	JR	NZ,LF_02
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	JR	LF_01
 ;

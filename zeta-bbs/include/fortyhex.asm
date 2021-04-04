@@ -12,7 +12,7 @@ FORTYHEX:
 ;Turn cursor on.
 ;
 _40H_LOOP
-	LD	DE,$2
+	LD	DE,DCB_2I
 	CALL	$GET
 	OR	A
 	JR	Z,_40H_LOOP
@@ -50,7 +50,7 @@ _40H_CR
 ;
 	PUSH	AF
 	LD	A,CR
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 ;
 	XOR	A
@@ -93,7 +93,7 @@ PUT_VISIBLE
 	LD	A,B
 	POP	BC
 	RET	NZ
-	LD	DE,$2
+	LD	DE,DCB_2O
 	CALL	$PUT
 	RET
 ;

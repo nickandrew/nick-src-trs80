@@ -28,7 +28,7 @@ CURR_PROCESS	DEFB	NULL
 ;free memory.
 ;
 	TAB_START	'himem'
-HIMEM	DEFW	END_FREE_MEM
+UNIX80_HIMEM	DEFW	END_FREE_MEM
 ;
 ; sys_busy and sys_unbusy temporary storage.
 	TAB_START	'B/U:SP'

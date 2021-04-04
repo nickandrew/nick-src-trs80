@@ -12,8 +12,6 @@ STD_DEV	EQU	1
 ;$DO	EQU	0FF08H
 ;$SI	EQU	0FF10H
 ;$SO	EQU	0FF18H
-;$2I	EQU	0FF20H
-;$2O	EQU	0FF28H
 ;$PR	EQU	0FF30H
 ;$TA	EQU	0FF38H
 	ENDIF
@@ -226,10 +224,10 @@ HI_OK	LD	DE,END_DRIVERS-DRIVERS
 	LD	($SO+1),HL
 	LD	HL,DEV_2-DRIVERS	;Was 2I
 	ADD	HL,DE
-	LD	($2I+1),HL
+	LD	(DCB_2I+1),HL
 	LD	HL,DEV_2-DRIVERS	;Was 2O
 	ADD	HL,DE
-	LD	($2O+1),HL
+	LD	(DCB_2O+1),HL
 ;
 	LD	HL,SERINP-DRIVERS
 	ADD	HL,DE
@@ -295,11 +293,11 @@ DCBS
 ;
 DRIVERS
 ;
-;DEV_2: Function for DEV_2O and DEV_2I
+;DEV_2: Input/Output dual driver entry point for DCB_2O and DCB_2I
 DEV_2	JR	C,DEV_2I
 	JR	DEV_2O
 ;
-;$2O Dual output driver.
+;Dual $DO and $SO output driver.
 DEV_2O	LD	A,C
 	PUSH	BC
 	LD	DE,$DO
@@ -320,7 +318,7 @@ NO_2SO
 	CP	A
 	RET
 ;
-;-------------------------------
+;Dual $KI and $SI input driver.
 DEV_2I
 	LD	DE,$KI
 	CALL	$GET		;first keyboard.

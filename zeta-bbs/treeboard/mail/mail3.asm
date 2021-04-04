@@ -219,7 +219,7 @@ MOVEMESSAGE
 	LD	A,1
 	LD	(MOVE_QUERY),A
 MMSG_1
-	CALL	GET_$2
+	CALL	GET_2I
 	CP	1
 	JR	Z,MMSG_Q
 ;make sure message is TO me or FROM me or SYSOP.
@@ -264,7 +264,7 @@ MMSG_3
 	CALL	PRINT_NUMB
 	CALL	PUTCR
 ;allow chance to abort.
-	CALL	GET_$2
+	CALL	GET_2I
 	CP	1
 	JR	Z,MMSG_Q
 ;move message.

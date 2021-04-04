@@ -301,13 +301,13 @@ LOGOUT				;do disconnect exit.
 ;;
 ;;LP_NEOF	OR	A
 ;;	JR	Z,CLOSIT
-;;	LD	DE,$2
+;;	LD	DE,DCB_2O
 ;;	CALL	$PUT
 ;;	CALL	$GET
 ;;	CP	1
 ;;	JR	NZ,LOOP
 ;;	LD	A,CR
-;;	LD	DE,$2
+;;	LD	DE,DCB_2O
 ;;	CALL	$PUT
 ;;
 ;;CLOSIT		;dont close we're only reading it.
