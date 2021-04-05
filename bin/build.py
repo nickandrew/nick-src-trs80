@@ -116,15 +116,8 @@ class LocalBuilder(object):
 
     return success
 
-def main():
-  parser = argparse.ArgumentParser(description="Build all source files in a YAML set.")
-  parser.add_argument('--control', required=True, help='YAML filename containing build instructions')
-  args = parser.parse_args()
-
-  with open(args.control, "r") as f:
-    data = yaml.safe_load(f)
-
-  builder = LocalBuilder(args)
+def build_control(builder, data):
+  """Build all directives in given dict."""
 
   for filename in data:
     d = data[filename]
@@ -139,6 +132,42 @@ def main():
         print(f'SUCCESS building {filename}')
       else:
         print(f'FAILURE building {filename}')
+
+def build_path(builder, control):
+  """Build from one YAML control file."""
+  with open(control, "r") as f:
+    data = yaml.safe_load(f)
+
+  build_control(builder, data)
+
+def build_root(builder, d):
+  """Build all BUILD.yaml files in d and its subdirectories."""
+
+  if not os.path.isdir(d):
+    raise NotADirectoryError(f'{d} is not a directory')
+
+  # Build subdirectories first
+  for root, dirs, files in os.walk(d, topdown=False):
+    if 'BUILD.yaml' in files:
+      print(f'Building {root}/BUILD.yaml')
+      build_path(builder, f'{root}/BUILD.yaml')
+
+
+def main():
+  parser = argparse.ArgumentParser(description="Build all source files in a YAML set.")
+  parser.add_argument('--control', required=False, help='YAML filename containing build instructions')
+  parser.add_argument('directories', nargs='*', type=str, help='Directories to build')
+  args = parser.parse_args()
+
+  builder = LocalBuilder(args)
+
+  if args.control:
+    build_path(builder, args.control)
+    return
+
+  if args.directories:
+    for d in args.directories:
+      build_root(builder, d)
 
 if __name__ == '__main__':
   main()
