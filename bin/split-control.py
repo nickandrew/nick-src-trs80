@@ -5,6 +5,8 @@ Usage: split-control.py input.yaml
 
 Output is in various */BUILD.yaml files throughout the repository.
 
+If any targets are skipped, they are written to "skipped.yaml".
+
 Pathnames in the files are not rewritten.
 """
 
@@ -90,15 +92,20 @@ def split_file(control):
     # output[dirname/BUILD.yaml] = dict of target
     output = {}
 
+    # skipped targets
+    skipped = {}
+
     for target_name in input:
         target = input[target_name]
         try:
             directory = primary_directory(target_name, target)
         except NoPrimaryDirectoryError as e:
             print(f'Skipping {target_name} due to NoPrimaryDirectoryError')
+            skipped[target_name] = target
             continue
         except MissingSourceFilenameError as e:
             print(f'Skipping {target_name} due to MissingSourceFilenameError')
+            skipped[target_name] = target
             continue
 
         output_file = f'{directory}/BUILD.yaml'
@@ -110,6 +117,10 @@ def split_file(control):
         output[output_file][target_name] = target
 
     write_targets(output)
+
+    if skipped:
+      with open('skipped.yaml', 'w') as fp:
+        yaml.dump(skipped, stream=fp)
 
 def main():
     """main() function."""
