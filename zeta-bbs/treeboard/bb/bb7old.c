@@ -2,28 +2,31 @@
 **  bb7.c:  Message file handling routines for BB
 */
 
+/* External functions. Not sure if I wrote these. */
+extern int seekto(int blk);
+extern int writeblk();
+extern int readblk();
 
+int getfree();
+void putfree(int blk);
 
 int blkpos, thisblk, nextblk, newblk;
 int thismsg, priormsg, nextmsg;
 
 char block[256], freemap[256];
 
-int getint(pos)
-int pos;
+int getint(int pos)
 {
     return (block[pos] & 0xff) + ((block[pos + 1] & 0xff) << 8);
 }
 
-setint(place, i)
-int place, i;
+void setint(int place, int i)
 {
     block[place] = i & 0xff;
     block[place + 1] = (i >> 8) & 0xff;
 }
 
-int bputs(string)
-char *string;
+int bputs(char *string)
 {
     int nextblk, i;
 
@@ -45,8 +48,7 @@ char *string;
     return 0;
 }
 
-int bputc(c)
-int c;
+int bputc(int c)
 {
     int nextblk, i;
 
@@ -87,11 +89,18 @@ int bgetc()
     return block[blkpos++] & 0xff;
 }
 
+/* Allocate a free block from the freemap and return its number (0-2047).
+**
+** Return -1 if all blocks are in use.
+**
+** A free block is a '0' bit in the freemap.
+*/
+
 int getfree()
 {
     int pos, blk, bit;
     blk = 0;
-    for (pos = 0; (freemap[pos] == -1) && pos < 256; ++pos)
+    for (pos = 0; (freemap[pos] == 0xff) && pos < 256; ++pos)
         blk += 8;
 
     if (pos == 256)
@@ -106,8 +115,10 @@ int getfree()
     return blk;
 }
 
-putfree(blk)
-int blk;
+/* putfree(): Free a block (0-2047) in the freemap.
+*/
+
+void putfree(int blk)
 {
     int pos;
     pos = blk / 8;
