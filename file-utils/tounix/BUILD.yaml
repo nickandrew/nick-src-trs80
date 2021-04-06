@@ -1,0 +1,5 @@
+tounix.cmd:
+  assemble: tounix.asm
+  depends:
+  - file-utils/tounix/tounix.asm
+  - include/include/doscalls.asm

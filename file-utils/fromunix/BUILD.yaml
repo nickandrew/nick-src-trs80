@@ -1,0 +1,5 @@
+fromunix.cmd:
+  assemble: fromunix.asm
+  depends:
+  - file-utils/fromunix/fromunix.asm
+  - include/include/doscalls.asm

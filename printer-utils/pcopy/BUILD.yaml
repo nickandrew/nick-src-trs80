@@ -1,0 +1,5 @@
+pcopy.cmd:
+  assemble: pcopy.asm
+  depends:
+  - printer-utils/pcopy/pcopy.asm
+  - include/include/doscalls.asm

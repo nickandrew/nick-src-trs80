@@ -1,0 +1,8 @@
+scripatc.cmd:
+  assemble: scripatc.asm
+  depends:
+  - patches/scripsit/scripatc.asm
+scrips80.cmd:
+  assemble: scrips80.asm
+  depends:
+  - patches/scripsit/scrips80.asm

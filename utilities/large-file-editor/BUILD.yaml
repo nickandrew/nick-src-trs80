@@ -1,0 +1,5 @@
+lfe.cmd:
+  assemble: lfe.asm
+  depends:
+  - utilities/large-file-editor/lfe.asm
+  - include/include/doscalls.asm

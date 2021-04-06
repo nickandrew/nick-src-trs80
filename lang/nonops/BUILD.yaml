@@ -1,0 +1,5 @@
+nonops.cmd:
+  assemble: nonops.asm
+  depends:
+  - lang/nonops/nonops.asm
+  - include/include/doscalls.asm

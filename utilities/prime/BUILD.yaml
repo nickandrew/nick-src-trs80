@@ -1,0 +1,4 @@
+prime2.cmd:
+  assemble: prime2.asm
+  depends:
+  - utilities/prime/prime2.asm

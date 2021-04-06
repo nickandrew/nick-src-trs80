@@ -1,0 +1,4 @@
+scrdmp.cmd:
+  assemble: scrdmp.asm
+  depends:
+  - utilities/screen-dump/scrdmp.asm

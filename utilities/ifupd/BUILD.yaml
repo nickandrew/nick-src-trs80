@@ -1,0 +1,5 @@
+ifupd.cmd:
+  assemble: ifupd.asm
+  depends:
+  - utilities/ifupd/ifupd.asm
+  - include/include/doscalls.asm

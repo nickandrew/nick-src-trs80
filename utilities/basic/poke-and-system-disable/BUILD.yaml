@@ -1,0 +1,4 @@
+disabl.cmd:
+  assemble: disabl.asm
+  depends:
+  - utilities/basic/poke-and-system-disable/disabl.asm

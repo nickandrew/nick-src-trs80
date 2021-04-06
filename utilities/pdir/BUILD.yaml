@@ -1,0 +1,4 @@
+pdir.cmd:
+  assemble: pdir.asm
+  depends:
+  - utilities/pdir/pdir.asm

@@ -1,0 +1,5 @@
+regions.cmd:
+  assemble: regions.asm
+  depends:
+  - utilities/cmd/regions/regions.asm
+  - include/include/doscalls.asm

@@ -1,0 +1,5 @@
+delabel.cmd:
+  assemble: delabel.asm
+  depends:
+  - lang/delabel/delabel.asm
+  - include/include/doscalls.asm

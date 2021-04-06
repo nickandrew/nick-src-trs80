@@ -1,0 +1,10 @@
+cat.cmd:
+  assemble: cat.asm
+  depends:
+  - zeta-bbs/utilities/cat/cat.asm
+  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/userfile.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - include/include/ascii.asm

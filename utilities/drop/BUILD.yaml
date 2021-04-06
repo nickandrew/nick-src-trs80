@@ -1,0 +1,5 @@
+drop.cmd:
+  assemble: drop.asm
+  depends:
+  - utilities/drop/drop.asm
+  - include/include/doscalls.asm

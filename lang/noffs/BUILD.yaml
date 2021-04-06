@@ -1,0 +1,5 @@
+noffs.cmd:
+  assemble: noffs.asm
+  depends:
+  - lang/noffs/noffs.asm
+  - include/include/doscalls.asm

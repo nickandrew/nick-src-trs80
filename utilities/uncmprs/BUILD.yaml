@@ -1,0 +1,5 @@
+uncmprs.cmd:
+  assemble: uncmprs.asm
+  depends:
+  - utilities/uncmprs/uncmprs.asm
+  - include/include/doscalls.asm

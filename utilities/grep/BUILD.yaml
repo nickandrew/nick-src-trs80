@@ -1,0 +1,6 @@
+grep.cmd:
+  assemble: grep.asm
+  depends:
+  - utilities/grep/grep.asm
+  - include/include/doscalls.asm
+  - include/include/ascii.asm

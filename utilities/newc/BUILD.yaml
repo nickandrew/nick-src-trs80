@@ -1,0 +1,4 @@
+newc.cmd:
+  assemble: newc.asm
+  depends:
+  - utilities/newc/newc.asm

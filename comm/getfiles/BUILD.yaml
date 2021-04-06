@@ -1,0 +1,6 @@
+getfiles.cmd:
+  assemble: getfiles.asm
+  depends:
+  - comm/getfiles/getfiles.asm
+  - include/include/doscalls.asm
+  - zeta-bbs/include/rs232.asm

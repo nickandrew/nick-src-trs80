@@ -1,0 +1,5 @@
+textdiff.cmd:
+  assemble: textdiff.asm
+  depends:
+  - utilities/textdiff/textdiff.asm
+  - include/include/doscalls.asm

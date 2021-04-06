@@ -1,0 +1,5 @@
+unline.cmd:
+  assemble: unline.asm
+  depends:
+  - lang/unline/unline.asm
+  - include/include/doscalls.asm

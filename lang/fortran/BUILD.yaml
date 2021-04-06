@@ -1,0 +1,4 @@
+change.cmd:
+  assemble: change.asm
+  depends:
+  - lang/fortran/change.asm

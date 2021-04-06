@@ -1,0 +1,5 @@
+dumprom.cmd:
+  assemble: dumprom.asm
+  depends:
+  - comm/dumprom/dumprom.asm
+  - include/include/doscalls.asm

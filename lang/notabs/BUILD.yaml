@@ -1,0 +1,5 @@
+notabs.cmd:
+  assemble: notabs.asm
+  depends:
+  - lang/notabs/notabs.asm
+  - include/include/doscalls.asm

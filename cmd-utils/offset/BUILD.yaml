@@ -1,0 +1,10 @@
+offsetv1.cmd:
+  assemble: offsetv1.asm
+  depends:
+  - cmd-utils/offset/offsetv1.asm
+  - include/include/doscalls.asm
+offsetv2.cmd:
+  assemble: offsetv2.asm
+  depends:
+  - cmd-utils/offset/offsetv2.asm
+  - include/include/doscalls.asm

@@ -1,0 +1,4 @@
+f80pch.cmd:
+  assemble: f80pch.asm
+  depends:
+  - patches/fortran-80/f80pch.asm

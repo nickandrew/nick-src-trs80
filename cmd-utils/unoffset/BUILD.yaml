@@ -1,0 +1,5 @@
+unoffset.cmd:
+  assemble: unoffset.asm
+  depends:
+  - cmd-utils/unoffset/unoffset.asm
+  - include/include/doscalls.asm

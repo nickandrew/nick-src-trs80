@@ -1,0 +1,5 @@
+mdtocim.cmd:
+  assemble: mdtocim.asm
+  depends:
+  - cmd-utils/mdtocim/mdtocim.asm
+  - include/include/doscalls.asm

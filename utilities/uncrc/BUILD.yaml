@@ -1,0 +1,4 @@
+uncrc.cmd:
+  assemble: uncrc.asm
+  depends:
+  - utilities/uncrc/uncrc.asm

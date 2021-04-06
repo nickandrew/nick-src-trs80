@@ -1,0 +1,8 @@
+fs2.cmd:
+  assemble: fs2.asm
+  depends:
+  - patches/fs1/fs2.asm
+fs2disk.cmd:
+  assemble: fs2disk.asm
+  depends:
+  - patches/fs1/fs2disk.asm

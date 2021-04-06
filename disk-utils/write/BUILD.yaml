@@ -1,0 +1,4 @@
+write.cmd:
+  assemble: write.asm
+  depends:
+  - disk-utils/write/write.asm

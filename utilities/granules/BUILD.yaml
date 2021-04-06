@@ -1,0 +1,8 @@
+granules.cmd:
+  assemble: granules.asm
+  depends:
+  - utilities/granules/granules.asm
+map.cmd:
+  assemble: map.asm
+  depends:
+  - utilities/granules/map.asm

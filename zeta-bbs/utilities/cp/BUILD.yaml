@@ -1,0 +1,10 @@
+cp.cmd:
+  assemble: cp.asm
+  depends:
+  - include/include/ascii.asm
+  - include/include/external.asm
+  - include/include/doscalls.asm
+  - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/userfile.asm
+  - zeta-bbs/utilities/cp/cp.asm
