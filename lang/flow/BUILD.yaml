@@ -2,4 +2,3 @@ flow.asm:
   sdcc: flow.c
   depends:
   - lang/flow/flow.c
-  - lang/flow/flow.h

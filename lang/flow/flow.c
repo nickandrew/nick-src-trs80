@@ -4,22 +4,35 @@
 */
 
 #include <stdio.h>
-#include "flow.h"
+#include <stdlib.h>
+#include <string.h>
 
-main(argc, argv)
-int argc;
-char *argv[];
+FILE  *asm;
+char  string[256];
+int   lineno, num;
+
+char *ops[] = {
+    "CALL",   "JP",     "JR",     "RET",    "IF",
+    "ENDIF",  "ELSE",   "IFREF",  "IFDEF",  "IFNDEF",
+    "MACRO",  "ENDM",
+    0
+};
+
+void opcode();
+void label();
+
+int main(int argc, char *argv[])
 {
     if (argc != 2) {
         printf("flow:  Show how an assembly program flows\n");
         printf("Usage: %s filename\n", *argv);
-        exit(1);
+        return 1;
     }
 
     asm = fopen(argv[1], "r");
     if (asm == NULL) {
         printf("Couldn't open %s\n", asm);
-        exit(2);
+        return 2;
     }
 
     lineno = 0;
@@ -45,15 +58,17 @@ char *argv[];
         if (num)
             putchar('\n');
     }
+
+    return 0;
 }
 
 /*
 **  opcode() ... If the opcode part is known then print it
 */
 
-opcode()
+void opcode()
 {
-    int i = 0, j;
+    int i = 0;
     char *cp, *cp2, *str, oldchar;
 
     cp = string;
@@ -99,7 +114,7 @@ opcode()
 **  label() ... Print the label portion of a line
 */
 
-label()
+void label()
 {
 
     int i = 0;
