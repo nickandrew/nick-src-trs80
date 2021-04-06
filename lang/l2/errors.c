@@ -8,24 +8,25 @@
 
 
 
-#include <stdio.h>       /* Standard IO functions */
-#include "errors.h"      /* Anything necessary for errors */
+#include <stdio.h>              /* Standard IO functions */
+#include "errors.h"             /* Anything necessary for errors */
 
 error(msg)
 char *msg;
 {
     /* print an error message */
 
-    int  i;
+    int i;
     ++errorfound;
 
     /* tab out to the position of the error */
 
     i = linepos + 3;
-    while (i-- > 0) fputc(' ',f_list);
+    while (i-- > 0)
+        fputc(' ', f_list);
 
-    fputs("|\n",f_list);
-    fputs(msg,f_list);
-    fputc('\n',f_list);
+    fputs("|\n", f_list);
+    fputs(msg, f_list);
+    fputc('\n', f_list);
 
 }

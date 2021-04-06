@@ -1,12 +1,13 @@
 /* fputc and feof routines */
-fputc(c,fd)
+fputc(c, fd)
 char c;
 int fd;
 {
-   return (putc(c,fd) );
+    return (putc(c, fd));
 }
+
 feof(fd)
-int	fd;
+int fd;
 {
-   return (0);
+    return (0);
 }

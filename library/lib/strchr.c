@@ -8,13 +8,13 @@ char *strchr(s, charwanted)
 char *s;
 char charwanted;
 {
-	char *scan;
+    char *scan;
 
-	/*
-	 * The odd placement of the two tests is so NUL is findable.
-	 */
-	for (scan = s; *scan != charwanted;)	/* ++ moved down for opt. */
-		if (*scan++ == '\0')
-			return(NULL);
-	return scan;
+    /*
+     * The odd placement of the two tests is so NUL is findable.
+     */
+    for (scan = s; *scan != charwanted;)        /* ++ moved down for opt. */
+        if (*scan++ == '\0')
+            return (NULL);
+    return scan;
 }

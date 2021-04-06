@@ -3,32 +3,34 @@
 */
 
 strcpy(to_ptr, from_ptr)
-char    *to_ptr;
-char    *from_ptr;
+char *to_ptr;
+char *from_ptr;
 {
-   while (*to_ptr++ = *from_ptr++);
+    while (*to_ptr++ = *from_ptr++) ;
 }
 
 strcmp(first, second)
-char    *first;
-char    *second;
+char *first;
+char *second;
 {
     while (*first == *second) {
-       if (*first == '\0') return 0;
-       else {
-          first++;
-          second++;
-       }
+        if (*first == '\0')
+            return 0;
+        else {
+            first++;
+            second++;
+        }
     }
     return *first - *second;
 }
 
 strcat(first, second)
-char    *first;
-char    *second;
+char *first;
+char *second;
 {
-    while (*first != '\0') first++;
-    while ((*first++ = *second++) != '\0');
+    while (*first != '\0')
+        first++;
+    while ((*first++ = *second++) != '\0') ;
 }
 
 

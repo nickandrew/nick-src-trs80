@@ -5,49 +5,51 @@
 
 #include <stdio.h>
 
-main() {
-   char instr[256];
-   char outstr[256];
+main()
+{
+    char instr[256];
+    char outstr[256];
 
-   while ((gets(instr))!=NULL) {
-      convert(instr,outstr);
-      puts(outstr);
-   }
+    while ((gets(instr)) != NULL) {
+        convert(instr, outstr);
+        puts(outstr);
+    }
 }
 
-convert(icp,ocp)
-char *icp,*ocp; {
+convert(icp, ocp)
+char *icp, *ocp;
+{
 
-   /* bugs...  this code doesn't realise the significance of tabs
-    *          in text - it assumes a tab is one character position.
-    *          Pretty dumb eh for a program which is supposed to
-    *          substitute tabs in for not to be able to handle tabs
-    *          in its input!
-    */
+    /* bugs...  this code doesn't realise the significance of tabs
+     *          in text - it assumes a tab is one character position.
+     *          Pretty dumb eh for a program which is supposed to
+     *          substitute tabs in for not to be able to handle tabs
+     *          in its input!
+     */
 
-   int  pos=0;
-   int  spaces;
+    int pos = 0;
+    int spaces;
 
-   while (*icp != 0) {
-      spaces=0;
-      while (*icp != ' ' && *icp!=0) {
-	 *(ocp++) = *(icp++);
-	 ++pos;
-      }
-      while (*icp == ' ') {
-	 ++icp;
-	 ++spaces;
-      }
-      while (spaces > 7) {
-	 *(ocp++)='\t';
-	 spaces -= (8-(pos % 8));
-	 pos += (8-(pos % 8));
-      }
-      while (spaces > 0) {
-	 *(ocp++)=' ';
-	 ++pos;
-	 --spaces;
-      }
-   }
-   *ocp=0;
+    while (*icp != 0) {
+        spaces = 0;
+        while (*icp != ' ' && *icp != 0) {
+            *(ocp++) = *(icp++);
+            ++pos;
+        }
+        while (*icp == ' ') {
+            ++icp;
+            ++spaces;
+        }
+        while (spaces > 7) {
+            *(ocp++) = '\t';
+            spaces -= (8 - (pos % 8));
+            pos += (8 - (pos % 8));
+        }
+        while (spaces > 0) {
+            *(ocp++) = ' ';
+            ++pos;
+            --spaces;
+        }
+    }
+    *ocp = 0;
 }

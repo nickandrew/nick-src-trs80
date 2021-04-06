@@ -1,11 +1,10 @@
 #include <stdio.h>
 
-seekto(fp,sector)
+seekto(fp, sector)
 FILE *fp;
-int  sector;
+int sector;
 {
-    int  rba;
+    int rba;
     rba = sector << 8;
-    fseek(fp,rba,0);
+    fseek(fp, rba, 0);
 }
-

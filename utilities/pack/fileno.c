@@ -2,4 +2,6 @@
 #include <stdio.h>
 int fileno(fp)
 FILE *fp;
-{ return(fp->fd); }
+{
+    return (fp->fd);
+}

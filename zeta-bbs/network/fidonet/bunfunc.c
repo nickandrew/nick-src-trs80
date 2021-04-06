@@ -27,106 +27,97 @@
 
 #define EXTERN	extern
 
-EXTERN
-char	pkthdr[],
-	pktmsg[],
-	newdate[],
-	newfrom[],
-	newto[],
-	newsubj[];
+EXTERN char pkthdr[], pktmsg[], newdate[], newfrom[], newto[], newsubj[];
 
-EXTERN
-int	to_zone,
-	to_net,
-	to_node,
-	to_point;
+EXTERN int to_zone, to_net, to_node, to_point;
 
 /*  makepkt ... Make & write a bundle header if necessary */
 
-int	makepkt(fp, net, node, zone)
-FILE	*fp;
-int	net, node, zone;
+int makepkt(fp, net, node, zone)
+FILE *fp;
+int net, node, zone;
 {
-	int	n;
+    int n;
 
-	n = fseek(fp, 0, 2);
-	if (n > 0) {
-		return 0;
-	}
+    n = fseek(fp, 0, 2);
+    if (n > 0) {
+        return 0;
+    }
 
-	putw(pkthdr+0, ZETA_NODE);
-	putw(pkthdr+2, node);
-	putw(pkthdr+4, getyear()+1900);
-	putw(pkthdr+6, getmonth()-1);
-	putw(pkthdr+8, getday());
-	putw(pkthdr+10, gethour());
-	putw(pkthdr+12, getminute());
-	putw(pkthdr+14, getsecond());
-	putw(pkthdr+16, 0);	/* rate=0 */
-	putw(pkthdr+18, 2);	/* ver=2 */
-	putw(pkthdr+20, ZETA_NET);
-	putw(pkthdr+22, net);
+    putw(pkthdr + 0, ZETA_NODE);
+    putw(pkthdr + 2, node);
+    putw(pkthdr + 4, getyear() + 1900);
+    putw(pkthdr + 6, getmonth() - 1);
+    putw(pkthdr + 8, getday());
+    putw(pkthdr + 10, gethour());
+    putw(pkthdr + 12, getminute());
+    putw(pkthdr + 14, getsecond());
+    putw(pkthdr + 16, 0);       /* rate=0 */
+    putw(pkthdr + 18, 2);       /* ver=2 */
+    putw(pkthdr + 20, ZETA_NET);
+    putw(pkthdr + 22, net);
 
-	for (n=24; n<58; ++n) pkthdr[n] = 0;
+    for (n = 24; n < 58; ++n)
+        pkthdr[n] = 0;
 
-	putw(pkthdr+34, ZETA_ZONE);
-	putw(pkthdr+36, zone);
+    putw(pkthdr + 34, ZETA_ZONE);
+    putw(pkthdr + 36, zone);
 
-	n = fwrite(pkthdr, 1, 58, fp);
-	if (n != 58) {
-		fputs("Cannot write bundle header!\n", stderr);
-		exit(3);
-		return 3;
-	}
+    n = fwrite(pkthdr, 1, 58, fp);
+    if (n != 58) {
+        fputs("Cannot write bundle header!\n", stderr);
+        exit(3);
+        return 3;
+    }
 
-	fputc(0, fp);
-	fputc(0, fp);
-	return 0;
+    fputc(0, fp);
+    fputc(0, fp);
+    return 0;
 }
 
 /*  makemsg ... Make & write a 14 byte long message header for a bundle */
 
-int	makemsg(fp, flags)
-FILE	*fp;
-int	flags;
+int makemsg(fp, flags)
+FILE *fp;
+int flags;
 {
-	int	n;
+    int n;
 
-	putw(pktmsg+0, 2);		/* type=2 */
-	putw(pktmsg+2, ZETA_NODE);
-	putw(pktmsg+4, to_node);
-	putw(pktmsg+6, ZETA_NET);
-	putw(pktmsg+8, to_net);
-	putw(pktmsg+10, flags);		/* Message Attributes */
-	putw(pktmsg+12, 10);		/* cost */
+    putw(pktmsg + 0, 2);        /* type=2 */
+    putw(pktmsg + 2, ZETA_NODE);
+    putw(pktmsg + 4, to_node);
+    putw(pktmsg + 6, ZETA_NET);
+    putw(pktmsg + 8, to_net);
+    putw(pktmsg + 10, flags);   /* Message Attributes */
+    putw(pktmsg + 12, 10);      /* cost */
 
-	n = fwrite(pktmsg, 1, 14, fp);
-	if (n != 14) {
-		fputs("Cannot write bundle message header!\n", stderr);
-		return 3;
-	}
-	return 0;
+    n = fwrite(pktmsg, 1, 14, fp);
+    if (n != 14) {
+        fputs("Cannot write bundle message header!\n", stderr);
+        return 3;
+    }
+    return 0;
 }
 
 /* copydat ...
 **	Write the 4 fields into a Fidonet bundle
 */
 
-int	copydat(fp)
-FILE	*fp;
+int copydat(fp)
+FILE *fp;
 {
-	int	n;
+    int n;
 
-	fputs(newdate, fp);
-	fputc(0, fp);
-	fputs(newto, fp);
-	fputc(0, fp);
-	fputs(newfrom, fp);
-	fputc(0, fp);
-	fputs(newsubj, fp);
-	fputc(0, fp);
+    fputs(newdate, fp);
+    fputc(0, fp);
+    fputs(newto, fp);
+    fputc(0, fp);
+    fputs(newfrom, fp);
+    fputc(0, fp);
+    fputs(newsubj, fp);
+    fputc(0, fp);
 
-	return 0;	/* kludge */
+    return 0;                   /* kludge */
 }
 
 /* end of bunfunc.c */

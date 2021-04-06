@@ -7,7 +7,7 @@
 #define EXTERN       extern
 #include "mail.h"
 
-entermsg() {
-   std_out("Not written yet\n");
+entermsg()
+{
+    std_out("Not written yet\n");
 }
-

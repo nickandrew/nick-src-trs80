@@ -14,13 +14,13 @@
 #define LINES       15
 #define COLS        64
 #else
-#define LINES       23  /* lines/screen - 1 */
-#define COLS        80  /* columns/line */
+#define LINES       23          /* lines/screen - 1 */
+#define COLS        80          /* columns/line */
 #endif
 
 
 
-#define TABSTOP     8   /* tabstop expansion */
+#define TABSTOP     8           /* tabstop expansion */
 
 #include <signal.h>
 
@@ -28,21 +28,21 @@ extern char *index();
 
 #define BUFFER   1024
 
-int lastch = 0;         /* last character returned from input() */
-int line = 0;           /* current terminal line */
-int col = 0;            /* current terminal column */
-int fd = -1;            /* terminal file descriptor (/dev/tty) */
+int lastch = 0;                 /* last character returned from input() */
+int line = 0;                   /* current terminal line */
+int col = 0;                    /* current terminal column */
+int fd = -1;                    /* terminal file descriptor (/dev/tty) */
 FILE *fp;
-char ibuf[BUFFER];      /* input buffer */
-char obuf[BUFFER];      /* output buffer */
-int ibl = 0;            /* chars in input buffer */
-int ibc = 0;            /* position in input buffer */
-int obc = 0;            /* position in output buffer (== chars in) */
-int isrewind = 0;       /* flag: ' command -- next input() rewind */
-int isdone = 0;         /* flag: return EOF next read even if not */
+char ibuf[BUFFER];              /* input buffer */
+char obuf[BUFFER];              /* output buffer */
+int ibl = 0;                    /* chars in input buffer */
+int ibc = 0;                    /* position in input buffer */
+int obc = 0;                    /* position in output buffer (== chars in) */
+int isrewind = 0;               /* flag: ' command -- next input() rewind */
+int isdone = 0;                 /* flag: return EOF next read even if not */
 
 main(argc, argv)
-int  argc;
+int argc;
 char **argv;
 {
     char ch;
@@ -53,43 +53,46 @@ char **argv;
     fp = stdin;
     cbreak();
     if (argc < 2) {
-        fputs("usage: more filename ...\n",stdout);
+        fputs("usage: more filename ...\n", stdout);
         nocbreak();
         exit(1);
     } else
         for (arg = 1; argv[arg] != 0; arg++) {
-            if ((fp = fopen(argv[arg],"r")) == NULL) {
-                fputs("more: cannot open ",stdout);
-                fputs(argv[arg],stdout);
-                fputs("\n",stdout);
+            if ((fp = fopen(argv[arg], "r")) == NULL) {
+                fputs("more: cannot open ", stdout);
+                fputs(argv[arg], stdout);
+                fputs("\n", stdout);
                 nocbreak();
                 exit(1);
             }
 
             while ((ch = input(fp)) >= 0)
-                if (ch!=0) output(ch);
+                if (ch != 0)
+                    output(ch);
 
             fclose(fp);
             if (argv[arg + 1] != 0) {
                 oflush();
                 if (isdone) {   /* 'n' command */
-                    fputs("*** Skipping to next file ***\n",stdout);
+                    fputs("*** Skipping to next file ***\n", stdout);
                     isdone = 0;
                 }
-                fputs("--More-- (Next file: ",stdout);
-                fputs(argv[arg + 1],stdout);
-                fputs(")\n",stdout);
+                fputs("--More-- (Next file: ", stdout);
+                fputs(argv[arg + 1], stdout);
+                fputs(")\n", stdout);
                 switch (wtch()) {
                 case ' ':
                 case '\'':
-                case 'n':  case 'N':
+                case 'n':
+                case 'N':
                     line = 0;
                     break;
                 case '\r':
                 case '\n':
                     line = LINES - 1;
                     break;
-                case 'q':  case 'Q':
+                case 'q':
+                case 'Q':
                     clearln();
                     byebye();
                 }
@@ -117,12 +120,12 @@ char *fp;
     }
     if (ibc == ibl) {
         ibc = 0;
-        if ((ibl = fread(ibuf,1,BUFFER,fp)) <= 0)
+        if ((ibl = fread(ibuf, 1, BUFFER, fp)) <= 0)
             return -1;
     }
     ch = ibuf[ibc++];
-    if (ch==0x0a) {
-        if (lastch==0x0d)
+    if (ch == 0x0a) {
+        if (lastch == 0x0d)
             return lastch = 0;
         lastch = 0;
         return 0x0d;
@@ -141,18 +144,19 @@ char c;
         obuf[obc++] = c;
 }
 
-oflush() {
+oflush()
+{
     if (!isdone)
         lwrite(1, obuf, obc);
     obc = 0;
 }
 
 lwrite(fd, buf, len)
-int  fd;
+int fd;
 char *buf;
-int  len;
+int len;
 {
-    int  here, start;
+    int here, start;
     char cmd;
 
     start = 0;
@@ -160,9 +164,10 @@ int  len;
     while (here != len) {
         cmd = '\0';
         switch (buf[here++]) {
-        case 0     :  break;
-        case '\015':     /* carriage return */
-        case '\012':     /* definitive linefeed */
+        case 0:
+            break;
+        case '\015':           /* carriage return */
+        case '\012':           /* definitive linefeed */
             col = 0;
             if (++line == LINES) {
                 write(fd, buf + start, here - start);
@@ -219,7 +224,7 @@ int  len;
             byebye();
         case '\'':
             isrewind = 1;
-            fputs("*** Back ***\n",stdout);
+            fputs("*** Back ***\n", stdout);
             return;
         case 'n':
         case 'N':
@@ -236,7 +241,8 @@ int  len;
         write(fd, buf + start, here - start);
 }
 
-wtch() {
+wtch()
+{
     char ch;
 
     do {
@@ -245,47 +251,53 @@ wtch() {
     return ch;
 }
 
-cbreak() {
+cbreak()
+{
     fd = 1;
     return;
 
 }
 
-nocbreak() {
+nocbreak()
+{
     fd = -1;
     return;
 
 }
 
-byebye() {
+byebye()
+{
     nocbreak();
     exit(0);
 }
 
-clearln() {
+clearln()
+{
 #ifdef TRS80
-    write(1,"\035           \035",13);
+    write(1, "\035           \035", 13);
 #else
-    write(1,"\012           \012",13);  /* CR & LF reversed */
+    write(1, "\012           \012", 13);        /* CR & LF reversed */
 #endif
 }
 
-write(fd,buf,len)        /* cheapie version of write() */
-int  fd,len;
+write(fd, buf, len)             /* cheapie version of write() */
+int fd, len;
 char *buf;
 {
-    if (fd!=1) return;
-    while (len--) fputc(*(buf++),stdout);
+    if (fd != 1)
+        return;
+    while (len--)
+        fputc(*(buf++), stdout);
 }
 
-help() {
-    fputs("\n  More commands:\n",stdout);
-    fputs(" <cr>  Display next line\n",stdout);
-    fputs(" space  Display next page\n",stdout);
-    fputs("   Q   Quit\n",stdout);
-    fputs("   N   Next file\n",stdout);
-    fputs("   '   Rewind to start\n",stdout);
-    fputs("   ?   Display this message\n",stdout);
-    fputs("\n",stdout);
+help()
+{
+    fputs("\n  More commands:\n", stdout);
+    fputs(" <cr>  Display next line\n", stdout);
+    fputs(" space  Display next page\n", stdout);
+    fputs("   Q   Quit\n", stdout);
+    fputs("   N   Next file\n", stdout);
+    fputs("   '   Rewind to start\n", stdout);
+    fputs("   ?   Display this message\n", stdout);
+    fputs("\n", stdout);
 }
-

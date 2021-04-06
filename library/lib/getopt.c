@@ -72,67 +72,65 @@
 
 #include <stdio.h>
 
-char	*optarg;	/* Global argument pointer. */
-int	optind = 0;	/* Global argv index. */
-int	opterr = 0;	/* Print error flag, default = on */
-int	optopt;
+char *optarg;                   /* Global argument pointer. */
+int optind = 0;                 /* Global argv index. */
+int opterr = 0;                 /* Print error flag, default = on */
+int optopt;
 
-char *	go_scan;	/* Private scan pointer. */
-int   go_garbage = 1;
+char *go_scan;                  /* Private scan pointer. */
+int go_garbage = 1;
 
-extern char	*strchr();
+extern char *strchr();
 
-int
-getopt(argc, argv, optstring)
+int getopt(argc, argv, optstring)
 int argc;
 char *argv[];
 char *optstring;
 {
-char c;
-char *place;
+    char c;
+    char *place;
 
-optarg = NULL;
+    optarg = NULL;
 
-if (go_garbage) {
-     go_scan = NULL;
-     go_garbage = 0;
-}
+    if (go_garbage) {
+        go_scan = NULL;
+        go_garbage = 0;
+    }
 
-if (go_scan == NULL || *go_scan == '\0') {
-	if (optind == 0)
-		optind++;
-	
-	if (optind >= argc || argv[optind][0] != '-' ||
-		argv[optind][1] == '\0')
-			return(EOF);
-	if (strcmp(argv[optind], "--")==0) {
-		optind++;
-		return(EOF);
-	}
-	
-	go_scan = argv[optind]+1;
-	optind++;
-}
+    if (go_scan == NULL || *go_scan == '\0') {
+        if (optind == 0)
+            optind++;
 
-optopt = c = *go_scan++;
-place = strchr(optstring, c);
+        if (optind >= argc || argv[optind][0] != '-' || argv[optind][1] == '\0')
+            return (EOF);
+        if (strcmp(argv[optind], "--") == 0) {
+            optind++;
+            return (EOF);
+        }
 
-if (place == NULL || c == ':') {
-	return('?');
-}
+        go_scan = argv[optind] + 1;
+        optind++;
+    }
 
-place++;
-if (*place == ':') {
-	if (*go_scan != '\0') {
-		optarg = go_scan;
-		go_scan = NULL;
-	} else if (optind < argc) {
-		optarg = argv[optind];
-		optind++;
-	} else {
-		return('?');
-	}
-}
+    optopt = c = *go_scan++;
+    place = strchr(optstring, c);
 
-return(c);
+    if (place == NULL || c == ':') {
+        return ('?');
+    }
+
+    place++;
+    if (*place == ':') {
+        if (*go_scan != '\0') {
+            optarg = go_scan;
+            go_scan = NULL;
+        } else if (optind < argc) {
+            optarg = argv[optind];
+            optind++;
+        } else {
+            return ('?');
+        }
+    }
+
+    return (c);
 }

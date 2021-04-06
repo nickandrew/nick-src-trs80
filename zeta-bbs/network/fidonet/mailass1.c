@@ -39,40 +39,41 @@
 #include "zeta.h"
 
 #ifdef	REALC
-extern FILE	*openf2();
-extern char	*nextword();
+extern FILE *openf2();
+extern char *nextword();
 #endif
 
 main(argc, argv)
-int	argc;
-char	*argv[];
+int argc;
+char *argv[];
 {
-	int	n;
+    int n;
 
-	rc = 0;
-	openf();
-	init();
+    rc = 0;
+    openf();
+    init();
 
-	for (this_msg = 0; this_msg < num_msg; ++this_msg) {
-		if (n = read_hdr()) {
-			fputs("Mailass: bad MSGHDR file!\n", stderr);
-			rc |= 8;
-			break;
-		}
+    for (this_msg = 0; this_msg < num_msg; ++this_msg) {
+        if (n = read_hdr()) {
+            fputs("Mailass: bad MSGHDR file!\n", stderr);
+            rc |= 8;
+            break;
+        }
 
-		if (ignorel()) continue;
+        if (ignorel())
+            continue;
 
-		if (n = do_msg()) {
-			fputs("Do_msg encountered error!\n", stderr);
-			rc |= 16;
-			break;
-		}
-	}
+        if (n = do_msg()) {
+            fputs("Do_msg encountered error!\n", stderr);
+            rc |= 16;
+            break;
+        }
+    }
 
-	rc |= writefree(loctxt_p, freemap);
-	rc |= write_top();
-	closef();
-	exit(rc);
+    rc |= writefree(loctxt_p, freemap);
+    rc |= write_top();
+    closef();
+    exit(rc);
 }
 
 /* ignorel ...
@@ -81,12 +82,13 @@ char	*argv[];
 **	(thats for OUTGOING and INTRANSIT)
 */
 
-int	ignorel() {
-	if (oldhdr[0] & (F_PROCESSED | F_DELETED))
-		return 1; /* ignore */
-	if (oldhdr[0] & (F_OUTGOING | F_INTRANSIT))
-		return 0;
-	return 1;
+int ignorel()
+{
+    if (oldhdr[0] & (F_PROCESSED | F_DELETED))
+        return 1;               /* ignore */
+    if (oldhdr[0] & (F_OUTGOING | F_INTRANSIT))
+        return 0;
+    return 1;
 }
 
 /* do_msg ...
@@ -98,95 +100,109 @@ int	ignorel() {
 **		bounce (as in-transit) to the sender or to Sysop
 */
 
-int	do_msg() {
-	int	rc;
+int do_msg()
+{
+    int rc;
 
-	if (readhead()) return 1;
+    if (readhead())
+        return 1;
 
-	if (parse())	return 2;	/* unable to parse or bounce */
+    if (parse())
+        return 2;               /* unable to parse or bounce */
 
-	switch (to_type) {
-	case	TO_LOCAL:	rc = local();		break;
-	case	TO_FIDO:	rc = fido();		break;
-	case	TO_ACS:		rc = acsnet();		break;
-	case	TO_BOUNCE:	rc = pars_bounce();	break;
-	}
+    switch (to_type) {
+    case TO_LOCAL:
+        rc = local();
+        break;
+    case TO_FIDO:
+        rc = fido();
+        break;
+    case TO_ACS:
+        rc = acsnet();
+        break;
+    case TO_BOUNCE:
+        rc = pars_bounce();
+        break;
+    }
 
-	if (rc) {
-		fputs("Local, Fidonet or ACSnet message output failed.\n",
-			stderr);
-		return rc;
-	}
+    if (rc) {
+        fputs("Local, Fidonet or ACSnet message output failed.\n", stderr);
+        return rc;
+    }
 
-	if (oldhdr[0] & (F_INTRANSIT|F_OUTGOING)) {
-		rc = deleteold();
-		if (rc)
-			fputs("Could not delete outgoing|intransit msg\n",
-				stderr);
-	}
-	return rc;
+    if (oldhdr[0] & (F_INTRANSIT | F_OUTGOING)) {
+        rc = deleteold();
+        if (rc)
+            fputs("Could not delete outgoing|intransit msg\n", stderr);
+    }
+    return rc;
 }
 
 /*  Parse ... 
 **	parse the To: address
 */
 
-int	parse() {
-	int	n;
+int parse()
+{
+    int n;
 
-	/* just as a small interlude. Write to screen */
+    /* just as a small interlude. Write to screen */
 
-	fputs("From: ", stderr);
-	fputs(oldfrom, stderr);
-	fputs("\nTo:   ", stderr);
-	fputs(oldto, stderr);
-	fputs("\nSubj: ", stderr);
-	fputs(oldsubj, stderr);
-	fputc('\n', stderr);
+    fputs("From: ", stderr);
+    fputs(oldfrom, stderr);
+    fputs("\nTo:   ", stderr);
+    fputs(oldto, stderr);
+    fputs("\nSubj: ", stderr);
+    fputs(oldsubj, stderr);
+    fputc('\n', stderr);
 
-	to_type = TO_BOUNCE;
+    to_type = TO_BOUNCE;
 
-	if (chk_fido()) {
-		to_type = TO_FIDO;
-		return 0;
-	}
-	if (chk_acs()) {
-		to_type = TO_ACS;
-		return 0;
-	}
-	if (chk_local()) {
-		to_type = TO_LOCAL;
-		return 0;
-	}
-	return 0;
+    if (chk_fido()) {
+        to_type = TO_FIDO;
+        return 0;
+    }
+    if (chk_acs()) {
+        to_type = TO_ACS;
+        return 0;
+    }
+    if (chk_local()) {
+        to_type = TO_LOCAL;
+        return 0;
+    }
+    return 0;
 }
 
 /*  deleteold ...
 **	delete an in-transit or outgoing message after processing
 */
 
-int	deleteold() {
-	int	n;
-	int	recnum;
+int deleteold()
+{
+    int n;
+    int recnum;
 
-	recnum = getw(oldhdr+3);	/* first record */
+    recnum = getw(oldhdr + 3);  /* first record */
 
-	while (recnum != 0) {
-		/* delete an allocated block */
-		putfree(freemap, recnum);
-		n = readtxt(loctxt_p, oldtxt, recnum);
-		if (n) return n;
-		recnum = getw(oldtxt);
-	}
+    while (recnum != 0) {
+        /* delete an allocated block */
+        putfree(freemap, recnum);
+        n = readtxt(loctxt_p, oldtxt, recnum);
+        if (n)
+            return n;
+        recnum = getw(oldtxt);
+    }
 
-	n = writefree(loctxt_p, freemap);
-	if (n) return n;
+    n = writefree(loctxt_p, freemap);
+    if (n)
+        return n;
 
-	oldhdr[0] |= F_DELETED;
-	n = rewrite_hdr();
-	if (n) return n;
+    oldhdr[0] |= F_DELETED;
+    n = rewrite_hdr();
+    if (n)
+        return n;
 
-	return 0;
+    return 0;
 }
 
 /*  chk_fido ...
@@ -196,68 +212,74 @@ int	deleteold() {
 **	location ::= '(', nnn, '/', ')', NULL
 */
 
-chk_fido() {
-	char	*cp, *oldcp;
-	int	i;
-	char	ch;
+chk_fido()
+{
+    char *cp, *oldcp;
+    int i;
+    char ch;
 
-	oldcp = oldto;
-	/* check character set of words */
-	if (chkname(oldcp) == 0) return 0; /* need at least 1 name */
-	cp = nextword(oldcp);
+    oldcp = oldto;
+    /* check character set of words */
+    if (chkname(oldcp) == 0)
+        return 0;               /* need at least 1 name */
+    cp = nextword(oldcp);
 
-	while (*cp) {
-		if (chkname(oldcp) == 0)
-			return 0; /* not a name */
-		oldcp = cp;
-		cp = nextword(oldcp);
-	}
+    while (*cp) {
+        if (chkname(oldcp) == 0)
+            return 0;           /* not a name */
+        oldcp = cp;
+        cp = nextword(oldcp);
+    }
 
-	/* get the nnn/nnn address and determine if legal */
+    /* get the nnn/nnn address and determine if legal */
 
-	if (chkfido(oldcp) == 0)
-		return 0;	/* not a valid (z:nnn/nnn.p) */
+    if (chkfido(oldcp) == 0)
+        return 0;               /* not a valid (z:nnn/nnn.p) */
 
-	oldcp[-1] = 0;		/* remove " (nnn/nnn)" */
+    oldcp[-1] = 0;              /* remove " (nnn/nnn)" */
 
-	/* change the case of the name to Fidonet conventions */
-	i = 1;
-	for (oldcp = oldto; *oldcp; ++oldcp) {
-		ch = *oldcp;
-		if (ch == ' ') {
-			i = 1;
-			continue;
-		}
-		if (i) {
-			if (ch >= 'a' && ch <= 'z')
-				ch &= 0x5f;
-			i = 0;
-		} else {
-			if (ch >= 'A' && ch <= 'Z')
-				ch |= 0x20;
-		}
-		*oldcp = ch;
-	}
+    /* change the case of the name to Fidonet conventions */
+    i = 1;
+    for (oldcp = oldto; *oldcp; ++oldcp) {
+        ch = *oldcp;
+        if (ch == ' ') {
+            i = 1;
+            continue;
+        }
+        if (i) {
+            if (ch >= 'a' && ch <= 'z')
+                ch &= 0x5f;
+            i = 0;
+        } else {
+            if (ch >= 'A' && ch <= 'Z')
+                ch |= 0x20;
+        }
+        *oldcp = ch;
+    }
 
-	return 1;
+    return 1;
 }
 
 /* chkname ... ensure a string contains valid name-like characters */
 
-int	chkname(cp)
-char	*cp;
+int chkname(cp)
+char *cp;
 {
-	char	ch;
+    char ch;
 
-	for (; *cp && (*cp!=' '); ++cp) {
-		ch = *cp;
-		if (ch >= 'A' && ch <= 'Z') continue;
-		if (ch >= 'a' && ch <= 'z') continue;
-		if (ch >= '0' && ch <= '9') continue;
-		if (ch == '-') continue;
-		return 0;
-	}
-	return 1;
+    for (; *cp && (*cp != ' '); ++cp) {
+        ch = *cp;
+        if (ch >= 'A' && ch <= 'Z')
+            continue;
+        if (ch >= 'a' && ch <= 'z')
+            continue;
+        if (ch >= '0' && ch <= '9')
+            continue;
+        if (ch == '-')
+            continue;
+        return 0;
+    }
+    return 1;
 }
 
 /* nextword ...
@@ -265,12 +287,14 @@ char	*cp;
 **	of character after first space
 */
 
-char	*nextword(cp)
-char	*cp;
+char *nextword(cp)
+char *cp;
 {
-	while (*cp && *cp != ' ') ++cp;
-	if (*cp == 0) return cp;
-	return ++cp;
+    while (*cp && *cp != ' ')
+        ++cp;
+    if (*cp == 0)
+        return cp;
+    return ++cp;
 }
 
 /* chkfido ...
@@ -278,49 +302,57 @@ char	*cp;
 **	to_zone, to_net, to_node, to_point
 */
 
-int	chkfido(cp)
-char	*cp;
+int chkfido(cp)
+char *cp;
 {
-	int	value;
+    int value;
 
-	to_zone = to_net = to_node = to_point = 0;
+    to_zone = to_net = to_node = to_point = 0;
 
-	if (*cp != '(') return 0;
+    if (*cp != '(')
+        return 0;
 
-	if (!isdigit(*++cp)) return 0;
+    if (!isdigit(*++cp))
+        return 0;
 
-	value = atoi(cp);
-	while (*cp && *cp != ':' && *cp != '/' && *cp != ')')
-		++cp;
+    value = atoi(cp);
+    while (*cp && *cp != ':' && *cp != '/' && *cp != ')')
+        ++cp;
 
-	if (*cp == ':') {
-		to_zone = value;
-		if (!isdigit(*++cp)) return 0;
-		value = atoi(cp);
-		while (*cp && *cp != '/' && *cp != ')')
-			++cp;
-	}
+    if (*cp == ':') {
+        to_zone = value;
+        if (!isdigit(*++cp))
+            return 0;
+        value = atoi(cp);
+        while (*cp && *cp != '/' && *cp != ')')
+            ++cp;
+    }
 
-	to_net = value;
-	if (*cp != '/') return 0;
+    to_net = value;
+    if (*cp != '/')
+        return 0;
 
-	if (!isdigit(*++cp)) return 0;
-	to_node = atoi(cp);
+    if (!isdigit(*++cp))
+        return 0;
+    to_node = atoi(cp);
 
-	while (*cp && *cp != '.' && *cp != ')')
-		++cp;
+    while (*cp && *cp != '.' && *cp != ')')
+        ++cp;
 
-	if (*cp == '.') {
-		if (!isdigit(*++cp)) return 0;
-		to_point = atoi(cp);
-		while (*cp && *cp != ')')
-			++cp;
-	}
+    if (*cp == '.') {
+        if (!isdigit(*++cp))
+            return 0;
+        to_point = atoi(cp);
+        while (*cp && *cp != ')')
+            ++cp;
+    }
 
-	if (*cp++ != ')') return 0; 
-	if (*cp != 0) return 0;
+    if (*cp++ != ')')
+        return 0;
+    if (*cp != 0)
+        return 0;
 
-	return 1;
+    return 1;
 }
 
 /*  chk_acs ...
@@ -330,54 +362,68 @@ char	*cp;
 **	junk ::= anything after a space
 */
 
-int	chk_acs() {
-	char	*cp, *oldcp;
-	int	i;
-	char	ch;
+int chk_acs()
+{
+    char *cp, *oldcp;
+    int i;
+    char ch;
 
-	/* parse left part */
-	for (cp = oldto; *cp != '@'; ++cp) {
-		ch = *cp;
-		if (ch == 0 || ch == ' ') return 0;	/* no @? */
-		if (ch >= 'A' && ch <= 'Z') continue;
-		if (ch >= 'a' && ch <= 'z') continue;
-		if (ch >= '0' && ch <= '9') continue;
-		if (ch == '-') continue;
-		if (ch == '!' || ch == '.' || ch == '%') return 0;
-	}
+    /* parse left part */
+    for (cp = oldto; *cp != '@'; ++cp) {
+        ch = *cp;
+        if (ch == 0 || ch == ' ')
+            return 0;           /* no @? */
+        if (ch >= 'A' && ch <= 'Z')
+            continue;
+        if (ch >= 'a' && ch <= 'z')
+            continue;
+        if (ch >= '0' && ch <= '9')
+            continue;
+        if (ch == '-')
+            continue;
+        if (ch == '!' || ch == '.' || ch == '%')
+            return 0;
+    }
 
-	++cp;	/* bypass @ */
-	if (*cp == 0) return 0;
+    ++cp;                       /* bypass @ */
+    if (*cp == 0)
+        return 0;
 
-	for (; *cp; ++cp) {
-		ch = *cp;
-		if (ch == ' ') {
-			*cp = 0;
-			return 1;	/* ignore junk */
-		}
-		if (ch >= 'A' && ch <= 'Z') continue;
-		if (ch >= 'a' && ch <= 'z') continue;
-		if (ch >= '0' && ch <= '9') continue;
-		if (ch == '-') continue;
-		if (ch == '!' || ch == '@' || ch == '%') return 0;
-	}
+    for (; *cp; ++cp) {
+        ch = *cp;
+        if (ch == ' ') {
+            *cp = 0;
+            return 1;           /* ignore junk */
+        }
+        if (ch >= 'A' && ch <= 'Z')
+            continue;
+        if (ch >= 'a' && ch <= 'z')
+            continue;
+        if (ch >= '0' && ch <= '9')
+            continue;
+        if (ch == '-')
+            continue;
+        if (ch == '!' || ch == '@' || ch == '%')
+            return 0;
+    }
 
-	return 1;
+    return 1;
 }
 
 /*  chk_local ...
 **	Return 1 if it is a valid Zeta user name
 */
 
-int	chk_local() {
-	user_no = user_search(oldto);
-	if (user_no <= 0) {
-		fputs("User name not found: ", stderr);
-		fputs(oldto, stderr);
-		fputc('\n', stderr);
-		return 0;
-	}
-	return 1;
+int chk_local()
+{
+    user_no = user_search(oldto);
+    if (user_no <= 0) {
+        fputs("User name not found: ", stderr);
+        fputs(oldto, stderr);
+        fputc('\n', stderr);
+        return 0;
+    }
+    return 1;
 }
 
 /*  local ...
@@ -391,65 +437,71 @@ int	chk_local() {
 **	Set processed flag on old message
 */
 
-int	local() {
-	int	n;
+int local()
+{
+    int n;
 
-	write_rec = rec_first = getfree(freemap);
-	if (write_rec == -1) {
-		fputs("Local message system full!\n", stderr);
-		return 8;
-	}
+    write_rec = rec_first = getfree(freemap);
+    if (write_rec == -1) {
+        fputs("Local message system full!\n", stderr);
+        return 8;
+    }
 
-	write_pos = 2;
-	zeromem(newtxt, 256);
+    write_pos = 2;
+    zeromem(newtxt, 256);
 
-	savetopic(num_msg, 0);		/* save 0 topic code */
-	buildhdr(NOBODY, user_no, F_INCOMING | F_NEW);
-	localdat();
-	n = writedat();			/* write data headers */
-	if (n) return n;
+    savetopic(num_msg, 0);      /* save 0 topic code */
+    buildhdr(NOBODY, user_no, F_INCOMING | F_NEW);
+    localdat();
+    n = writedat();             /* write data headers */
+    if (n)
+        return n;
 
-	n = localcpy();
-	if (n) return n;
+    n = localcpy();
+    if (n)
+        return n;
 
-	n = write_hdr();
-	if (n) return n;
+    n = write_hdr();
+    if (n)
+        return n;
 
-	n = setproc();
-	if (n) return n;
+    n = setproc();
+    if (n)
+        return n;
 
-	return 0;
+    return 0;
 }
 
 /* build a new message header */
 
 buildhdr(send, recv, flags)
-int	send, recv, flags;
+int send, recv, flags;
 {
-	newhdr[0] = flags;
-	newhdr[1] = 8;			/* # lines (dummy - not used?) */
-	newhdr[2] = 0;			/* was msb of rba */
-	putw(newhdr+3, write_rec);	/* first sector address */
-	newhdr[5] = getday();
-	newhdr[6] = getmonth();
-	newhdr[7] = getyear();
-	putw(newhdr+8, send);		/* sender uid */
-	putw(newhdr+10, recv);		/* receiver uid */
-	newhdr[12] = 0;			/* topic 0 */
-	newhdr[13] = getsecond();
-	newhdr[14] = getminute();
-	newhdr[15] = gethour();
+    newhdr[0] = flags;
+    newhdr[1] = 8;              /* # lines (dummy - not used?) */
+    newhdr[2] = 0;              /* was msb of rba */
+    putw(newhdr + 3, write_rec);        /* first sector address */
+    newhdr[5] = getday();
+    newhdr[6] = getmonth();
+    newhdr[7] = getyear();
+    putw(newhdr + 8, send);     /* sender uid */
+    putw(newhdr + 10, recv);    /* receiver uid */
+    newhdr[12] = 0;             /* topic 0 */
+    newhdr[13] = getsecond();
+    newhdr[14] = getminute();
+    newhdr[15] = gethour();
 }
 
 /* localdat ...
 **	Create new data headers for new local messages
 */
 
-localdat() {
-	strcpy(newfrom, oldfrom);
-	strcpy(newto, user_field);	/* from user_search */
-	strcpy(newdate, olddate);
-	strcpy(newsubj, oldsubj);
+localdat()
+{
+    strcpy(newfrom, oldfrom);
+    strcpy(newto, user_field);  /* from user_search */
+    strcpy(newdate, olddate);
+    strcpy(newsubj, oldsubj);
 }
 
 /* tranhdr ...
@@ -457,11 +509,12 @@ localdat() {
 **	OK so it is simplistic... so what?
 */
 
-tranhdr() {
-	strcpy(newfrom, oldfrom);
-	strcpy(newto, oldto);
-	strcpy(newdate, olddate);
-	strcpy(newsubj, oldsubj);
+tranhdr()
+{
+    strcpy(newfrom, oldfrom);
+    strcpy(newto, oldto);
+    strcpy(newdate, olddate);
+    strcpy(newsubj, oldsubj);
 }
 
 /*  fido ...
@@ -472,41 +525,42 @@ tranhdr() {
 **	Set the current message to processed.
 */
 
-int	fido() {
-	int	n;
+int fido()
+{
+    int n;
 
-	fp_msg = fseek(fido_p, -2, 2);
+    fp_msg = fseek(fido_p, -2, 2);
 
-	n = makemsg(fido_p, MA_PRIVATE);
-	if (n) {
-		fputs("Could not make Fido link message header\n", stderr);
-		recover(2, fido_p, fp_msg);
-		return n;
-	}
+    n = makemsg(fido_p, MA_PRIVATE);
+    if (n) {
+        fputs("Could not make Fido link message header\n", stderr);
+        recover(2, fido_p, fp_msg);
+        return n;
+    }
 
-	/* Translate headers into Fidonet-acceptable format */
+    /* Translate headers into Fidonet-acceptable format */
 
-	tranhdr();
+    tranhdr();
 
-	n = copydat(fido_p);
-	if (n) {
-		fputs("Could not copy header info to Fido link\n");
-		recover(2, fido_p, fp_msg);
-		return n;
-	}
+    n = copydat(fido_p);
+    if (n) {
+        fputs("Could not copy header info to Fido link\n");
+        recover(2, fido_p, fp_msg);
+        return n;
+    }
 
-	n = copymsg(fido_p);
-	if (n) {
-		fputs("Could not copy message to Fido link\n");
-		recover(2, fido_p, fp_msg);
-		return n;
-	}
+    n = copymsg(fido_p);
+    if (n) {
+        fputs("Could not copy message to Fido link\n");
+        recover(2, fido_p, fp_msg);
+        return n;
+    }
 
-	n = setproc();
-	if (n) {
-		fputs("Could not set message to processed\n");
-		return n;
-	}
+    n = setproc();
+    if (n) {
+        fputs("Could not set message to processed\n");
+        return n;
+    }
 
 }
 
@@ -515,44 +569,45 @@ int	fido() {
 **	Basically the same as fido(), except using acs_p
 */
 
-int	acsnet() {
-	int	n;
+int acsnet()
+{
+    int n;
 
-	ap_msg = fseek(acs_p, -2, 2);
+    ap_msg = fseek(acs_p, -2, 2);
 
-	to_net = ACS_NET;
-	to_node = ACS_NODE;
+    to_net = ACS_NET;
+    to_node = ACS_NODE;
 
-	n = makemsg(acs_p, MA_PRIVATE);
-	if (n) {
-		fputs("Could not make ACSnet link message header\n", stderr);
-		recover(2, acs_p, ap_msg);
-		return n;
-	}
+    n = makemsg(acs_p, MA_PRIVATE);
+    if (n) {
+        fputs("Could not make ACSnet link message header\n", stderr);
+        recover(2, acs_p, ap_msg);
+        return n;
+    }
 
-	/* Translate headers into ACSgate-acceptable format */
+    /* Translate headers into ACSgate-acceptable format */
 
-	tranhdr();
+    tranhdr();
 
-	n = copydat(acs_p);
-	if (n) {
-		fputs("Could not copy header info to ACSnet link\n");
-		recover(2, acs_p, ap_msg);
-		return n;
-	}
+    n = copydat(acs_p);
+    if (n) {
+        fputs("Could not copy header info to ACSnet link\n");
+        recover(2, acs_p, ap_msg);
+        return n;
+    }
 
-	n = copymsg(acs_p);
-	if (n) {
-		fputs("Could not copy message to ACSnet link\n");
-		recover(2, acs_p, ap_msg);
-		return n;
-	}
+    n = copymsg(acs_p);
+    if (n) {
+        fputs("Could not copy message to ACSnet link\n");
+        recover(2, acs_p, ap_msg);
+        return n;
+    }
 
-	n = setproc();
-	if (n) {
-		fputs("Could not set message to processed\n");
-		return n;
-	}
+    n = setproc();
+    if (n) {
+        fputs("Could not set message to processed\n");
+        return n;
+    }
 }
 
 /*  pars_bounce ...
@@ -562,71 +617,76 @@ int	acsnet() {
 **	message to Sysop instead.
 */
 
-int	firstbounce = 1;	/* never bounced before */
+int firstbounce = 1;            /* never bounced before */
 
-pars_bounce() {
-	int	n, bnc_flags, bnc_from, bnc_to, bnc_type;
+pars_bounce()
+{
+    int n, bnc_flags, bnc_from, bnc_to, bnc_type;
 
-	fputs(stderr, "Bouncing!\n", stderr);
+    fputs(stderr, "Bouncing!\n", stderr);
 
-	write_rec = rec_first = getfree(freemap);
-	if (write_rec == -1) {
-		fputs("Bounce: message system full!\n", stderr);
-		return 8;
-	}
+    write_rec = rec_first = getfree(freemap);
+    if (write_rec == -1) {
+        fputs("Bounce: message system full!\n", stderr);
+        return 8;
+    }
 
-	write_pos = 2;
-	zeromem(newtxt, 256);
+    write_pos = 2;
+    zeromem(newtxt, 256);
 
-	savetopic(num_msg, 0);		/* save 0 topic code */
+    savetopic(num_msg, 0);      /* save 0 topic code */
 
-	/* analyse how we have to bounce this message */
-	/* if outgoing, create incoming, else create in-transit */
+    /* analyse how we have to bounce this message */
+    /* if outgoing, create incoming, else create in-transit */
 
-	bnc_from = POST_UID;
+    bnc_from = POST_UID;
 
-	if (oldhdr[0] & F_OUTGOING) {
-		/* bouncing from an outgoing message */
-		bnc_flags = F_INCOMING | F_NEW;
-		bnc_to = getw(oldhdr+8);
-		bnc_type = 0;
-	} else {
-		/* bouncing from an in-transit message */
-		if (strcmp(oldfrom, POSTMASTER) &&
-		strcmp(oldto, POSTMASTER)) {
-			/* not (from or to postmaster) */
-			bnc_flags = F_INTRANSIT;
-			bnc_to = NOBODY;
-			bnc_type = 1;
-		} else {
-			bnc_type = 2;	/* bounce to sysop */
-			bnc_flags = F_INCOMING | F_NEW;
-			bnc_to = SYSOP_UID;
-		}
-	}
+    if (oldhdr[0] & F_OUTGOING) {
+        /* bouncing from an outgoing message */
+        bnc_flags = F_INCOMING | F_NEW;
+        bnc_to = getw(oldhdr + 8);
+        bnc_type = 0;
+    } else {
+        /* bouncing from an in-transit message */
+        if (strcmp(oldfrom, POSTMASTER) && strcmp(oldto, POSTMASTER)) {
+            /* not (from or to postmaster) */
+            bnc_flags = F_INTRANSIT;
+            bnc_to = NOBODY;
+            bnc_type = 1;
+        } else {
+            bnc_type = 2;       /* bounce to sysop */
+            bnc_flags = F_INCOMING | F_NEW;
+            bnc_to = SYSOP_UID;
+        }
+    }
 
-	/* build a bounce header */
-	bouncehdr(bnc_from, bnc_to, bnc_flags);
+    /* build a bounce header */
+    bouncehdr(bnc_from, bnc_to, bnc_flags);
 
-	/* create and write data headers */
-	bouncedat(bnc_type);
-	n = writedat();
-	if (n) return n;
+    /* create and write data headers */
+    bouncedat(bnc_type);
+    n = writedat();
+    if (n)
+        return n;
 
-	/* copy the text of the message if necessary */
-	if (firstbounce) bounceinit();
-	n = bouncecpy(bnc_type);
-	if (n) return n;
+    /* copy the text of the message if necessary */
+    if (firstbounce)
+        bounceinit();
+    n = bouncecpy(bnc_type);
+    if (n)
+        return n;
 
-	/* write 16 byte header */
-	n = write_hdr();
-	if (n) return n;
+    /* write 16 byte header */
+    n = write_hdr();
+    if (n)
+        return n;
 
-	n = setproc();
-	if (n) return n;
+    n = setproc();
+    if (n)
+        return n;
 
-	fputs("Bounce worked\n", stderr);
-	return 0;
+    fputs("Bounce worked\n", stderr);
+    return 0;
 }
 
 /*  bouncehdr ...
@@ -634,21 +694,21 @@ pars_bounce() {
 */
 
 bouncehdr(send, recv, flags)
-int	send, recv, flags;
+int send, recv, flags;
 {
-	newhdr[0] = flags;		/* incoming|new or in-transit */
-	newhdr[1] = 8;			/* # lines (dummy - not used?) */
-	newhdr[2] = 0;			/* was msb of rba */
-	putw(newhdr+3, write_rec);	/* first sector address */
-	newhdr[5] = getday();
-	newhdr[6] = getmonth();
-	newhdr[7] = getyear();
-	putw(newhdr+8, send);		/* sender uid */
-	putw(newhdr+10, recv);		/* receiver uid */
-	newhdr[12] = 0;			/* topic 0 */
-	newhdr[13] = getsecond();
-	newhdr[14] = getminute();
-	newhdr[15] = gethour();
+    newhdr[0] = flags;          /* incoming|new or in-transit */
+    newhdr[1] = 8;              /* # lines (dummy - not used?) */
+    newhdr[2] = 0;              /* was msb of rba */
+    putw(newhdr + 3, write_rec);        /* first sector address */
+    newhdr[5] = getday();
+    newhdr[6] = getmonth();
+    newhdr[7] = getyear();
+    putw(newhdr + 8, send);     /* sender uid */
+    putw(newhdr + 10, recv);    /* receiver uid */
+    newhdr[12] = 0;             /* topic 0 */
+    newhdr[13] = getsecond();
+    newhdr[14] = getminute();
+    newhdr[15] = gethour();
 }
 
 /* bouncedat ...
@@ -656,33 +716,34 @@ int	send, recv, flags;
 */
 
 bouncedat(type)
-int	type;
+int type;
 {
-	strcpy(newfrom, POSTMASTER);
-	if (type == 2)
-		strcpy(newto, SYSOP);
-	else
-		strcpy(newto, oldfrom);
-	strcpy(newdate, olddate);
-	strcpy(newsubj, oldsubj);
+    strcpy(newfrom, POSTMASTER);
+    if (type == 2)
+        strcpy(newto, SYSOP);
+    else
+        strcpy(newto, oldfrom);
+    strcpy(newdate, olddate);
+    strcpy(newsubj, oldsubj);
 }
 
 /* bounceinit ... initialise the bounce text array */
 
-bounceinit() {
+bounceinit()
+{
 
-firstbounce = 0;
+    firstbounce = 0;
 
-bm[0]="Your message addressed To: '";
-bm[1]="'\ncould not be delivered because the\n";
-bm[2]="destination address is wrong. Valid address formats are like:\n\n";
-bm[3]="To: Fred Nurk (711/401)         Send to a user on Fidonet 711/401\n";
-bm[4]="To: evans@ditsyda.oz            Send to an ACSnet userid\n";
-bm[5]="To: Mick Jagger                 Send to a local Zeta user\n";
-bm[6]="\nPlease re-enter your message with correct To:\n\n";
-bm[7]="The following message appears to be in a bounce loop.\n\n";
-bm[8]="destination address is not a known user of Zeta.\n\n";
-bm[9]="The text of the message follows:\n\n";
+    bm[0] = "Your message addressed To: '";
+    bm[1] = "'\ncould not be delivered because the\n";
+    bm[2] = "destination address is wrong. Valid address formats are like:\n\n";
+    bm[3] = "To: Fred Nurk (711/401)         Send to a user on Fidonet 711/401\n";
+    bm[4] = "To: evans@ditsyda.oz            Send to an ACSnet userid\n";
+    bm[5] = "To: Mick Jagger                 Send to a local Zeta user\n";
+    bm[6] = "\nPlease re-enter your message with correct To:\n\n";
+    bm[7] = "The following message appears to be in a bounce loop.\n\n";
+    bm[8] = "destination address is not a known user of Zeta.\n\n";
+    bm[9] = "The text of the message follows:\n\n";
 }
 
 /* end of mailass1.c */

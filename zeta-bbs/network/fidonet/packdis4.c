@@ -10,7 +10,7 @@
 #include "zeta.h"
 
 #ifdef	REALC
-extern FILE	*openf2();
+extern FILE *openf2();
 #define LONG	long
 #else
 #define LONG	int
@@ -19,90 +19,93 @@ extern FILE	*openf2();
 /*  fixfn : Change first char of name & extension to alpha */
 
 fixfn(cp)
-char    *cp;
+char *cp;
 {
 
-	if (*cp >= '0' && *cp <= '9')
-		*cp += 0x11;
+    if (*cp >= '0' && *cp <= '9')
+        *cp += 0x11;
 
-	while (*cp && *cp != SEP)
-		++cp;
+    while (*cp && *cp != SEP)
+        ++cp;
 
-	if (*cp == SEP) {
-		++cp;
-		if (*cp >= '0' && *cp <= '9')
-			*cp += 0x11;
-	}
+    if (*cp == SEP) {
+        ++cp;
+        if (*cp >= '0' && *cp <= '9')
+            *cp += 0x11;
+    }
 }
 
 /* getfn ... get a filename string from a PACKETS/INFILES type file */
 
 getfn(cp1, cp2)
-char    *cp1, *cp2;
+char *cp1, *cp2;
 {
-	cp1 += 2;
-	while (*cp1 && *cp1 != '\n')
-		*cp2++ = *cp1++;
-	*cp2 = 0;
+    cp1 += 2;
+    while (*cp1 && *cp1 != '\n')
+        *cp2++ = *cp1++;
+    *cp2 = 0;
 }
 
 /* commence ... check if string s is at the start of string l, and
 **	return the pointer to l just after s ends.
 */
 
-char	*commence(l, s)
-char	*l, *s;
+char *commence(l, s)
+char *l, *s;
 {
-	while ((*l == *s) && *s) {
-		++l;
-		++s;
-	}
-	if (*s == '\0') return l;
-	return NULL;
+    while ((*l == *s) && *s) {
+        ++l;
+        ++s;
+    }
+    if (*s == '\0')
+        return l;
+    return NULL;
 }
 
 /* fixstr ... remove non-printing characters */
 
 fixstr(cp)
-char	*cp;
+char *cp;
 {
-	while (*cp) {
-		if (*cp < ' ' || *cp > 0x7e) *cp = ' ';
-		++cp;
-	}
+    while (*cp) {
+        if (*cp < ' ' || *cp > 0x7e)
+            *cp = ' ';
+        ++cp;
+    }
 }
 
 /* zero the 3 bytes of a file rba position */
 
 zeropos(cp)
-char	cp[];
+char cp[];
 {
-	cp[0] = cp[1] = cp[2] = 0;
+    cp[0] = cp[1] = cp[2] = 0;
 }
 
 /* numstr ... write a number into a string & return eos */
 
-char	*numstr(cp, num)
-char	*cp;
-int	num;
+char *numstr(cp, num)
+char *cp;
+int num;
 {
 #ifdef	REALC
-	sprintf(cp, "%d", num);
+    sprintf(cp, "%d", num);
 #else
-	itoa(num, cp);
+    itoa(num, cp);
 #endif
-	while (*cp) ++cp;
-	return cp;
+    while (*cp)
+        ++cp;
+    return cp;
 }
 
 #ifdef	REALC
 
 /* isspace ... quick hack! */
 
-int	isspace(c)
-int	c;
+int isspace(c)
+int c;
 {
-	return (c == ' ' || (c >= 9 && c <= 13));
+    return (c == ' ' || (c >= 9 && c <= 13));
 }
 
 #endif

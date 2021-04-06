@@ -6,22 +6,20 @@
 
 /* open a file with error message if failure */
 
-FILE	*openf2(filename)
-char	*filename;
+FILE *openf2(filename)
+char *filename;
 {
-	FILE	*pointer;
+    FILE *pointer;
 
-	pointer = fopen(filename, "r+");
+    pointer = fopen(filename, "r+");
 
-	if (pointer == NULL) {
-		fputs("Cannot open ", stderr);
-		fputs(filename, stderr);
-		fputs("\n", stderr);
-		exit(1);
-	}
+    if (pointer == NULL) {
+        fputs("Cannot open ", stderr);
+        fputs(filename, stderr);
+        fputs("\n", stderr);
+        exit(1);
+    }
 
-	fixperm(pointer);
-	return pointer;
+    fixperm(pointer);
+    return pointer;
 }
-
-

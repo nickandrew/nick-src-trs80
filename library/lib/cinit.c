@@ -6,7 +6,7 @@
 extern char *stdin;
 extern char *stdout;
 extern char *stderr;
-extern int  cmdline,noredir;
+extern int cmdline, noredir;
 
 
 #define  MAXARGS   15
@@ -16,15 +16,15 @@ extern int  cmdline,noredir;
 
 _initio()
 {
-    char    *STDIN,*STDOUT,*STDERR;
-    char    *console;
-    char    *mode;
-    char    *argv[MAXARGS];    /*ptrs to command line args */
-    char    ch;
-    char    *cmdl;
-    char    *cptr;
-    int     argc;         /*number of command line arguments*/
-    int     count;
+    char *STDIN, *STDOUT, *STDERR;
+    char *console;
+    char *mode;
+    char *argv[MAXARGS];        /*ptrs to command line args */
+    char ch;
+    char *cmdl;
+    char *cptr;
+    int argc;                   /*number of command line arguments */
+    int count;
 
     console = ":C";
     mode = "w";
@@ -32,21 +32,22 @@ _initio()
     argv[0] = cptr = cmdl = cmdline;
     argc = count = 0;
     STDIN = STDOUT = STDERR = console;
- 
+
     /* Count characters in command line */
     while (*cptr != '\r' && *cptr != ETX) {
-       count++;
-       cptr++;
+        count++;
+        cptr++;
     }
 
-    while (count>0 & argc < MAXARGS) {
+    while (count > 0 & argc < MAXARGS) {
         while (*cmdl == ' ' && count--) {
-             cmdl++;
+            cmdl++;
         }
         if (count) {
             if (*cmdl == '<') {
                 count--;
-                if (!noredir) STDIN = ++cmdl;
+                if (!noredir)
+                    STDIN = ++cmdl;
             } else if (*cmdl == '>') {
                 count--;
                 ++cmdl;
@@ -55,7 +56,8 @@ _initio()
                     cmdl++;
                     mode[0] = 'a';
                 }
-                if (!noredir) STDOUT = cmdl;
+                if (!noredir)
+                    STDOUT = cmdl;
             } else {
                 argv[argc++] = cmdl;
             }
@@ -70,12 +72,11 @@ _initio()
     }
 
     /* open files, must be in order */
-    fopen(STDIN,"r");
-    fopen(STDOUT,mode);
-    fopen(STDERR,"w");
+    fopen(STDIN, "r");
+    fopen(STDOUT, mode);
+    fopen(STDERR, "w");
 
     argv[argc] = 0;
-    main(argc,argv);
+    main(argc, argv);
     exit(0);
 }
-
