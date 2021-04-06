@@ -5,7 +5,9 @@
 
 #include <stdio.h>
 
-main()
+void convert(char *icp, char *ocp);
+
+void main()
 {
     char instr[256];
     char outstr[256];
@@ -16,8 +18,7 @@ main()
     }
 }
 
-convert(icp, ocp)
-char *icp, *ocp;
+void convert(char *icp, char *ocp)
 {
 
     /* bugs...  this code doesn't realise the significance of tabs

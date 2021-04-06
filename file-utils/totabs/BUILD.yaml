@@ -1,0 +1,4 @@
+totabs.asm:
+  sdcc: totabs.c
+  depends:
+  - file-utils/totabs/totabs.c
