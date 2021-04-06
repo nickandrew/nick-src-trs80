@@ -83,10 +83,8 @@ _PUTC
 	JP	_FPUTC
 	ENDIF	;_putc
 ;
-;int fputc(c,fp)
-;int c;
-;FILE *fp;
-;
+;int fputc(int c, FILE *fp)
+;  -> Warning: this function implements _FPUTC with args backwards
 	IFREF	_FPUTC
 _FPUTC
 	LD	HL,2
