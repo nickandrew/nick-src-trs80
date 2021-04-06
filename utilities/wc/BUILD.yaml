@@ -1,0 +1,17 @@
+wc.cmd:
+  assemble: wc.asm
+  depends:
+  - utilities/wc/wc.asm
+  - include/include/doscalls.asm
+  - cinit.asm
+  - include/include/call.asm
+  - include/include/debug.asm
+  - wc1.asm
+  - library/lib/atoi.asm
+  - library/lib/strcmp.asm
+  - library/lib/ctype.asm
+  - include/include/libc.asm
+wc1.asm:
+  sdcc: wc1.c
+  depends:
+  - utilities/wc/wc1.c

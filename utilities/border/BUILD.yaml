@@ -1,0 +1,4 @@
+border.asm:
+  sdcc: border.c
+  depends:
+  - utilities/border/border.c

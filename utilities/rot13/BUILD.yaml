@@ -1,0 +1,15 @@
+rot13.cmd:
+  assemble: rot13.asm
+  depends:
+  - utilities/rot13/rot13.asm
+  - include/include/doscalls.asm
+  - cinit.asm
+  - include/include/call.asm
+  - include/include/debug.asm
+  - rot13a.asm
+  - include/include/libc.asm
+  skip: can't build dependency
+rot13a.asm:
+  sdcc: rot13a.c
+  depends:
+  - utilities/rot13/rot13a.c

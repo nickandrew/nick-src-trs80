@@ -1,0 +1,34 @@
+fileno.asm:
+  sdcc: fileno.c
+  depends:
+  - utilities/pack/fileno.c
+  skip: trs80 doesn't use file descriptors, so unsure what to do here
+pack.asm:
+  sdcc: pack.c
+  depends:
+  - utilities/pack/pack.c
+  skip: uses structs
+pack.cmd:
+  assemble: pack.asm
+  depends:
+  - utilities/pack/pack.asm
+  - include/include/doscalls.asm
+  skip: uses structs
+pcat.cmd:
+  assemble: pcat.asm
+  depends:
+  - utilities/pack/pcat.asm
+  - include/include/doscalls.asm
+  - include/include/ascii.asm
+unpack.asm:
+  sdcc: unpack.c
+  depends:
+  - utilities/pack/unpack.c
+  skip: filename conflict with unpack.asm. Uses shorts, register, fileno - unsuited
+    to trs80
+unpack.cmd:
+  assemble: unpack.asm
+  depends:
+  - utilities/pack/unpack.asm
+  - include/include/doscalls.asm
+  - include/include/ascii.asm

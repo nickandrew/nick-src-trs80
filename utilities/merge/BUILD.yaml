@@ -1,0 +1,4 @@
+merge.asm:
+  sdcc: merge.c
+  depends:
+  - utilities/merge/merge.c
