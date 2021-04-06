@@ -1,0 +1,13 @@
+restore-256k.cmd:
+  assemble: restore-256k.asm
+  depends:
+  - hardware/restore/restore-256k.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - include/include/ascii.asm
+  - include/include/prognumb.asm
+  xskip: FIXME invalid filename for trs-80
+restore.cmd:
+  assemble: restore.asm
+  depends:
+  - hardware/restore/restore.asm
