@@ -1,0 +1,4 @@
+pktlook1.asm:
+  sdcc: pktlook1.c
+  depends:
+  - zeta-bbs/network/pktlook/pktlook1.c

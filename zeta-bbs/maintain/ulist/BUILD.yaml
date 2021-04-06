@@ -1,0 +1,5 @@
+ulist.asm:
+  sdcc: ulist.c
+  depends:
+  - zeta-bbs/maintain/ulist/ulist.c
+  skip: uses struct

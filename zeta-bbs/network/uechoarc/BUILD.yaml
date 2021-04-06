@@ -1,0 +1,4 @@
+uechoarc.asm:
+  sdcc: uechoarc.c
+  depends:
+  - zeta-bbs/network/uechoarc/uechoarc.c

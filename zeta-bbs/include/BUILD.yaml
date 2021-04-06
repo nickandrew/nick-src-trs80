@@ -1,0 +1,21 @@
+program-template.cmd:
+  assemble: program-template.asm
+  depends:
+  - zeta-bbs/include/program-template.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - include/include/ascii.asm
+  - include/include/debugf.asm
+  - cinit.asm
+  - include/include/call.asm
+  - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/userfile.asm
+  - zeta-bbs/include/libcz.asm
+  - include/include/libc.asm
+  skip: Not intended to assemble
+userfunc.cmd:
+  assemble: userfunc.asm
+  depends:
+  - zeta-bbs/include/userfunc.asm
+  skip: No end statement

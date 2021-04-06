@@ -1,0 +1,4 @@
+pkthack1.asm:
+  sdcc: pkthack1.c
+  depends:
+  - zeta-bbs/network/pkthack/pkthack1.c

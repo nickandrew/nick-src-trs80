@@ -1,0 +1,4 @@
+credit1.asm:
+  sdcc: credit1.c
+  depends:
+  - zeta-bbs/maintain/credit/credit1.c

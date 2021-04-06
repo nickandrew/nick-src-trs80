@@ -1,0 +1,5 @@
+ankhmai1.asm:
+  sdcc: ankhmai1.c
+  depends:
+  - zeta-bbs/network/ankhmail/ankhmai1.c
+  - zeta-bbs/network/ankhmail/ankhmail.h

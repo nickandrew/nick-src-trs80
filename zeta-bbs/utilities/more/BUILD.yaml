@@ -1,0 +1,4 @@
+more1.asm:
+  sdcc: more1.c
+  depends:
+  - zeta-bbs/utilities/more/more1.c

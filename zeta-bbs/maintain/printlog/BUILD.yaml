@@ -1,0 +1,4 @@
+printlo1.asm:
+  sdcc: printlo1.c
+  depends:
+  - zeta-bbs/maintain/printlog/printlo1.c
