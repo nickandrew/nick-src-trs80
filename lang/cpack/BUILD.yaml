@@ -1,0 +1,4 @@
+cpack.asm:
+  sdcc: cpack.c
+  depends:
+  - lang/cpack/cpack.c

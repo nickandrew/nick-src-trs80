@@ -1,0 +1,10 @@
+listbas.cmd:
+  assemble: listbas.asm
+  depends:
+  - lang/listbas/listbas.asm
+  - include/include/doscalls.asm
+untoken-basic.asm:
+  sdcc: untoken-basic.c
+  depends:
+  - lang/listbas/untoken-basic.c
+  skip: ternary

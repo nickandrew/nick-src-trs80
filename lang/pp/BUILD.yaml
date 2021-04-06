@@ -1,0 +1,10 @@
+pp-trs.asm:
+  sdcc: pp-trs.c
+  depends:
+  - lang/pp/pp-trs.c
+  skip: staging buffer overflow
+pp.asm:
+  sdcc: pp.c
+  depends:
+  - lang/pp/pp.c
+  skip: staging buffer overflow

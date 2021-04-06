@@ -1,0 +1,4 @@
+nedasref.asm:
+  sdcc: nedasref.c
+  depends:
+  - lang/nedasref/nedasref.c

@@ -1,0 +1,23 @@
+ceval.cmd:
+  assemble: ceval.asm
+  depends:
+  - lang/ceval/ceval.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - include/include/ascii.asm
+  - include/include/debugf.asm
+  - cinit.asm
+  - include/include/call.asm
+  - ceval1.asm
+  - library/lib/atoi.asm
+  - library/lib/ctype.asm
+  - library/lib/strcmp.asm
+  - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/userfile.asm
+  - zeta-bbs/include/libcz.asm
+  - include/include/libc.asm
+ceval1.asm:
+  sdcc: ceval1.c
+  depends:
+  - lang/ceval/ceval1.c
