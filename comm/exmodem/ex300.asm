@@ -1557,7 +1557,7 @@ _SPTENS		DEFB	0
 _SPONES		DEFB	0
 _SPPOS		DEFW	0
 ;
-	ENDIF	SPUTNUM
+	ENDIF	; ifref SPUTNUM
 ;
 	IFREF	SEC10
 SEC10:		;Wait 'B'x 0.1 seconds
@@ -1576,7 +1576,7 @@ S1_2	LD	A,(TICKER)
 	JR	NZ,S1_1
 	POP	BC
 	RET
-	ENDIF	SEC10
+	ENDIF	; ifref SEC10
 ;
 ;
 ;Special flags & stuff.

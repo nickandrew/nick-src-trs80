@@ -1,0 +1,10 @@
+ex300.cmd:
+  assemble: ex300.asm
+  depends:
+  - comm/exmodem/ex300.asm
+  - include/include/doscalls.asm
+  - include/include/ascii.asm
+xmf.cmd:
+  assemble: xmf.asm
+  depends:
+  - comm/exmodem/xmf.asm
