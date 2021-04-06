@@ -3,6 +3,12 @@
 ** readnews.h
 */
 
+#define USER_NAME_LENGTH 32    /* Hardcoded in zeta-bbs/high-memory/special/special2.asm */
+
+extern void fatal(char *err);
+extern void getuname(char *buf);  /* Implemented in zeta-bbs/include/getuname.asm with LC calling convention */
+extern int readgrp(); /* Implemented in active.c */
+
 extern int
 
  group,        /* number of current newsgroup or 0 if none */

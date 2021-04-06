@@ -1,0 +1,19 @@
+active.asm:
+  sdcc: active.c
+  depends:
+  - zeta-bbs/utilities/readnews-in-c/active.c
+  - zeta-bbs/utilities/readnews-in-c/readnews.h
+newsrc.asm:
+  sdcc: newsrc.c
+  depends:
+  - zeta-bbs/utilities/readnews-in-c/newsrc.c
+  - zeta-bbs/utilities/readnews-in-c/readnews.h
+read.asm:
+  sdcc: read.c
+  depends:
+  - zeta-bbs/utilities/readnews-in-c/read.c
+  - zeta-bbs/utilities/readnews-in-c/readnews.h
+vars.asm:
+  sdcc: vars.c
+  depends:
+  - zeta-bbs/utilities/readnews-in-c/vars.c

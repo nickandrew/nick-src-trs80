@@ -1,4 +1,4 @@
-;getuname:
+; void getuname(char *buf);
 _GETUNAME:
 	LD	HL,2
 	ADD	HL,SP

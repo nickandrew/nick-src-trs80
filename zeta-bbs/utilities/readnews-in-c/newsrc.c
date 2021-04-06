@@ -4,8 +4,24 @@
 ** Routines to handle the NEWSRC file
 */
 
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "readnews.h"
+
+/* I will need to implement this somewhere */
+extern void itoa(int n, char *buf);
+
+/* Implemented in include/include/setpos.asm but with LC calling convention */
+extern void savepos(char *buf, FILE *fp);
+extern void setpos(char *buf, FILE *fp);
+
+void readcount();
+void writecount();
+void readrc();
+int asksubs();
 
 char countpos[3];               /* save position for count field */
 
@@ -13,7 +29,7 @@ char countpos[3];               /* save position for count field */
 ** readcount() ... Read 4 character count string
 */
 
-readcount()
+void readcount()
 {
     int i, c;
     savepos(countpos, newsrc);  /* save current position */
@@ -46,20 +62,20 @@ readcount()
 ** writecount() ... update count, "last article read"
 */
 
-writecount()
+void writecount()
 {
     setpos(countpos, newsrc);
     if (status == '-') {
-        fputc(newsrc, '-');
-        fputc(newsrc, '-');
-        fputc(newsrc, '-');
-        fputc(newsrc, '-');
+        fputc('-', newsrc);
+        fputc('-', newsrc);
+        fputc('-', newsrc);
+        fputc('-', newsrc);
         getc(newsrc);           /* bypass CR or ' ' */
     } else {
-        fputc(newsrc, '0' + ((count / 1000) % 10));
-        fputc(newsrc, '0' + ((count / 100) % 10));
-        fputc(newsrc, '0' + ((count / 10) % 10));
-        fputc(newsrc, '0' + (count % 10));
+        fputc('0' + ((count / 1000) % 10), newsrc);
+        fputc('0' + ((count / 100) % 10), newsrc);
+        fputc('0' + ((count / 10) % 10), newsrc);
+        fputc('0' + (count % 10), newsrc);
         getc(newsrc);           /* bypass CR or ' ' */
     }
 }
@@ -68,9 +84,13 @@ writecount()
 ** readrc() ... find and/or create newsrc record for user
 */
 
-readrc()
+void readrc()
 {
     char *cp;
+    char user_name[USER_NAME_LENGTH];
+
+    getuname(user_name);
+
     while (fgets(line, 80, newsrc) != NULL) {
         if (atoi(line) == uid) {
             fputs("So, you've used readnews before, eh?\n", stdout);
@@ -91,7 +111,7 @@ readrc()
 
     itoa(uid, line);
     strcat(line, " 870701123456 ");
-    strcat(line, getuname());
+    strcat(line, user_name);
 
     fputs(line, newsrc);
     fputs(sign1, newsrc);
@@ -108,9 +128,9 @@ readrc()
 
         if (++group != 1) {
             if ((group % 10) == 1)
-                fputc(newsrc, '\n');
+                fputc('\n', newsrc);
             else
-                fputc(newsrc, ' ');
+                fputc(' ', newsrc);
         }
 
         c = 'N';
@@ -131,7 +151,7 @@ readrc()
             status = '-';
         writecount();
     }
-    fputc(newsrc, '\n');
+    fputc('\n', newsrc);
 
     fputs("\nThats it!\n\n", stdout);
     setpos(countpos, newsrc);
@@ -142,7 +162,7 @@ readrc()
 ** asksubs() ... Ask whether to subscribe to new group
 */
 
-asksubs()
+int asksubs()
 {
     int c;
     while (1) {
