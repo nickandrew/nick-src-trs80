@@ -1,0 +1,18 @@
+spool-disk.cmd:
+  assemble: spool-disk.asm
+  depends:
+  - printer-utils/spool/spool-disk.asm
+  - include/include/doscalls.asm
+  skip: Bad filename
+spool.cmd:
+  assemble: spool.asm
+  depends:
+  - printer-utils/spool/spool.asm
+  - include/include/doscalls.asm
+  - printer-utils/spool/spoolhdr.asm
+spooler.cmd:
+  assemble: spooler.asm
+  depends:
+  - printer-utils/spool/spooler.asm
+  - include/include/doscalls.asm
+  - printer-utils/spool/spoolhdr.asm
