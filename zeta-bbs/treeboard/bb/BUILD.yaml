@@ -1,0 +1,11 @@
+seekto.asm:
+  sdcc: seekto.c
+  depends:
+  - zeta-bbs/lib/seekto.c
+  - zeta-bbs/include/seekto.h
+bb7old.asm:
+  sdcc: bb7old.c
+  depends:
+  - zeta-bbs/treeboard/bb/bb7old.c
+  - seekto.asm
+  - zeta-bbs/include/seekto.h
