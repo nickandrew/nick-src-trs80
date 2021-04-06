@@ -1,18 +1,27 @@
 /*
- * Asmclean/c: Cleans up /ASM files
+ * asmclean.c: Cleans up /ASM files
  * (C) 1986, Nick.
  *
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 char line[200], lineout[200];
 FILE *fpin, *fpout;
 
-main(argc, argv)
-int argc;
-char *argv[];
+int getlin();
+void putlin();
+void clean();
+
+void main(int argc, char *argv[])
 {
+    if (argc < 2) {
+        printf("Usage: asmclean.c infile.asm outfile.asm\n");
+        exit(4);
+    }
+
     fpin = fopen(argv[1], "r");
     fpout = fopen(argv[2], "w");
     if (fpin == NULL || fpout == NULL) {
@@ -32,25 +41,27 @@ char *argv[];
     exit(0);
 }
 
-getlin()
+int getlin()
 {
-    char c, *cp;
+    int c;
+    char *cp;
+
     cp = line;
     if ((c = getc(fpin)) == EOF)
         return 1;
     if (c == 0)
         return 1;
     while (c != '\n') {
-        *(cp++) = c;
+        *(cp++) = (char) c;
         c = getc(fpin);
     }
     *(cp++) = 0;
     return 0;
 }
 
-putlin()
+void putlin()
 {
-    char c, *cp;
+    char *cp;
     cp = lineout;
     while (*cp) {
         putc(*(cp++), fpout);
@@ -58,10 +69,10 @@ putlin()
     putc('\n', fpout);
 }
 
-clean()
+void clean()
 {
     /* leave a line beginning with a comment alone */
-    char c, *cp;
+    char *cp;
     int apos, tpos;
     apos = 0;
     tpos = 0;
@@ -156,5 +167,4 @@ clean()
 
     lineout[apos++] = 0;
     /* done */
-    return;
 }

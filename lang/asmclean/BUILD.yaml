@@ -1,0 +1,4 @@
+asmclean.asm:
+  sdcc: asmclean.c
+  depends:
+  - lang/asmclean/asmclean.c
