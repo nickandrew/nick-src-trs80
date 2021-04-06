@@ -1,15 +1,16 @@
-;setpos/asm: Setpos & Savepos routines
+;setpos.asm: Setpos & Savepos routines - with file pointer last
 ;Last updated: 20-Jul-87
 ;
 ;
-;savepos(buffer,ioptr)
-;setpos(buffer,ioptr)
+;  void savepos(char buf[3], FILE *fp)
+;  intsetpos(char buf[3], FILE *fp)
+;
 _SAVEPOS
 	LD	HL,2
 	ADD	HL,SP
 	LD	E,(HL)
 	INC	HL
-	LD	D,(HL)
+	LD	D,(HL)    ;de = fp
 	INC	HL
 	LD	C,(HL)
 	INC	HL
