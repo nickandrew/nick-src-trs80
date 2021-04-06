@@ -1,0 +1,8 @@
+disk.cmd:
+  assemble: disk.asm
+  depends:
+  - patches/asylum/disk.asm
+disk2.cmd:
+  assemble: disk2.asm
+  depends:
+  - patches/asylum/disk2.asm

@@ -1,0 +1,8 @@
+advboot.cmd:
+  assemble: advboot.asm
+  depends:
+  - patches/microsoft-adventure/advboot.asm
+advboot2.cmd:
+  assemble: advboot2.asm
+  depends:
+  - patches/microsoft-adventure/advboot2.asm

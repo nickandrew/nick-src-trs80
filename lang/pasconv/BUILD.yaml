@@ -1,0 +1,5 @@
+pasconv.cmd:
+  assemble: pasconv.asm
+  depends:
+  - lang/pasconv/pasconv.asm
+  - include/include/doscalls.asm

@@ -1,0 +1,5 @@
+hdp.cmd:
+  assemble: hdp.asm
+  depends:
+  - file-utils/hexdump/hdp.asm
+  - include/include/doscalls.asm

@@ -1,0 +1,4 @@
+peekhash.cmd:
+  assemble: peekhash.asm
+  depends:
+  - utilities/peekhash/peekhash.asm

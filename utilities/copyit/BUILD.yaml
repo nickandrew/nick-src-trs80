@@ -1,0 +1,4 @@
+copyit.cmd:
+  assemble: copyit.asm
+  depends:
+  - utilities/copyit/copyit.asm

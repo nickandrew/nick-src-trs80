@@ -1,0 +1,4 @@
+memory.cmd:
+  assemble: memory.asm
+  depends:
+  - hardware/memory/memory.asm

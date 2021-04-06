@@ -1,0 +1,4 @@
+newjkl.cmd:
+  assemble: newjkl.asm
+  depends:
+  - utilities/newjkl/newjkl.asm

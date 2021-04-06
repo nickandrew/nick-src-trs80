@@ -1,0 +1,18 @@
+real.cmd:
+  assemble: real.asm
+  depends:
+  - hardware/realtime-clock/real.asm
+  - include/include/external.asm
+  - include/include/doscalls.asm
+rtclock.cmd:
+  assemble: rtclock.asm
+  depends:
+  - hardware/realtime-clock/rtclock.asm
+setclock.cmd:
+  assemble: setclock.asm
+  depends:
+  - hardware/realtime-clock/setclock.asm
+setreal.cmd:
+  assemble: setreal.asm
+  depends:
+  - hardware/realtime-clock/setreal.asm

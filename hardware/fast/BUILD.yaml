@@ -1,0 +1,4 @@
+fast.cmd:
+  assemble: fast.asm
+  depends:
+  - hardware/fast/fast.asm

@@ -1,0 +1,4 @@
+day.cmd:
+  assemble: day.asm
+  depends:
+  - utilities/day/day.asm

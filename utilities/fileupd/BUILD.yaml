@@ -1,0 +1,5 @@
+fileupd.cmd:
+  assemble: fileupd.asm
+  depends:
+  - utilities/fileupd/fileupd.asm
+  - include/include/doscalls.asm

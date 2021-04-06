@@ -1,0 +1,4 @@
+fastfmtt.cmd:
+  assemble: fastfmtt.asm
+  depends:
+  - utilities/fast-format/fastfmtt.asm

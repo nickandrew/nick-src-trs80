@@ -1,0 +1,5 @@
+sptotab.cmd:
+  assemble: sptotab.asm
+  depends:
+  - lang/sptotab/sptotab.asm
+  - include/include/doscalls.asm

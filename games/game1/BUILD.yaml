@@ -1,0 +1,10 @@
+game1.cmd:
+  assemble: game1.asm
+  depends:
+  - games/game1/data.asm
+  - games/game1/equates.asm
+  - games/game1/game1.asm
+  - games/game1/options.asm
+  - games/game1/wavedata.asm
+  - games/game1/mvalien.asm
+  - games/game1/wavelang.asm

@@ -1,0 +1,21 @@
+split16k.cmd:
+  assemble: split16k.asm
+  depends:
+  - utilities/split/split16k.asm
+  - include/include/doscalls.asm
+split32k.cmd:
+  assemble: split32k.asm
+  depends:
+  - utilities/split/split32k.asm
+  - include/include/doscalls.asm
+split64k.cmd:
+  assemble: split64k.asm
+  depends:
+  - utilities/split/split64k.asm
+  - include/include/doscalls.asm
+  - include/include/ascii.asm
+splitup.cmd:
+  assemble: splitup.asm
+  depends:
+  - utilities/split/splitup.asm
+  - include/include/doscalls.asm

@@ -1,0 +1,4 @@
+wave1.cmd:
+  assemble: wave1.asm
+  depends:
+  - utilities/waveform/wave1.asm

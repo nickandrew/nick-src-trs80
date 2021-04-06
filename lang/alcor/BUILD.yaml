@@ -1,0 +1,5 @@
+objcat.cmd:
+  assemble: objcat.asm
+  depends:
+  - lang/alcor/objcat.asm
+  - include/include/doscalls.asm

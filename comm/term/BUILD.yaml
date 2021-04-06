@@ -1,0 +1,5 @@
+term.cmd:
+  assemble: term.asm
+  depends:
+  - comm/term/term.asm
+  - include/include/doscalls.asm

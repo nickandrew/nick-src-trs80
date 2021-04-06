@@ -1,0 +1,5 @@
+chopfile.cmd:
+  assemble: chopfile.asm
+  depends:
+  - file-utils/chopfile/chopfile.asm
+  - include/include/doscalls.asm

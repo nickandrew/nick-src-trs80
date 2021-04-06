@@ -1,0 +1,4 @@
+errors.cmd:
+  assemble: errors.asm
+  depends:
+  - utilities/errors/errors.asm

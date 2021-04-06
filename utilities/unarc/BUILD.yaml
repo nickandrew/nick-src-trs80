@@ -1,0 +1,66 @@
+unarc.cmd:
+  assemble: unarc.asm
+  depends:
+  - utilities/unarc/unarc.asm
+  - include/include/doscalls.asm
+  - utilities/unarc/filea.asm
+  - utilities/unarc/fileb.asm
+  - utilities/unarc/filec.asm
+  - utilities/unarc/filed.asm
+  - utilities/unarc/filee.asm
+  - utilities/unarc/filef.asm
+  - utilities/unarc/fileg.asm
+  - utilities/unarc/fileh.asm
+  - utilities/unarc/filei.asm
+  - utilities/unarc/filej.asm
+  - utilities/unarc/filek.asm
+unarc88.cmd:
+  assemble: unarc88.asm
+  depends:
+  - utilities/unarc/unarc88.asm
+  - include/include/doscalls.asm
+  - utilities/unarc/filea.asm
+  - utilities/unarc/fileb.asm
+  - utilities/unarc/filec.asm
+  - utilities/unarc/filed.asm
+  - utilities/unarc/filee.asm
+  - utilities/unarc/filef.asm
+  - utilities/unarc/fileg.asm
+  - utilities/unarc/fileh.asm
+  - utilities/unarc/filei.asm
+  - utilities/unarc/filej.asm
+  - utilities/unarc/filek.asm
+zunarc.cmd:
+  assemble: zunarc.asm
+  depends:
+  - utilities/unarc/zunarc.asm
+  - include/include/doscalls.asm
+  - utilities/unarc/unarcext.asm
+  - utilities/unarc/filea.asm
+  - utilities/unarc/fileb.asm
+  - utilities/unarc/filec.asm
+  - utilities/unarc/filed.asm
+  - utilities/unarc/filee.asm
+  - utilities/unarc/filef.asm
+  - utilities/unarc/fileg.asm
+  - utilities/unarc/fileh.asm
+  - utilities/unarc/filei.asm
+  - utilities/unarc/filej.asm
+  - utilities/unarc/filek.asm
+zunarc88.cmd:
+  assemble: zunarc88.asm
+  depends:
+  - utilities/unarc/zunarc88.asm
+  - include/include/doscalls.asm
+  - utilities/unarc/unarcext.asm
+  - utilities/unarc/filea.asm
+  - utilities/unarc/fileb.asm
+  - utilities/unarc/filec.asm
+  - utilities/unarc/filed.asm
+  - utilities/unarc/filee.asm
+  - utilities/unarc/filef.asm
+  - utilities/unarc/fileg.asm
+  - utilities/unarc/fileh.asm
+  - utilities/unarc/filei.asm
+  - utilities/unarc/filej.asm
+  - utilities/unarc/filek.asm

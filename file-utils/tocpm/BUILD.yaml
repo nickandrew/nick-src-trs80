@@ -1,0 +1,5 @@
+tocpm.cmd:
+  assemble: tocpm.asm
+  depends:
+  - file-utils/tocpm/tocpm.asm
+  - include/include/doscalls.asm

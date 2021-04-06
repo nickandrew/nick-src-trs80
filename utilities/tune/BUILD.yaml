@@ -1,0 +1,4 @@
+tune.cmd:
+  assemble: tune.asm
+  depends:
+  - utilities/tune/tune.asm

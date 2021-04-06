@@ -1,0 +1,4 @@
+memtest.cmd:
+  assemble: memtest.asm
+  depends:
+  - utilities/memtest/memtest.asm

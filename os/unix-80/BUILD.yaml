@@ -1,0 +1,18 @@
+master.cmd:
+  assemble: master.asm
+  depends:
+  - os/unix-80/master.asm
+  - os/unix-80/globequ.asm
+  - os/unix-80/macros.asm
+  - os/unix-80/tables.asm
+  - os/unix-80/flags.asm
+  - os/unix-80/booter.asm
+  - os/unix-80/debug.asm
+  - os/unix-80/interupt.asm
+  - os/unix-80/subrout.asm
+  - os/unix-80/diskio.asm
+  - os/unix-80/process.asm
+  - os/unix-80/initdev.asm
+  - os/unix-80/inittab.asm
+  - os/unix-80/priority.asm
+  - include/include/doscalls.asm

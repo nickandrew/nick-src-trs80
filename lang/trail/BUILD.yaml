@@ -1,0 +1,5 @@
+trail.cmd:
+  assemble: trail.asm
+  depends:
+  - lang/trail/trail.asm
+  - include/include/doscalls.asm

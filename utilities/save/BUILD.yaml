@@ -1,0 +1,4 @@
+save.cmd:
+  assemble: save.asm
+  depends:
+  - utilities/save/save.asm

@@ -1,0 +1,5 @@
+strip.cmd:
+  assemble: strip.asm
+  depends:
+  - lang/strip/strip.asm
+  - include/include/doscalls.asm

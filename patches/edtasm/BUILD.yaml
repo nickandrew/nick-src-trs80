@@ -1,0 +1,8 @@
+edbann.cmd:
+  assemble: edbann.asm
+  depends:
+  - patches/edtasm/edbann.asm
+edbann2.cmd:
+  assemble: edbann2.asm
+  depends:
+  - patches/edtasm/edbann2.asm

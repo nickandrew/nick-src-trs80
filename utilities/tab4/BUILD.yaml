@@ -1,0 +1,5 @@
+tab4.cmd:
+  assemble: tab4.asm
+  depends:
+  - utilities/tab4/tab4.asm
+  - include/include/doscalls.asm

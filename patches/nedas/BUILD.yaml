@@ -1,0 +1,4 @@
+nedasfix.cmd:
+  assemble: nedasfix.asm
+  depends:
+  - patches/nedas/nedasfix.asm

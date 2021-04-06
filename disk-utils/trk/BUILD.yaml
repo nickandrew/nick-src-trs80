@@ -1,0 +1,8 @@
+trk.cmd:
+  assemble: trk.asm
+  depends:
+  - disk-utils/trk/trk.asm
+trksl.cmd:
+  assemble: trksl.asm
+  depends:
+  - disk-utils/trk/trksl.asm

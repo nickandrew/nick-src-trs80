@@ -1,0 +1,5 @@
+chardiff.cmd:
+  assemble: chardiff.asm
+  depends:
+  - file-utils/chardiff/chardiff.asm
+  - include/include/doscalls.asm

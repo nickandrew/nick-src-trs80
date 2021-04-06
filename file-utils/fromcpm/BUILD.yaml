@@ -1,0 +1,5 @@
+fromcpm.cmd:
+  assemble: fromcpm.asm
+  depends:
+  - file-utils/fromcpm/fromcpm.asm
+  - include/include/doscalls.asm

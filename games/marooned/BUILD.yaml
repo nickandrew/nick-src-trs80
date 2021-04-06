@@ -1,0 +1,8 @@
+control.cmd:
+  assemble: control.asm
+  depends:
+  - games/marooned/control.asm
+marooned.cmd:
+  assemble: marooned.asm
+  depends:
+  - games/marooned/marooned.asm

@@ -1,0 +1,10 @@
+ptrdump.cmd:
+  assemble: ptrdump.asm
+  depends:
+  - utilities/ptrdump/ptrdump.asm
+  - include/include/doscalls.asm
+ptrdump1.cmd:
+  assemble: ptrdump1.asm
+  depends:
+  - utilities/ptrdump/ptrdump1.asm
+  - include/include/doscalls.asm

@@ -1,0 +1,4 @@
+visible.cmd:
+  assemble: visible.asm
+  depends:
+  - utilities/directory/visible/visible.asm

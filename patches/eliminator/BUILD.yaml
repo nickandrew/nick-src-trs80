@@ -1,0 +1,8 @@
+clear.cmd:
+  assemble: clear.asm
+  depends:
+  - patches/eliminator/clear.asm
+patches.cmd:
+  assemble: patches.asm
+  depends:
+  - patches/eliminator/patches.asm

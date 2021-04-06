@@ -1,0 +1,4 @@
+ptrfilt.cmd:
+  assemble: ptrfilt.asm
+  depends:
+  - printer-utils/ptrfilt/ptrfilt.asm

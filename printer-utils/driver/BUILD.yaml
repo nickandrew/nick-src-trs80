@@ -1,0 +1,4 @@
+printer.cmd:
+  assemble: printer.asm
+  depends:
+  - printer-utils/driver/printer.asm

@@ -1,0 +1,4 @@
+pfilt.cmd:
+  assemble: pfilt.asm
+  depends:
+  - printer-utils/pfilt/pfilt.asm
