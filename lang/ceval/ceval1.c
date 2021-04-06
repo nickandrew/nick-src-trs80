@@ -20,16 +20,6 @@
 #define LEFT       2
 #define EQUA       3
 
-/* Function declarations */
-void outline(char *s, int n);
-void push1(int n);
-void push2(int n);
-int pop1(void);
-int pop2(void);
-void exprval(void);
-void eval(int tok);
-void advance(void);
-
 int rel[25] = {                 /* 5 x row + column */
 /*               $     +     -     *     /            */
 /* $ */ NONE, LEFT, LEFT, LEFT, LEFT,
@@ -47,27 +37,10 @@ int string[20] = { 3, -PLUS, 2, -TIMES, 4, -PLUS, 6, -EOS };
 int *ip;
 int token;
 
-int main()
-{
-    sp1 = stack1;
-    sp2 = stack2;
-    ip = string;
-    push1(-3);
-    push2(EOS);
-    exprval();
-    if (*ip != EOS)
-        fputs("Invalid expression (1)\n", stdout);
-    outline("Result is ", pop1());
-    return 0;
-}
 
 void outline(char *s, int n)
 {
-    char buff[8];
-    fputs(s, stdout);
-    itoa(n, buff);
-    fputs(buff, stdout);
-    fputs("\n", stdout);
+    printf("%s%d\n", s, n);
 }
 
 void push1(int n)
@@ -92,6 +65,42 @@ int pop2(void)
 {
     outline("Popping from operator stack: ", *sp2);
     return *(sp2--);
+}
+
+void advance(void)
+{
+    if (*ip == EOS) {
+        fputs("Can't advance past EOS\n", stdout);
+        return;
+    }
+    ++ip;
+}
+
+void eval(int tok)
+{
+    int x1;
+    outline("Evaluating ", tok);
+    switch (tok) {
+    case EOS:
+        fputs("Evaluate end of string?\n", stdout);
+        return;
+    case PLUS:
+        push1(pop1() + pop1());
+        return;
+    case MINUS:
+        x1 = pop1();
+        push1(pop1() - x1);
+        return;
+    case TIMES:
+        push1(pop1() * pop1());
+        return;
+    case DIVIDE:
+        x1 = pop1();
+        push1(pop1() / x1);
+        return;
+    default:
+        outline("Cannot execute token ", tok);
+    }
 }
 
 void exprval(void)
@@ -145,38 +154,16 @@ void exprval(void)
     }
 }
 
-void eval(int tok)
+int main(void)
 {
-    int x1;
-    outline("Evaluating ", tok);
-    switch (tok) {
-    case EOS:
-        fputs("Evaluate end of string?\n", stdout);
-        return;
-    case PLUS:
-        push1(pop1() + pop1());
-        return;
-    case MINUS:
-        x1 = pop1();
-        push1(pop1() - x1);
-        return;
-    case TIMES:
-        push1(pop1() * pop1());
-        return;
-    case DIVIDE:
-        x1 = pop1();
-        push1(pop1() / x1);
-        return;
-    default:
-        outline("Cannot execute token ", tok);
-    }
-}
-
-void advance(void)
-{
-    if (*ip == EOS) {
-        fputs("Can't advance past EOS\n", stdout);
-        return;
-    }
-    ++ip;
+    sp1 = stack1;
+    sp2 = stack2;
+    ip = string;
+    push1(-3);
+    push2(EOS);
+    exprval();
+    if (*ip != EOS)
+        fputs("Invalid expression (1)\n", stdout);
+    outline("Result is ", pop1());
+    return 0;
 }
