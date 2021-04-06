@@ -1,0 +1,6 @@
+znix.cmd:
+  assemble: znix.asm
+  depends:
+  - os/znix/znix.asm
+  - include/include/doscalls.asm
+  skip: No end statement
