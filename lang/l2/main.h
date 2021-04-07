@@ -18,9 +18,3 @@ extern int    cclass, ccode, clevel, cerror;
 extern int    debug;
 extern int    location;
 extern int    pc;
-
-/*  The machine code output buffer */
-
-#define OUTBUF          1000
-
-

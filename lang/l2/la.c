@@ -7,6 +7,9 @@
 */
 
 #include <stdio.h>
+#include <string.h>
+
+#include "errors.h"
 #include "la.h"
 #include "lls.h"
 
@@ -46,22 +49,37 @@ char *nextstr;
 
 /*      Number table. */
 
-struct numbtb {
-    int numb;
-    struct numbtb *leftptr;
-    struct numbtb *rightptr;
-} numbtabl[MAXNUMB];
+struct numbtb numbtabl[MAXNUMB];
 
 struct numbtb *nextnumb;
 
 /*  Static tables: classtbl[] contains the class of arithmetic
 **                 comparison and other tokens.
 **  Starting: blank, plus, minus, star, slash, etc...
+**  See: token codes in lls.h
 */
 
 int classtbl[20] = {
-    -1, 82, 82, 84, 84, 75, 75, 75, 75, 75,
-    75, 43, 11, 32, 73, 31, -1, 50, 89, -1
+    -1, /* INVALID/BLANK */
+    82, /* PLUS */
+    82, /* MINUS */
+    84, /* STAR */
+    84, /* SLASH */
+    75, /* EQUAL */
+    75, /* NOTEQUAL */
+    75, /* LESS */
+    75, /* LESSEQUAL */
+    75, /* GREATER */
+    75, /* GREATEREQUAL */
+    43, /* GETS (:= ??) */
+    11, /* SEMICOLON */
+    32, /* LEFT */
+    73, /* RIGHT */
+    31, /* COMMA */
+    -1, /* NAME */
+    50, /* CHARSTR */
+    89, /* NUMBER */
+    -1  /* ENDFILE */
 };
 
 /*      Other globals */
@@ -73,17 +91,36 @@ int errcode,                    /* Error code returned by LA. 0 if ok */
  loccount,                      /* Count of number of local variables */
  glbcode;                       /* Code of last global variable       */
 
+static void newsymb(char *nstr, int class, int code, int level);
+static int hash(char *string);
+static void reason10(void);
+static void reason11(void);
+static void reason1(int *pclass, int *pcode, int *plevel);
+static void reason2(int *pclass, int *pcode, int *plevel);
+static void reason3(int *pclass, int *pcode, int *plevel);
+static void reason4(int *pclass, int *pcode, int *plevel);
+static void reason5(int *pclass, int *pcode, int *plevel);
+static void reason6(int *pclass, int *pcode);
+static void reason7(int *pclass, int *pcode);
+static void reason8(void);
+static void reason9(int *pclass);
+static void laerror(int level);
+static void delsymb(struct desctb *descptr, int hashcode);
+static struct desctb *findsym(char *name);
+static int addstr(char *string);
+static int addnumb(int number);
 
 
-/* la ... entry to the lexical analyser */
+/* la ... entry to the lexical analyser
+**
+** reason: reason for calling lls
+** pclass: pointer to returned symbol class
+** pcode: pointer to returned code
+** plevel: pointer to returned level
+** perror: pointer to returned error code
+*/
 
-la(reason, pclass, pcode, plevel, perror)
-int reason,                     /* reason for calling lls */
-*pclass,                        /* Ptr to returned symbol class */
-*pcode,                         /* Ptr to returned code */
-*plevel,                        /* Ptr to returned level */
-*perror;                        /* Ptr to returned error code */
-
+void la(int reason, int *pclass, int *pcode, int *plevel, int *perror)
 {
     errcode = 0;
     switch (reason) {
@@ -141,9 +178,7 @@ int reason,                     /* reason for calling lls */
 /*      Newsymb() - append a new symbol to the symbol table.
 */
 
-newsymb(nstr, class, code, level)
-char *nstr;
-int class, code, level;
+static void newsymb(char *nstr, int class, int code, int level)
 {
 
     int hashval;
@@ -185,14 +220,12 @@ int class, code, level;
     /* bump descriptor table pointer (by length of struct) */
 
     ++nextdesc;
-
 }
 
-int hash(string)
-char *string;
+static int hash(char *string)
 {
     int l = 0;
-    char first, last;
+    char first = 0, last = 0;
 
     /* hash function used: ............................ */
     /* hash = (first_char + last_char + length) mod 256 */
@@ -217,7 +250,7 @@ char *string;
 /* reason10() - initialise data structures */
 
 
-reason10()
+static void reason10(void)
 {
     int i;
 
@@ -270,7 +303,7 @@ reason10()
 /*  reason11() - Dump data structures
 */
 
-reason11()
+static void reason11(void)
 {
 
     int i;
@@ -370,10 +403,9 @@ reason11()
 **  for the next token
 */
 
-reason1(pclass, pcode, plevel)
-int *pclass, *pcode, *plevel;
+static void reason1(int *pclass, int *pcode, int *plevel)
 {
-    struct desctb *descptr, *findsym();
+    struct desctb *descptr;
 
     do {
         lls();
@@ -435,12 +467,8 @@ int *pclass, *pcode, *plevel;
 /*  reason2() - Expect a global variable name
 */
 
-reason2(pclass, pcode, plevel)
-int *pclass, *pcode, *plevel;
+static void reason2(int *pclass, int *pcode, int *plevel)
 {
-
-    struct desctb *findsym();
-
     lls();
 
     if (code != NAME) {
@@ -467,12 +495,8 @@ int *pclass, *pcode, *plevel;
 /*  reason3() - Expect a function name
 */
 
-reason3(pclass, pcode, plevel)
-int *pclass, *pcode, *plevel;
+static void reason3(int *pclass, int *pcode, int *plevel)
 {
-
-    struct desctb *findsym();
-
     lls();
 
     if (code != NAME) {
@@ -501,11 +525,9 @@ int *pclass, *pcode, *plevel;
 /*  reason4() - Expect a formal parameter name
 */
 
-reason4(pclass, pcode, plevel)
-int *pclass, *pcode, *plevel;
+static void reason4(int *pclass, int *pcode, int *plevel)
 {
-
-    struct desctb *descptr, *findsym();
+    struct desctb *descptr;
 
     lls();
 
@@ -548,11 +570,10 @@ int *pclass, *pcode, *plevel;
 /*  reason5() - Expect local variable name
 */
 
-reason5(pclass, pcode, plevel)
-int *pclass, *pcode, *plevel;
+static void reason5(int *pclass, int *pcode, int *plevel)
 {
 
-    struct desctb *descptr, *findsym();
+    struct desctb *descptr;
 
     lls();
 
@@ -600,8 +621,7 @@ int *pclass, *pcode, *plevel;
 
 /*  reason6() - Count formal parameters  */
 
-reason6(pclass, pcode)
-int *pclass, *pcode;
+static void reason6(int *pclass, int *pcode)
 {
 
     struct desctb *descptr;
@@ -632,8 +652,7 @@ int *pclass, *pcode;
 
 /*  reason7() - Count local variables  */
 
-reason7(pclass, pcode)
-int *pclass, *pcode;
+static void reason7(int *pclass, int *pcode)
 {
 
     struct desctb *descptr;
@@ -668,7 +687,7 @@ int *pclass, *pcode;
 **      Local function names & variables & parameters
 */
 
-reason8()
+static void reason8(void)
 {
 
     struct desctb *descptr;
@@ -703,8 +722,7 @@ reason8()
 **
 */
 
-reason9(pclass)
-int *pclass;
+static void reason9(int *pclass)
 {
     *pclass = glbcode;
 }
@@ -713,10 +731,8 @@ int *pclass;
 */
 
 
-laerror(level)
-int level;
+static void laerror(int level)
 {
-
     errcode = level;
 }
 
@@ -727,9 +743,7 @@ int level;
 */
 
 
-delsymb(descptr, hashcode)
-struct desctb *descptr;
-int hashcode;
+static void delsymb(struct desctb *descptr, int hashcode)
 {
 
     /*  Point backwards or NULL if nowhere to point to */
@@ -748,8 +762,7 @@ int hashcode;
 **  return null if name not in symbol table
 */
 
-struct desctb *findsym(name)
-char *name;
+static struct desctb *findsym(char *name)
 {
     int hashval;
     struct desctb *descptr;
@@ -775,8 +788,7 @@ char *name;
 **  return character offset from 0 of first char in string
 */
 
-int addstr(string)
-char *string;
+static int addstr(char *string)
 {
     char *p;
 
@@ -798,8 +810,7 @@ char *string;
 **  return position within number table from 0
 */
 
-int addnumb(number)
-int number;
+static int addnumb(int number)
 {
     struct numbtb *numbptr;
 

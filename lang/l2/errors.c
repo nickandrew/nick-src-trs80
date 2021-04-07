@@ -7,12 +7,16 @@
 */
 
 
-
 #include <stdio.h>              /* Standard IO functions */
-#include "errors.h"             /* Anything necessary for errors */
 
-error(msg)
-char *msg;
+#include "errors.h"             /* Anything necessary for errors */
+#include "lls.h"
+
+int     errorfound = 0;
+
+extern  FILE *f_list;
+
+void error(const char *msg)
 {
     /* print an error message */
 
@@ -28,5 +32,4 @@ char *msg;
     fputs("|\n", f_list);
     fputs(msg, f_list);
     fputc('\n', f_list);
-
 }

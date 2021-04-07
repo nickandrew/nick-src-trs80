@@ -31,8 +31,20 @@
 
 #define SYMMAX      80
 
-extern char namestr[];
-extern int  code;
-extern FILE *f_list;
-extern char string[];
-extern int  number;
+/*      Number table. */
+
+struct numbtb {
+    int numb;
+    struct numbtb *leftptr;
+    struct numbtb *rightptr;
+};
+
+extern  char   namestr[];
+extern  char   string[];
+extern  int    code;
+extern  int    number;
+
+extern  struct numbtb numbtabl[];
+
+/* Declaration for the public function defined in la.c */
+extern void la(int reason, int *pclass, int *pcode, int *plevel, int *perror);

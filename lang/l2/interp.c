@@ -7,9 +7,25 @@
 */
 
 #include <stdio.h>
-#include "interp.h"
+#include <stdlib.h>
+#include <unistd.h>
 
-execute()
+#include "interp.h"
+#include "opcodes.h"
+#include "la.h"
+
+extern FILE *f_out;
+
+int   data[1000],program[1000];
+int   sp=0, sb, sb1, l, rv;
+int   pc, level, st, fn, lalev;
+
+static void setlevptr(void);
+static void pushs(int value);
+static int pops(void);
+void loadmem(void);
+
+int execute(void)
 {
     int value, temp1;
 
@@ -179,7 +195,11 @@ execute()
         break;
 
     case -29:                  /* RN instruction */
-        pushs(numbtabl[pops()]);
+        /* Was: pushs(numbtabl[pops()]);
+        ** I'm guessing that this is just an index into a constant value,
+        ** not a data structure.
+        */
+        pushs(numbtabl[pops()].numb);
         break;
 
     case -30:                  /* START instruction */
@@ -199,7 +219,7 @@ execute()
 **  setlevptr() ... Set the pointer to the previous level s/b
 */
 
-setlevptr()
+static void setlevptr(void)
 {
 
     int sb2;
@@ -216,8 +236,7 @@ setlevptr()
     }
 }
 
-pushs(value)
-int value;
+static void pushs(int value)
 {
     if (sp >= 1000) {
         fprintf(stderr, "Execution stack overflow, sp = %d\n", sp);
@@ -226,7 +245,7 @@ int value;
     data[++sp] = value;
 }
 
-int pops()
+static int pops(void)
 {
     if (sp < 0) {
         fprintf(stderr, "Execution stack underflow\n");
@@ -235,14 +254,18 @@ int pops()
     return data[sp--];
 }
 
-loadmem()
+void loadmem(void)
 {
-    extern FILE *f_out;
     int loc;
     rewind(f_out);
     loc = 1;
     while (!feof(f_out)) {
-        program[loc] = getw(f_out);
+        /* Was: program[loc] = getw(f_out); */
+        int i, n;
+        n = fscanf(f_out, " %d", &i);
+        if (n != 1) {
+            break;
+        }
         ++loc;
     }
 }

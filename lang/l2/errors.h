@@ -6,9 +6,8 @@
 **
 */
 
+#include <stdio.h>
 
+extern  int  errorfound;
 
-extern  int  linepos;                /* for the error position */
-extern  FILE *f_list;                /* for messages */
-
-int     errorfound = 0;
+void error(const char *msg);

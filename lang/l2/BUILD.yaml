@@ -3,6 +3,7 @@ compiler.asm:
   depends:
   - lang/l2/compiler.c
   - lang/l2/compiler.h
+  - lang/l2/errors.h
   - lang/l2/goals.h
   - lang/l2/opcodes.h
   - lang/l2/la.h
@@ -12,26 +13,33 @@ errors.asm:
   depends:
   - lang/l2/errors.c
   - lang/l2/errors.h
+  - lang/l2/lls.h
 interp.asm:
   sdcc: interp.c
   depends:
+  - lang/l2/compiler.h
   - lang/l2/interp.c
   - lang/l2/interp.h
+  - lang/l2/la.h
+  - lang/l2/opcodes.h
 la.asm:
   sdcc: la.c
   depends:
+  - lang/l2/errors.h
   - lang/l2/la.c
   - lang/l2/la.h
   - lang/l2/lls.h
 latest.asm:
   sdcc: latest.c
   depends:
+  - lang/l2/errors.h
   - lang/l2/latest.c
   - lang/l2/la.h
   - lang/l2/lls.h
 lls.asm:
   sdcc: lls.c
   depends:
+  - lang/l2/errors.h
   - lang/l2/lls.c
   - lang/l2/lls.h
 llstest.asm:
@@ -42,5 +50,9 @@ llstest.asm:
 main.asm:
   sdcc: main.c
   depends:
+  - lang/l2/compiler.h
+  - lang/l2/interp.h
+  - lang/l2/la.h
+  - lang/l2/lls.h
   - lang/l2/main.c
   - lang/l2/main.h

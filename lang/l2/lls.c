@@ -8,7 +8,9 @@
 
 
 #include <stdio.h>
+
 #include "lls.h"
+#include "errors.h"
 
 char ch,                        /* this character */
  eof,                           /* end of file, source */
@@ -27,11 +29,21 @@ char thisline[LINESIZE],        /* line buffer */
 
 int linepos;                    /* current position in input line */
 
-FILE *f_in,                     /* input source file */
-*f_out,                         /* output file */
-*f_list;                        /* source listing */
+extern  FILE *f_in;
+extern  FILE *f_out;
+extern  FILE *f_list;
 
-lls()
+static void blankcomm(void);
+static void isnumber(void);
+static void isname(void);
+static int lower(char ch);
+static void isstring(void);
+static void isoperator(void);
+void getnext(void);
+void init(void);
+void outtoken(void);
+
+void lls(void)
 {
 
     do {
@@ -59,7 +71,7 @@ lls()
 
 }
 
-blankcomm()
+static void blankcomm(void)
 {
     char flag = 1;
     if (eof)
@@ -84,7 +96,7 @@ blankcomm()
     }
 }
 
-isnumber()
+static void isnumber(void)
 {
     int i, len;
     i = len = 0;
@@ -103,7 +115,7 @@ isnumber()
     number = i;
 }
 
-isname()
+static void isname(void)
 {
     nameptr = namestr;
     *nameptr = 0;
@@ -120,15 +132,14 @@ isname()
     code = NAME;
 }
 
-int lower(ch)
-char ch;
+static int lower(char ch)
 {
     if (ch >= 'A' && ch <= 'Z')
         ch |= 0x20;             /* Ascii */
     return ch;
 }
 
-isstring()
+static void isstring(void)
 {
     strptr = string;
     *strptr = 0;
@@ -149,7 +160,7 @@ isstring()
     code = CHARSTR;
 }
 
-isoperator()
+static void isoperator(void)
 {
     switch (ch) {
 
@@ -211,7 +222,7 @@ isoperator()
         getnext();
 }
 
-getnext()
+void getnext(void)
 {
     static int nexttime = 0;
     if (eof) {
@@ -248,7 +259,7 @@ getnext()
         ++linepos;
 }
 
-init()
+void init(void)
 {
     /* do initialisations */
     eof = 0;
@@ -261,7 +272,7 @@ init()
     *string = 0;
 }
 
-outtoken()
+void outtoken(void)
 {
     if (code == NAME) {
         fputs("name:   ", f_out);

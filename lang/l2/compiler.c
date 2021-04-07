@@ -7,15 +7,105 @@
 */
 
 
-
 #include <stdio.h>              /* Standard IO functions */
+#include <stdlib.h>
+#include <string.h>
+
 #include "lls.h"                /* Header: lls           */
 #include "la.h"                 /* Header: la            */
 #include "compiler.h"           /* Header: compiler      */
+#include "errors.h"
 #include "goals.h"              /* For error handling    */
 #include "opcodes.h"            /* List of L2 opcode #s  */
 
 
+FILE *f_asm,           /* Asm source output */
+     *f_debug;         /* debugging output (optional) */
+
+extern  FILE *f_out;
+extern  FILE *f_list;
+
+int     goalstack[MAXGLSTK],
+        opstack[MAXOPSTK],
+        goalsp, opsp;
+
+/* The returned values from LA */
+
+int     cclass, ccode, clevel, cerror;
+
+/* Other miscellany */
+
+int     argcount,
+        lareason,
+        needtoken,
+        errflag,
+        goal,
+        debug = 0,
+        location;
+
+struct functb functabl[MAXFUNCS];
+
+int   alt[NUMGOALS],  /* Alternate */
+      def[NUMGOALS],  /* Definition */
+      act[NUMGOALS],  /* Action */
+      suc[NUMGOALS];  /* Successor */
+
+int   outbuf[OUTBUF];
+
+/*  The assembly language definition  */
+
+char *asmtab[31] = {
+    "-----",
+    "+",
+    "-",
+    "*",
+    "/",
+    "=",
+    "<>",
+    "<",
+    "<=",
+    ">",
+    ">=",
+    ":=",
+    "or",
+    "and",
+    "return",
+    "  +",
+    "  -",
+    "stop",
+    "crash",
+    "read",
+    "write",
+    "ws",
+    "wn",
+    "gif",
+    "go",
+    "isp",
+    "call",
+    "isb",
+    "rs",
+    "rn",
+    "start"
+};
+
+/* Declarations for functions in this file */
+void compile(void);
+static void nextgoal(void);
+static void nexttoken(void);
+static void procgoal(void);
+static void successor(void);
+static void push(int stack[], int num);
+static void pop(int stack[], int *gp);
+static int togs(void);
+static void action(int goal);
+void l2init(void);
+static void opcode(int num);
+void outflush(void);
+static void store(int addr, int num);
+static int expected(void);
+static int syntax(void);
+static void terminate(void);
+static void lacheck(void);
 
 
 
@@ -25,7 +115,7 @@
 
 
 
-compile()
+void compile(void)
 {
 
     errflag = FALSE;
@@ -63,14 +153,12 @@ compile()
 
 
 
-nextgoal()
+static void nextgoal(void)
 {
-
     while (def[goal] != 0) {
         push(goalstack, goal);
         goal = def[goal];
     }
-
 }
 
 
@@ -82,9 +170,8 @@ nextgoal()
 
 
 
-nexttoken()
+static void nexttoken(void)
 {
-
     if (needtoken) {
         needtoken = FALSE;
         la(lareason, &cclass, &ccode, &clevel, &cerror);
@@ -105,9 +192,8 @@ nexttoken()
 
 
 
-procgoal()
+static void procgoal(void)
 {
-
     int e;
 
     /* fix things up if there will be an error and recover */
@@ -146,9 +232,8 @@ procgoal()
 **  successor() ... move to the successor or parent of the current goal
 */
 
-successor()
+static void successor(void)
 {
-
     int goalfound;
     goalfound = FALSE;
 
@@ -178,9 +263,7 @@ successor()
 */
 
 
-push(stack, num)
-int stack[];
-int num;
+static void push(int stack[], int num)
 {
     int *spp;
 
@@ -207,9 +290,7 @@ int num;
 */
 
 
-pop(stack, gp)
-int stack[];
-int *gp;
+static void pop(int stack[], int *gp)
 {
     int *spp;
 
@@ -232,7 +313,7 @@ int *gp;
 ** togs ... get the value of the top of the goal stack
 */
 
-int togs()
+static int togs(void)
 {
     return goalstack[goalsp - 1];
 }
@@ -245,8 +326,7 @@ int togs()
 */
 
 
-action(goal)
-int goal;
+static void action(int goal)
 {
 
     int x1, x2, x3, x4;
@@ -433,7 +513,7 @@ int goal;
 */
 
 
-l2init()
+void l2init(void)
 {
 
     FILE *fp;
@@ -501,10 +581,8 @@ l2init()
 **  opcode() ... output the desired opcode or value
 */
 
-opcode(num)
-int num;
+static void opcode(int num)
 {
-
     if (num < 0)
         fprintf(f_asm, "%d\t%s\n", location, asmtab[-num]);
     else
@@ -528,9 +606,8 @@ int num;
 **  is already flushed to disk
 */
 
-outflush()
+void outflush(void)
 {
-
     int i, top;
 
     /* start writing from the right place */
@@ -545,7 +622,7 @@ outflush()
         top = OUTBUF;
 
     for (; i < top; ++i)
-        putw(outbuf[i], f_out);
+        fprintf(f_out, "%d ", outbuf[i]);  /* Was: putw(outbuf[i], f_out); */
 }
 
 
@@ -556,8 +633,7 @@ outflush()
 
 
 
-store(addr, num)
-int addr, num;
+static void store(int addr, int num)
 {
 
     if (addr > location) {
@@ -583,16 +659,16 @@ int addr, num;
 */
 
 
-int expected()
+static int expected(void)
 {
-    char *m;
+    const char *m = (char *) 0;
     int parent, g;
     if (goal == cclass || goal == EMPTY)
         return 0;               /* no error */
 
     if (debug)
         fprintf(f_debug, "Expected goal %d, got class %d\n", goal, cclass);
-    m = 0;
+
     switch (goal) {
 
     case PROG:
@@ -724,7 +800,7 @@ int expected()
     return 2;
 }
 
-int syntax()
+static int syntax(void)
 {
 
     if (cclass == ENDPRG || cclass == ENDFN || cclass == ENDDO || cclass == ENDIF || cclass == ELSE) {
@@ -779,7 +855,7 @@ int syntax()
 */
 
 
-terminate()
+static void terminate(void)
 {
 
     if (errorfound == 0)
@@ -795,9 +871,9 @@ terminate()
 */
 
 
-lacheck()
+static void lacheck(void)
 {
-    char *m = NULL;
+    const char *m = NULL;
     if (cerror == 0)
         return;
 
@@ -859,6 +935,4 @@ lacheck()
     /* has just been read in */
 
     cclass = goal;
-
-
 }
