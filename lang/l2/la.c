@@ -381,12 +381,12 @@ static void reason11(void)
         if (numbptr->leftptr == NULL)
             printf("   NULL  ");
         else
-            printf("%7d  ", (numbptr->leftptr) - numbtabl);
+            printf("%7ld  ", (numbptr->leftptr) - numbtabl);
 
         if (numbptr->rightptr == NULL)
             printf("   NULL");
         else
-            printf("%7d", (numbptr->rightptr) - numbtabl);
+            printf("%7ld", (numbptr->rightptr) - numbtabl);
         ++numbptr;
         printf("\n");
     }
