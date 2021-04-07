@@ -5,6 +5,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 char filename[80];              /* current filename */
 char newfile[80];               /* *GET filename    */
@@ -13,9 +15,9 @@ char line[129];                 /* line buffer null term */
 char arg1[80];                  /* first argument in line */
 char arg2[80];                  /* 2nd argument in line */
 
-main(argc, argv)
-int argc;
-char *argv[];
+void fileproc(char *fname);
+
+void main(int argc, char *argv[])
 {
     int i = 0;
     if (argc < 2) {
@@ -35,15 +37,12 @@ char *argv[];
     exit(0);
 }
 
-fileproc(fname)
-char *fname;
+void fileproc(char *fname)
 {
-    char oldname[80], *cp, *ncp, *ltype, drive[8];
-    unsigned int inline;
-    int i;
+    char oldname[80], *cp, *ncp, drive[8];
+    const char *ltype;
+    unsigned int in_line = 0;
     FILE *fp;
-
-    inline = 0;
 
     /* add /ASM extension if necessary (before drive number) */
 
@@ -73,7 +72,7 @@ char *fname;
     while (fgets(line, 128, fp) != NULL) {
         if (*line == 0x1a)
             break;              /* eof ... 1A byte trailer */
-        ++inline;
+        ++in_line;
         cp = line;
         *arg1 = 0;
         *arg2 = 0;
@@ -130,26 +129,11 @@ char *fname;
             if (*arg2 == 0)
                 ltype = "   ??   ";
 
-            printf("%15s [%8s] defined in %14s, line %4d\n", arg1, ltype, filename, inline);
+            printf("%15s [%8s] defined in %14s, line %4d\n", arg1, ltype, filename, in_line);
         }
     }
 
     fclose(fp);
     strcpy(filename, oldname);
     --level;
-    return;
-}
-
-char *substr(string, start, len)
-char *string;
-int start, len;
-{
-    static outstr[128];
-    char *cp;
-    int i = 0;
-
-    cp = outstr;
-    while (++i < len)
-        *cp++ = *string++;
-    *cp = 0;
 }
