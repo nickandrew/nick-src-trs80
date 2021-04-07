@@ -7,4 +7,3 @@ untoken-basic.asm:
   sdcc: untoken-basic.c
   depends:
   - lang/listbas/untoken-basic.c
-  skip: ternary
