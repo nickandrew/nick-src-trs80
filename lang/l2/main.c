@@ -21,7 +21,7 @@ FILE *f_list;                   /* source listing */
 
 static void files(int argc, char *argv[]);
 
-void main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     init();                     /* Initialise LLS       */
     files(argc, argv);          /* Open files           */
@@ -54,7 +54,7 @@ void main(int argc, char *argv[])
     fclose(f_list);
     fclose(f_in);
     fclose(f_out);
-    exit(0);
+    return 0;
 }
 
 
@@ -85,11 +85,12 @@ static void files(int argc, char *argv[])
         exit(1);
     }
 
-    if (argc == 6)
+    if (argc == 6) {
         if ((f_debug = fopen(argv[5], "w")) == NULL) {
             printf("Can't open debug %s\n", argv[5]);
             exit(1);
-        } else
+        } else {
             debug = 1;
-
+        }
+    }
 }
