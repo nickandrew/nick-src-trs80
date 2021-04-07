@@ -1,0 +1,25 @@
+mail1.asm:
+  sdcc: mail1.c
+  depends:
+  - zeta-bbs/mail-system/mail-in-c/mail1.c
+  - zeta-bbs/mail-system/mail-in-c/mail.h
+mail2.asm:
+  sdcc: mail2.c
+  depends:
+  - zeta-bbs/mail-system/mail-in-c/mail2.c
+  - zeta-bbs/mail-system/mail-in-c/mail.h
+mail3.asm:
+  sdcc: mail3.c
+  depends:
+  - zeta-bbs/mail-system/mail-in-c/mail3.c
+  - zeta-bbs/mail-system/mail-in-c/mail.h
+mail4.asm:
+  sdcc: mail4.c
+  depends:
+  - zeta-bbs/mail-system/mail-in-c/mail4.c
+  - zeta-bbs/mail-system/mail-in-c/mail.h
+mail5.asm:
+  sdcc: mail5.c
+  depends:
+  - zeta-bbs/mail-system/mail-in-c/mail5.c
+  - zeta-bbs/mail-system/mail-in-c/mail.h

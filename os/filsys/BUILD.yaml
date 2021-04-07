@@ -1,0 +1,45 @@
+catfs.cmd:
+  assemble: cat.asm
+  depends:
+  - os/filsys/cat.asm
+  - os/filsys/filsys.asm
+  - os/filsys/fs.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  skip: filsys code is incomplete, several important functions are unimplemented
+cpfs.cmd:
+  assemble: cp.asm
+  depends:
+  - os/filsys/cp.asm
+  - os/filsys/filsys.asm
+  - os/filsys/fs.asm
+  - include/include/external.asm
+  - include/include/doscalls.asm
+  skip: filsys code is incomplete, several important functions are unimplemented
+filemake.cmd:
+  assemble: filemake.asm
+  depends:
+  - os/filsys/filemake.asm
+  - os/filsys/filsys.asm
+  - os/filsys/fs.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  skip: filsys code is incomplete, several important functions are unimplemented
+lsfs.cmd:
+  assemble: ls.asm
+  depends:
+  - os/filsys/ls.asm
+  - os/filsys/filsys.asm
+  - os/filsys/fs.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  skip: filsys code is incomplete, several important functions are unimplemented
+mkdir.cmd:
+  assemble: mkdir.asm
+  depends:
+  - os/filsys/mkdir.asm
+  - os/filsys/filsys.asm
+  - os/filsys/fs.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  skip: filsys code is incomplete, several important functions are unimplemented

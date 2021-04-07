@@ -1,0 +1,4 @@
+junklog1.asm:
+  sdcc: junklog1.c
+  depends:
+  - zeta-bbs/maintain/junklog/junklog1.c

@@ -1,0 +1,4 @@
+ret86.asm:
+  sdcc: ret86.c
+  depends:
+  - lang/ret86/ret86.c

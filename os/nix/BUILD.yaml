@@ -1,0 +1,5 @@
+nix.cmd:
+  assemble: nix.asm
+  depends:
+  - os/nix/nix.asm
+  skip: FIXME is not top-level

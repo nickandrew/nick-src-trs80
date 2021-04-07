@@ -1,0 +1,8 @@
+fscache.cmd:
+  assemble: fscache.asm
+  depends:
+  - os/fs/fscache.asm
+  - os/fs/const.asm
+  - os/fs/fsconst.asm
+  - os/fs/fsbuf.asm
+  skip: No end statement

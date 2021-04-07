@@ -1,0 +1,9 @@
+fmerge.asm:
+  sdcc: fmerge.c
+  depends:
+  - zeta-bbs/catalogs/fmerge/fmerge.c
+  skip: uses struct
+fmerge2.asm:
+  sdcc: fmerge2.c
+  depends:
+  - zeta-bbs/catalogs/fmerge/fmerge2.c

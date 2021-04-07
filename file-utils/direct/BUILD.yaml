@@ -1,0 +1,9 @@
+direct.asm:
+  sdcc: direct.c
+  depends:
+  - file-utils/direct/direct.c
+direct.cmd:
+  assemble: direct.asm
+  depends:
+  - file-utils/direct/direct.asm
+  - include/include/doscalls.asm

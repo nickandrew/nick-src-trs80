@@ -1,0 +1,4 @@
+superc.asm:
+  sdcc: superc.c
+  depends:
+  - utilities/superc/superc.c

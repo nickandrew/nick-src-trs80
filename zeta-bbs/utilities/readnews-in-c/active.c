@@ -5,7 +5,10 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "readnews.h"
+
+char *blanks(char *x);
 
 /*
 ** readgrp() ... Read active line, return 0 if eof
@@ -35,8 +38,7 @@ int readgrp()
     return 1;
 }
 
-char *blanks(x)
-char *x;
+char *blanks(char *x)
 {
     while (*x == ' ')
         ++x;

@@ -1,0 +1,4 @@
+cleanup.asm:
+  sdcc: cleanup.c
+  depends:
+  - utilities/cleanup/cleanup.c

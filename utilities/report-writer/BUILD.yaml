@@ -1,0 +1,4 @@
+ppk1.asm:
+  sdcc: ppk1.c
+  depends:
+  - utilities/report-writer/ppk1.c

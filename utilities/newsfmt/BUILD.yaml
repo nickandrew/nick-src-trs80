@@ -1,0 +1,11 @@
+newsfmt.asm:
+  sdcc: newsfmt.c
+  depends:
+  - utilities/newsfmt/newsfmt.c
+  skip: filename conflict with newsfmt.asm
+newsfmt.cmd:
+  assemble: newsfmt.asm
+  depends:
+  - utilities/newsfmt/newsfmt.asm
+  - include/include/doscalls.asm
+  - include/include/ascii.asm

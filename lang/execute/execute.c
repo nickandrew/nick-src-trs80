@@ -1,10 +1,10 @@
 /*
- *  Execute/c: Simple structured language interpreter
+ *  execute.c: Simple structured language interpreter
  *  (C) 1986, Nick Andrew
  */
 
 #include <stdio.h>
-
+#include <stdlib.h>
 
 #define NONE   0
 #define RUN    1
@@ -19,37 +19,40 @@ char prog[1000];
 int pc /*  ,endpc    */ ;
 int var[26], num;
 
-main(argc, argv)
-int argc;
-char *argv[];
+void execute(int outer);
+int word1(char *str, char *cmd);
+int args(char *str);
+
+int main(int argc, char *argv[])
 {
     FILE *fp;
     int i;
     int c;
     if (argc != 2)
-        exit(1);
+        return 1;
     fp = fopen(argv[1], "r");
     if (fp == NULL)
-        exit(2);
+        return 2;
     i = 0;
     while ((c = getc(fp)) != EOF)
         prog[i++] = c;
     pc = 0;
     execute(RUN);
+    return 0;
 }
 
-execute(outer)
-int outer;
+void execute(int outer)
 {
     int i, j, nochange, savedpc;
     char c;
     char line[64];
+
     nochange = 1;
     while (nochange) {
         i = pc;
         j = 0;
         if (prog[i] == 0)       /* eof */
-            return 0;
+            return;
         while (prog[i] != '\n')
             line[j++] = prog[i++];
         line[j] = 0;
@@ -135,8 +138,7 @@ int outer;
     }
 }
 
-word1(str, cmd)
-char *str, *cmd;
+int word1(char *str, char *cmd)
 {
     int i = 0, j = 0;
     while (str[j] == ' ')
@@ -148,8 +150,7 @@ char *str, *cmd;
     return 0;
 }
 
-args(str)
-char *str;
+int args(char *str)
 {
     int i;
     i = 0;

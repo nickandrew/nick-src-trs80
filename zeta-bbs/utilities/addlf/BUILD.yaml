@@ -1,0 +1,14 @@
+addlf.cmd:
+  assemble: addlf.asm
+  depends:
+  - zeta-bbs/utilities/addlf/addlf.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - include/include/ascii.asm
+  - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/userfile.asm
+addlf1.asm:
+  sdcc: addlf1.c
+  depends:
+  - zeta-bbs/utilities/addlf/addlf1.c

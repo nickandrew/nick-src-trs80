@@ -1,0 +1,4 @@
+bb7old.asm:
+  sdcc: bb7old.c
+  depends:
+  - zeta-bbs/treeboard/bb/bb7old.c

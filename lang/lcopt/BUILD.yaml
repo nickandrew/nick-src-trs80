@@ -1,0 +1,5 @@
+lcopt.asm:
+  sdcc: lcopt.c
+  depends:
+  - lang/lcopt/lcopt.c
+  skip: initialisation in declaration

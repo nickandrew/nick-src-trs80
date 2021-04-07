@@ -1,0 +1,5 @@
+amortz.asm:
+  sdcc: amortz.c
+  depends:
+  - utilities/amortz/amortz.c
+  skip: cc80 doesn't support floating point

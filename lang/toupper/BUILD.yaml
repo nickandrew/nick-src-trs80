@@ -1,0 +1,4 @@
+toupper.asm:
+  sdcc: toupper.c
+  depends:
+  - lang/toupper/toupper.c

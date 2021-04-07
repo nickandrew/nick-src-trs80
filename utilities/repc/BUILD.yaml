@@ -1,0 +1,4 @@
+repc.asm:
+  sdcc: repc.c
+  depends:
+  - utilities/repc/repc.c

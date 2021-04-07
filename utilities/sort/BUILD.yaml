@@ -1,0 +1,5 @@
+sort.asm:
+  sdcc: sort.c
+  depends:
+  - utilities/sort/sort.c
+  skip: initialisation in declaration

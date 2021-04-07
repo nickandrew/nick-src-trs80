@@ -6,6 +6,8 @@
 **
 */
 
+/* Token codes */
+
 #define INVALID	0
 #define BLANK		0
 #define PLUS		1
@@ -32,4 +34,10 @@
 #define STRLENGTH       80
 #define LINESIZE        81
 
-extern error();
+extern  int  linepos;                /* for the error position */
+extern  int  code;                   /* code of the next token */
+
+void lls(void);
+void getnext(void);
+void init(void);
+void outtoken(void);

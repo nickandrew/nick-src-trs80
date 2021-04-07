@@ -3,6 +3,8 @@
 ** vars.c
 */
 
+#include <stdio.h>
+
 int
  group,                         /* number of current newsgroup or 0 if none */
  count,                         /* last message read in this group          */

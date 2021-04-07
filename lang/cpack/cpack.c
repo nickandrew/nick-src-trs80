@@ -4,6 +4,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define  SUFFIX1     "/C"       /* C source */
 #define  SUFFIX2     "/T"       /* cpack'ed non-C source ?? */
@@ -26,25 +28,30 @@ char *resvd[] = { "int", "char", "float", "double", "struct",
     "printf", "fprintf", "read", "write", NULL
 };
 
+void pack(char *file);
+void spaces();
+void tabs();
+void dquote();
+void squote();
+void backslsh();
+void acomment();
+void anychar(int c);
 
-main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
     int bad_packs = 0;
     if (argc == 1) {
         fprintf(stderr, "usage: cpack [sourcefile.c] ...\n");
-        exit(-1);
+        return 1;
     }
 
     while (--argc)
-        bad_packs += pack(*(++argv));
+        pack(*(++argv));
 
-    exit(bad_packs);
+    return 0;
 }
 
-pack(file)
-char *file;
+void pack(char *file)
 {
     int len, c;
     char newfile[80];
@@ -53,6 +60,7 @@ char *file;
         fprintf(stderr, "cpack: can't open %s\n", file);
         exit(1);
     }
+
     *newfile = 0;
     strcat(newfile, file);
     len = strlen(newfile);
@@ -60,6 +68,7 @@ char *file;
         strcpy(&newfile[len - 2], SUFFIX3);
     else
         strcat(newfile, SUFFIX2);
+
     if ((fpout = fopen(newfile, "w")) == NULL) {
         fprintf(stderr, "cpack: Can't open %s\n", file);
         exit(1);
@@ -87,11 +96,12 @@ char *file;
             anychar(c);
         }
     }
+
     fclose(fpin);
     fclose(fpout);
 }
 
-spaces()
+void spaces()
 {
     int i, j, c;
     i = 1;
@@ -108,7 +118,7 @@ spaces()
         putc(' ', fpout);
 }
 
-tabs()
+void tabs()
 {
     int i, j, c;
     i = 1;
@@ -125,7 +135,7 @@ tabs()
         putc('\t', fpout);
 }
 
-dquote()
+void dquote()
 {
     int c;
     putc('"', fpout);
@@ -137,7 +147,7 @@ dquote()
     putc('"', fpout);
 }
 
-squote()
+void squote()
 {
     int c;
     while ((c = getc(fpin)) != '\'' && c != EOF) {
@@ -148,8 +158,7 @@ squote()
     putc('\'', fpout);
 }
 
-anychar(c)
-int c;
+void anychar(int c)
 {
     int i = 0, j = 0;
     while (c == '#' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
@@ -174,7 +183,7 @@ int c;
         putc(c, fpout);
 }
 
-backslsh()
+void backslsh()
 {
     int c;
     putc('\\', fpout);
@@ -187,7 +196,7 @@ backslsh()
     }
 }
 
-acomment()
+void acomment()
 {
     int c, c_l;
     putc('/', fpout);

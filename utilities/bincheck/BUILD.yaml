@@ -1,0 +1,4 @@
+bincheck.asm:
+  sdcc: bincheck.c
+  depends:
+  - utilities/bincheck/bincheck.c

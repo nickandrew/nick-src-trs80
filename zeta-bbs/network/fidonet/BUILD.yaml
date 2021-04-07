@@ -1,0 +1,69 @@
+bbass1.asm:
+  sdcc: bbass1.c
+  depends:
+  - zeta-bbs/network/fidonet/bbass1.c
+  - zeta-bbs/network/fidonet/bbass.h
+  - zeta-bbs/network/fidonet/packctl.h
+  - zeta-bbs/network/fidonet/zeta.h
+bbass2.asm:
+  sdcc: bbass2.c
+  depends:
+  - zeta-bbs/network/fidonet/bbass2.c
+  - zeta-bbs/network/fidonet/bbass.h
+  - zeta-bbs/network/fidonet/packctl.h
+  - zeta-bbs/network/fidonet/zeta.h
+bunfunc.asm:
+  sdcc: bunfunc.c
+  depends:
+  - zeta-bbs/network/fidonet/bunfunc.c
+  - zeta-bbs/network/fidonet/zeta.h
+mailass1.asm:
+  sdcc: mailass1.c
+  depends:
+  - zeta-bbs/network/fidonet/mailass1.c
+  - zeta-bbs/network/fidonet/mailass.h
+  - zeta-bbs/network/fidonet/zeta.h
+mailass2.asm:
+  sdcc: mailass2.c
+  depends:
+  - zeta-bbs/network/fidonet/mailass2.c
+  - zeta-bbs/network/fidonet/mailass.h
+  - zeta-bbs/network/fidonet/zeta.h
+msgass1.cmd:
+  assemble: msgass1.asm
+  depends:
+  - zeta-bbs/network/fidonet/msgass1.asm
+  skip: No end statement
+packctl.asm:
+  sdcc: packctl.c
+  depends:
+  - zeta-bbs/network/fidonet/packctl.c
+  - zeta-bbs/network/fidonet/packctl.h
+packdis1.asm:
+  sdcc: packdis1.c
+  depends:
+  - zeta-bbs/network/fidonet/packdis1.c
+  - zeta-bbs/network/fidonet/packctl.h
+  - zeta-bbs/network/fidonet/packdis.h
+  - zeta-bbs/network/fidonet/zeta.h
+packdis2.asm:
+  sdcc: packdis2.c
+  depends:
+  - zeta-bbs/network/fidonet/packdis2.c
+  - zeta-bbs/network/fidonet/packctl.h
+  - zeta-bbs/network/fidonet/packdis.h
+  - zeta-bbs/network/fidonet/zeta.h
+packdis3.asm:
+  sdcc: packdis3.c
+  depends:
+  - zeta-bbs/network/fidonet/packdis3.c
+  - zeta-bbs/network/fidonet/packctl.h
+  - zeta-bbs/network/fidonet/packdis.h
+  - zeta-bbs/network/fidonet/zeta.h
+packdis4.asm:
+  sdcc: packdis4.c
+  depends:
+  - zeta-bbs/network/fidonet/packdis4.c
+  - zeta-bbs/network/fidonet/packctl.h
+  - zeta-bbs/network/fidonet/packdis.h
+  - zeta-bbs/network/fidonet/zeta.h

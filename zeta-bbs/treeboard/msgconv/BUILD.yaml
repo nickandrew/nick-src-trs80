@@ -1,0 +1,4 @@
+msgconv1.asm:
+  sdcc: msgconv1.c
+  depends:
+  - zeta-bbs/treeboard/msgconv/msgconv1.c

@@ -27,8 +27,10 @@
  * This program is compatible with DIRECT/ASM for Trs-80.   *
  ***********************************************************/
 
-
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int is_open;
 FILE *fpdir, *fpdat;
@@ -48,6 +50,18 @@ struct {
 } directory;
 
 char filestr[FILELEN + 1], descstr[DESCLEN + 1];
+
+void addfile(void);
+void dclose(void);
+void doexit(void);
+void extract(void);
+void filist(void);
+void list(void);
+void prompt(void);
+void set(void);
+void syscall(void);
+int white(char c);
+FILE *openup(char *file, char *mode);
 
 main()
 {
@@ -105,17 +119,16 @@ main()
 }
 
 
-prompt()
+void prompt()
 {
     printf("Direct %s> ", VERSION);
     if (fgets(cmd, 80, stdin) == NULL)
         doexit();
 }
 
-set()
+void set()
 {
     char fnm[80], fn1[80], dirdesc[DESCLEN];
-    FILE *openup();
     int created, i;
 
     created = 0;
@@ -140,7 +153,7 @@ set()
     strcat(fn1, ".dir");
     if ((fpdir = fopen(fn1, "r+")) == NULL) {
 
-        char answer[4], dirdesc[DESCLEN];
+        char answer[4];
 
         printf("%s nonexistent! Create it? ", fn1);
         gets(answer);
@@ -204,7 +217,7 @@ set()
     printf("%s Opened successfully\n", fnm);
 }
 
-dclose()
+void dclose()
 {
     if (!is_open)
         return;
@@ -213,14 +226,12 @@ dclose()
     is_open = 0;
 }
 
-white(c)
-char c;
+int white(char c)
 {
     return ((c == ' ') || (c == '\t') || (c == '\n'));
 }
 
-FILE *openup(file, mode)
-char *file, *mode;
+FILE *openup(char *file, char *mode)
 {
     FILE *fp;
     if ((fp = fopen(file, mode)) == NULL) {
@@ -230,12 +241,12 @@ char *file, *mode;
     return (fp);
 }
 
-filist()
+void filist(void)
 {
     printf("File %s\n", fname);
 }
 
-list()
+void list(void)
 {
     if (!is_open) {
         printf("You can't. No directory is open.\n");
@@ -249,13 +260,13 @@ list()
     }
 }
 
-addfile()
+void addfile(void)
 {
     char sysfn[80], dirfn[FILELEN], buffer[BUFSIZ], desc[DESCLEN];
-    char *dcp, *addfn;
+    char *addfn;
     FILE *a_file;
     int i, nitems;
-    long flen, fend, ftell();
+    long flen, fend;
     cp++;
     while (white(*cp) && *cp)
         cp++;
@@ -356,25 +367,25 @@ addfile()
     fclose(a_file);
 }
 
-syscall()
+void syscall(void)
 {
     cp++;
     system(cp);
     putchar('\n');
 }
 
-doexit()
+void doexit(void)
 {
     printf("\nFini.\n");
     dclose();
     exit(0);
 }
 
-extract()
+void extract(void)
 {
-    char dirfn[FILELEN], filestr[FILELEN], deststr[DESCLEN], dest[DESCLEN];
+    char dirfn[FILELEN], filestr[FILELEN], dest[DESCLEN];
     char buffer[BUFSIZ];
-    int i, nitems, nit;
+    int i, nitems;
     long datposn, datlen;
     FILE *fpdest;
     cp++;
@@ -444,9 +455,7 @@ extract()
     printf("No matching file in %s\n", fname);
 }
 
-char tolower(c)
-char c;
-{
+int tolower(int c) {
     if (c >= 'A' && c <= 'Z')
         c += 'a' - 'A';
     return c;

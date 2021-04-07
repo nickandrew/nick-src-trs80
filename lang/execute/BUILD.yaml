@@ -1,0 +1,4 @@
+execute.asm:
+  sdcc: execute.c
+  depends:
+  - lang/execute/execute.c

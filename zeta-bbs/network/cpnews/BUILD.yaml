@@ -1,0 +1,4 @@
+cpnews1.asm:
+  sdcc: cpnews1.c
+  depends:
+  - zeta-bbs/network/cpnews/cpnews1.c

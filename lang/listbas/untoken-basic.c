@@ -1,11 +1,23 @@
-#include stdio/csh
-#option redirect OFF
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define FALSE    0
+#define TRUE     1
 
 FILE *fp1, *fp2;
-char *keyword[128];
+const char *keyword[128];
 int remflag, strflag;
-main(argc, argv)
-int argc, *argv;
+
+static void linenumber(void);
+static int end(void);
+static int token(char val);
+static FILE *getfile(const char *fname, const char mode);
+static void out(char c);
+static void setup(void);
+static void abort(char *msg);
+
+void main(int argc, char *argv[])
 {
     char c;
     if (argc != 3)
@@ -38,34 +50,34 @@ int argc, *argv;
     exit(0);
 }
 
-linenumber()
+static void linenumber(void)
 {
     int num;
     num = getc(fp1);
     num += getc(fp1) * 256;
     fprintf(fp2, "%d ", num);
     printf("%d ", num);
-    return (0);
 }
 
-end()
+static int end(void)
 {
     int flag;
-    char c;
+    int c;
+
     if ((c = getc(fp1)) == EOF)
         return TRUE;
     flag = c;
     if ((c = getc(fp1)) == EOF)
         return TRUE;
     flag += c * 256;
+
     if (flag == 0)
         return TRUE;
     else
         return FALSE;
 }
 
-token(val)
-char val;
+static int token(char val)
 {
     char c;
     int pos, flag;
@@ -113,27 +125,24 @@ char val;
     return (FALSE);
 }
 
-getfile(fname, mode)
-char *fname, mode;
+static FILE *getfile(const char *fname, const char mode)
 {
-    char *fp;
+    FILE *fp = (FILE *) 0;
     if (mode == 'r') {
         if ((fp = fopen(fname, "r")) == NULL) {
             printf("Open error - %-20s\n", fname);
             exit(1);
-        } else
-            return fp;
+        }
     } else if (mode == 'w') {
         if ((fp = fopen(fname, "w")) == NULL) {
             printf("Open error - %-20s\n", fname);
             exit(1);
-        } else
-            return fp;
+        }
     }
+    return fp;
 }
 
-out(c)
-char c;
+static void out(char c)
 {
     putchar(c);
     if (c != putc(c, fp2)) {
@@ -142,10 +151,9 @@ char c;
         fclose(fp2);
         exit(1);
     }
-    return (0);
 }
 
-setup()
+static void setup(void)
 {
     keyword[0] = "END ";
     keyword[1] = "FOR ";
@@ -274,10 +282,9 @@ setup()
     return;
 }
 
-abort(msg)
-char *msg;
+static void abort(char *msg)
 {
     fputs(msg, stderr);
-    putc(eol, stderr);
+    putc('\n', stderr);
     exit(1);
 }

@@ -7,14 +7,18 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "la.h"
 #include "lls.h"
-#include "lls.c"
-#include "la.c"
 
-main(argc, argv)
-int argc;
-char *argv[];
+FILE *f_in;                     /* input source file */
+FILE *f_out;                    /* output file */
+FILE *f_list;                   /* source listing */
+
+static void files(int argc, char *argv[]);
+
+void main(int argc, char *argv[])
 {
     init();
     files(argc, argv);
@@ -31,9 +35,7 @@ char *argv[];
     exit(0);
 }
 
-files(argc, argv)
-int argc;
-char *argv[];
+static void files(int argc, char *argv[])
 {
     if (argc != 4) {
         printf("usage: %s source outfile listfile\n", argv[0]);

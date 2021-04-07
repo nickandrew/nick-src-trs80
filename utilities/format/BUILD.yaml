@@ -1,0 +1,4 @@
+format.asm:
+  sdcc: format.c
+  depends:
+  - utilities/format/format.c

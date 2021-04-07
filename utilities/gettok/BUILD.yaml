@@ -1,0 +1,8 @@
+gettok.asm:
+  sdcc: gettok.c
+  depends:
+  - utilities/gettok/gettok.c
+toknum.asm:
+  sdcc: toknum.c
+  depends:
+  - utilities/gettok/toknum.c

@@ -1,0 +1,4 @@
+rearr.asm:
+  sdcc: rearr.c
+  depends:
+  - zeta-bbs/catalogs/rearr/rearr.c

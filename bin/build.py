@@ -41,6 +41,23 @@ class LocalBuilder(object):
       print(f'system({cmd}) succeeded')
       return True
 
+  def compile_sdcc(self, filename, dest_filename):
+    """Compile a .c file with SDCC.
+
+    sdcc reads include files from the specified include directory.
+    """
+
+    asm_file = re.sub(r'\.c', r'.asm', filename)
+    # Output files stay in zin/ as input to some other target
+    cmd = f'sdcc -mz80 -o {self.input_dir}/ -Iinclude/sdcc -S {self.input_dir}/{filename}'
+    rc = os.system(cmd)
+    if rc != 0:
+      print(f'system({cmd}) failed, code {rc}')
+      return False
+    else:
+      print(f'system({cmd}) succeeded')
+      return True
+
   def compile_cc80(self, filename, dest_filename):
     """Compile a .c file with Small-C.
 
@@ -100,6 +117,8 @@ class LocalBuilder(object):
     # Compile or assemble
     if 'assemble' in d:
       success = self.assemble(d['assemble'])
+    elif 'sdcc' in d:
+      success = self.compile_sdcc(d['sdcc'], filename)
     elif 'compile' in d:
       success = self.compile_cc80(d['compile'], filename)
 

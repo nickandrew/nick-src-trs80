@@ -1,0 +1,4 @@
+asmup.asm:
+  sdcc: asmup.c
+  depends:
+  - lang/asmup/asmup.c

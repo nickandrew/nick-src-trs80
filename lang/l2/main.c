@@ -7,11 +7,21 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "compiler.h"
+#include "interp.h"
+#include "la.h"
+#include "lls.h"
 #include "main.h"
 
-main(argc, argv)
-int argc;
-char *argv[];
+FILE *f_in;                     /* input source file */
+FILE *f_out;                    /* output file */
+FILE *f_list;                   /* source listing */
+
+static void files(int argc, char *argv[]);
+
+void main(int argc, char *argv[])
 {
     init();                     /* Initialise LLS       */
     files(argc, argv);          /* Open files           */
@@ -49,9 +59,7 @@ char *argv[];
 
 
 
-files(argc, argv)
-int argc;
-char *argv[];
+static void files(int argc, char *argv[])
 {
     if (argc < 5) {
         printf("usage: %s source output listfile asmfile [debugfile]\n", argv[0]);

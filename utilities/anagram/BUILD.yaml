@@ -1,0 +1,4 @@
+anagram.asm:
+  sdcc: anagram.c
+  depends:
+  - utilities/anagram/anagram.c

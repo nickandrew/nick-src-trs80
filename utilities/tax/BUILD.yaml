@@ -1,0 +1,5 @@
+tax1.asm:
+  sdcc: tax1.c
+  depends:
+  - utilities/tax/tax1.c
+  skip: initialisation in declaration

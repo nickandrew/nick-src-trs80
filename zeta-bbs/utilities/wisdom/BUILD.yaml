@@ -1,0 +1,4 @@
+wisdom1.asm:
+  sdcc: wisdom1.c
+  depends:
+  - zeta-bbs/utilities/wisdom/wisdom1.c

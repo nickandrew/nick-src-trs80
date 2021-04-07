@@ -1,0 +1,5 @@
+romplus.cmd:
+  assemble: romplus.asm
+  depends:
+  - os/romplus/romplus.asm
+  skip: No end statement

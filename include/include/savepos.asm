@@ -1,7 +1,8 @@
-;savepos.asm: Savepos & setpos routines
+;savepos.asm: Savepos & setpos routines - file pointer first arg
 ;Last updated: 22-May-89
 ;
-;  savepos(FILE *fp, char buffer(3))
+;  void savepos(FILE *fp, char buf[3]);
+;  int setpos(FILE *fp, char buf[3]);
 ;
 _SAVEPOS
 	LD	HL,2
