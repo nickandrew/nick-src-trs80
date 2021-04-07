@@ -7,211 +7,212 @@
 
 #include        "cc.h"
 
-heir13(lval)
-int     lval[];
-        {
-        int     k;
-        char    *ptr;
-        int hierpos,incval;
+heir13(lval, lvsymp, lvopfpp, lvstgpp)
+int lval[];
+char **lvsymp;
+int (**lvopfpp)();
+char **lvstgpp;
+{
+    int k;
+    char *ptr;
+    int hierpos, incval;
 
-        if (match("++"))        {
-                if (heir13(lval) == 0)  {
-                        needlval();
-                        return (0);
-                }
-
-                step(1, lval);
-                return (0);
+    if (match("++")) {
+        if (heir13(lval, lvsymp, lvopfpp, lvstgpp) == 0) {
+            needlval();
+            return (0);
         }
-        else if (match("--"))   {
-                if (heir13(lval) == 0)  {
-                        needlval();
-                        return (0);
-                }
 
-                step(-1, lval);
-                return (0);
+        step(1, lval, lvsymp, lvopfpp, lvstgpp);
+        return (0);
+    } else if (match("--")) {
+        if (heir13(lval, lvsymp, lvopfpp, lvstgpp) == 0) {
+            needlval();
+            return (0);
         }
-        else if (match("~"))    {
-                if (heir13(lval))
-                        rvalue(lval);
 
-                com();
-                lval[LVCONVL] = ~lval[LVCONVL];
-                return (0);
+        step(-1, lval, lvsymp, lvopfpp, lvstgpp);
+        return (0);
+    } else if (match("~")) {
+        if (heir13(lval, lvsymp, lvopfpp, lvstgpp))
+            rvalue(lval, lvsymp, lvopfpp, lvstgpp);
+
+        com();
+        lval[LVCONVL] = ~lval[LVCONVL];
+        return (0);
+    } else if (match("!")) {
+        if (heir13(lval, lvsymp, lvopfpp, lvstgpp))
+            rvalue(lval, lvsymp, lvopfpp, lvstgpp);
+
+        lneg();
+        lval[LVCONVL] = !lval[LVCONVL];
+        return (0);
+    } else if (match("-")) {
+        if (heir13(lval, lvsymp, lvopfpp, lvstgpp))
+            rvalue(lval, lvsymp, lvopfpp, lvstgpp);
+
+        neg();
+        lval[LVCONVL] = -lval[LVCONVL];
+        return (0);
+    } else if (match("*")) {
+        if (heir13(lval, lvsymp, lvopfpp, lvstgpp)) {
+            rvalue(lval, lvsymp, lvopfpp, lvstgpp);
         }
-        else if (match("!"))    {
-                if (heir13(lval))
-                        rvalue(lval);
+        if (ptr = *lvsymp) {
+            hierpos = lval[LVHIER];
+            if (ptr[IDENT + hierpos] != VARIABLE)
+                lval[LVHIER] = ++hierpos;
+            else
+                error("Not a pointer type");
+        } else
+            fprintf(stderr, "* ptr: no symbol table\n");
 
-                lneg();
-                lval[LVCONVL] = !lval[LVCONVL];
-                return (0);
-        }
-        else if (match("-"))    {
-                if (heir13(lval))
-                        rvalue(lval);
-
-                neg();
-                lval[LVCONVL] = -lval[LVCONVL];
-                return (0);
-        }
-        else if (match("*"))    {
-                if (heir13(lval)) {
-                        rvalue(lval);
-            }
-            if (ptr=lval[LVSYM]) {
-                hierpos = lval[LVHIER];
-                if (ptr[IDENT+hierpos]!=VARIABLE)
-                    lval[LVHIER]= ++hierpos;
-                else error("Not a pointer type");
-            } else fprintf(stderr,"* ptr: no symbol table\n");
-
-                if (ptr = lval[LVSYM]) {
-                    hierpos=lval[LVHIER];
-                    if (ptr[IDENT+hierpos]==VARIABLE) {
-                                lval[LVSTYPE] = ptr[TYPE];
-                        lval[LVPTYPE] = 0;
-                    } else {
-                        lval[LVSTYPE] = CINT;
-                        if (ptr[IDENT+hierpos+1]==VARIABLE)
-                                lval[LVPTYPE]=0;
-                        else    lval[LVPTYPE]=ptr[TYPE];
-                    }
-                } else {
-                        lval[LVSTYPE] = CINT;
-            }
-
-                lval[LVCONST] = 0;
-                return (1);
-        }
-        else if (match("&"))    {
-                if (heir13(lval) == 0)  {
-                        error("illegal address");
-                        return (0);
-                }
-
-                ptr = lval[LVSYM];
-                lval[LVPTYPE] = ptr[TYPE];
-
-                if (lval[LVSTYPE])
-                        return (0);
-
-                address(ptr);
+        if (ptr = *lvsymp) {
+            hierpos = lval[LVHIER];
+            if (ptr[IDENT + hierpos] == VARIABLE) {
                 lval[LVSTYPE] = ptr[TYPE];
-                return (0);
-        }
-        else    {
-                k = heir14(lval);
-
-                if (match("++")) {
-                        if (k == 0) {
-                                needlval();
-                                return (0);
-                        }
-
-                        incval = step(1, lval);
-                        inc(-incval);
-                        return (0);
-                }
-                else if (match("--"))   {
-                        if (k == 0)     {
-                                needlval();
-                                return (0);
-                        }
-
-                        incval=step(-1, lval);
-                        inc(incval);
-                        return (0);
-                }
+                lval[LVPTYPE] = 0;
+            } else {
+                lval[LVSTYPE] = CINT;
+                if (ptr[IDENT + hierpos + 1] == VARIABLE)
+                    lval[LVPTYPE] = 0;
                 else
-                        return (k);
+                    lval[LVPTYPE] = ptr[TYPE];
+            }
+        } else {
+            lval[LVSTYPE] = CINT;
         }
+
+        lval[LVCONST] = 0;
+        return (1);
+    } else if (match("&")) {
+        if (heir13(lval, lvsymp, lvopfpp, lvstgpp) == 0) {
+            error("illegal address");
+            return (0);
+        }
+
+        ptr = *lvsymp;
+        lval[LVPTYPE] = ptr[TYPE];
+
+        if (lval[LVSTYPE])
+            return (0);
+
+        address(ptr);
+        lval[LVSTYPE] = ptr[TYPE];
+        return (0);
+    } else {
+        k = heir14(lval, lvsymp, lvopfpp, lvstgpp);
+
+        if (match("++")) {
+            if (k == 0) {
+                needlval();
+                return (0);
+            }
+
+            incval = step(1, lval, lvsymp, lvopfpp, lvstgpp);
+            inc(-incval);
+            return (0);
+        } else if (match("--")) {
+            if (k == 0) {
+                needlval();
+                return (0);
+            }
+
+            incval = step(-1, lval, lvsymp, lvopfpp, lvstgpp);
+            inc(incval);
+            return (0);
+        } else
+            return (k);
+    }
 }
 
-heir14(lval)
-int     lval[];
+heir14(lval, lvsymp, lvopfpp, lvstgpp)
+int lval[];
+char **lvsymp;
+int (**lvopfpp)();
+char **lvstgpp;
 {
-    int     k, lval2[LVALUE],hierpos;
-    char    *ptr, *before, *start;
+    int k, lval2[LVALUE], hierpos;
+    char *lv2sym;
+    int (*lv2opfp)();
+    char *lv2stgp;
+    char *ptr, *before, *start;
 
-    k = primary(lval);
-    ptr = lval[LVSYM];
+    init_lval(lval2, &lv2sym, &lv2opfp, &lv2stgp);
+    k = primary(lval, lvsymp, lvopfpp, lvstgpp);
+    ptr = *lvsymp;
     blanks();
 
-    if ((ch == '[') | (ch == '('))  {
-        lval[5] = 1;
+    if ((ch == '[') | (ch == '(')) {
+        lval[LVSECR] = 1;
 
-        for (;;)        {
+        for (;;) {
             hierpos = lval[LVHIER];
             if (match("[")) {
-                if (ptr == 0)   {
+                if (ptr == 0) {
                     error("can't subscript (not an lvalue)");
                     junk();
                     needtoken("]");
-                    return(0);
-                }
-                else if (ptr[IDENT+hierpos] == POINTER) {
-                    rvalue(lval);
-            }
-                else if (ptr[IDENT+hierpos] != ARRAY)   {
+                    return (0);
+                } else if (ptr[IDENT + hierpos] == POINTER) {
+                    rvalue(lval, lvsymp, lvopfpp, lvstgpp);
+                } else if (ptr[IDENT + hierpos] != ARRAY) {
                     error("can't subscript (not ptr or array)");
                     k = 0;
                 }
 
                 setstage(&before, &start);
                 lval2[LVCONST] = 0;
-                plunge2(0, 0, heir1, lval2, lval2);
+                plunge2(0, 0, heir1, lval2, &lv2sym, &lv2opfp, &lv2stgp, lval2, &lv2sym, &lv2opfp,
+                        &lv2stgp);
                 needtoken("]");
 
-                if (ptr[IDENT+hierpos]!=VARIABLE)
-                lval[LVHIER]= ++hierpos;
+                if (ptr[IDENT + hierpos] != VARIABLE)
+                    lval[LVHIER] = ++hierpos;
 
-                if (lval2[LVCONST])   { /* if constant expr */
+                if (lval2[LVCONST]) {   /* if constant expr */
                     clearstage(before, NULL);
 
-                    if (lval2[LVCONVL])   { /* if index!=0 */
+                    if (lval2[LVCONVL]) {       /* if index!=0 */
                         int index;
 
-                        if ((ptr[IDENT+hierpos]!=VARIABLE)
-                     || (ptr[TYPE] == CINT))
-                            index=(lval2[LVCONVL] * SINT);
+                        if ((ptr[IDENT + hierpos] != VARIABLE)
+                            || (ptr[TYPE] == CINT))
+                            index = (lval2[LVCONVL] * SINT);
                         else
-                            index=lval2[LVCONVL];
+                            index = lval2[LVCONVL];
 
-                        if (index>3 || index < -3) {
+                        if (index > 3 || index < -3) {
                             const2(index);
                             add();
-                        } else inc(index); /* optim*/
+                        } else
+                            inc(index); /* optim */
                     }
-                }
-                else    {
+                } else {
 
-                    if ((ptr[IDENT+hierpos]!=VARIABLE)
-                     || (ptr[TYPE] == CINT))
+                    if ((ptr[IDENT + hierpos] != VARIABLE)
+                        || (ptr[TYPE] == CINT))
                         doublereg();
 
                     add();
                 }
 
-            if (ptr[IDENT+hierpos] == VARIABLE)
-                lval[LVPTYPE] = 0;
+                if (ptr[IDENT + hierpos] == VARIABLE)
+                    lval[LVPTYPE] = 0;
                 lval[LVSTYPE] = ptr[TYPE];
                 k = 1;
-            }
-            else if (match("("))    {
+            } else if (match("(")) {
                 if (ptr == 0)
                     callfunction(NULL);
-                else if (ptr[IDENT+hierpos] != FUNCTION) {
-                    rvalue(lval);
+                else if (ptr[IDENT + hierpos] != FUNCTION) {
+                    rvalue(lval, lvsymp, lvopfpp, lvstgpp);
                     callfunction(NULL);
-                }
-                else
+                } else
                     callfunction(ptr);
 
-                k = lval[LVSYM] = lval[LVCONST] = 0;
-            }
-            else
+                k = lval[LVCONST] = 0;
+                *lvsymp = 0;
+            } else
                 return (k);
         }
     }
@@ -219,7 +220,7 @@ int     lval[];
     if (ptr == 0)
         return (k);
 
-    if (ptr[IDENT] == FUNCTION)     {
+    if (ptr[IDENT] == FUNCTION) {
         address(ptr);
         return (0);
     }
@@ -227,134 +228,136 @@ int     lval[];
     return (k);
 }
 
-primary(lval)
-int     lval[];
-        {
-        char    *ptr,*findloc(),*findglb(),*addsym();
-        int     k;
-        char        ftype[HIER_LEN];
+primary(lval, lvsymp, lvopfpp, lvstgpp)
+int lval[];
+char **lvsymp;
+int (**lvopfpp)();
+char **lvstgpp;
+{
+    char *ptr, *findloc(), *findglb(), *addsym();
+    int k;
+    char ftype[HIER_LEN];
 
-        ftype[0]=FUNCTION;
-        ftype[1]=VARIABLE;
-        if (match("(")) {
-                k = heir1(lval);
-                needtoken(")");
-                return (k);
-        }
+    ftype[0] = FUNCTION;
+    ftype[1] = VARIABLE;
+    if (match("(")) {
+        k = heir1(lval, lvsymp, lvopfpp, lvstgpp);
+        needtoken(")");
+        return (k);
+    }
 
-        putint(0, lval, LVALUE << LBPW);
+    putint(0, lval, LVALUE << LBPW);
 
-        if (symname(ssname, YES))       {
-                if (ptr = findloc(ssname))      {
-                        if (ptr[IDENT] == LABEL) {
-                                experr();
-                                return 0;
-                        }
-
-                    if (ptr[IDENT] != FUNCTION)
-                        getloc(ptr);
-                        lval[LVSYM] = ptr;
-                        lval[LVSTYPE] = ptr[TYPE];
-                    lval[LVHIER] = 0;
-
-                        if (ptr[IDENT] == POINTER) {
-                                lval[LVSTYPE] = CINT;
-                                lval[LVPTYPE] = ptr[TYPE];
-                        return 1;
-                        }
-
-                        if (ptr[IDENT] == ARRAY) {
-                                lval[LVPTYPE] = ptr[TYPE];
-                                return 0;
-                        }
-
-                        return 1;
-                }
-
-                if (ptr = findglb(ssname)) {
-                        if (ptr[IDENT] != FUNCTION)     {
-                                lval[LVSYM] = ptr;
-                                lval[LVSTYPE] = 0;
-                        lval[LVHIER] = 0;
-
-                                if (ptr[IDENT] != ARRAY)        {
-                                        if (ptr[IDENT] == POINTER)
-                                                lval[LVPTYPE] = ptr[TYPE];
-
-                                        return (1);
-                                }
-
-                                address(ptr);
-                                lval[LVSTYPE] = lval[LVPTYPE] = ptr[TYPE];
-                                return 0;
-                        } else {
-                        lval[LVSYM] = ptr;
-                        lval[LVSTYPE] = 0;
-                        return 0;
-                    }
+    if (symname(ssname, YES)) {
+        if (ptr = findloc(ssname)) {
+            if (ptr[IDENT] == LABEL) {
+                experr();
+                return 0;
             }
 
-
-            fprintf(stderr,"* Cd %s\n",ssname);
-                ptr = addsym(ssname, ftype, CINT, 0, &glbptr, STATIC);
+            if (ptr[IDENT] != FUNCTION)
+                getloc(ptr);
+            *lvsymp = ptr;
+            lval[LVSTYPE] = ptr[TYPE];
             lval[LVHIER] = 0;
-                lval[LVSYM] = ptr;
-                lval[LVSTYPE] = 0;
-                return (0);
+
+            if (ptr[IDENT] == POINTER) {
+                lval[LVSTYPE] = CINT;
+                lval[LVPTYPE] = ptr[TYPE];
+                return 1;
+            }
+
+            if (ptr[IDENT] == ARRAY) {
+                lval[LVPTYPE] = ptr[TYPE];
+                return 0;
+            }
+
+            return 1;
         }
 
-        if (constant(lval) == 0)
-                experr();
+        if (ptr = findglb(ssname)) {
+            if (ptr[IDENT] != FUNCTION) {
+                *lvsymp = ptr;
+                lval[LVSTYPE] = 0;
+                lval[LVHIER] = 0;
 
+                if (ptr[IDENT] != ARRAY) {
+                    if (ptr[IDENT] == POINTER)
+                        lval[LVPTYPE] = ptr[TYPE];
+
+                    return (1);
+                }
+
+                address(ptr);
+                lval[LVSTYPE] = lval[LVPTYPE] = ptr[TYPE];
+                return 0;
+            } else {
+                *lvsymp = ptr;
+                lval[LVSTYPE] = 0;
+                return 0;
+            }
+        }
+
+
+        ptr = addsym(ssname, ftype, CINT, 0, &glbptr, STATIC);
+        lval[LVHIER] = 0;
+        *lvsymp = ptr;
+        lval[LVSTYPE] = 0;
         return (0);
+    }
+
+    if (constant(lval, lvsymp, lvopfpp, lvstgpp) == 0)
+        experr();
+
+    return (0);
 }
 
 experr()
-        {
+{
 
-        error("invalid expression");
-        const1(0);
-        junk();
+    error("invalid expression");
+    const1(0);
+    junk();
 }
 
 callfunction(ptr)
-char    *ptr;
-        {
-        int     nargs, i_const, val;
-        char        *exname();
+char *ptr;
+{
+    int nargs, i_const, val;
+    char *exname();
 
-        nargs = 0;
-        blanks();
+    nargs = 0;
+    blanks();
 
-        if (ptr != NULL)
-            if (ptr[IDENT]!=FUNCTION)
-                    ptr = NULL;
+    if (ptr != NULL)
+        if (ptr[IDENT] != FUNCTION)
+            ptr = NULL;
+
+    if (ptr == NULL)
+        push();
+
+    while (streq(lptr, ")") == 0) {
+        if (endst())
+            break;
+
+        expression(&i_const, &val);
 
         if (ptr == NULL)
-                push();
+            swapstk();
 
-        while (streq(lptr, ")") == 0)   {
-                if (endst())
-                        break;
+        push();
+        nargs = nargs + BPW;
 
-                expression(&i_const, &val);
+        if (match(",") == 0)
+            break;
+    }
 
-                if (ptr == NULL)
-                        swapstk();
+    needtoken(")");
 
-                push();
-                nargs = nargs + BPW;
+    if (ptr)
+        call(exname(ptr + NAME));
+    else
+        callstk();
 
-                if (match(",") == 0)
-                        break;
-        }
-
-        needtoken(")");
-
-        if (ptr)
-                call(exname(ptr + NAME));
-        else
-                callstk();
-
-        csp = modstk(csp + nargs, YES);
+    csp = modstk(csp + nargs, YES);
 }
