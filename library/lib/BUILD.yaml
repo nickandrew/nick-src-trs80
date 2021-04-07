@@ -31,9 +31,10 @@ getuid.asm:
   depends:
   - library/lib/getuid.c
 getw.asm:
-  compile: getw.c
+  sdcc: getw.c
   depends:
   - library/lib/getw.c
+  - library/lib/getw.h
 index.asm:
   compile: index.c
   depends:
