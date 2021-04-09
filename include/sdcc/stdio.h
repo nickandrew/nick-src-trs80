@@ -3,10 +3,12 @@
 
 #include <sys/types.h>
 
+typedef long          fpos_t;
+typedef char          FILE;
+
 #define EOF       (-1)
 #define BUFSIZ    256
-#define NULL      0
-#define FILE      char
+#define NULL      ((void *) 0)
 #define SEP       '.'
 
 extern  FILE      *stdin;
