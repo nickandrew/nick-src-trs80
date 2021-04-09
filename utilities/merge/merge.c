@@ -1,44 +1,55 @@
 /* Merge.c: Merge two files columnwise.
  * Ported off the Crappywell L/66 'merge.b'
- * (Substantial changes required )
+ * (Substantial changes required)
  * Current version for Trs-80 Alcor 'C' Compiler.
  * Nick Andrew.
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define STRLENGTH 180
 int tabs = 0;
 
-main(argc, argv)
-int argc;
-char *argv[];
+void rdline(char string[], FILE *unit);
+void wrline(FILE *unit, const char *string1, const char *string2, int column);
+int max3str(const char *str1, const char *str2, const char *str3);
+int strlenp(const char *string);
+
+int main(int argc, char *argv[])
 {
     char *lastl1, *currl1, *nextl1;
-    char *lastl2, *currl2, *nextl2, *temp, *calloc();
+    char *lastl2, *currl2, *nextl2, *temp;
     FILE *unit1, *unit2, *unit3;
-    int column, max3str();
+    int column;
 
     if (argc < 5) {
         printf("Usage: merge [-t] infile infile outfile column\n");
-        exit(1);
+        return 1;
     }
+
     argv++;
-    while (--argc > 4)
-        if (*argv == '-') {
+    while (--argc > 4) {
+        if (argv[0][0] == '-' && argv[0][1] == 't' ) {
             tabs = 1;
             argv++;
         }
+    }
 
     column = atoi(argv[3]);     /* Get merging column */
     if (tabs)
         column = ((column + 8) % 8);    /* adjust for tabs */
+
     unit1 = fopen(argv[0], "r");        /* Open all files  */
     unit2 = fopen(argv[1], "r");
     unit3 = fopen(argv[2], "w");
+
     if (unit1 == NULL || unit2 == NULL || unit3 == NULL) {
         printf("merge: can't open files!\n");
-        exit(2);
+        return 2;
     }
+
     lastl1 = calloc(STRLENGTH, sizeof(char));
     currl1 = calloc(STRLENGTH, sizeof(char));
     nextl1 = calloc(STRLENGTH, sizeof(char));
@@ -50,6 +61,7 @@ char *argv[];
     rdline(currl2, unit2);
     rdline(nextl1, unit1);
     rdline(nextl2, unit2);
+
     /* while not both eof */
     while (!((*currl1 == 0) && (*currl2 == 0))) {
         if ((max3str(currl1, lastl1, nextl1) >= column) || (strlen(currl2) == 0))
@@ -68,12 +80,11 @@ char *argv[];
         nextl1 = temp;
         rdline(nextl1, unit1);
     }
-    exit(0);
+
+    return 0;
 }
 
-rdline(string, unit)
-char string[];
-FILE *unit;
+void rdline(char string[], FILE *unit)
 {
     int chars = 0;
     int c;
@@ -97,10 +108,7 @@ FILE *unit;
 }
 
 
-wrline(unit, string1, string2, column)
-FILE *unit;
-char *string1, *string2;
-int column;
+void wrline(FILE *unit, const char *string1, const char *string2, int column)
 {
     int i;
     if (*string2 == 0)
@@ -114,10 +122,9 @@ int column;
     }
 }
 
-max3str(str1, str2, str3)
-char *str1, *str2, *str3;
+int max3str(const char *str1, const char *str2, const char *str3)
 {
-    int s1, s2, s3, m1, m2, strlenp();
+    int s1, s2, s3, m1, m2;
     s1 = strlenp(str1);
     s2 = strlenp(str2);
     s3 = strlenp(str3);
@@ -127,8 +134,7 @@ char *str1, *str2, *str3;
 }
 
 /* Get string length taking tabs into account */
-int strlenp(string)
-char *string;
+int strlenp(const char *string)
 {
     int i = 0, col = 0;
     while (string[i])
@@ -136,5 +142,6 @@ char *string;
             col += (8 - (col % 8));
         else
             col++;
-    return (col);
+
+    return col;
 }
