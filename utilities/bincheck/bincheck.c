@@ -4,10 +4,9 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 
-main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
     FILE *fpin;
     char buffer[256];
@@ -16,12 +15,12 @@ char *argv[];
 
     if (argc != 2) {
         printf("usage: bincheck infile\n");
-        exit(1);
+        return 1;
     }
 
     if ((fpin = fopen(argv[1], "r")) == NULL) {
         printf("bincheck: couldn't open %s\n", argv[1]);
-        exit(2);
+        return 2;
     }
 
     while (1) {
@@ -44,4 +43,6 @@ char *argv[];
         printf("Xor %3d\n", c & 0377);
         ++b;
     }
+
+    return 0;
 }
