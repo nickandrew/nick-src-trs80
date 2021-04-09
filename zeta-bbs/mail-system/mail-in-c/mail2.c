@@ -7,6 +7,8 @@
 #define EXTERN        extern
 #include "mail.h"
 
+static char    free_block[256];
+
 std_out(s)
 char *s;
 {
@@ -122,14 +124,14 @@ writeblk()
 readfree()
 {
     seekto(mf, 0);
-    if (fread(free, 1, 256, mf) != 256)
+    if (fread(free_block, 1, 256, mf) != 256)
         error("Cannot read free list\n");
 }
 
 writefree()
 {
     seekto(mf, 0);
-    if (fwrite(free, 1, 256, mf) != 256)
+    if (fwrite(free_block, 1, 256, mf) != 256)
         error("Cannot write free list\n");
 }
 
@@ -137,18 +139,18 @@ int getfree()
 {
     int pos, blk, bit;
     blk = 0;
-    for (pos = 0; (free[pos] == -1) && pos < 256; ++pos)
+    for (pos = 0; (free_block[pos] == -1) && pos < 256; ++pos)
         blk += 8;
 
     if (pos == 256)
         error("Mailfile full, delete some mail\n");
     bit = 1;
-    while (free[pos] & bit) {
+    while (free_block[pos] & bit) {
         ++blk;
         bit <<= 1;
     }
 
-    free[pos] |= bit;
+    free_block[pos] |= bit;
     return blk;
 }
 
@@ -157,7 +159,7 @@ int blk;
 {
     int pos;
     pos = blk / 8;
-    free[pos] &= ~(1 << (blk % 8));
+    free_block[pos] &= ~(1 << (blk % 8));
 }
 
 FILE *fopene(name, mode)

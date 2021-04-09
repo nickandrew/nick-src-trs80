@@ -21,6 +21,6 @@ EXTERN   int      length, chars;
 
 EXTERN   char     from[80], to[80], date[32], subject[80];
 EXTERN   char     command[80], string[80], username[24];
-EXTERN   char     block[256],free[256], text[256];
+EXTERN   char     block[256], text[256];
 EXTERN   char     *cp, *rangecp;
 
