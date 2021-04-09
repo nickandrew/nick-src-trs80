@@ -2,18 +2,20 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 
-main()
+int main()
 {
     int toknum, labelnum, i;
     FILE *fp;
     char *locn, name[10];
 
-    /* The Level 2 ROM address of the start of the token table */
-    locn = 0x1650;
+    if ((fp = fopen("tokens.asm", "w")) == NULL) {
+        return 1;
+    }
 
-    if ((fp = fopen("tokens.asm", "w")) == NULL)
-        exit(0);
+    /* Address in ROM of the start of the BASIC token table. Model 1 only? */
+    locn = (char *) 0x1650;
 
     for (labelnum = 1, toknum = 128; toknum < 251; toknum++, labelnum++) {
         i = 1;
@@ -27,5 +29,7 @@ main()
         fprintf(fp, "TOK_%d\tDEFM\t'%s',0\n", labelnum, name);
         printf("%5d %s\n", labelnum, name);
     }
+
     fclose(fp);
+    return 0;
 }
