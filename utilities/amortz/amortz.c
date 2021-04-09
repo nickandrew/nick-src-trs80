@@ -4,34 +4,33 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
-
-main()
+int main()
 {
     float a, b, princ, rate, interest;
     double monthpay, t;
     double work1, work2, work3;
-    float atof(), ftoa();
     int c, c2, cz, periods, year;
-    char inline[80];
+    char in_line[80];
 
 
     /* principal */
     puts("Principal ==> ");
-    gets(inline);
-    princ = atof(inline);
+    gets(in_line);
+    princ = atof(in_line);
     printf("Princ is %5g\n", princ);
 
     /* number of periods (periods) */
     puts("\n# of Periods ==> ");
-    gets(inline);
-    periods = atoi(inline);
+    gets(in_line);
+    periods = atoi(in_line);
     printf("Periods is %3d\n", periods);
 
     /* interest rate */
     puts("\nInterest Rate (%) ==> ");
-    gets(inline);
-    interest = atof(inline);
+    gets(in_line);
+    interest = atof(in_line);
     printf("Interest = %5f\n", interest);
 
     /* x% monthly interest is (x/12) * .01 */
@@ -63,16 +62,14 @@ main()
     exit(0);
 }
 
-header(year)
-int year;
+void header(int year)
 {
     printf("Payment Remaining  Monthly  Principal Interest  Year:%d\n", year);
     puts("Number  Principal  Payment   Payment  Payment\n");
 }
 
-double dround(d1)
-double d1;
 /* converts a double precision number to round to hundreths */
+double dround(double d1)
 {
     double work1;
     long work2;
@@ -83,10 +80,7 @@ double d1;
 }
 
 
-printd(d1, w)
-/* print double precision d1 in field of width w */
-double d1;
-int w;
+void printd(double d1, int w)
 {
     char cd1[20];
     int i;
@@ -129,8 +123,7 @@ int w;
 }
 
 
-abort(msg)
-char *msg;
+void abort(char *msg)
 {
     fputs(msg, stderr);
     putc('\n', stderr);
