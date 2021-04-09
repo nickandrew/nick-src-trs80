@@ -2,24 +2,29 @@
  * ignore stuff within quotes
  * ignore cobol comments
  */
+
 #include <stdio.h>
+#include <ctype.h>
 
 int outside, dbl, sngl;
 char c, line[256];
 
-main()
+void process(char line[]);
+
+int main(void)
 {
     outside = 1;
     dbl = sngl = 0;
     while (gets(line))
         process(line);
+    return 0;
 }
 
-process(line)
-char line[];
+void process(char line[])
 {
     char *cp, c;
     int i, comm;
+
     cp = line;
     /* Cobol test. */
     comm = 1;
