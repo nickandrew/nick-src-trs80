@@ -3,11 +3,18 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #define EXTERN       extern
 #include "mail.h"
+#include "seekto.h"
 
-help()
+static   int      rangemsg;
+
+static void printmail(int msg);
+static void copyto(FILE *f);
+
+void help(void)
 {
     std_out("\nMail commands are as follows.\n\n");
     std_out("p [list]         Print message(s) on screen\n");
@@ -21,8 +28,7 @@ help()
     std_out("to finish entering the message.\n\n");
 }
 
-print(range)
-char *range;
+void print(char *range)
 {
     if (setrange(range, '.'))
         return;
@@ -32,7 +38,7 @@ char *range;
             continue;
         if (yourmail[rangemsg] == 0) {
             std_out("\nMessage ");
-            itoa(rangemsg, string);
+            z_itoa(rangemsg, string);
             std_out(string);
             std_out(" is deleted.\n");
             continue;
@@ -42,11 +48,8 @@ char *range;
     }
 }
 
-printmail(msg)
-int msg;
+static void printmail(int msg)
 {
-    int c;
-
     seekto(mf, yourmail[msg]);
     readblk();
     blkpos = 10;
@@ -63,8 +66,7 @@ int msg;
     std_out("\n");
 }
 
-copyto(f)
-FILE *f;
+static void copyto(FILE *f)
 {
     int c;
     while (length--) {
@@ -75,8 +77,7 @@ FILE *f;
     }
 }
 
-headings(range)
-char *range;
+void headings(char *range)
 {
     int c;
     if (setrange(range, '*'))
@@ -93,7 +94,7 @@ char *range;
             std_out(" ");
         if (rangemsg < 10)
             std_out(" ");
-        itoa(rangemsg, string);
+        z_itoa(rangemsg, string);
         std_out(string);
         std_out("  ");
         seekto(mf, yourmail[rangemsg]);
@@ -120,8 +121,13 @@ char *range;
     }
 }
 
-getsubj(subj)
-int subj;
+/* getsubj() Get or print the subject line
+** Args:
+**   subj: If nonzero, prompt for the user to enter the subject
+**         Otherwise, print the current subject.
+*/
+
+void getsubj(int subj)
 {
     std_out("Subject: ");
     if (subj)
@@ -132,9 +138,7 @@ int subj;
     }
 }
 
-mail(to_who, subj)
-char *to_who;
-int subj;
+void mail(char *to_who, int subj)
 {
     if (to_who != NULL) {
         while (*to_who == ' ')
@@ -151,8 +155,7 @@ int subj;
     sendmail();
 }
 
-reply(range)
-char *range;
+void reply(char *range)
 {
     int c;
     char *cp;
@@ -184,10 +187,8 @@ char *range;
     }
 }
 
-save(range)
-char *range;
+void save(char *range)
 {
-    FILE *fopene();
     int hdrs;
     if (setrange(range, '.'))
         return;
@@ -226,8 +227,7 @@ char *range;
     fclose(tf);
 }
 
-delete(range)
-char *range;
+void delete(char *range)
 {
     int back, fwd, thismsg;
     if (setrange(range, '.'))
@@ -260,7 +260,7 @@ char *range;
 
         while (thismsg) {
             putfree(thismsg);
-            seekto(thismsg);
+            seekto(mf, thismsg);
             readblk();
             thismsg = getint(0);
         }
