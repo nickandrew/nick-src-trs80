@@ -7,11 +7,14 @@
 #define EXTERN       extern
 #include "mail.h"
 
-int setrange(cp, def)
-char *cp;
-int def;
+static   int      ranges, rangef, rangen;
+static   char     *rangecp;
+
+static int getr(char *cp);
+static char *geti(char *cp);
+
+int setrange(char *cp, int def)
 {
-    int i;
     while (*cp && *cp != '.' && *cp != '$' && *cp != '*' && ((*cp < '0') || (*cp > '9')))
         ++cp;
     rangecp = cp;
@@ -30,20 +33,32 @@ int def;
     return 0;
 }
 
-int getrange()
+/* getrange(): Increment and return the next message number from the range being processed.
+**
+** Statics used:
+**   ranges = first message in range
+**   rangef = last message in range
+**   rangen = current message (returned)
+**   rangecp = pointer to next range to parse
+** Returns 0 if no more messages.
+*/
+
+int getrange(void)
 {
     if (rangen == 0)
         return rangen = ranges;
+
     ++rangen;
     if (rangen <= rangef)
         return rangen;
+
     if (getr(rangecp))
         return 0;
+
     return rangen = ranges;
 }
 
-int getr(cp)
-char *cp;
+static int getr(char *cp)
 {
     ranges = rangef = 0;
     while (*rangecp == ' ')
@@ -58,13 +73,33 @@ char *cp;
     return 0;
 }
 
-int geti(cp)
-char *cp;
+/* geti(): Parse an message number and/or range of messages.
+**
+** Valid inputs:
+**   Leading blanks are skipped
+**   '.'
+**   '*' means all messages (ranges=1; rangef=totmail)
+**   '$' (ranges=totmail; rangef unchanged?)
+**   [0-9]+ (ranges=n; rangef=n)
+**   [0-9]+ '-' (ranges=n; rangef=n)
+**   Next input can be '.' (rangef = current), '*' (rangef=totmail), '$' (rangef=totmail)
+**   Or a number
+**
+**
+** Returns:
+**   Pointer to input string beyond the range.
+** Output in globals:
+**   ranges = first message number
+**   rangef = last message number
+*/
+
+static char *geti(char *cp)
 {
     int n;
     n = 0;
     while (*cp == ' ')
         ++cp;
+
     switch (*cp++) {
     case '.':
         ranges = dot;
