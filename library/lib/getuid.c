@@ -2,9 +2,11 @@
 **	Not properly implemented yet
 */
 
-#define	NULL	0
+#ifndef NULL
+#define	NULL	(void *)0
+#endif
 
-int getuid(s)
+int getuid(char *s)
 char *s;
 {
     if (s == NULL)
