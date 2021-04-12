@@ -43,5 +43,6 @@ extern  int       putchar(int c);
 extern  int       puts(const char *s);
 extern  void      rewind(FILE *stream);
 extern  int       scanf(const char *format, ...);
+extern  int       sprintf(char *str, const char *format, ...);
 extern  int       sscanf(const char *str, const char *format, ...);
 extern  int       ungetc(int c, FILE *stream);
