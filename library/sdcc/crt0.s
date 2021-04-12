@@ -9,6 +9,7 @@
   .globl  l__INITIALIZER
   .globl  s__INITIALIZED
   .globl  s__INITIALIZER
+  .globl  s__FREE
 
   .area _CODE
 
@@ -32,6 +33,7 @@ init:
 	.area	_BSEG
 	.area   _BSS
 	.area   _HEAP
+	.area _FREE
 
 	.area   _CODE
 
@@ -51,3 +53,8 @@ gsinit_next:
 
 	.area   _GSFINAL
 	ret
+
+  .area _DATA
+  ; First address of freespace, used by brk()
+_brkaddr::
+  .dw   #s__FREE
