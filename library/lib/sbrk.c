@@ -1,23 +1,27 @@
 /* @(#) sbrk.c 17 Jun 90 - Implement the sbrk(incr) system call */
 
-extern char *brksize;
+extern void *brksize;
+extern int brk(void *newsize);
 
-char *sbrk(incr)
-int incr;
+void *sbrk(int incr)
 {
-    char *newsize, *oldsize;
+    void *newsize, *oldsize;
+
+    if (incr == 0) {
+        return brksize;
+    }
 
     oldsize = brksize;
     newsize = brksize + incr;
 
-    /* Does the address space wrap around? */
+    /* Would the address wrap around ? */
     if (incr > 0 && newsize < oldsize || incr < 0 && newsize > oldsize)
-        return -1;
+        return (void *) -1;
 
     if (brk(newsize) == 0)
         return oldsize;
     else
-        return -1;
+        return (void *) -1;
 }
 
 /* end of sbrk.c */
