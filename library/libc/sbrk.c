@@ -8,7 +8,7 @@ void *sbrk(int incr)
     char *newaddr, *oldaddr;
 
     if (incr == 0) {
-        return (void *) brkaddr;
+        return brkaddr;
     }
 
     oldaddr = brkaddr;
@@ -18,8 +18,8 @@ void *sbrk(int incr)
     if (incr > 0 && newaddr < oldaddr || incr < 0 && newaddr > oldaddr)
         return (void *) -1;
 
-    if (brk((void *) newaddr) == 0)
-        return (void *) oldaddr;
+    if (brk(newaddr) == 0)
+        return oldaddr;
     else
         return (void *) -1;
 }
