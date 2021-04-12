@@ -59,10 +59,6 @@ rand.asm:
   compile: rand.c
   depends:
   - library/lib/rand.c
-sbrk.asm:
-  sdcc: sbrk.c
-  depends:
-  - library/lib/sbrk.c
 seekto.asm:
   compile: seekto.c
   depends:
