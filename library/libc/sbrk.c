@@ -1,25 +1,25 @@
 /* @(#) sbrk.c 17 Jun 90 - Implement the sbrk(incr) system call */
 
-extern void *brksize;
-extern int brk(void *newsize);
+extern void *brkaddr;
+extern int brk(void *newaddr);
 
 void *sbrk(int incr)
 {
-    void *newsize, *oldsize;
+    void *newaddr, *oldaddr;
 
     if (incr == 0) {
-        return brksize;
+        return brkaddr;
     }
 
-    oldsize = brksize;
-    newsize = brksize + incr;
+    oldaddr = brkaddr;
+    newaddr = brkaddr + incr;
 
     /* Would the address wrap around ? */
-    if (incr > 0 && newsize < oldsize || incr < 0 && newsize > oldsize)
+    if (incr > 0 && newaddr < oldaddr || incr < 0 && newaddr > oldaddr)
         return (void *) -1;
 
-    if (brk(newsize) == 0)
-        return oldsize;
+    if (brk(newaddr) == 0)
+        return oldaddr;
     else
         return (void *) -1;
 }
