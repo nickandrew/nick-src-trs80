@@ -27,8 +27,6 @@ init:
 	.area	_INITIALIZER
 	.area   _GSINIT
 	.area   _GSFINAL
-
-  ; area _DATA starts at 0x8000
 	.area	_DATA
 	.area	_INITIALIZED
 	.area	_BSEG
