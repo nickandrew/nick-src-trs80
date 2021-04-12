@@ -293,7 +293,7 @@ _FGETC
 	LD	D,(HL)
 	EX	DE,HL
 	BIT	IS_TERM,(HL)
-	JR	NZ,FG_01
+	JR	NZ,FG_01		;If terminal
 	LD	DE,FD_FCBPTR
 	ADD	HL,DE
 	LD	E,(HL)
@@ -495,9 +495,9 @@ $C_09	LD	A,3
 	LD	B,0
 	LD	A,($C_06V)
 	CP	'a'
-	JR	Z,$C_10
+	JR	Z,$C_10		;append mode
 	CP	'w'
-	JR	Z,$C_10
+	JR	Z,$C_10		;write mode
 ;
 ;Open for reading.
 	CALL	DOS_OPEN_EX	;assume read
@@ -505,8 +505,10 @@ $C_09	LD	A,3
 	RET	NZ
 	LD	HL,256+32
 	ADD	HL,DE
-	LD	(_BRKSIZE),HL
+	LD	(_BRKSIZE),HL	;update end of memory
 	JR	$C_11A
+;
+;Open for write and append
 $C_10
 	CALL	DOS_OPEN_NEW	;Write & append
 	LD	HL,NULL
@@ -516,14 +518,14 @@ $C_10
 	LD	(_BRKSIZE),HL
 	LD	A,($C_06V)
 	CP	'a'
-	JR	NZ,$C_11
-	CALL	DOS_POS_EOF	;Append
+	JR	NZ,$C_11	;If not append
+	CALL	DOS_POS_EOF	;Append, so position to EOF
 	JR	$C_11A
 $C_11
 	;Truncate the file??
 $C_11A	INC	DE
 	LD	A,(DE)
-	SET	6,A		;Writes do not bugger eof
+	SET	6,A		;Ensure writes do not bugger eof
 	LD	(DE),A
 	DEC	DE
 $C_11B
@@ -560,6 +562,7 @@ $C_07V	DEFB	0	;Type of special device C,D,L
 $C_08V	DEFW	0	;Addr of dcb/fcb.
 ;
 NULL_DCB	DC	8,0
+;
 	ENDIF	;_fopen
 ;
 ;int feof(fp)
@@ -764,3 +767,4 @@ _PRINTF
 	ENDIF
 ;
 ;-----------------------------
+;end of libc.asm
