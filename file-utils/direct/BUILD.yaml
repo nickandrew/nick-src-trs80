@@ -1,7 +1,7 @@
-direct.asm:
-  sdcc: direct.c
+cdirect.asm:
+  sdcc: cdirect.c
   depends:
-  - file-utils/direct/direct.c
+  - file-utils/direct/cdirect.c
 direct.cmd:
   assemble: direct.asm
   depends:
