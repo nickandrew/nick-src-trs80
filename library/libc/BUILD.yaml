@@ -1,0 +1,4 @@
+sbrk.asm:
+  sdcc: sbrk.c
+  depends:
+  - library/libc/sbrk.c
