@@ -60,7 +60,7 @@ rand.asm:
   depends:
   - library/lib/rand.c
 sbrk.asm:
-  compile: sbrk.c
+  sdcc: sbrk.c
   depends:
   - library/lib/sbrk.c
 seekto.asm:
