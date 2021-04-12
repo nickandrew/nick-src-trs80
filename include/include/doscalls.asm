@@ -48,6 +48,7 @@ $PUT		EQU	001BH	;write byte
 DOS_WRIT_BYTE	EQU	001BH	;write byte to file
 ;
 ; Dos Errors.
+DE_DR_NF_DR	EQU	05H
 DE_DEV_NA	EQU	08H
 DE_UNDEF	EQU	09H
 DE_WRIT_PROT	EQU	0FH
