@@ -1,14 +1,14 @@
 /* @(#) sbrk.c 17 Jun 90 - Implement the sbrk(incr) system call */
 
-extern void *brkaddr;
+extern char *brkaddr;
 extern int brk(void *newaddr);
 
 void *sbrk(int incr)
 {
-    void *newaddr, *oldaddr;
+    char *newaddr, *oldaddr;
 
     if (incr == 0) {
-        return brkaddr;
+        return (void *) brkaddr;
     }
 
     oldaddr = brkaddr;
@@ -18,8 +18,8 @@ void *sbrk(int incr)
     if (incr > 0 && newaddr < oldaddr || incr < 0 && newaddr > oldaddr)
         return (void *) -1;
 
-    if (brk(newaddr) == 0)
-        return oldaddr;
+    if (brk((void *) newaddr) == 0)
+        return (void *) oldaddr;
     else
         return (void *) -1;
 }
