@@ -39,6 +39,8 @@ extern int dos_file_close(union dos_fcb *fcb);
 extern int dos_file_rewind(union dos_fcb *fcb);
 extern int dos_file_seek_eof(union dos_fcb *fcb);
 extern int dos_file_seek_rba(union dos_fcb *fcb, long pos);
+extern long dos_file_eof(union dos_fcb *fcb);
+extern long dos_file_next(union dos_fcb *fcb);
 
 // Implement these later
 extern int dos_file_kill(union dos_fcb *fcb);
