@@ -7,6 +7,10 @@
 
 #include <stdio.h>
 
+// Addresses of the 8-bit device control blocks for display and printer
+#define VDU_DCB 0x401d
+#define PR_DCB  0x4025
+
 int putchar(int c) __naked
 {
   c;
@@ -20,7 +24,7 @@ int putchar(int c) __naked
   jr   nz,001$
   ld   a,#0x0d
 001$:
-  ld   de,#0x401d ; VDU_DCB
+  ld   de,#0x4025 ; PR_DCB
   call 0x001B
   ld   hl,#0
   ret
