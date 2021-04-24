@@ -4,7 +4,8 @@ Z80LIBDIR=-L ~/sdcc/share/sdcc/lib/z80
 MYLIBDIR=
 EXTRALIBDIR=-L $(MYLIBDIR)
 EXTRALIBS=
-CRT0=$(MYLIBDIR)/crt0.rel
+# In Makefile, set LIB_SDCC to relative pathname of this dir
+CRT0=$(LIB_SDCC)/crt0.rel
 
 %.asm %.lst %.map %.noi %.rel %.sym: %.c
 	sdcc $(INCLUDES) -mz80 -c $<
