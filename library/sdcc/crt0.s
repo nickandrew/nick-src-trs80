@@ -21,6 +21,8 @@ init:
   ; Parse command line arguments (start address passed in BC)
   ; Implement I/O redirection in command line
 
+        ;; Zero memory used by static and global variables
+        call clear_data
 	;; Initialise global variables
 	call	gsinit
 	ld hl, #0x4318   ; Model-I command buffer
@@ -42,29 +44,29 @@ init:
 	.area	_INITIALIZED
 	.area	_BSEG
 	.area   _BSS
+	.area   _BRKADDR
 	.area   _HEAP
-	.area _FREE
+	.area	_FREE
 
 	.area   _CODE
-; Zero the entire data area. This may not be necessary, and if it is
-; needed, first _brkaddr needs to be moved out of _DATA.
+; Zero the entire data area.
 clear_data:
-  ld bc, #l__DATA
-  ld a, b
-  or c
-  ret z             ; Return if the data area is empty
-  ld hl, #s__DATA
+        ld      bc, #l__DATA
+        ld      a, b
+        or      c
+        ret     z             ; Return if the data area is empty
+        ld      hl, #s__DATA
 
-  ld (hl), #0       ; Set a zero byte at the start of the data area
-  push hl
-  pop de
-  inc de
-  dec bc
-  ld a, b
-  or c
-  ret z             ; Return if the data area is 1 byte long
-  ldir              ; Replicate zero byte through the data area
-  ret
+        ld      (hl), #0       ; Set a zero byte at the start of the data area
+        push    hl
+        pop     de
+        inc     de
+        dec     bc
+        ld      a, b
+        or      c
+        ret     z             ; Return if the data area is 1 byte long
+        ldir              ; Replicate zero byte through the data area
+        ret
 
 
 _exit::
@@ -89,6 +91,7 @@ gsinit_next:
 p_argc:
 	.dw   0
 
-  ; First address of freespace, used by brk()
+        .area   _BRKADDR
+; First address of freespace, used by brk()
 _brkaddr::
-  .dw   #s__FREE
+        .dw     #s__FREE
