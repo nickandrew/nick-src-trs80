@@ -18,6 +18,7 @@ static const int sector_size = 256;  // Fixed by DOS
 
 struct open_file {
   char flag;
+  char *buf;
   union dos_fcb *fcbptr;
 };
 
@@ -111,6 +112,7 @@ FILE *fopen(const char *pathname, const char *mode)
     struct open_file *ofp = fd_array + fd;
     if (!(ofp->flag & OF_FLAG_INUSE)) {
       ofp->flag |= OF_FLAG_INUSE;
+      ofp->buf = buf;
       ofp->fcbptr = fcb_ptr;
       return (FILE *) ofp;
     }
@@ -120,4 +122,20 @@ FILE *fopen(const char *pathname, const char *mode)
   free(fcb_ptr);
   free(buf);
   return NULL;
+}
+
+int fclose(FILE *fp)
+{
+  struct open_file *ofp = (struct open_file *) fp;
+
+  if (!ofp->flag & OF_FLAG_INUSE) {
+    // errno = ?
+    return -1;
+  }
+
+  free(ofp->buf);
+  dos_file_close(ofp->fcbptr);
+  ofp->flag = 0;
+
+  return 0;
 }
