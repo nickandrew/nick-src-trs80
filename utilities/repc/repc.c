@@ -3,19 +3,22 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+
 #define DLE 0x10
 #define MAGIC1 0x1b
 #define MAGIC2 0x1d
 
-main(argc, argv)
-int argc;
-char *argv[];
+void encode(char *string);
+void decode(char *string);
+
+int main(int argc, char *argv[])
 {
     char flag, *cp;
     int i;
     if (argc < 3) {
         fprintf(stderr, "usage: repc [e|d] files ...\n");
-        exit();
+        return 1;
     }
 
     flag = 'e';
@@ -25,7 +28,7 @@ char *argv[];
         flag = 'd';
     else if (*cp != 'e') {
         fprintf(stderr, "use 'e' to encode & 'd' to decode\n");
-        exit();
+        return 1;
     }
 
     i = 1;
@@ -37,10 +40,11 @@ char *argv[];
             decode(argv[i]);
         fprintf(stderr, "Finished %s\n", argv[i]);
     }
+
+    return 0;
 }
 
-decode(string)
-char *string;
+void decode(char *string)
 {
     int c, count;
     char ok;
@@ -73,8 +77,7 @@ char *string;
     }
 }
 
-encode(string)
-char *string;
+void encode(char *string)
 {
     int c, d, count;
     FILE *input;
