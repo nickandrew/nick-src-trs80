@@ -1,7 +1,3 @@
-atoi.asm:
-  sdcc: atoi.c
-  depends:
-  - library/lib/atoi.c
 ctype.asm:
   sdcc: ctype.c
   depends:
