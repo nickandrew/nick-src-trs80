@@ -13,16 +13,17 @@
 #define   MAX    100            /* maximum length of line */
 
 #include  <stdio.h>
+#include <stdlib.h>
 
 extern char *tickptr;
 char string[MAX];
 FILE *winx, *fp;
 int maxwiz, wiznum, rba;
 
-main()
-{
-    FILE *fopen();
+int getint(void);
 
+int main()
+{
     if ((fp = fopen(WIZFILE, "r")) == NULL) {
         fputs("\nCan't open wisdom file.\n", stderr);
         exit(1);
@@ -56,7 +57,7 @@ main()
     } while (string[0] == ' ' || string[0] == '\t');
 
     fputs("\n", stdout);
-    exit(0);
+    return 0;
 }
 
 int getint()
