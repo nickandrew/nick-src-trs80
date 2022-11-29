@@ -2,13 +2,12 @@
  * strchr - find first occurrence of a character in a string
  */
 
-#define	NULL	0
+#include <stdio.h>
+#include <string.h>
 
-char *strchr(s, charwanted)
-char *s;
-char charwanted;
+char *strchr(const char *s, int charwanted)
 {
-    char *scan;
+    const char *scan;
 
     /*
      * The odd placement of the two tests is so NUL is findable.

@@ -1,12 +1,12 @@
 /* #(@) malloct.c - 17 Jun 90 - test version of malloc library */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #define BRKSIZE		1024
 #define	PTRSIZE		2
-
-/* Another Small-C shortcoming */
-#define unsigned	int
 
 /* A short explanation of the data structure and algorithms.
  * An area returned by malloc() is called a slot. Each slot
@@ -21,15 +21,16 @@
  * Free slots are merged together by free().
  */
 
-extern char *sbrk();
-extern int brk();
-
-char *align();
+// Functions defined in this file
+char *align(char *x, int a);
+char *nextslot(char **p);
+char *nextfree(char **p);
+void snextslot(int *p, int value);
+void snextfree(int *p, int value);
 
 char *_bottom, *_top, *_empty;
 
-int grow(len)
-unsigned len;
+int grow(unsigned int len)
 {
     char *p;
 
@@ -43,8 +44,7 @@ unsigned len;
     return 1;
 }
 
-char *malloc(size)
-unsigned size;
+void *malloc(size_t size)
 {
     char *prev, *p, *next, *new;
     unsigned len, ntries;
@@ -98,9 +98,7 @@ unsigned size;
     return NULL;
 }
 
-char *realloc(oldfix, size)
-char *oldfix;
-unsigned size;
+void *realloc(char *oldfix, size_t size)
 {
     char *prev, *p, *next, *new;
     unsigned len, n;
@@ -151,8 +149,7 @@ unsigned size;
     return new;
 }
 
-char *calloc(n, size)
-unsigned n, size;
+void *calloc(unsigned int n, size_t size)
 {
     char *p, *cp;
 
@@ -165,8 +162,7 @@ unsigned n, size;
     return cp;
 }
 
-free(pfix)
-int *pfix;
+void free(void *pfix)
 {
     char *prev, *next;
     char *p;
@@ -209,35 +205,27 @@ int *pfix;
 
 /* Align a pointer (x) to a size (a). A is a power of 2. */
 
-align(x, a)
-int x;                          /* Just think of it as an int for convenience */
-int a;
+align(char *x, int a)
 {
     return (x + (a - 1)) & ~(a - 1);
 }
 
-nextslot(p)
-char **p;
+char *nextslot(char **p)
 {
     return (*(p - PTRSIZE));
 }
 
-nextfree(p)
-char **p;
+char *nextfree(char **p)
 {
     return *p;
 }
 
-snextslot(p, value)
-int *p;
-int value;
+void snextslot(int *p, int value)
 {
     *(p - PTRSIZE) = value;
 }
 
-snextfree(p, value)
-int *p;
-int value;
+void snextfree(int *p, int value)
 {
     *p = value;
 }
