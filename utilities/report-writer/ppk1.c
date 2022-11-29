@@ -13,14 +13,37 @@
  *                                                         *
  ***********************************************************/
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
 #define SORTIN "temp1.f"        /* sort files            */
 #define SORTOUT "temp2.f"
 #define MAXFLDS (100)           /* Maximum No. of fields */
 #define VERSION "1.2  23-Aug-86"
 
-#include <stdio.h>              /* Get standard routines */
-char toupper();
-int chkcond();
+void intro(void);
+void getconf(char *confil, int flag);
+void dosort(void);
+void copy(void);
+FILE *openup(char *file, char *perms);
+void error(char *str, char *nam);
+void getfix(FILE *file, char *ptr, int en);
+void getvar(FILE *file, char *ptr, int en, char delim);
+void dorprt(void);
+void prompt(int flag, char *string);
+void getfields(void);
+void writrecd(void);
+void ffeed(void);
+char *getstring(FILE *file);
+void spaces(FILE *file, int num);
+void calcspc(int field);
+void center(int flag, char *string, int width);
+int max(int a, int b);
+int moneyrd(char *str, long *mlong);
+void moneywr(char *string, long mlong, int mlen);
+int chkcond(void);
 
 FILE *config, *src, *dest, *temp1, *temp2;
 char *heading, *today;
@@ -48,9 +71,7 @@ struct {
 } fieldat[MAXFLDS];
 
 
-main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
     int i;
     intro();
@@ -61,14 +82,16 @@ char *argv[];
     printf("PPK1: Normal termination\n");
     for (i = 1; i <= numflds; i++) {
         if (fieldat[i].ftype == '$') {
-            if (1 || fieldat[i].ysum) {
+            if (fieldat[i].ysum) {
                 printf("Sum of %s is %ld\n", fieldat[i].tname, fieldat[i].moneysum);
             }
         }
     }
+
+    return 0;
 }
 
-intro()
+void intro(void)
 {
     printf("PPK Assignment 1 - Nick Andrew\n");
     printf("Report generator, Version %s\n", VERSION);
@@ -77,20 +100,17 @@ intro()
 /* Get input file configuration and output format data
  * from either standard input (keyboard) or from a file.
  */
-getconf(confil, flag)
-char *confil;
-int flag;
+void getconf(char *confil, int flag)
 {
-    extern FILE *openup();
-    int num, i;
-    char string[64], c, *calloc(), *getstring();
+    int i;
+    char string[64], c;
 
     /* Use either an opened file or standard input */
     config = (flag ? openup(confil, "r") : stdin);
 
     prompt(flag, "Enter input filename: ");
     if (!fscanf(config, "%s", string))
-        error("PPK1: Config file empty!\n");
+        error("PPK1: Config file empty!\n", "");
     src = openup(string, "r");
 
     prompt(flag, "Enter report filename: ");
@@ -115,7 +135,7 @@ int flag;
     fscanf(config, " %c", &c);
     c = toupper(c);
     if ((c != 'Y') && (c != 'N'))
-        error("PPK1: Invalid CR info!\n");
+        error("PPK1: Invalid CR info!\n", "");
     usecr = (c == 'Y');         /* Set flag depending on value of c */
 
     prompt(flag, "<S>ingle or <D>ouble or <T>riple spaced? ");
@@ -132,7 +152,7 @@ int flag;
         if (string[0] == '*')
             break;              /* break out of the loop */
 
-        fieldat[++numflds].tname = calloc(strlen(string) + 1, sizeof(char));
+        fieldat[++numflds].tname = malloc(strlen(string) + 1);
         strcpy(fieldat[numflds].tname, string);
         fieldat[numflds].needed = fieldat[numflds].rjust = 0;
         fieldat[numflds].delcond = ' ';
@@ -145,7 +165,7 @@ int flag;
         fscanf(config, " %c", &c);
         c = toupper(c);
         if (c != 'S' && c != 'N' && c != '$')
-            error("PPK1: Invalid field type, must be S/N/$\n");
+            error("PPK1: Invalid field type, must be S/N/$\n", "");
         fieldat[numflds].ftype = c;
 
         if (c == 'N') {
@@ -236,31 +256,34 @@ int flag;
 }
 
 
-dosort()
+void dosort(void)
 {
     char cmd[80];
     if (numsort) {
         /* sort temp file 1 to temp file 2 */
-        system(sprintf(cmd, "sort -o %s %s", SORTOUT, SORTIN));
+        sprintf(cmd, "sort -o %s %s", SORTOUT, SORTIN);
+        system(cmd);
     } else                      /* or if no sort fields */
-        system(sprintf(cmd, "cp %s %s", SORTIN, SORTOUT));
+        sprintf(cmd, "cp %s %s", SORTIN, SORTOUT);
+        system(cmd);
 }
 
 
 /* Copy variable length input file fields to fixed format
  * sort input file.
  */
-copy()
+void copy(void)
 {
-    int field, i, j, records = 0;
-    char c, del, *ptr;
+    int field, i, records = 0;
+    int c;
+    char del, *ptr;
     /* Open temp file */
     temp1 = openup(SORTIN, "w");
     /* Read source until EOF */
     while (c = getc(src), !feof(src)) {
         ungetc(c, src);
         for (field = 1; field <= numflds; field++) {
-            ptr = calloc(fieldat[field].flength + 1, sizeof(char));
+            ptr = malloc(fieldat[field].flength + 1);
             del = fieldat[field].delim;
             /* Depending on the value of DEL get either
              * a fixed or a variable length field.
@@ -289,7 +312,7 @@ copy()
             if (fieldat[field].needed)
                 fieldat[field].dataptr = ptr;
             else
-                cfree(ptr);
+                free(ptr);
         }
 
         /* Output all the sort fields first */
@@ -309,19 +332,18 @@ copy()
 
         for (i = 1; i <= numflds; i++)
             if (fieldat[i].needed)
-                cfree(fieldat[i].dataptr);
+                free(fieldat[i].dataptr);
     }
     fclose(temp1);
     if (!records)
-        error("PPK1: Source file empty!\n");
+        error("PPK1: Source file empty!\n", "");
     printf("%d records read off source file\n", records);
 }
 
 /* Error-checking function to open a file.
  * will print 'error' if any error and exit with error status
  */
-FILE *openup(file, perms)
-char *file, *perms;
+FILE *openup(char *file, char *perms)
 {
     FILE *fp;
     if ((fp = fopen(file, perms)) == NULL)
@@ -330,34 +352,27 @@ char *file, *perms;
 }
 
 /* Print an error and exit with error status */
-error(str, nam)
-char *str, *nam;
+void error(char *str, char *nam)
 {
     printf(str, nam);
     printf("PPK1: Abnormal termination.\n");
     exit(-1);
 }
 
-getfix(file, ptr, en)           /* get a fixed length field */
-char *ptr;
-int en;
-FILE *file;
+void getfix(FILE *file, char *ptr, int en)           /* get a fixed length field */
 {
     int i = 0;
     while (i < en)
         ptr[i++] = getc(file);  /* read each char */
     ptr[i] = 0;
     if (feof(file))
-        error("PPK1: EOF unexpected!\n");
+        error("PPK1: EOF unexpected!\n", "");
 }
 
-getvar(file, ptr, en, delim)    /* Get a variable length field */
-char *ptr, delim;
-int en;
-FILE *file;
+void getvar(FILE *file, char *ptr, int en, char delim)    /* Get a variable length field */
 {
     int i = 0;
-    char c;
+    int c = 'a'; // Suppress a use-before-set warning
     while (i < en) {            /* read chars to a maximum number */
         if ((c = getc(file)) == delim)
             break;
@@ -371,10 +386,10 @@ FILE *file;
     while (c != delim && !feof(file))
         c = getc(file);
     if (feof(file))
-        error("PPK1: EOF unexpected!\n");
+        error("PPK1: EOF unexpected!\n", "");
 }
 
-dorprt()
+void dorprt(void)
 {
     char c;
     int i, j;
@@ -382,7 +397,7 @@ dorprt()
     for (i = 1; i <= numflds; i++)
         /* preallocate required storage */
         if (fieldat[i].prneed)
-            fieldat[i].dataptr = calloc(fieldat[i].flength + 1, sizeof(char));
+            fieldat[i].dataptr = malloc(fieldat[i].flength + 1);
 
     /* Calculate length of sort fields prepended */
     for (i = 1; i <= numsort; i++)
@@ -408,9 +423,7 @@ dorprt()
     fclose(dest);
 }
 
-prompt(flag, string)
-int flag;
-char *string;
+void prompt(int flag, char *string)
 {
     if (!flag)
         printf(string);
@@ -420,10 +433,9 @@ char *string;
 /* Get all print fields off the
  * sorted temporary file.
  */
-getfields()
+void getfields(void)
 {
-    int i, j, field, records = 0;
-    char *ptr;
+    int i, j, records = 0;
 
     /* disregard sort fields */
     for (i = 0; i < sortlen; i++)
@@ -449,10 +461,10 @@ getfields()
 /* Write a formatted detail line
  * to the destination file.
  */
-writrecd()
+void writrecd(void)
 {
     int i;
-    char c;
+
     if (!lines)
         ffeed();                /* Formfeed output if lines=0    */
     for (i = 1; i <= numprint; i++) {
@@ -468,7 +480,7 @@ writrecd()
 }
 
 /* formfeed the output file and print headings */
-ffeed()
+void ffeed(void)
 {
     int stdspc, i;
     putc('\f', dest);
@@ -496,12 +508,11 @@ ffeed()
 
 /* Get a string which may include spaces from std input.
  */
-char *getstring(file)
-FILE *file;
+char *getstring(FILE *file)
 {
     char *ptr, c;
     int i = 0;
-    ptr = calloc(130, sizeof(char));
+    ptr = malloc(130);
     while (c = getc(file), (c == ' ' || c == '\n')) ;
     while (c != '\n' && !feof(file)) {
         ptr[i++] = c;
@@ -512,9 +523,7 @@ FILE *file;
 }
 
 /* Output 'spaces' number of spaces to file 'file'. */
-spaces(file, num)
-FILE *file;
-int num;
+void spaces(FILE *file, int num)
 {
     int i = 0;
     while (i++ < num)
@@ -526,8 +535,7 @@ int num;
  * the data takes up 'sumwidth' columns.
  * This function will always get the spacing exact!
  */
-calcspc(field)
-int field;
+void calcspc(int field)
 {
     int x1, x2;
     if (field == numprint)
@@ -542,9 +550,7 @@ int field;
 /* Center a string 'string' into a field of width 'width'.
  * If 'flag' is set, then print dashes instead of 'string'.
  */
-center(flag, string, width)
-char *string;
-int width, flag;
+void center(int flag, char *string, int width)
 {
     int len, spc1, spc2, i;
     len = strlen(string);
@@ -557,19 +563,9 @@ int width, flag;
 }
 
 /* Quick function to find the maximum of two integers */
-max(a, b)
-int a, b;
+int max(int a, int b)
 {
     return (a > b ? a : b);
-}
-
-/* toupper() function */
-char toupper(c)
-char c;
-{
-    if (c >= 'a' && c <= 'z')
-        c -= 'a' - 'A';
-    return c;
 }
 
 
@@ -577,9 +573,7 @@ char c;
  * read in a monetary value into a long of format
  *           [$]nnnn.nn
  */
-int moneyrd(str, mlong)
-char *str;
-long *mlong;
+int moneyrd(char *str, long *mlong)
 {
     long l1, l2;
     int i;
@@ -594,10 +588,7 @@ long *mlong;
  * write a monetary value in form nnnnn.nn and padded to
  * correct length
  */
-moneywr(string, mlong, mlen)
-char *string;
-long mlong;
-int mlen;
+void moneywr(char *string, long mlong, int mlen)
 {
     long l1;
     int i;
@@ -611,7 +602,7 @@ int mlen;
  *   least one must have a value.
  */
 
-int chkcond()
+int chkcond(void)
 {
     int i, j;
     char orseen = 0, orflag = 0;
