@@ -1,11 +1,18 @@
 /* @(#) cron: Execute commands at predefined intervals
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 char version[20] = "cron 1.1  12 May 90";
 
-#include <stdio.h>
-
 #define CRONTAB "crontab"
+
+int chkdate(void);
+void blanks(void);
+int getsched(void);
+void fixdate(void);
+void putsched(int v);
 
 FILE *crontab;
 
@@ -23,11 +30,8 @@ int montab[12] = { 31, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 };
 /* order is:          dec jan feb mar apr may jun jul aug sep oct nov */
 
 
-main(argc, argv)
-int argc;
-char *argv[];
+int main()
 {
-    char *fgets();              /* Must be here or else null func! */
 
     n_y = getyear();
     n_m = getmonth();
@@ -96,13 +100,14 @@ char *argv[];
     }
 
     fclose(crontab);
+    return 0;
 }
 
 /* chkdate ... compare current date to scheduled date.
 **	If we should run the command, return a 1
 */
 
-chkdate()
+int chkdate(void)
 {
     if (s_y < n_y)
         return 1;
@@ -129,7 +134,7 @@ chkdate()
 
 /*  blanks ... bypass spaces and tabs in the line */
 
-blanks()
+void blanks(void)
 {
     while (*cp == ' ' || *cp == '\t')
         ++cp;
@@ -137,7 +142,7 @@ blanks()
 
 /* getsched ... read a 2 digit number into an integer */
 
-getsched()
+int getsched(void)
 {
     int e;
 
@@ -153,7 +158,7 @@ getsched()
 
 /* fixdate ... increment the scheduled date by whatever necessary */
 
-fixdate()
+void fixdate(void)
 {
     if (freq == 'H')
         s_h += inc;
@@ -191,8 +196,7 @@ fixdate()
 
 /* write a 2 digit field into the output line */
 
-putsched(v)
-int v;
+void putsched(int v)
 {
     *datep++ = v / 10 + '0';
     *datep++ = v % 10 + '0';
