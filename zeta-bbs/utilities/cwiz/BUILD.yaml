@@ -1,3 +1,7 @@
+cwiz1.asm:
+  sdcc: cwiz1.c
+  depends:
+  - zeta-bbs/utilities/cwiz/cwiz1.c
 cwiz.cmd:
   assemble: cwiz.asm
   depends:
@@ -12,7 +16,3 @@ cwiz.cmd:
   - strcmp.asm
   - zeta-bbs/utilities/cwiz/cwiz.asm
   - cwiz1.asm
-cwiz1.asm:
-  sdcc: cwiz1.c
-  depends:
-  - zeta-bbs/utilities/cwiz/cwiz1.c
