@@ -4,14 +4,26 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
 #define SURVEY   "quest.zms"
 #define RESULT   "answers.zms"
 
+void std_out(char *s);
+void init(void);
+void signon(void);
+int question(void);
+int readq(void);
+
+// Somewhere else
+extern void reada(char *line);
+extern void getuname(char *line);
+
 FILE *in, *out;
-char *line[80], *qname[20];
+char line[80], qname[20];
 char prompt[] = "\n>  ";
 
-main()
+int main()
 {
     init();
     signon();
@@ -19,16 +31,15 @@ main()
     fputs("\n", out);
     fclose(out);
     std_out("\n\nThanks for taking the time to answer this survey.\n");
-    exit(0);
+    return 0;
 }
 
-std_out(s)
-char *s;
+void std_out(char *s)
 {
     fputs(s, stdout);
 }
 
-init()
+void init(void)
 {
     if ((in = fopen(SURVEY, "r")) == NULL) {
         std_out("Couldn't open survey file, sorry!\n");
@@ -46,13 +57,13 @@ init()
     fputs("\n", out);
 }
 
-signon()
+void signon(void)
 {
     readq();
     std_out("\n\n");
 }
 
-question()
+int question(void)
 {
     std_out("\n");
     if (readq())
@@ -66,9 +77,8 @@ question()
     return 1;
 }
 
-readq()
+int readq(void)
 {
-    int i;
     char *cp, *cp2, *cp3;
     *qname = 0;
     while (1) {
