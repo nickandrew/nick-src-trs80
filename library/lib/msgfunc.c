@@ -4,7 +4,9 @@
 
 #include <stdio.h>
 
-#include <msgfunc.h>
+#include "bb7func.h"
+#include "getw.h"
+#include "msgfunc.h"
 
 /* read a particular sector from the text file */
 
