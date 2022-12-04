@@ -12,10 +12,10 @@
 
 #define EXTERN extern
 #include "mailass.h"
+#include "openf2.h"
 #include "zeta.h"
 
 #ifdef	REALC
-extern FILE *openf2();
 extern char *nextword();
 #endif
 

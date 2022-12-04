@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "openf2.h"
+
 extern void fixperm(FILE *);
 
 /* open a file with error message if failure */

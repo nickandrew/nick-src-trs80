@@ -2,7 +2,11 @@
 ** @(#) packctl.c 20 May 90
 */
 
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "openf2.h"
 
 #define EXTERN extern
 #include "packctl.h"

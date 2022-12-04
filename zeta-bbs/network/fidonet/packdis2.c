@@ -4,13 +4,14 @@
 
 #include <stdio.h>
 
+#include "openf2.h"
+
 #define EXTERN extern
 #include "packdis.h"
 #include "packctl.h"
 #include "zeta.h"
 
 #ifdef	REALC
-extern FILE *openf2();
 #define LONG	long
 #else
 #define	LONG	int
