@@ -122,7 +122,7 @@ char	*user_field;	/* points to buffer used by user_search */
 
 /* char	*(bm[10]); */	/* 10 bounce message lines */
 EXTERN
-char *bm[10]; 	/* 10 bounce message lines */
+const char *bm[10]; 	/* 10 bounce message lines */
 
 // defined in bbass1:
 extern void openf(void);

@@ -82,7 +82,7 @@ char	*user_field;	/* points to buffer used by user_search */
 
 /* char	*(bm[10]); */	/* 10 bounce message lines */
 EXTERN
-char *bm[10]; 	/* 10 bounce message lines */
+const char *bm[10]; 	/* 10 bounce message lines */
 
 // defined in mailass1:
 extern char *nextword(char *cp);
@@ -107,7 +107,7 @@ extern void localdat(void);
 extern void tranhdr(void);
 
 // defined in mailass2:
-extern int bounce2(char *s);
+extern int bounce2(const char *s);
 extern int bouncecpy(int type);
 extern int copymsg(FILE *fp);
 extern int localcpy(void);

@@ -409,7 +409,7 @@ int bouncecpy(int type)
 **	write a string to the text file
 */
 
-int bounce2(char *s)
+int bounce2(const char *s)
 {
     return putstxt(s, loctxt_p, newtxt, &write_rec, &write_pos, freemap);
 }

@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char *sys_errlist[63];
+const char *sys_errlist[63];
 int firstcall = 1;
 
 void err_init(void)
 {
     int i;
-    char **s;
+    const char **s;
 
     s = sys_errlist;
     firstcall = 0;

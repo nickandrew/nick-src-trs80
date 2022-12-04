@@ -138,7 +138,7 @@ int putctxt(int ch, FILE *fp, char *bp, int *pwr, int *pwp, char *fm)
 
 /* write a string of chars to the text file */
 
-int putstxt(char *s, FILE *fp, char *bp, int *pwr, int *pwp, char *fm)
+int putstxt(const char *s, FILE *fp, char *bp, int *pwr, int *pwp, char *fm)
 // char *s;
 // FILE *fp;                       /* text file pointer */
 // char *bp;                       /* sector buffer pointer */
