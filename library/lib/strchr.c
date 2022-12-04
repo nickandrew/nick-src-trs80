@@ -15,5 +15,5 @@ char *strchr(const char *s, int charwanted)
     for (scan = s; *scan != charwanted;)        /* ++ moved down for opt. */
         if (*scan++ == '\0')
             return (NULL);
-    return scan;
+    return (char *) scan;
 }
