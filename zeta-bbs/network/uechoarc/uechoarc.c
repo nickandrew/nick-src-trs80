@@ -3,10 +3,15 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-main()
+// defined in this file:
+void ioer(void);
+
+int main()
 {
-    int len, i, ch = 0, ct = 0, k;
+    int i, ch = 0, ct = 0, k;
     char ln[80];
 
     do {
@@ -33,9 +38,11 @@ main()
             }
         }
     }
+
+    return 0;
 }
 
-ioer()
+void ioer(void)
 {
     fputs("uechoarc: File I/O error - aborting\n", stderr);
     exit(100);
