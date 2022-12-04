@@ -17,8 +17,11 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "openf2.h"
+#include "msgfunc.h"
 
 #define EXTERN
 #include "packdis.h"
@@ -27,18 +30,10 @@
 
 EXTERN char optstring[] = "rRpPiI";
 
-#ifdef	REALC
-#define LONG	long
-#else
-#define LONG	int
-#endif
-
-main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
     int c;
-    int status, rc;
+    int rc;
 
     rc = 0;
     open_loc();
@@ -74,12 +69,12 @@ char *argv[];
     }
 
     closef();
-    exit(0);
+    return 0;
 }
 
 /* print a useful usage message */
 
-usage()
+void usage(void)
 {
     fputs("Usage: packdis [-p] [-r] [packet files ...]\n", stderr);
     fputs("-p:  Read packet names from batched file PACKETS\n", stderr);
@@ -91,10 +86,10 @@ usage()
 ** process a (possible) batch of messages, from "packets"
 */
 
-int proc_batch()
+int proc_batch(void)
 {
-    int rc;
-    LONG filepos;
+    int rc = 0;
+    long filepos;
     int group_ok;
 
     batch_p = openf2(PACKETS);
@@ -176,10 +171,9 @@ int proc_batch()
 **	x	Fatal error
 */
 
-int proc_pkt(fn)
-char *fn;
+int proc_pkt(char *fn)
 {
-    int n, rc, rc1, rc2;
+    int n, rc;
 
     packet_p = fopen(fn, "r");
     if (packet_p == NULL) {
