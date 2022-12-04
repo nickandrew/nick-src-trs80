@@ -1,8 +1,12 @@
 /* @(#) cron: Execute commands at predefined intervals
 */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "gettime.h"
+#include "setpos.h"
 
 char version[20] = "cron 1.1  12 May 90";
 
@@ -37,7 +41,7 @@ int main()
     n_m = getmonth();
     n_d = getday();
     n_h = gethour();
-    n_min = getminute();
+    n_min = getminut();
 
     /* fopen mode should really be "r+" */
     if ((crontab = fopen(CRONTAB, "r")) == NULL) {
