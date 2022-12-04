@@ -32,20 +32,23 @@
 **	Base version
 */
 
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define EXTERN
 #include "mailass.h"
+#include "bbass.h"
+#include "bb7func.h"
+#include "bunfunc.h"
 #include "openf2.h"
+#include "getw.h"
+#include "gettime.h"
+#include "msgfunc.h"
 #include "zeta.h"
 
-#ifdef	REALC
-extern char *nextword();
-#endif
-
-main(argc, argv)
-int argc;
-char *argv[];
+int main()
 {
     int n;
 
@@ -73,7 +76,8 @@ char *argv[];
     rc |= writefree(loctxt_p, freemap);
     rc |= write_top();
     closef();
-    exit(rc);
+
+    return rc;
 }
 
 /* ignorel ...
@@ -82,7 +86,7 @@ char *argv[];
 **	(thats for OUTGOING and INTRANSIT)
 */
 
-int ignorel()
+int ignorel(void)
 {
     if (oldhdr[0] & (F_PROCESSED | F_DELETED))
         return 1;               /* ignore */
@@ -100,9 +104,9 @@ int ignorel()
 **		bounce (as in-transit) to the sender or to Sysop
 */
 
-int do_msg()
+int do_msg(void)
 {
-    int rc;
+    int rc = 0;
 
     if (readhead())
         return 1;
@@ -142,10 +146,8 @@ int do_msg()
 **	parse the To: address
 */
 
-int parse()
+int parse(void)
 {
-    int n;
-
     /* just as a small interlude. Write to screen */
 
     fputs("From: ", stderr);
@@ -177,7 +179,7 @@ int parse()
 **	delete an in-transit or outgoing message after processing
 */
 
-int deleteold()
+int deleteold(void)
 {
     int n;
     int recnum;
@@ -212,7 +214,7 @@ int deleteold()
 **	location ::= '(', nnn, '/', ')', NULL
 */
 
-chk_fido()
+int chk_fido(void)
 {
     char *cp, *oldcp;
     int i;
@@ -262,8 +264,7 @@ chk_fido()
 
 /* chkname ... ensure a string contains valid name-like characters */
 
-int chkname(cp)
-char *cp;
+int chkname(char *cp)
 {
     char ch;
 
@@ -287,8 +288,7 @@ char *cp;
 **	of character after first space
 */
 
-char *nextword(cp)
-char *cp;
+char *nextword(char *cp)
 {
     while (*cp && *cp != ' ')
         ++cp;
@@ -302,8 +302,7 @@ char *cp;
 **	to_zone, to_net, to_node, to_point
 */
 
-int chkfido(cp)
-char *cp;
+int chkfido(char *cp)
 {
     int value;
 
@@ -362,10 +361,9 @@ char *cp;
 **	junk ::= anything after a space
 */
 
-int chk_acs()
+int chk_acs(void)
 {
-    char *cp, *oldcp;
-    int i;
+    char *cp;
     char ch;
 
     /* parse left part */
@@ -414,7 +412,7 @@ int chk_acs()
 **	Return 1 if it is a valid Zeta user name
 */
 
-int chk_local()
+int chk_local(void)
 {
     user_no = user_search(oldto);
     if (user_no <= 0) {
@@ -437,7 +435,7 @@ int chk_local()
 **	Set processed flag on old message
 */
 
-int local()
+int local(void)
 {
     int n;
 
@@ -474,8 +472,7 @@ int local()
 
 /* build a new message header */
 
-buildhdr(send, recv, flags)
-int send, recv, flags;
+void buildhdr(int send, int recv, int flags)
 {
     newhdr[0] = flags;
     newhdr[1] = 8;              /* # lines (dummy - not used?) */
@@ -487,8 +484,8 @@ int send, recv, flags;
     putw(newhdr + 8, send);     /* sender uid */
     putw(newhdr + 10, recv);    /* receiver uid */
     newhdr[12] = 0;             /* topic 0 */
-    newhdr[13] = getsecond();
-    newhdr[14] = getminute();
+    newhdr[13] = getsecon();
+    newhdr[14] = getminut();
     newhdr[15] = gethour();
 }
 
@@ -496,7 +493,7 @@ int send, recv, flags;
 **	Create new data headers for new local messages
 */
 
-localdat()
+void localdat(void)
 {
     strcpy(newfrom, oldfrom);
     strcpy(newto, user_field);  /* from user_search */
@@ -509,7 +506,7 @@ localdat()
 **	OK so it is simplistic... so what?
 */
 
-tranhdr()
+void tranhdr(void)
 {
     strcpy(newfrom, oldfrom);
     strcpy(newto, oldto);
@@ -525,7 +522,7 @@ tranhdr()
 **	Set the current message to processed.
 */
 
-int fido()
+int fido(void)
 {
     int n;
 
@@ -544,24 +541,25 @@ int fido()
 
     n = copydat(fido_p);
     if (n) {
-        fputs("Could not copy header info to Fido link\n");
+        fputs("Could not copy header info to Fido link\n", stderr);
         recover(2, fido_p, fp_msg);
         return n;
     }
 
     n = copymsg(fido_p);
     if (n) {
-        fputs("Could not copy message to Fido link\n");
+        fputs("Could not copy message to Fido link\n", stderr);
         recover(2, fido_p, fp_msg);
         return n;
     }
 
     n = setproc();
     if (n) {
-        fputs("Could not set message to processed\n");
+        fputs("Could not set message to processed\n", stderr);
         return n;
     }
 
+    return 0;
 }
 
 /*  acsnet ...
@@ -569,7 +567,7 @@ int fido()
 **	Basically the same as fido(), except using acs_p
 */
 
-int acsnet()
+int acsnet(void)
 {
     int n;
 
@@ -591,23 +589,25 @@ int acsnet()
 
     n = copydat(acs_p);
     if (n) {
-        fputs("Could not copy header info to ACSnet link\n");
+        fputs("Could not copy header info to ACSnet link\n", stderr);
         recover(2, acs_p, ap_msg);
         return n;
     }
 
     n = copymsg(acs_p);
     if (n) {
-        fputs("Could not copy message to ACSnet link\n");
+        fputs("Could not copy message to ACSnet link\n", stderr);
         recover(2, acs_p, ap_msg);
         return n;
     }
 
     n = setproc();
     if (n) {
-        fputs("Could not set message to processed\n");
+        fputs("Could not set message to processed\n", stderr);
         return n;
     }
+
+    return 0;
 }
 
 /*  pars_bounce ...
@@ -619,11 +619,11 @@ int acsnet()
 
 int firstbounce = 1;            /* never bounced before */
 
-pars_bounce()
+int pars_bounce(void)
 {
     int n, bnc_flags, bnc_from, bnc_to, bnc_type;
 
-    fputs(stderr, "Bouncing!\n", stderr);
+    fputs("Bouncing!\n", stderr);
 
     write_rec = rec_first = getfree(freemap);
     if (write_rec == -1) {
@@ -693,8 +693,7 @@ pars_bounce()
 **	build a message header for bouncing
 */
 
-bouncehdr(send, recv, flags)
-int send, recv, flags;
+void bouncehdr(int send, int recv, int flags)
 {
     newhdr[0] = flags;          /* incoming|new or in-transit */
     newhdr[1] = 8;              /* # lines (dummy - not used?) */
@@ -706,8 +705,8 @@ int send, recv, flags;
     putw(newhdr + 8, send);     /* sender uid */
     putw(newhdr + 10, recv);    /* receiver uid */
     newhdr[12] = 0;             /* topic 0 */
-    newhdr[13] = getsecond();
-    newhdr[14] = getminute();
+    newhdr[13] = getsecon();
+    newhdr[14] = getminut();
     newhdr[15] = gethour();
 }
 
@@ -715,8 +714,7 @@ int send, recv, flags;
 **	create new data headers for new bounced messages
 */
 
-bouncedat(type)
-int type;
+void bouncedat(int type)
 {
     strcpy(newfrom, POSTMASTER);
     if (type == 2)
@@ -729,7 +727,7 @@ int type;
 
 /* bounceinit ... initialise the bounce text array */
 
-bounceinit()
+void bounceinit(void)
 {
 
     firstbounce = 0;

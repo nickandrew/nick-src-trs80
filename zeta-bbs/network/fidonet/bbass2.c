@@ -5,20 +5,21 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "openf2.h"
 
 #define EXTERN extern
 #include "bbass.h"
-#include "openf2.h"
+#include "bb7func.h"
+#include "getw.h"
+#include "msgfunc.h"
 #include "packctl.h"
 #include "zeta.h"
 
-#ifdef	REALC
-extern char *nextword();
-#endif
-
 /* openloc - open local message files */
 
-openloc()
+void openloc(void)
 {
     loctxt_p = openf2(LOCTXT);
     lochdr_p = openf2(LOCHDR);
@@ -27,7 +28,7 @@ openloc()
 
 /* openmsg - open BB message files */
 
-openmsg()
+void openmsg(void)
 {
     msgtxt_p = openf2(MSGTXT);
     msghdr_p = openf2(MSGHDR);
@@ -36,7 +37,7 @@ openmsg()
 
 /* initloc: read the number of messages and the free sector bitmap */
 
-initloc()
+void initloc(void)
 {
     int n;
 
@@ -69,7 +70,7 @@ initloc()
 
 /* initmsg: read the number of messages and the free sector bitmap */
 
-initmsg()
+void initmsg(void)
 {
     int n;
 
@@ -102,7 +103,7 @@ initmsg()
 
 /*  read_hdr ... read a 16 byte header record */
 
-int read_hdr()
+int read_hdr(void)
 {
     int n;
 
@@ -118,7 +119,7 @@ int read_hdr()
 
 /* closloc - close the local message files */
 
-closloc()
+void closloc(void)
 {
     fclose(loctxt_p);
     fclose(lochdr_p);
@@ -127,7 +128,7 @@ closloc()
 
 /* closmsg - close the BB message files */
 
-closmsg()
+void closmsg(void)
 {
     fclose(msgtxt_p);
     fclose(msghdr_p);
@@ -138,7 +139,7 @@ closmsg()
 **	read the 4 fields from msgtxt
 */
 
-int readhead()
+int readhead(void)
 {
     int n;
 
@@ -175,8 +176,7 @@ int readhead()
 **	save the topic code (ha) of the new local message
 */
 
-savetopic(msgn, tc)
-int msgn, tc;
+void savetopic(int msgn, int tc)
 {
     int offset;
 
@@ -189,7 +189,7 @@ int msgn, tc;
 **	write data headers for new local message
 */
 
-int writedat()
+int writedat(void)
 {
     int n;
 
@@ -214,8 +214,7 @@ int writedat()
 **	Write a CR-terminated string to the new local message
 */
 
-int write2(s)
-char *s;
+int write2(char *s)
 {
     int n;
 
@@ -229,10 +228,9 @@ char *s;
 **	Copy the text of a message from msgtxt to loctxt
 */
 
-int localcpy()
+int localcpy(void)
 {
-    int n;
-    char ch;
+    int n, ch;
 
     ch = getctxt(msgtxt_p, oldtxt, &read_rec, &read_pos);
     while (ch != 0) {
@@ -258,7 +256,7 @@ int localcpy()
 **	Flush the local output (loctxt)
 */
 
-int localfls()
+int localfls(void)
 {
     int n;
 
@@ -283,7 +281,7 @@ int localfls()
 **	Set the flags for this message as processed (msghdr)
 */
 
-int setproc()
+int setproc(void)
 {
     int n;
 
@@ -301,10 +299,9 @@ int setproc()
 **	Copy a message and translate into Fidonet standard
 */
 
-int copymsg(fp)
-FILE *fp;
+int copymsg(FILE *fp)
 {
-    char ch;
+    int ch;
 
     ch = getctxt(msgtxt_p, oldtxt, &read_rec, &read_pos);
     while (ch != 0) {
@@ -331,7 +328,7 @@ FILE *fp;
 **	write the 16 byte header record to lochdr
 */
 
-int write_hdr()
+int write_hdr(void)
 {
     int n;
 
@@ -350,7 +347,7 @@ int write_hdr()
 **	rewrite the old header record (msghdr) as processed (I hope).
 */
 
-int rewrite_hdr()
+int rewrite_hdr(void)
 {
     int n;
 
@@ -368,10 +365,8 @@ int rewrite_hdr()
 **	rewrite the number of messages (loctop)
 */
 
-int wtop_loc()
+int wtop_loc(void)
 {
-    int n;
-
     fseek(loctop_p, 0, 0);
     fputc(num_msgl & 255, loctop_p);
     fputc((num_msgl >> 8) & 255, loctop_p);
@@ -382,10 +377,8 @@ int wtop_loc()
 **	rewrite the number of messages (msgtop)
 */
 
-int wtop_msg()
+int wtop_msg(void)
 {
-    int n;
-
     fseek(msgtop_p, 0, 0);
     fputc(num_msgm & 255, msgtop_p);
     fputc((num_msgm >> 8) & 255, msgtop_p);
@@ -396,9 +389,7 @@ int wtop_msg()
 **	Write an area line to the output bundle file
 */
 
-int addarea(fp, areaname)
-FILE *fp;
-char *areaname;
+int addarea(FILE *fp, char *areaname)
 {
     fputs(AREA, fp);
     fputs(areaname, fp);
@@ -412,9 +403,7 @@ char *areaname;
 **	Write tear line, origin, and SEEN-BYs
 */
 
-int addtear(fp, conftype)
-FILE *fp;
-int conftype;
+int addtear(FILE *fp, int conftype)
 {
     fputs(TEAR, fp);
     fputc(0x0d, fp);
@@ -455,10 +444,7 @@ int conftype;
 
 /* output a net and node number to a file */
 
-nnout(net, node, fp)
-int net;
-int node;
-FILE *fp;
+void nnout(int net, int node, FILE *fp)
 {
     itoa(net, tstring);
     fputs(tstring, fp);

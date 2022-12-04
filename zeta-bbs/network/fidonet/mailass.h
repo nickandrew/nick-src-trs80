@@ -29,13 +29,6 @@
 #define	F_NEW		16
 #define F_INTRANSIT	32
 
-#ifdef	REALC
-extern	int	getsecond(), getminute(), gethour();
-extern	int	getday(), getmonth(), getyear();
-extern	int	secseek(), secread(), secwrite();
-extern	int	zeromem(), getfree(), putfree(), user_search();
-#endif
-
 EXTERN
 int	rc,		/* cumulative program return code */
 	num_msg,	/* total number of messages */
@@ -89,6 +82,47 @@ char	*user_field;	/* points to buffer used by user_search */
 
 /* char	*(bm[10]); */	/* 10 bounce message lines */
 EXTERN
-int	bm[10]; 	/* 10 bounce message lines */
+char *bm[10]; 	/* 10 bounce message lines */
+
+// defined in mailass1:
+extern char *nextword(char *cp);
+extern int acsnet(void);
+extern int chk_acs(void);
+extern int chk_fido(void);
+extern int chk_local(void);
+extern int chkfido(char *cp);
+extern int chkname(char *cp);
+extern int deleteold(void);
+extern int do_msg(void);
+extern int fido(void);
+extern int ignorel(void);
+extern int local(void);
+extern int pars_bounce(void);
+extern int parse(void);
+extern void bouncedat(int type);
+extern void bouncehdr(int send, int recv, int flags);
+extern void bounceinit(void);
+extern void buildhdr(int send, int recv, int flags);
+extern void localdat(void);
+extern void tranhdr(void);
+
+// defined in mailass2:
+extern int bounce2(char *s);
+extern int bouncecpy(int type);
+extern int copymsg(FILE *fp);
+extern int localcpy(void);
+extern int read_hdr(void);
+extern int readhead(void);
+extern int rewrite_hdr(void);
+extern int setproc(void);
+extern int write2(char *s);
+extern int write_hdr(void);
+extern int write_top(void);
+extern int writedat(void);
+extern void closef(void);
+extern void init(void);
+extern void openf(void);
+extern void recover(int type, FILE *p1, int p2);
+extern void savetopic(int msgn, int tc);
 
 /* end of mailass.h */

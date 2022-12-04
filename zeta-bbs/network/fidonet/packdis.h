@@ -55,14 +55,6 @@
 #define PATH	"\001PATH:"
 #define ORIGIN	" * Origin: "
 
-#ifdef	REALC
-extern	int	getsecond(), getminute(), gethour();
-extern	int	getday(), getmonth(), getyear();
-extern	int	secseek(), secread(), secwrite();
-extern	int	zeromem(), getfree(), putfree(), user_search();
-extern	char	*commence(), *numstr();
-#endif
-
 EXTERN
 int	r_flag,		/* 1==remove packet if success */
 	p_flag,		/* 1==process batch file as well as args */
