@@ -4,6 +4,8 @@
 **/
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define  LOGIN    "log.zms"
 #define  LOGOUT   "log.out"
@@ -11,7 +13,7 @@
 FILE *fpin, *fpout;
 char line[80];
 
-main()
+int main()
 {
 
     fpin = fopen(LOGIN, "r");
@@ -28,4 +30,5 @@ main()
 
     fclose(fpin);
     fclose(fpout);
+    return 0;
 }
