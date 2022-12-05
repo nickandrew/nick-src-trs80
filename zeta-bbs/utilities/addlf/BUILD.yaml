@@ -8,7 +8,7 @@ addlf.cmd:
   - zeta-bbs/include/rs232.asm
   - zeta-bbs/include/routines.asm
   - zeta-bbs/include/userfile.asm
-addlf1.asm:
-  sdcc: addlf1.c
+addlfc.asm:
+  sdcc: addlfc.c
   depends:
-  - zeta-bbs/utilities/addlf/addlf1.c
+  - zeta-bbs/utilities/addlf/addlfc.c
