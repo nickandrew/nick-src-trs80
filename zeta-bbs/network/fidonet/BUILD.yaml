@@ -3,6 +3,7 @@ bbass1.asm:
   depends:
   - zeta-bbs/network/fidonet/bbass1.c
   - zeta-bbs/network/fidonet/bbass.h
+  - zeta-bbs/network/fidonet/bunfunc.h
   - zeta-bbs/network/fidonet/packctl.h
   - zeta-bbs/network/fidonet/zeta.h
 bbass2.asm:
@@ -20,12 +21,15 @@ bunfunc.asm:
 mailass1.asm:
   sdcc: mailass1.c
   depends:
-  - zeta-bbs/network/fidonet/mailass1.c
+  - zeta-bbs/network/fidonet/bbass.h
+  - zeta-bbs/network/fidonet/bunfunc.h
   - zeta-bbs/network/fidonet/mailass.h
+  - zeta-bbs/network/fidonet/mailass1.c
   - zeta-bbs/network/fidonet/zeta.h
 mailass2.asm:
   sdcc: mailass2.c
   depends:
+  - zeta-bbs/network/fidonet/bunfunc.h
   - zeta-bbs/network/fidonet/mailass2.c
   - zeta-bbs/network/fidonet/mailass.h
   - zeta-bbs/network/fidonet/zeta.h
