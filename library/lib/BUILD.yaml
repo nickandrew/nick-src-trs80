@@ -30,11 +30,16 @@ malloct.asm:
 msgfunc.asm:
   sdcc: msgfunc.c
   depends:
+  - library/lib/bb7func.h
+  - library/lib/openf2.h
   - library/lib/msgfunc.c
+  - library/lib/msgfunc.h
+  - library/lib/getw.h
 openf2.asm:
   sdcc: openf2.c
   depends:
   - library/lib/openf2.c
+  - library/lib/openf2.h
 pnumb.asm:
   sdcc: pnumb.c
   depends:

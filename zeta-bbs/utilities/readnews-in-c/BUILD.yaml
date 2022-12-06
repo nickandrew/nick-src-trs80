@@ -6,6 +6,7 @@ active.asm:
 newsrc.asm:
   sdcc: newsrc.c
   depends:
+  - library/lib/setpos.h
   - zeta-bbs/utilities/readnews-in-c/newsrc.c
   - zeta-bbs/utilities/readnews-in-c/readnews.h
 read.asm:
