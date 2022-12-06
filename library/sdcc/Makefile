@@ -1,3 +1,7 @@
+# vim:noexpandtab:ts=8:sts=8:
+
+all: newdos80.lib crt0.rel
+
 crt0.rel: crt0.s
 	sdasz80 -l -o crt0.s
 

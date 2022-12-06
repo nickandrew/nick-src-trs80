@@ -2,10 +2,6 @@ atoi.asm:
   sdcc: atoi.c
   depends:
   - library/lib/atoi.c
-cinit.asm:
-  compile: cinit.c
-  depends:
-  - library/lib/cinit.c
 ctype.asm:
   compile: ctype.c
   depends:
@@ -59,10 +55,6 @@ rand.asm:
   compile: rand.c
   depends:
   - library/lib/rand.c
-sbrk.asm:
-  compile: sbrk.c
-  depends:
-  - library/lib/sbrk.c
 seekto.asm:
   compile: seekto.c
   depends:
