@@ -12,6 +12,7 @@
 */
 
 typedef int           mode_t;
+typedef int           intptr_t;
 typedef long          off_t;
 typedef unsigned int  size_t;
 typedef int           ssize_t;
