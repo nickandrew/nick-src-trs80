@@ -2,6 +2,7 @@
 **      Small-C compiler ... type declaration parser
 */
 
+#include <stdio.h>
 #include "cc.h"
 
 #define ENDTYPE 0
