@@ -187,8 +187,9 @@ void set()
         printf("Description of directory file? ");
         gets(dirdesc);
 
-        for (i = 0; i < FILELEN && *dirname_cp != 0; ++i)
-            directory.filename[i] = *dirname_cp++;
+        const char *in_p = "this_dir";
+        for (i = 0; i < FILELEN && *in_p != 0; ++i)
+            directory.filename[i] = *in_p++;
         while (i < FILELEN)
             directory.filename[i++] = ' ';
 
