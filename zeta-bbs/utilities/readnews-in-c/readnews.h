@@ -48,4 +48,21 @@ extern FILE
 *newsrc,       /* newsrc file for all to share             */
 *active;       /* list of active groups                    */
 
+// defined in askdisp.asm:
+extern void askdisp(void);
 
+// defined in newsrc.c:
+extern void readcount(void);
+extern void writecount(void);
+extern void readrc(void);
+extern int asksubs(void);
+
+// defined in read.c:
+extern void readnews(void);
+extern void puthdr(void);
+
+// defined in readidx.asm:
+extern int readidx(void) __smallc;
+
+// defined in readtxt.asm:
+extern void readtxt(void) __smallc;

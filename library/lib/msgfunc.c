@@ -4,12 +4,16 @@
 
 #include <stdio.h>
 
+#include "bb7func.h"
+#include "getw.h"
+#include "msgfunc.h"
+
 /* read a particular sector from the text file */
 
-int readtxt(fp, bp, rr)
-FILE *fp;                       /* file pointer */
-char *bp;                       /* sector buffer pointer */
-int rr;                         /* read record number */
+int readtxt(FILE *fp, char *bp, int rr)
+/* FILE *fp;                       file pointer */
+/* char *bp;                       sector buffer pointer */
+/* int rr;                         read record number */
 {
     int n;
 
@@ -31,13 +35,13 @@ int rr;                         /* read record number */
 **	input string delimited by 0 or CR (CR not placed in output)
 */
 
-int getstxt(cp, len, fp, bp, prr, prp)
-char *cp;
-int len;
-FILE *fp;                       /* text file pointer */
-char *bp;                       /* sector buffer pointer */
-int *prr;                       /* pointer to read record number */
-int *prp;                       /* pointer to read position */
+int getstxt(char *cp, int len, FILE *fp, char *bp, int *prr, int *prp)
+// char *cp;
+// int len;
+// FILE *fp;                       /* text file pointer */
+// char *bp;                       /* sector buffer pointer */
+// int *prr;                       /* pointer to read record number */
+// int *prp;                       /* pointer to read position */
 {
     int c, n;
 
@@ -66,11 +70,11 @@ int *prp;                       /* pointer to read position */
 
 /* getctxt ... get one character from the text file */
 
-int getctxt(fp, bp, prr, prp)
-FILE *fp;                       /* text file pointer */
-char *bp;                       /* sector buffer pointer */
-int *prr;                       /* pointer to read record number */
-int *prp;                       /* pointer to read position */
+int getctxt(FILE *fp, char *bp, int *prr, int *prp)
+// FILE *fp;                       /* text file pointer */
+// char *bp;                       /* sector buffer pointer */
+// int *prr;                       /* pointer to read record number */
+// int *prp;                       /* pointer to read position */
 {
     int n;
 
@@ -89,13 +93,13 @@ int *prp;                       /* pointer to read position */
 
 /* write one character to the text file */
 
-int putctxt(ch, fp, bp, pwr, pwp, fm)
-int ch;
-FILE *fp;                       /* text file pointer */
-char *bp;                       /* sector buffer pointer */
-int *pwr;                       /* pointer to write record number */
-int *pwp;                       /* pointer to write position */
-char *fm;                       /* free sector bitmap */
+int putctxt(int ch, FILE *fp, char *bp, int *pwr, int *pwp, char *fm)
+// int ch;
+// FILE *fp;                       /* text file pointer */
+// char *bp;                       /* sector buffer pointer */
+// int *pwr;                       /* pointer to write record number */
+// int *pwp;                       /* pointer to write position */
+// char *fm;                       /* free sector bitmap */
 {
     int n;
     int nextrec;
@@ -134,13 +138,13 @@ char *fm;                       /* free sector bitmap */
 
 /* write a string of chars to the text file */
 
-int putstxt(s, fp, bp, pwr, pwp, fm)
-char *s;
-FILE *fp;                       /* text file pointer */
-char *bp;                       /* sector buffer pointer */
-int *pwr;                       /* pointer to write record number */
-int *pwp;                       /* pointer to write position */
-char *fm;                       /* free sector bitmap */
+int putstxt(const char *s, FILE *fp, char *bp, int *pwr, int *pwp, char *fm)
+// char *s;
+// FILE *fp;                       /* text file pointer */
+// char *bp;                       /* sector buffer pointer */
+// int *pwr;                       /* pointer to write record number */
+// int *pwp;                       /* pointer to write position */
+// char *fm;                       /* free sector bitmap */
 {
     int n;
     int nextrec;
@@ -182,11 +186,11 @@ char *fm;                       /* free sector bitmap */
 **	to be executed at the end of a message
 */
 
-int flushtxt(fp, bp, pwr, pwp)
-FILE *fp;                       /* text file pointer */
-char *bp;                       /* sector buffer pointer */
-int *pwr;                       /* pointer to write record number */
-int *pwp;                       /* pointer to write position */
+int flushtxt(FILE *fp, char *bp, int *pwr, int *pwp)
+// FILE *fp;                       /* text file pointer */
+// char *bp;                       /* sector buffer pointer */
+// int *pwr;                       /* pointer to write record number */
+// int *pwp;                       /* pointer to write position */
 {
     int n;
 
@@ -213,9 +217,7 @@ int *pwp;                       /* pointer to write position */
 **	write the free space bitmap
 */
 
-int writefree(fp, bp)
-FILE *fp;
-char *bp;
+int writefree(FILE *fp, char *bp)
 {
     int n;
 

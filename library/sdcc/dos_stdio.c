@@ -209,9 +209,22 @@ long ftell(FILE *stream) {
 }
 
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
-	ptr; size; nmemb; stream;
-	// TODO
-	return 0;
+	size_t s;
+  size_t ndone = 0;
+  // Not sure why I had to do this to stop an error on the putc call
+  const char *p = (const char *) ptr;
+
+  if (size)
+    while (ndone != nmemb) {
+      s = size;
+      do {
+        putc(*p++, stream);
+        // if (ferror(file)) return ndone;
+      } while (--s);
+      ++ndone;
+    }
+
+	return ndone;
 }
 
 int getchar(void) {

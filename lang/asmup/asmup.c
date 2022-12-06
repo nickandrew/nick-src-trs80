@@ -2,12 +2,12 @@
 /* Writes to stdout, ignores comments (ie: ";")  */
 /* Handles lines longer than 80 chars            */
 
-#include <stdio.h>
 #include <ctype.h>
+#include <stdio.h>
 
 char buf[81], c, *cp, q;
 
-main()
+int main()
 {
     while (fgets(buf, 80, stdin) != NULL) {
         cp = buf;
@@ -35,4 +35,6 @@ main()
 
         fputs(buf, stdout);
     }
+
+    return 0;
 }

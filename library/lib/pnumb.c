@@ -1,13 +1,11 @@
 /* pnumb.c : print string & number & string */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 char pnbuf[8];
 
-pnumb(fp, s1, n, s2)
-FILE *fp;
-char *s1, *s2;
-int n;
+void pnumb(FILE *fp, char *s1, int n, char *s2)
 {
     fputs(s1, fp);
     itoa(n, pnbuf);

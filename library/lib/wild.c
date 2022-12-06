@@ -1,8 +1,9 @@
 /* wild.c:	Wildcard checking routines */
 
+int windex(char wild[], char string[], int i, int j);
+int cmpwild(char wild[], char string[], int *i_ptr, int *j_ptr);
 
-int chkwild(wild, string)
-char wild[], string[];
+int chkwild(char wild[], char string[])
 {
     int i, j;
 
@@ -16,12 +17,10 @@ char wild[], string[];
     return 1;
 }
 
-int cmpwild(wild, string, i_ptr, j_ptr)
-char wild[], string[];
-int *i_ptr, *j_ptr;
+int cmpwild(char wild[], char string[], int *i_ptr, int *j_ptr)
 {
     char f_srch, f_cmp;
-    int i, j, endi, endj, s_len;
+    int i, j, endi, s_len;
 
     f_srch = f_cmp = s_len = 0;
     i = *i_ptr;
@@ -50,19 +49,15 @@ int *i_ptr, *j_ptr;
             return 1;
         }
         if (!string[j])
-            return 0;
+            break;
         ++j;
     }
 
     return 0;
 }
 
-int windex(wild, string, i, j)
-char wild[], string[];
-int i, j;
+int windex(char wild[], char string[], int i, int j)
 {
-
-
     while (wild[i] && string[j] && wild[i] != '*') {
         if (wild[i] != '?' && (wild[i] != string[j]))
             return 0;

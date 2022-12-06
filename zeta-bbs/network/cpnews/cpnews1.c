@@ -8,6 +8,7 @@
 char version[] = "Cpnews 1.0  20-Jul-87";
 
 #include <stdio.h>
+#include <stdlib.h>
 
 int
  highgrp[GROUPS],               /* highest message in this newsgroup     */
@@ -33,10 +34,32 @@ FILE * newstxt0,                /* where the text is kept (drive 0, 128k)   */
     *fp,                        /* input file pointer                       */
     *active;                    /* list of active groups                    */
 
+void openfiles(void);
+FILE *fopene(char *name, char *mode);
+void closefiles(void);
+void fatal(char *err);
+void prtname(void);
+int readgrp(void);
+char *blanks(char *x);
+void cpnews(void);
+void readhdr(void);
+int hdrcmp(char *string);
+char *skiphdr(void);
+void hdrcp(char *ptr);
+void findgrp(void);
+int grpcmp(char *grp, char **cpp);
 
-main(argc, argv)
-int argc;
-char *argv[];
+extern int  allocs(void);
+extern void puthead(void);
+extern void putidx(void);
+extern void putmsg(void);
+extern void readfree(void);
+extern void savepos(char *buf, FILE *fp);
+extern void setpos(char *buf, FILE *fp);
+extern void writegrp(int);  // I don't know where this is implemented
+extern void writfree(void);
+
+int main(int argc, char *argv[])
 {
     if (argc < 2) {
         fputs("Usage: cpnews file ...\n", stderr);
@@ -78,18 +101,15 @@ char *argv[];
 
     fputs("All articles copied\n", stdout);
     closefiles();
-    exit(0);
+    return 0;
 }
 
 /*
 ** openfiles() ... Open all files
 */
 
-openfiles(in)
-char *in;
+void openfiles(void)
 {
-    FILE *fopene();
-
     newstxt0 = fopene("newstxt0.zms", "r+");
     newstxt1 = fopene("newstxt1.zms", "r+");
     newsidx = fopene("newsidx.zms", "r+");
@@ -100,8 +120,7 @@ char *in;
 ** fopene() ... Open a file with error check & exit if fail
 */
 
-FILE *fopene(name, mode)
-char *name, *mode;
+FILE *fopene(char *name, char *mode)
 {
     FILE *fp;
     fp = fopen(name, mode);
@@ -117,7 +136,7 @@ char *name, *mode;
 ** closefiles() ... Close all files
 */
 
-closefiles()
+void closefiles(void)
 {
     fclose(fp);
     fclose(newstxt0);
@@ -130,8 +149,7 @@ closefiles()
 ** fatal() ... Print a fatal error then exit
 */
 
-fatal(err)
-char *err;
+void fatal(char *err)
 {
     fputs("Fatal: ", stderr);
     fputs(err, stderr);
@@ -142,13 +160,13 @@ char *err;
 ** prtname() ... Print group name
 */
 
-prtname()
+void prtname(void)
 {
-    if (grptype == 'L')
+    if (grptype[group] == 'L')
         fputs("Local group ", stdout);
-    else if (grptype == 'N')
+    else if (grptype[group] == 'N')
         fputs("USEnet newsgroup ", stdout);
-    else if (grptype == 'E')
+    else if (grptype[group] == 'E')
         fputs("Echomail conference ", stdout);
     else
         fputs("Unknown grouptype ", stdout);
@@ -161,7 +179,7 @@ prtname()
 ** readgrp() ... Read active line, return 0 if eof
 */
 
-int readgrp()
+int readgrp(void)
 {
     char *cp, *cp2;
     if (fgets(line, 80, active) == NULL)
@@ -185,8 +203,7 @@ int readgrp()
     return 1;
 }
 
-char *blanks(x)
-char *x;
+char *blanks(char *x)
 {
     while (*x == ' ')
         ++x;
@@ -197,7 +214,7 @@ char *x;
 ** cpnews() ... Copy one file into NEWSTXT0/1
 */
 
-cpnews()
+void cpnews(void)
 {
     sector = allocs();
 
@@ -217,7 +234,7 @@ cpnews()
     putidx();                   /* output index file record */
 }
 
-readhdr()
+void readhdr(void)
 {
     while (1) {
         fgets(line, 80, fp);
@@ -236,8 +253,7 @@ readhdr()
     }
 }
 
-hdrcmp(string)
-char *string;
+int hdrcmp(char *string)
 {
     char *cp;
 
@@ -251,7 +267,7 @@ char *string;
     return 0;
 }
 
-char *skiphdr()
+char *skiphdr(void)
 {
     char *cp;
     cp = line;
@@ -262,8 +278,7 @@ char *skiphdr()
     return cp;
 }
 
-hdrcp(ptr)
-char *ptr;
+void hdrcp(char *ptr)
 {
     char *cp;
 
@@ -275,15 +290,15 @@ char *ptr;
     *ptr = '\0';
 }
 
-findgrp()
+void findgrp(void)
 {
     char *cp;
 
     group = 1;
     while (group <= groups) {
         cp = skiphdr();
-        if (!grpcmp(grpname[80 * group], &cp))
-            return 1;
+        if (!grpcmp(&grpname[80 * group], &cp))
+            return;
         ++group;
     }
 
@@ -293,8 +308,7 @@ findgrp()
     exit(3);
 }
 
-grpcmp(grp, cpp)
-char *grp, **cpp;
+int grpcmp(char *grp, char **cpp)
 {
     char *cp, *g;
 
@@ -304,8 +318,8 @@ char *grp, **cpp;
         while (1) {
             if (!*g) {
                 if (*cp == ',' || *cp == '\n' || *cp == '\0') {
-                    if (*cp == ',')
-                        ++cp;
+                    // if (*cp == ',')   -- Looks unused
+                    //     ++cp;
                     return 0;
                 }
             }

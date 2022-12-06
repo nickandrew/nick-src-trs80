@@ -4,6 +4,9 @@
 ** ref dragon book, Sec 4.6
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #define EOS        0
 #define PLUS       1
 #define MINUS      2
@@ -16,6 +19,16 @@
 #define RIGH       1
 #define LEFT       2
 #define EQUA       3
+
+/* Function declarations */
+void outline(char *s, int n);
+void push1(int n);
+void push2(int n);
+int pop1(void);
+int pop2(void);
+void exprval(void);
+void eval(int tok);
+void advance(void);
 
 int rel[25] = {                 /* 5 x row + column */
 /*               $     +     -     *     /            */
@@ -34,7 +47,7 @@ int string[20] = { 3, -PLUS, 2, -TIMES, 4, -PLUS, 6, -EOS };
 int *ip;
 int token;
 
-main()
+int main()
 {
     sp1 = stack1;
     sp2 = stack2;
@@ -45,11 +58,10 @@ main()
     if (*ip != EOS)
         fputs("Invalid expression (1)\n", stdout);
     outline("Result is ", pop1());
+    return 0;
 }
 
-outline(s, n)
-char *s;
-int n;
+void outline(char *s, int n)
 {
     char buff[8];
     fputs(s, stdout);
@@ -58,33 +70,31 @@ int n;
     fputs("\n", stdout);
 }
 
-push1(n)
-int n;
+void push1(int n)
 {
     outline("Pushing to value stack: ", n);
     *(++sp1) = n;
 }
 
-push2(n)
-int n;
+void push2(int n)
 {
     outline("Pushing to operator stack: ", n);
     *(++sp2) = n;
 }
 
-int pop1()
+int pop1(void)
 {
     outline("Popping from value stack: ", *sp1);
     return *(sp1--);
 }
 
-int pop2()
+int pop2(void)
 {
     outline("Popping from operator stack: ", *sp2);
     return *(sp2--);
 }
 
-exprval()
+void exprval(void)
 {
     int relate;
     while (1) {
@@ -120,7 +130,7 @@ exprval()
             fputs("Inv (3)\n", stdout);
         relate = rel[5 * *sp2 + token];
         if (relate == NONE) {
-            fputs("Inv (4)\n");
+            fputs("Inv (4)\n", stdout);
             return;
         }
         if (relate != RIGH) {
@@ -135,14 +145,13 @@ exprval()
     }
 }
 
-eval(tok)
-int tok;
+void eval(int tok)
 {
-    int x1, x2;
+    int x1;
     outline("Evaluating ", tok);
     switch (tok) {
     case EOS:
-        fputs("Evaluate end of string?\n");
+        fputs("Evaluate end of string?\n", stdout);
         return;
     case PLUS:
         push1(pop1() + pop1());
@@ -163,10 +172,10 @@ int tok;
     }
 }
 
-advance()
+void advance(void)
 {
     if (*ip == EOS) {
-        fputs("Can't advance past EOS\n");
+        fputs("Can't advance past EOS\n", stdout);
         return;
     }
     ++ip;

@@ -3,24 +3,27 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "getw.h"
+#include "openf2.h"
+#include "pnumb.h"
+#include "setpos.h"
 
 #define EXTERN extern
 #include "packdis.h"
 #include "packctl.h"
 #include "zeta.h"
 
-#ifdef	REALC
-extern FILE *openf2();
-#define LONG	long
-#else
-#define	LONG	int
-#endif
+// Not sure where this is defined
+extern int user_search(char *);
 
 /* read_head:
 **  Read the 4 null-terminated fields date, to, from, subj
 */
 
-int read_head()
+int read_head(void)
 {
     int c;
 
@@ -52,7 +55,7 @@ int rdl_ch;
 int rdl_n;
 char *rdl_ptr;
 
-int readline()
+int readline(void)
 {
     rdl_ptr = line;
     rdl_n = 79;
@@ -78,7 +81,7 @@ int readline()
 **	things about it
 */
 
-int read_body()
+int read_body(void)
 {
     int n;
     char *place;
@@ -156,7 +159,7 @@ int read_body()
 
 /* doifna ... handle ifna-kludge keywords */
 
-doifna()
+void doifna(void)
 {
     char *place;
 
@@ -193,8 +196,7 @@ doifna()
 
 /* findconf ... search the conference table for this one */
 
-findconf(string)
-char *string;
+void findconf(char *string)
 {
     char *cp;
 
@@ -223,8 +225,7 @@ char *string;
 
 /* doorigin ... Parse an origin line */
 
-doorigin(string)
-char *string;
+void doorigin(char *string)
 {
     char *lp;
 
@@ -269,7 +270,7 @@ char *string;
 **  position to rba_1 and search for the end of message
 */
 
-reposition()
+void reposition(void)
 {
     int ch;
 
@@ -291,10 +292,10 @@ reposition()
 
 /* read and check packet header */
 
-int read_pkthdr()
+int read_pkthdr(void)
 {
     int n;
-    int ptonode, ptonet, ver;
+    int ptonode, ptonet;
 
     n = fread(pkthdr, 1, 58, packet_p);
     if (n != 58) {
@@ -334,7 +335,7 @@ int read_pkthdr()
 
 /* read a fidonet message header and check its contents a little */
 
-int read_msghdr()
+int read_msghdr(void)
 {
     int n, n1, n2;
 
@@ -398,7 +399,7 @@ int read_msghdr()
 **	This information is sufficient to process it!
 */
 
-int read_every()
+int read_every(void)
 {
     int rc;
 
@@ -449,9 +450,7 @@ int read_every()
 
 /* fidocat ... concatenate a fidonet address to a string */
 
-fidocat(s, zone, net, node, point)
-char *s;
-int zone, net, node, point;
+void fidocat(char *s, int zone, int net, int node, int point)
 {
     char *cp;
 

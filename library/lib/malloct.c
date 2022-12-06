@@ -1,12 +1,16 @@
 /* #(@) malloct.c - 17 Jun 90 - test version of malloc library */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #define BRKSIZE		1024
 #define	PTRSIZE		2
 
-/* Another Small-C shortcoming */
-#define unsigned	int
+#define Align(x,a) (((x) + (a - 1)) & ~(int)(a - 1))
+#define NextSlot	(* (char **) ((p) - PTRSIZE))
+#define NextFree	(* (char **) (p))
 
 /* A short explanation of the data structure and algorithms.
  * An area returned by malloc() is called a slot. Each slot
@@ -21,19 +25,20 @@
  * Free slots are merged together by free().
  */
 
-extern char *sbrk();
-extern int brk();
-
-char *align();
+// Functions defined in this file
+unsigned int align(char *x, int a);
+char *nextslot(char **p);
+char *nextfree(char **p);
+void snextslot(char **p, char *value);
+void snextfree(char **p, char *value);
 
 char *_bottom, *_top, *_empty;
 
-int grow(len)
-unsigned len;
+int grow(unsigned int len)
 {
     char *p;
 
-    p = align(_top + len, BRKSIZE);
+    p = (char *) align(_top + len, BRKSIZE);
     if (p < _top || brk(p) != 0)
         return 0;
     snextslot(_top, p);
@@ -43,8 +48,7 @@ unsigned len;
     return 1;
 }
 
-char *malloc(size)
-unsigned size;
+void *malloc(size_t size)
 {
     char *prev, *p, *next, *new;
     unsigned len, ntries;
@@ -54,13 +58,13 @@ unsigned size;
         size = PTRSIZE;
 
     for (ntries = 0; ntries < 2; ntries++) {
-        if ((len = align(size, PTRSIZE) + PTRSIZE) < 2 * PTRSIZE)
+        if ((len = Align(size, PTRSIZE) + PTRSIZE) < 2 * PTRSIZE)
             return 0;           /* overflow */
 
         if (_bottom == 0) {
-            if ((p = sbrk(2 * PTRSIZE)) == -1)
+            if ((p = sbrk(2 * PTRSIZE)) == (char *) -1)
                 return 0;
-            p = align(p, PTRSIZE);
+            p = (char *) align(p, PTRSIZE);
             /* sbrk amount stops overflow */
             p += PTRSIZE;
             _top = _bottom = p;
@@ -98,9 +102,7 @@ unsigned size;
     return NULL;
 }
 
-char *realloc(oldfix, size)
-char *oldfix;
-unsigned size;
+void *realloc(char *oldfix, size_t size)
 {
     char *prev, *p, *next, *new;
     unsigned len, n;
@@ -111,7 +113,7 @@ unsigned size;
 
     if (size > -2 * PTRSIZE)
         return 0;
-    len = align(size, PTRSIZE) + PTRSIZE;
+    len = Align(size, PTRSIZE) + PTRSIZE;
     next = nextslot(old);
     n = (next - old);           /* old length */
     /* Extend old if there is any free space just behind it */
@@ -151,8 +153,7 @@ unsigned size;
     return new;
 }
 
-char *calloc(n, size)
-unsigned n, size;
+void *calloc(size_t n, size_t size)
 {
     char *p, *cp;
 
@@ -165,8 +166,7 @@ unsigned n, size;
     return cp;
 }
 
-free(pfix)
-int *pfix;
+void free(void *pfix)
 {
     char *prev, *next;
     char *p;
@@ -203,41 +203,29 @@ int *pfix;
     }
 }
 
-#define Align		(((x) + (a - 1)) & ~(int)(a - 1))
-#define NextSlot	(* (char **) ((p) - PTRSIZE))
-#define NextFree	(* (char **) (p))
-
 /* Align a pointer (x) to a size (a). A is a power of 2. */
 
-align(x, a)
-int x;                          /* Just think of it as an int for convenience */
-int a;
+unsigned int align(char *x, int a)
 {
-    return (x + (a - 1)) & ~(a - 1);
+    return ((int)x + (a - 1)) & ~(a - 1);
 }
 
-nextslot(p)
-char **p;
+char *nextslot(char **p)
 {
     return (*(p - PTRSIZE));
 }
 
-nextfree(p)
-char **p;
+char *nextfree(char **p)
 {
     return *p;
 }
 
-snextslot(p, value)
-int *p;
-int value;
+void snextslot(char **p, char *value)
 {
     *(p - PTRSIZE) = value;
 }
 
-snextfree(p, value)
-int *p;
-int value;
+void snextfree(char **p, char *value)
 {
     *p = value;
 }

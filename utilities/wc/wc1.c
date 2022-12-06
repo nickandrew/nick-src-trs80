@@ -1,13 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define YES 1
 #define NO  0
 #define ERROR   -1
 #define MASK    127
 
-main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
     int c, inword;
     FILE *fp;
@@ -16,11 +16,11 @@ char *argv[];
 
     if (argc != 2) {
         fputs("Usage: wc filename\n", stdout);
-        exit();
+        exit(2);
     }
     if ((fp = fopen(argv[1], "r")) == NULL) {
         fputs("wc: cannot open input file\n", stdout);
-        exit();
+        exit(2);
     }
     inword = NO;
     nl = nw = nc = 0;
@@ -50,4 +50,6 @@ char *argv[];
     itoa(nc, s);
     strcat(s, "\n");
     fputs(s, stdout);
+
+    return 0;
 }

@@ -4,6 +4,7 @@
 **/
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define  LOG1     "log.zms"
 #define  LOG2     "xferlog.zms"
@@ -11,7 +12,7 @@
 
 FILE *fpin, *fpout;
 char logx = 0, logp = 1, flagd = 0;
-char *fout, *fin;
+const char *fout, *fin;
 int lpp, lines, nlines, nsaved = 0, i = 0, c;
 
 char *linen[132], buffer[5280];
@@ -19,9 +20,7 @@ char line1[80], line2[80];
 char string[20];
 
 
-main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
     fout = OUTPUT;              /* Line printer       */
     lpp = 58;                   /* 60 lines/page - 2  */
@@ -175,5 +174,5 @@ char *argv[];
     fclose(fpin);
 
     fputs("printlog: finished\n", stderr);
-    exit(0);
+    return 0;
 }

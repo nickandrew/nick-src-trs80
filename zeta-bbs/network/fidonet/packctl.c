@@ -2,7 +2,11 @@
 ** @(#) packctl.c 20 May 90
 */
 
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "openf2.h"
 
 #define EXTERN extern
 #include "packctl.h"
@@ -14,7 +18,7 @@
 **  COMP.OS.MINIX		1 (acsnet)	xx (hex)
 */
 
-read_control()
+void read_control(void)
 {
     char line[80];              /* a scratch line */
     char *cp;
@@ -67,9 +71,7 @@ read_control()
 
 /* read 2 hex digits and set an integer */
 
-int readhex2(cp, ip)
-char *cp;
-int *ip;
+int readhex2(char *cp, int *ip)
 {
     int n, m;
 

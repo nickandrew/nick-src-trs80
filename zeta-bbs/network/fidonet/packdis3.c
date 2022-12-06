@@ -3,24 +3,24 @@
 **	@(#) packdis3.c: 20 May 90
 */
 
-
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "bb7func.h"
+#include "gettime.h"
+#include "getw.h"
+#include "msgfunc.h"
+#include "openf2.h"
+#include "setpos.h"
 
 #define EXTERN extern
 #include "packdis.h"
 #include "packctl.h"
 #include "zeta.h"
 
-#ifdef	REALC
-extern FILE *openf2();
-#define LONG	long
-#else
-#define LONG	int
-#endif
-
 /* open the local mail database files and read initial stuff */
 
-open_loc()
+void open_loc(void)
 {
     int n;
 
@@ -37,7 +37,7 @@ open_loc()
 
 /* open the echomail database files and read initial stuff */
 
-open_msg()
+void open_msg(void)
 {
     int n;
 
@@ -54,11 +54,7 @@ open_msg()
 
 /* read the number of messages and the free sector bitmap */
 
-int read_info(txt_p, top_p, pmsgs, freeptr)
-FILE *txt_p;
-FILE *top_p;
-int *pmsgs;
-char *freeptr;
+int read_info(FILE *txt_p, FILE *top_p, int *pmsgs, char *freeptr)
 {
     int n;
 
@@ -87,7 +83,7 @@ char *freeptr;
 **	error, >2 if fatal error
 */
 
-int write_loc()
+int write_loc(void)
 {
     int n;
     int msg_flag;
@@ -136,7 +132,7 @@ int write_loc()
 **	error, >2 if fatal error
 */
 
-int write_msg()
+int write_msg(void)
 {
     int n;
 
@@ -177,11 +173,9 @@ int write_msg()
 
 /* save the topic code of the message */
 
-savetopic(fp, msgn, tc)
-FILE *fp;
-int msgn, tc;
+void savetopic(FILE *fp, int msgn, int tc)
 {
-    LONG offset;
+    long offset;
 
     offset = 4096 + msgn;
     fseek(fp, offset, 0);
@@ -190,8 +184,7 @@ int msgn, tc;
 
 /* build a 16-byte header for the msg file */
 
-buildmsg(flags, sndr, rcvr, topic)
-int flags, sndr, rcvr, topic;
+void buildmsg(int flags, int sndr, int rcvr, int topic)
 {
     newhdr[0] = flags;
     newhdr[1] = 3;              /* # lines (dummy - not used?) */
@@ -203,26 +196,26 @@ int flags, sndr, rcvr, topic;
     putw(newhdr + 8, sndr);     /* ids unused */
     putw(newhdr + 10, rcvr);    /* receiver uid */
     newhdr[12] = topic;         /* topic code */
-    newhdr[13] = getsecond();
-    newhdr[14] = getminute();
+    newhdr[13] = getsecon();
+    newhdr[14] = getminut();
     newhdr[15] = gethour();
 }
 
 /* create local data headers (should already be done mostly) */
 
-localdat()
+void localdat(void)
 {
 }
 
 /* create msg data headers (should already be done mostly) */
 
-msgdat()
+void msgdat(void)
 {
 }
 
 /* write local data headers to local file */
 
-int writeld()
+int writeld(void)
 {
     int n;
 
@@ -256,33 +249,29 @@ int writeld()
 
 /* shorten the routines to put a char or string to local or msg */
 
-int lputc(c)
-int c;
+int lputc(int c)
 {
     return putctxt(c, loctxt_p, newtxt, &write_rec, &write_pos, locfree);
 }
 
-int lputs(s)
-int s;
+int lputs(char *s)
 {
     return putstxt(s, loctxt_p, newtxt, &write_rec, &write_pos, locfree);
 }
 
-int mputc(c)
-int c;
+int mputc(int c)
 {
     return putctxt(c, msgtxt_p, newtxt, &write_rec, &write_pos, msgfree);
 }
 
-int mputs(s)
-int s;
+int mputs(char *s)
 {
     return putstxt(s, msgtxt_p, newtxt, &write_rec, &write_pos, msgfree);
 }
 
 /* write msg data headers to message file */
 
-int writemd()
+int writemd(void)
 {
     int n;
 
@@ -313,10 +302,9 @@ int writemd()
 
 /* copy the packet (with translation) to local file */
 
-int loc_cpy()
+int loc_cpy(void)
 {
     int n;
-    char ch;
 
     if (msg_type & IS_ECHOMAIL)
         n = readline();         /* read AREA line and ignore */
@@ -362,10 +350,9 @@ int loc_cpy()
 
 /* copy the packet (with different translation) to msg file */
 
-int msg_cpy()
+int msg_cpy(void)
 {
     int n;
-    char ch;
 
     n = readline();             /* read AREA line and ignore */
 
@@ -411,12 +398,10 @@ int msg_cpy()
 
 /* write 16-byte header record to loc|msg files */
 
-int writeh(hp, pmsgs)
-FILE *hp;
-int *pmsgs;
+int writeh(FILE *hp, int *pmsgs)
 {
     int n;
-    LONG l;
+    long l;
 
     l = *pmsgs * 16;
     fseek(hp, l, 0);
@@ -432,12 +417,10 @@ int *pmsgs;
 
 /* get a null-terminated string of a maximum length from a file */
 
-int getfield(s, n, fp)
-char *s;
-int n;
-FILE *fp;
+int getfield(char *s, int n, FILE *fp)
 {
-    int c;
+    int c = 0;
+
     while (n--) {
         c = fgetc(fp);
         if (c == EOF || c == 0)
@@ -450,9 +433,7 @@ FILE *fp;
 
 /* write the number of messages */
 
-int write_top(fp, msgs)
-FILE *fp;
-int msgs;
+int write_top(FILE *fp, int msgs)
 {
     int n;
 
@@ -476,7 +457,7 @@ int msgs;
 
 /* close all open files */
 
-closef()
+void closef(void)
 {
     fclose(loctxt_p);
     fclose(loctop_p);

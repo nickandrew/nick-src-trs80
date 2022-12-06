@@ -1,29 +1,17 @@
-atoi.asm:
-  sdcc: atoi.c
-  depends:
-  - library/lib/atoi.c
 ctype.asm:
-  compile: ctype.c
+  sdcc: ctype.c
   depends:
   - library/lib/ctype.c
 doserr.asm:
-  compile: doserr.c
+  sdcc: doserr.c
   depends:
   - library/lib/doserr.c
-fputc.asm:
-  compile: fputc.c
-  depends:
-  - library/lib/fputc.c
-fwrite.asm:
-  compile: fwrite.c
-  depends:
-  - library/lib/fwrite.c
 getopt.asm:
-  compile: getopt.c
+  sdcc: getopt.c
   depends:
   - library/lib/getopt.c
 getuid.asm:
-  compile: getuid.c
+  sdcc: getuid.c
   depends:
   - library/lib/getuid.c
 getw.asm:
@@ -32,50 +20,51 @@ getw.asm:
   - library/lib/getw.c
   - library/lib/getw.h
 index.asm:
-  compile: index.c
+  sdcc: index.c
   depends:
   - library/lib/index.c
 malloct.asm:
-  compile: malloct.c
+  sdcc: malloct.c
   depends:
   - library/lib/malloct.c
 msgfunc.asm:
-  compile: msgfunc.c
+  sdcc: msgfunc.c
   depends:
+  - library/lib/bb7func.h
+  - library/lib/openf2.h
   - library/lib/msgfunc.c
+  - library/lib/msgfunc.h
+  - library/lib/getw.h
 openf2.asm:
-  compile: openf2.c
+  sdcc: openf2.c
   depends:
   - library/lib/openf2.c
+  - library/lib/openf2.h
 pnumb.asm:
-  compile: pnumb.c
+  sdcc: pnumb.c
   depends:
   - library/lib/pnumb.c
 rand.asm:
-  compile: rand.c
+  sdcc: rand.c
   depends:
   - library/lib/rand.c
 seekto.asm:
-  compile: seekto.c
+  sdcc: seekto.c
   depends:
   - library/lib/seekto.c
-signal.asm:
-  compile: signal.c
-  depends:
-  - library/lib/signal.c
 strchr.asm:
-  compile: strchr.c
+  sdcc: strchr.c
   depends:
   - library/lib/strchr.c
 strcmp.asm:
-  compile: strcmp.c
+  sdcc: strcmp.c
   depends:
   - library/lib/strcmp.c
 strlen.asm:
-  compile: strlen.c
+  sdcc: strlen.c
   depends:
   - library/lib/strlen.c
 wild.asm:
-  compile: wild.c
+  sdcc: wild.c
   depends:
   - library/lib/wild.c

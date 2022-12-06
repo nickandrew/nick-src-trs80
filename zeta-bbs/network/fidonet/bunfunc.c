@@ -21,6 +21,10 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "gettime.h"
+#include "getw.h"
 #include "zeta.h"
 
 /* Variables ... */
@@ -33,9 +37,7 @@ EXTERN int to_zone, to_net, to_node, to_point;
 
 /*  makepkt ... Make & write a bundle header if necessary */
 
-int makepkt(fp, net, node, zone)
-FILE *fp;
-int net, node, zone;
+int makepkt(FILE *fp, int net, int node, int zone)
 {
     int n;
 
@@ -50,8 +52,8 @@ int net, node, zone;
     putw(pkthdr + 6, getmonth() - 1);
     putw(pkthdr + 8, getday());
     putw(pkthdr + 10, gethour());
-    putw(pkthdr + 12, getminute());
-    putw(pkthdr + 14, getsecond());
+    putw(pkthdr + 12, getminut());
+    putw(pkthdr + 14, getsecon());
     putw(pkthdr + 16, 0);       /* rate=0 */
     putw(pkthdr + 18, 2);       /* ver=2 */
     putw(pkthdr + 20, ZETA_NET);
@@ -77,9 +79,7 @@ int net, node, zone;
 
 /*  makemsg ... Make & write a 14 byte long message header for a bundle */
 
-int makemsg(fp, flags)
-FILE *fp;
-int flags;
+int makemsg(FILE *fp, int flags)
 {
     int n;
 
@@ -103,11 +103,8 @@ int flags;
 **	Write the 4 fields into a Fidonet bundle
 */
 
-int copydat(fp)
-FILE *fp;
+int copydat(FILE *fp)
 {
-    int n;
-
     fputs(newdate, fp);
     fputc(0, fp);
     fputs(newto, fp);

@@ -62,13 +62,6 @@
 #define ORIGIN	" * Origin: "
 #define TEAR	"--- Zeta."
 
-#ifdef	REALC
-extern	int	getsecond(), getminute(), gethour();
-extern	int	getday(), getmonth(), getyear();
-extern	int	secseek(), secread(), secwrite();
-extern	int	zeromem(), getfree(), putfree(), user_search();
-#endif
-
 EXTERN
 int	rc,		/* cumulative program return code */
 	num_msgl,	/* total number of messages in local */
@@ -129,6 +122,52 @@ char	*user_field;	/* points to buffer used by user_search */
 
 /* char	*(bm[10]); */	/* 10 bounce message lines */
 EXTERN
-int	bm[10]; 	/* 10 bounce message lines */
+const char *bm[10]; 	/* 10 bounce message lines */
+
+// defined in bbass1:
+extern void openf(void);
+extern void init(void);
+extern void closef(void);
+extern int ignorel(void);
+extern int ignorem(void);
+extern int do_msg(void);
+extern int findtopic(int tc);
+extern int deleteold(void);
+extern int chk_local(void);
+extern int local(void);
+extern int fido(void);
+extern int usenet(void);
+extern void buildhdr(int send, int recv, int flags);
+extern void localdat(void);
+extern void fidodat(void);
+extern void recover(int type, FILE *p1, int p2);
+extern void printout(void);
+
+// defined in bbass2:
+extern int addarea(FILE *fp, char *areaname);
+extern int addtear(FILE *fp, int conftype);
+extern int copymsg(FILE *fp);
+extern int localcpy(void);
+extern int localfls(void);
+extern int read_hdr(void);
+extern int readhead(void);
+extern int rewrite_hdr(void);
+extern int setproc(void);
+extern int write2(char *s);
+extern int write_hdr(void);
+extern int writedat(void);
+extern int wtop_loc(void);
+extern int wtop_msg(void);
+extern void closloc(void);
+extern void closmsg(void);
+extern void initloc(void);
+extern void initmsg(void);
+extern void nnout(int net, int node, FILE *fp);
+extern void openloc(void);
+extern void openmsg(void);
+extern void savetopic(int msgn, int tc);
+
+// defined in zeta-bbs/include/routines.asm
+extern int user_search(char *);
 
 /* end of bbass.h */

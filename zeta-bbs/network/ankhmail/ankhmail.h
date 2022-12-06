@@ -58,6 +58,4 @@ FILE    *inf,			/* list of received files */
 	*fp,			/* any file */
 	*pac;			/* list of packets */
 
-extern  int     chkwild(), arcnext();
-
 /* end of ankhmail.h */

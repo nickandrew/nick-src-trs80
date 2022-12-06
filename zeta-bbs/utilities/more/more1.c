@@ -8,6 +8,11 @@
  *  q    quit
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <signal.h>
+
 /* #define TRS80 */
 
 #ifdef TRS80
@@ -18,15 +23,22 @@
 #define COLS        80          /* columns/line */
 #endif
 
-
-
 #define TABSTOP     8           /* tabstop expansion */
 
-#include <signal.h>
-
-extern char *index();
-
 #define BUFFER   1024
+
+int input(char *fp);
+void output(char c);
+void oflush(void);
+void lwrite(int fd, char *buf, int len);
+int wtch(void);
+void cbreak(void);
+void nocbreak(void);
+void byebye(int);
+void clearln(void);
+void write(int fd, char *buf, int len);
+void help(void);
+
 
 int lastch = 0;                 /* last character returned from input() */
 int line = 0;                   /* current terminal line */
@@ -41,11 +53,9 @@ int obc = 0;                    /* position in output buffer (== chars in) */
 int isrewind = 0;               /* flag: ' command -- next input() rewind */
 int isdone = 0;                 /* flag: return EOF next read even if not */
 
-main(argc, argv)
-int argc;
-char **argv;
+int main(int argc, char *argv[])
 {
-    char ch;
+    int ch;
     int fd, arg;
 
     signal(SIGINT, byebye);
@@ -56,7 +66,7 @@ char **argv;
         fputs("usage: more filename ...\n", stdout);
         nocbreak();
         exit(1);
-    } else
+    } else {
         for (arg = 1; argv[arg] != 0; arg++) {
             if ((fp = fopen(argv[arg], "r")) == NULL) {
                 fputs("more: cannot open ", stdout);
@@ -94,17 +104,18 @@ char **argv;
                 case 'q':
                 case 'Q':
                     clearln();
-                    byebye();
+                    byebye(0);
                 }
                 clearln();
             }
         }
+    }
     oflush();
-    byebye();
+    byebye(0);
+    return 0;
 }
 
-input(fp)
-char *fp;
+int input(char *fp)
 {
     int ch;
     if (isdone) {
@@ -133,8 +144,7 @@ char *fp;
     return lastch = ch;
 }
 
-output(c)
-char c;
+void output(char c)
 {
     if (obc == BUFFER) {
         lwrite(1, obuf, BUFFER);
@@ -144,17 +154,14 @@ char c;
         obuf[obc++] = c;
 }
 
-oflush()
+void oflush(void)
 {
     if (!isdone)
         lwrite(1, obuf, obc);
     obc = 0;
 }
 
-lwrite(fd, buf, len)
-int fd;
-char *buf;
-int len;
+void lwrite(int fd, char *buf, int len)
 {
     int here, start;
     char cmd;
@@ -177,9 +184,6 @@ int len;
                 line = 0;
                 start = here;
             }
-            break;
-        case '\r':
-            col = 0;
             break;
         case '\b':
             if (col != 0)
@@ -221,7 +225,7 @@ int len;
             break;
         case 'q':
         case 'Q':
-            byebye();
+            byebye(0);
         case '\'':
             isrewind = 1;
             fputs("*** Back ***\n", stdout);
@@ -241,7 +245,7 @@ int len;
         write(fd, buf + start, here - start);
 }
 
-wtch()
+int wtch(void)
 {
     char ch;
 
@@ -251,27 +255,26 @@ wtch()
     return ch;
 }
 
-cbreak()
+void cbreak(void)
 {
     fd = 1;
     return;
-
 }
 
-nocbreak()
+void nocbreak(void)
 {
     fd = -1;
     return;
-
 }
 
-byebye()
+void byebye(int signum)
 {
+    signum;  // Notused
     nocbreak();
     exit(0);
 }
 
-clearln()
+void clearln(void)
 {
 #ifdef TRS80
     write(1, "\035           \035", 13);
@@ -280,9 +283,7 @@ clearln()
 #endif
 }
 
-write(fd, buf, len)             /* cheapie version of write() */
-int fd, len;
-char *buf;
+void write(int fd, char *buf, int len)             /* cheapie version of write() */
 {
     if (fd != 1)
         return;
@@ -290,7 +291,7 @@ char *buf;
         fputc(*(buf++), stdout);
 }
 
-help()
+void help(void)
 {
     fputs("\n  More commands:\n", stdout);
     fputs(" <cr>  Display next line\n", stdout);

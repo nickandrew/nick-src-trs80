@@ -16,3 +16,4 @@ cwiz.cmd:
   - strcmp.asm
   - zeta-bbs/utilities/cwiz/cwiz.asm
   - cwiz1.asm
+  skip: Not yet ready to link C code

@@ -1,13 +1,18 @@
 /* rearrange current CATALOG/ZMS format so names at start */
 
 #include <stdio.h>
+#include <stdlib.h>
+
+int readin(void);
+void writeout(void);
+void rearr(void);
+void scopy(char *cpi, char *cpo, int len);
 
 char linein[100], lineout[100];
 FILE *fpin, *fpout;
 
-main()
+int main()
 {
-    int c;
     fpin = fopen("catalog/zms:2", "r");
     fpout = fopen("catalog/new:1", "w");
 
@@ -21,9 +26,10 @@ main()
 
     fclose(fpin);
     fclose(fpout);
+    return 0;
 }
 
-readin()
+int readin(void)
 {
     int i, c;
     char *cp;
@@ -46,7 +52,7 @@ readin()
     return (c != EOF);
 }
 
-writeout()
+void writeout(void)
 {
     char *cp;
     cp = lineout;
@@ -54,9 +60,9 @@ writeout()
         putc(*(cp++), fpout);
 }
 
-rearr()
+void rearr(void)
 {
-    int i, c;
+    int i;
     char *cpi, *cpo;
     for (i = 0; i < 100; i++)
         lineout[i] = ' ';
@@ -71,9 +77,7 @@ rearr()
     *(cpo++) = 0;
 }
 
-scopy(cpi, cpo, len)
-char *cpi, *cpo;
-int len;
+void scopy(char *cpi, char *cpo, int len)
 {
     int i;
     for (i = 0; i < len; i++)

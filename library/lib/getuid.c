@@ -7,7 +7,6 @@
 #endif
 
 int getuid(char *s)
-char *s;
 {
     if (s == NULL)
         return 2;               /* sysop */
