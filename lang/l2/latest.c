@@ -18,7 +18,7 @@ FILE *f_list;                   /* source listing */
 
 static void files(int argc, char *argv[]);
 
-void main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     init();
     files(argc, argv);
@@ -32,7 +32,7 @@ void main(int argc, char *argv[])
     fclose(f_list);
     fclose(f_in);
     fclose(f_out);
-    exit(0);
+    return 0;
 }
 
 static void files(int argc, char *argv[])

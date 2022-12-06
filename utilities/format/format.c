@@ -4,12 +4,14 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int width = 31;
 
-main(argc, argv)
-int argc;
-char *argv[];
+void format(FILE *fp);
+
+int main(int argc, char *argv[])
 {
     FILE *fpin;
     int i;
@@ -20,23 +22,23 @@ char *argv[];
 
     if (argc != 2) {
         printf("Usage: FORMAT infile\n");
-        exit(1);
+        return 1;
     }
 
     if ((fpin = fopen(argv[1], "r")) == NULL) {
         printf("Cannot open %s\n", argv[1]);
-        exit(1);
+        return 1;
     }
 
     format(fpin);
     printf("<---EOF\n");
+    return 0;
 }
 
-format(fp)
-FILE *fp;
+void format(FILE *fp)
 {
     char buffer[81];
-    int i, bp, j, jj;
+    int bp, j, jj;
     int c, lastc, newc;
 
     bp = buffer[0] = 0;

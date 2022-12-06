@@ -28,6 +28,7 @@
  ***********************************************************/
 
 #include <ctype.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -170,6 +171,8 @@ void set()
     strcpy(fn1, fnm);
     strcat(fn1, ".dat");
     if ((fpdat = fopen(fn1, "r+")) == NULL) {
+        const char *dirname_cp = "this_dir";
+
         if (!created) {
             printf("Can't open file %s\n", fn1);
             return;
@@ -184,9 +187,8 @@ void set()
         printf("Description of directory file? ");
         gets(dirdesc);
 
-        fcp = "this_dir";
-        for (i = 0; i < FILELEN && *fcp != 0; ++i)
-            directory.filename[i] = *fcp++;
+        for (i = 0; i < FILELEN && *dirname_cp != 0; ++i)
+            directory.filename[i] = *dirname_cp++;
         while (i < FILELEN)
             directory.filename[i++] = ' ';
 

@@ -539,6 +539,10 @@ void l2init(void)
     for (goal = 1; goal < 100; ++goal) {
 
         i = fscanf(fp, "%s %s %s %s %s", s1, s2, s3, s4, s5);
+        if (i < 5) {
+            fprintf(stderr, "Syntax error in l2.inf\n");
+            exit(4);
+        }
 
         if (!strcmp(s1, "--"))
             n1 = 0;

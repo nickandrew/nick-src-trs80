@@ -2,16 +2,24 @@
 **  mail1.c:  Major routines for mail
 */
 
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define EXTERN
 #include "mail.h"
+#include "seekto.h"
 
-main(argc, argv)
-int argc;
-char *argv[];
+static void init(void);
+static void findmail(void);
+static void mailmsg(int totmail);
+static void execute(char *cmd);
+static void windup(void);
+
+int main(int argc, char *argv[])
 {
-    init(argc, argv);
+    init();
 
     if (argc > 1) {
         if (!strcmp(argv[1], "-C"))
@@ -21,7 +29,7 @@ char *argv[];
             strcpy(to, argv[1]);
             if ((to_uid = getuid(to)) == -1)
                 error("No such user\n");
-            getsubj();
+            getsubj(1);
             entermsg();
             sendmail();
             windup();
@@ -33,7 +41,7 @@ char *argv[];
         exit(totmail);
     if (!totmail) {
         std_out("No mail for you\n");
-        exit(0);
+        return 0;
     }
 
     execute("h");
@@ -44,11 +52,8 @@ char *argv[];
     }
 }
 
-init(argc, argv)
-int argc;
-char *argv[];
+static void init(void)
 {
-    FILE *fopene();
     uid = getuid(NULL);
     getuname(username);
     mf = fopene(MAILFILE, "r+");
@@ -61,7 +66,7 @@ char *argv[];
 }
 
 
-findmail()
+static void findmail(void)
 {
     while (nextmsg) {
         seekto(mf, nextmsg);
@@ -79,8 +84,7 @@ findmail()
     }
 }
 
-mailmsg(totmail)
-int totmail;
+static void mailmsg(int totmail)
 {
     switch (totmail) {
     case 1:
@@ -101,11 +105,11 @@ int totmail;
     }
 }
 
-execute(cmd)
-char *cmd;
+static void execute(char *cmd)
 {
     char c;
     char *cp;
+
     cp = cmd;
     while (*cp) {
         if (*cp == '\n')
@@ -150,15 +154,14 @@ char *cmd;
     }
 }
 
-windup()
+static void windup(void)
 {
     fclose(mf);
     exit(0);
 }
 
-sendmail()
+void sendmail(void)
 {
-    FILE *fopene();
     fpin = fopene(TEMP, "r");
     fseek(fpin, 0, 2);
     length = ftell(fpin);
@@ -170,7 +173,7 @@ sendmail()
         error("No such user\n");
 
     strcpy(from, username);
-    asctime(date);
+    z_asctime(date);
 
     fputs("Finding last message\n", stderr);
     thismsg = nextmsg = 1;

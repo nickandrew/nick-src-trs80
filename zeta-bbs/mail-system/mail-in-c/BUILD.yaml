@@ -1,11 +1,13 @@
 mail1.asm:
   sdcc: mail1.c
   depends:
+  - zeta-bbs/include/seekto.h
   - zeta-bbs/mail-system/mail-in-c/mail1.c
   - zeta-bbs/mail-system/mail-in-c/mail.h
 mail2.asm:
   sdcc: mail2.c
   depends:
+  - zeta-bbs/include/seekto.h
   - zeta-bbs/mail-system/mail-in-c/mail2.c
   - zeta-bbs/mail-system/mail-in-c/mail.h
 mail3.asm:
@@ -16,6 +18,7 @@ mail3.asm:
 mail4.asm:
   sdcc: mail4.c
   depends:
+  - zeta-bbs/include/seekto.h
   - zeta-bbs/mail-system/mail-in-c/mail4.c
   - zeta-bbs/mail-system/mail-in-c/mail.h
 mail5.asm:
@@ -23,3 +26,8 @@ mail5.asm:
   depends:
   - zeta-bbs/mail-system/mail-in-c/mail5.c
   - zeta-bbs/mail-system/mail-in-c/mail.h
+seekto.asm:
+  sdcc: seekto.c
+  depends:
+  - zeta-bbs/lib/seekto.c
+  - zeta-bbs/include/seekto.h
