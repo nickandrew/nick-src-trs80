@@ -12,22 +12,22 @@
 
 #include        "cc.h"
 
-int     sargc;
-char    **sargv;
+int sargc;
+char **sargv;
 
 main(argc, argv)
-int     argc;
-char    *argv[];
- {
+int argc;
+char *argv[];
+{
 
-        sargc = argc;
-        sargv = argv;
+    sargc = argc;
+    sargv = argv;
 
-		swnext = swq;
-        swend = swnext + SWTABSZ - SWSIZ;
-        stagelast = stage + STAGELIMIT;
+    swnext = swq;
+    swend = swnext + SWTABSZ - SWSIZ;
+    stagelast = stage + STAGELIMIT;
 
-        swactive =              /* not in switch */
+    swactive =                  /* not in switch */
         iflevel =               /* #if... nesting level = 0 */
         skiplevel =             /* #if... not encountered */
         macptr =                /* clear the macro pool */
@@ -35,35 +35,33 @@ char    *argv[];
         errflag =               /* not skipping errors till ";" */
         eof =                   /* not eof yet */
         ncmp =                  /* not in compound statement */
-        files =
-        filearg =
-        quote[1] = 0;
+        files = filearg = quote[1] = 0;
 
-        stagenext = NULL;       /* direct output mode */
+    stagenext = NULL;           /* direct output mode */
 
-        ccode = 1;              /* enable preprocessing */
+    ccode = 1;                  /* enable preprocessing */
 
-        wqptr = wq;             /* clear while queue */
-        quote[0] = '"';         /* fake a quote literal */
-        input = input2 = NULL;
+    wqptr = wq;                 /* clear while queue */
+    quote[0] = '"';             /* fake a quote literal */
+    input = input2 = NULL;
 
-        ask(argc, argv);
-        openin();
-        preprocess();
-        cptr = STARTGLB - 1;
-        while (++cptr < ENDGLB)
-                *cptr = 0;
+    ask(argc, argv);
+    openin();
+    preprocess();
+    cptr = STARTGLB - 1;
+    while (++cptr < ENDGLB)
+        *cptr = 0;
 
-        glbptr = STARTGLB;
-        glbflag = 1;
-        ctext = 0;
+    glbptr = STARTGLB;
+    glbflag = 1;
+    ctext = 0;
 
-        header();
-        setops();
-        parse();
-        outside();
-        trailer();
-        fclose(output);
+    header();
+    setops();
+    parse();
+    outside();
+    trailer();
+    fclose(output);
 }
 
 /*
@@ -77,19 +75,23 @@ char    *argv[];
 parse()
 {
 
-        while (eof == 0)       {
-                if (match("#asm"))          doasm();
-                else if (match("#include")) doinclude();
-                else if (match("#define"))  addmac();
-                else if (amatch("extern", 6))
-                        dodeclare(EXTERNAL);
-                else dodeclare(STATIC); /* must include function def'n */
-                blanks();
+    while (eof == 0) {
+        if (match("#asm"))
+            doasm();
+        else if (match("#include"))
+            doinclude();
+        else if (match("#define"))
+            addmac();
+        else if (amatch("extern", 6))
+            dodeclare(EXTERNAL);
+        else
+            dodeclare(STATIC);  /* must include function def'n */
+        blanks();
 
 /*              else if (dodeclare(STATIC)) ;
                 else error("Need function or declaration");  */
 
-        }
+    }
 }
 
 /*
@@ -97,28 +99,28 @@ parse()
 */
 
 dumplits(size)
-int     size;
+int size;
 {
-        int     j,k;
+    int j, k;
 
-        k = 0;
+    k = 0;
 
-        while (k < litptr)     {
-                defstorage(size);
-                j = 10;
+    while (k < litptr) {
+        defstorage(size);
+        j = 10;
 
-                while (j--)    {
-                        outdec(getint(litq + k, size));
-                        k += size;
+        while (j--) {
+            outdec(getint(litq + k, size));
+            k += size;
 
-                        if ((j == 0) | (k >= litptr))  {
-                                nl();
-                                break;
-                        }
+            if ((j == 0) | (k >= litptr)) {
+                nl();
+                break;
+            }
 
-                        outbyte(',');
-                }
+            outbyte(',');
         }
+    }
 }
 
 /*
@@ -126,16 +128,16 @@ int     size;
 */
 
 dumpzero(size, count)
-int     size, count;
+int size, count;
 {
 
-        if (count <= 0)
-                return;
+    if (count <= 0)
+        return;
 
-        ot("DC\t");
-        outdec(count * size);
-        outstr(",0");
-        nl();
+    ot("DC\t");
+    outdec(count * size);
+    outstr(",0");
+    nl();
 }
 
 /*
@@ -145,8 +147,8 @@ int     size, count;
 outside()
 {
 
-        if (ncmp)
-                error("no closing bracket");
+    if (ncmp)
+        error("no closing bracket");
 }
 
 /*
@@ -154,54 +156,56 @@ outside()
 */
 
 ask(argc, argv)
-int     argc;
-char    *argv[];
+int argc;
+char *argv[];
 {
 
-        listfp = NULL;
-        nxtlab = 0;
-        output = stdout;
-        optimize = monitor = NO;
-        line = mline;
+    listfp = NULL;
+    nxtlab = 0;
+    output = stdout;
+    optimize = monitor = NO;
+    line = mline;
 
-        if (argc<2) usage();
+    if (argc < 2)
+        usage();
 
-        while (--argc) {
-                argv++;
+    while (--argc) {
+        argv++;
 
-                if (argv[0][0] != '-')
-                        continue;
+        if (argv[0][0] != '-')
+            continue;
 
-                switch (argv[0][1])    {
+        switch (argv[0][1]) {
 
-                case 'l':
-                case 'L':
-                        listfp = stdout;
-                        break;
+        case 'l':
+        case 'L':
+            listfp = stdout;
+            break;
 
-                case 'm':
-                case 'M':
-                        monitor = YES;
-                        break;
+        case 'm':
+        case 'M':
+            monitor = YES;
+            break;
 
-                case 'o':
-                case 'O':
-                        optimize = YES;
-                        break;
+        case 'o':
+        case 'O':
+            optimize = YES;
+            break;
 
-                default:
-                        usage();
-                }
+        default:
+            usage();
         }
+    }
 }
 
 /*
 **      spell out the usage
 */
 
-usage() {
-        sout("usage: cc file ... [-m] [-l] [-o]\n",stderr);
-        exit(1);
+usage()
+{
+    sout("usage: cc file ... [-m] [-l] [-o]\n", stderr);
+    exit(1);
 }
 
 /*
@@ -209,31 +213,32 @@ usage() {
 */
 
 openin()
- {
+{
 
-        input = NULL;
+    input = NULL;
 
-        while (++filearg < sargc)     {
-                strcpy(pline, sargv[filearg]);
+    while (++filearg < sargc) {
+        strcpy(pline, sargv[filearg]);
 
-                if (pline[0] == '-') continue;
+        if (pline[0] == '-')
+            continue;
 
-                if ((input = fopen(pline, "r")) == NULL) {
-                        sout(pline, stderr);
-                        lout(": open error", stderr);
-                        exit(1);
-                }
-
-                sout(pline, stderr);
-                lout(":", stderr);
-
-                files = YES;
-                kill();
-                return;
+        if ((input = fopen(pline, "r")) == NULL) {
+            sout(pline, stderr);
+            lout(": open error", stderr);
+            exit(1);
         }
 
-        eof = YES;
+        sout(pline, stderr);
+        lout(":", stderr);
+
+        files = YES;
         kill();
+        return;
+    }
+
+    eof = YES;
+    kill();
 }
 
 /*
@@ -243,45 +248,49 @@ openin()
 setops()
 {
 
-        op2[00] =       op[00] = or;    /* heir5 */
-        op2[01] =       op[01] = xor;   /* heir6 */
-        op2[02] =       op[02] = and;   /* heir7 */
-        op2[03] =       op[03] = eq;    /* heir8 */
-        op2[04] =       op[04] = ne;
-        op2[05] = ule;  op[05] = le;    /* heir9 */
-        op2[06] = uge;  op[06] = ge;
-        op2[07] = ult;  op[07] = lt;
-        op2[ 8] = ugt;  op[ 8] = gt;
-        op2[ 9] =       op[ 9] = asr;   /* heir10 */
-        op2[10] =       op[10] = asl;
-        op2[11] =       op[11] = add;   /* heir11 */
-        op2[12] =       op[12] = sub;
-        op2[13] =       op[13] = mult;  /* heir12 */
-        op2[14] =       op[14] = op_div;
-        op2[15] =       op[15] = mod;
+    op2[00] = op[00] = or;      /* heir5 */
+    op2[01] = op[01] = xor;     /* heir6 */
+    op2[02] = op[02] = and;     /* heir7 */
+    op2[03] = op[03] = eq;      /* heir8 */
+    op2[04] = op[04] = ne;
+    op2[05] = ule;
+    op[05] = le;                /* heir9 */
+    op2[06] = uge;
+    op[06] = ge;
+    op2[07] = ult;
+    op[07] = lt;
+    op2[8] = ugt;
+    op[8] = gt;
+    op2[9] = op[9] = asr;       /* heir10 */
+    op2[10] = op[10] = asl;
+    op2[11] = op[11] = add;     /* heir11 */
+    op2[12] = op[12] = sub;
+    op2[13] = op[13] = mult;    /* heir12 */
+    op2[14] = op[14] = op_div;
+    op2[15] = op[15] = mod;
 }
 
 /* it can't handle explicitly typed functions */
-char    *fgets(lp, max, fp)
-char    *lp;
-int     max;
-FILE    *fp;
+char *fgets(lp, max, fp)
+char *lp;
+int max;
+FILE *fp;
 {
 
-        if (feof(fp))
-                return NULL;
+    if (feof(fp))
+        return NULL;
 
-        while (max--)  {
-                *lp = xi = getc(fp);
+    while (max--) {
+        *lp = xi = getc(fp);
 
-                if (xi == EOF || xi == '\n')     {
-                        *lp = 0;
-                        return lp;
-                }
-
-                lp++;
+        if (xi == EOF || xi == '\n') {
+            *lp = 0;
+            return lp;
         }
 
-        *lp = 0;
-        return lp;
+        lp++;
+    }
+
+    *lp = 0;
+    return lp;
 }

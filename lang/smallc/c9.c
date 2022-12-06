@@ -14,8 +14,9 @@
 **      add primary and secondary registers (result in primary)
 */
 
-add()   {
-        ol("ADD\tHL,DE");
+add()
+{
+    ol("ADD\tHL,DE");
 }
 
 /*
@@ -23,9 +24,9 @@ add()   {
 */
 
 sub()
-        {
+{
 
-        call("CCSUB");
+    call("CCSUB");
 }
 
 /*
@@ -33,9 +34,9 @@ sub()
 */
 
 mult()
-        {
+{
 
-        call("CCMULT");
+    call("CCMULT");
 }
 
 /*
@@ -44,9 +45,9 @@ mult()
 */
 
 op_div()
-        {
+{
 
-        call("CCDIV");
+    call("CCDIV");
 }
 
 /*
@@ -55,10 +56,10 @@ op_div()
 */
 
 mod()
-        {
+{
 
-        op_div();
-        swap();
+    op_div();
+    swap();
 }
 
 /*
@@ -67,9 +68,9 @@ mod()
 */
 
 or()
-        {
+{
 
-        call("CCOR");
+    call("CCOR");
 }
 
 /*
@@ -78,9 +79,9 @@ or()
 */
 
 xor()
-        {
+{
 
-        call("CCXOR");
+    call("CCXOR");
 }
 
 /*
@@ -88,9 +89,9 @@ xor()
 */
 
 and()
-        {
+{
 
-        call("CCAND");
+    call("CCAND");
 }
 
 /*
@@ -98,9 +99,9 @@ and()
 */
 
 lneg()
-        {
+{
 
-        call("CCLNEG");
+    call("CCLNEG");
 }
 
 /*
@@ -110,9 +111,9 @@ lneg()
 */
 
 asr()
-        {
+{
 
-        call("CCASR");
+    call("CCASR");
 }
 
 /*
@@ -122,9 +123,9 @@ asr()
 */
 
 asl()
-        {
+{
 
-        call("CCASL");
+    call("CCASL");
 }
 
 /*
@@ -132,9 +133,9 @@ asl()
 */
 
 neg()
-        {
+{
 
-        call("CCNEG");
+    call("CCNEG");
 }
 
 /*
@@ -142,9 +143,9 @@ neg()
 */
 
 com()
-        {
+{
 
-        call("CCCOM");
+    call("CCCOM");
 }
 
 /*
@@ -153,18 +154,17 @@ com()
 */
 
 inc(n)
-int     n;
+int n;
 {
 
-        fprintf(stderr,"Increment value is: %d\n",n);
-        while (n>0) {
-            ol("INC\tHL");
-            --n;
-        }
-        while (n<0) {
-            ol("DEC\tHL");
-            ++n;
-        }
+    while (n > 0) {
+        ol("INC\tHL");
+        --n;
+    }
+    while (n < 0) {
+        ol("DEC\tHL");
+        ++n;
+    }
 }
 
 /*
@@ -172,15 +172,15 @@ int     n;
 */
 
 dec(n)
-int     n;
-        {
+int n;
+{
 
-        for (;;)        {
-                ol("DEC\tHL");
+    for (;;) {
+        ol("DEC\tHL");
 
-                if (--n < 1)
-                        break;
-        }
+        if (--n < 1)
+            break;
+    }
 }
 
 /*
@@ -188,9 +188,9 @@ int     n;
 */
 
 eq()
-        {
+{
 
-        call("CCEQ");
+    call("CCEQ");
 }
 
 /*
@@ -198,14 +198,14 @@ eq()
 */
 
 eq0(label)
-int     label;
-        {
+int label;
+{
 
-        ol("LD\tA,H");
-        ol("OR\tL");
-        ot("JP\tNZ,");
-        printlabel(label);
-        nl();
+    ol("LD\tA,H");
+    ol("OR\tL");
+    ot("JP\tNZ,");
+    printlabel(label);
+    nl();
 }
 
 /*
@@ -213,9 +213,9 @@ int     label;
 */
 
 ne()
-        {
+{
 
-        call("CCNE");
+    call("CCNE");
 }
 
 /*
@@ -223,14 +223,14 @@ ne()
 */
 
 ne0(label)
-int     label;
-        {
+int label;
+{
 
-        ol("LD\tA,H");
-        ol("OR\tL");
-        ot("JP\tZ,");
-        printlabel(label);
-        nl();
+    ol("LD\tA,H");
+    ol("OR\tL");
+    ot("JP\tZ,");
+    printlabel(label);
+    nl();
 }
 
 /*
@@ -238,9 +238,9 @@ int     label;
 */
 
 lt()
-        {
+{
 
-        call("CCLT");
+    call("CCLT");
 }
 
 /*
@@ -248,14 +248,14 @@ lt()
 */
 
 lt0(label)
-int     label;
-        {
+int label;
+{
 
-        ol("XOR\tA");
-        ol("OR\tH");
-        ot("JP\tP,");   /* this right?? Jump if positive?? */
-        printlabel(label);
-        nl();
+    ol("XOR\tA");
+    ol("OR\tH");
+    ot("JP\tP,");               /* this right?? Jump if positive?? */
+    printlabel(label);
+    nl();
 }
 
 /*
@@ -263,9 +263,9 @@ int     label;
 */
 
 le()
-        {
+{
 
-        call("CCLE");
+    call("CCLE");
 }
 
 /*
@@ -273,17 +273,17 @@ le()
 */
 
 le0(label)
-int     label;
-        {
+int label;
+{
 
-        ol("LD\tA,H");
-        ol("OR\tL");
-        ol("JP\tZ,$+8");
-        ol("XOR\tA");
-        ol("OR\tH");
-        ot("JP\tP,");
-        printlabel(label);
-        nl();
+    ol("LD\tA,H");
+    ol("OR\tL");
+    ol("JP\tZ,$+8");
+    ol("XOR\tA");
+    ol("OR\tH");
+    ot("JP\tP,");
+    printlabel(label);
+    nl();
 }
 
 /*
@@ -291,9 +291,9 @@ int     label;
 */
 
 gt()
-        {
+{
 
-        call("CCGT");
+    call("CCGT");
 }
 
 /*
@@ -301,18 +301,18 @@ gt()
 */
 
 gt0(label)
-int     label;
-        {
+int label;
+{
 
-        ol("XOR\tA");
-        ol("OR\tH");
-        ot("JP\tM,");
-        printlabel(label);
-        nl();
-        ol("OR\tL");
-        ot("JP\tZ,");
-        printlabel(label);
-        nl();
+    ol("XOR\tA");
+    ol("OR\tH");
+    ot("JP\tM,");
+    printlabel(label);
+    nl();
+    ol("OR\tL");
+    ot("JP\tZ,");
+    printlabel(label);
+    nl();
 }
 
 /*
@@ -320,9 +320,9 @@ int     label;
 */
 
 ge()
-        {
+{
 
-        call("CCGE");
+    call("CCGE");
 }
 
 /*
@@ -330,14 +330,14 @@ ge()
 */
 
 ge0(label)
-int     label;
-        {
+int label;
+{
 
-        ol("XOR\tA");
-        ol("OR\tH");
-        ot("JP\tM,");
-        printlabel(label);
-        nl();
+    ol("XOR\tA");
+    ol("OR\tH");
+    ot("JP\tM,");
+    printlabel(label);
+    nl();
 }
 
 /*
@@ -345,9 +345,9 @@ int     label;
 */
 
 ult()
-        {
+{
 
-        call("CCULT");
+    call("CCULT");
 }
 
 /*
@@ -355,12 +355,12 @@ ult()
 */
 
 ult0(label)
-int     label;
-        {
+int label;
+{
 
-        ot("JP\t"); /* always succeeds */
-        printlabel(label);
-        nl();
+    ot("JP\t");                 /* always succeeds */
+    printlabel(label);
+    nl();
 }
 
 
@@ -369,9 +369,9 @@ int     label;
 */
 
 ule()
-        {
+{
 
-        call("CCULE");
+    call("CCULE");
 }
 
 /*
@@ -379,9 +379,9 @@ ule()
 */
 
 ugt()
-        {
+{
 
-        call("CCUGT");
+    call("CCUGT");
 }
 
 /*
@@ -389,7 +389,7 @@ ugt()
 */
 
 uge()
-        {
+{
 
-        call("CCUGE");
+    call("CCUGE");
 }

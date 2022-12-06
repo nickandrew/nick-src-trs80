@@ -8,5 +8,8 @@ cc80:   $(OBJ)
 clean:
 	rm $(OBJ)
 
+reformat:
+	indent $(SRCS) cc.h
+
 $(OBJ): cc.h
 	gcc -std=c89 -g -c $(SRCS)

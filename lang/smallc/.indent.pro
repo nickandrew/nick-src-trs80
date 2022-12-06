@@ -1,0 +1,1 @@
+-kr -nut -i4 -l100 -ss -as -ce
