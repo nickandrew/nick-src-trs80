@@ -5,7 +5,7 @@ Z80LIBDIR=-L ~/sdcc/share/sdcc/lib/z80
 MYLIBDIR=.
 EXTRALIBDIR=-L $(MYLIBDIR)
 
-all: basicio.lib newdos80.lib crt0.rel echo.cmd
+all: basicio.lib newdos80.lib crt0.rel echo.cmd hworld.cmd
 
 clean:
 	rm -f basicio.lib newdos80.lib crt0.rel *.cmd *.ihx
@@ -22,8 +22,8 @@ crt0.rel: crt0.s
 echo.ihx: echo.rel basicio.lib
 	sdcc -mz80 --code-loc 0x5200 -o $@ $(Z80LIBDIR) $(EXTRALIBDIR) -l basicio echo.rel
 
-helloworld.ihx: helloworld.rel basicio.lib
-	sdcc -mz80 --code-loc 0x5200 -o $@ $(Z80LIBDIR) $(EXTRALIBDIR) -l basicio helloworld.rel
+hworld.ihx: hworld.rel basicio.lib
+	sdcc -mz80 --code-loc 0x5200 -o $@ $(Z80LIBDIR) $(EXTRALIBDIR) -l basicio hworld.rel
 
 # Edit the Intel Hex file to hardcode the program entry address to 0x5200
 %.cmd: %.ihx
