@@ -1,6 +1,7 @@
 #include "doscalls.h"
 
-void dos_command(const char *s) __naked {
+void dos_command(const char *s) __naked __sdcccall(0)
+{
   s;    // Avoid unreferenced function argument warning
 
   __asm

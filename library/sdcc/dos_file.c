@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 
-int dos_file_extract(const char *filename, union dos_fcb *fcb) __naked
+int dos_file_extract(const char *filename, union dos_fcb *fcb) __naked __sdcccall(0)
 {
   filename;
   fcb;
@@ -30,7 +30,7 @@ int dos_file_extract(const char *filename, union dos_fcb *fcb) __naked
 }
 
 // Return value: 0 if all OK, else dos error code
-int dos_file_open_new(union dos_fcb *fcb, char *buf, unsigned short lrecl) __naked
+int dos_file_open_new(union dos_fcb *fcb, char *buf, unsigned short lrecl) __naked __sdcccall(0)
 {
   fcb; buf; lrecl;
 
@@ -54,7 +54,7 @@ int dos_file_open_new(union dos_fcb *fcb, char *buf, unsigned short lrecl) __nak
 }
 
 // Return value: 0 if all OK, else dos error code
-int dos_file_open_ex(union dos_fcb *fcb, char *buf, unsigned short lrecl) __naked
+int dos_file_open_ex(union dos_fcb *fcb, char *buf, unsigned short lrecl) __naked __sdcccall(0)
 {
   fcb; buf; lrecl;
 
@@ -77,7 +77,7 @@ int dos_file_open_ex(union dos_fcb *fcb, char *buf, unsigned short lrecl) __nake
 }
 
 // Return value: 0 if all OK, else dos error code
-int dos_file_close(union dos_fcb *fcb) __naked
+int dos_file_close(union dos_fcb *fcb) __naked __sdcccall(0)
 {
   fcb;
 
@@ -101,7 +101,7 @@ int dos_file_close(union dos_fcb *fcb) __naked
 //     dos_error(dos_function(args ...))
 // If there is no error, dos_error will return silently.
 
-void dos_error(int err) __naked
+void dos_error(int err) __naked __sdcccall(0)
 {
   err;
 
@@ -118,7 +118,7 @@ void dos_error(int err) __naked
   __endasm;
 }
 
-int dos_file_read(union dos_fcb *fcb, char *buf) __naked
+int dos_file_read(union dos_fcb *fcb, char *buf) __naked __sdcccall(0)
 {
   fcb; buf;
 

@@ -1,6 +1,7 @@
 #include "doscalls.h"
 
-void dos_mess_pr(const char *s) __naked {
+void dos_mess_pr(const char *s) __naked __sdcccall(0)
+{
   s;    // Avoid unreferenced function argument warning
 
   __asm

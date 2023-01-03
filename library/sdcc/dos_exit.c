@@ -1,4 +1,5 @@
-void dos_exit(void) __naked {
+void dos_exit(void) __naked __sdcccall(0)
+{
 
   __asm
 
