@@ -10,8 +10,8 @@ all: basicio.lib newdos80.lib crt0.rel echo.cmd hworld.cmd
 clean:
 	rm -f basicio.lib newdos80.lib crt0.rel *.cmd *.ihx
 
-basicio.lib: argparse.rel putchar.rel
-	sdar r $@ $?
+basicio.lib: argparse.rel putchar.rel getchar.rel
+	sdar r $@ $+
 
 newdos80.lib: $(patsubst %.c,%.rel,$(wildcard dos_*.c))
 	sdar r newdos80.lib $?
