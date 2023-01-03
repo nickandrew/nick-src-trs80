@@ -5,6 +5,7 @@
 ;--------------------------------------------------------------------------
 
 	.module crt0
+	.globl	_argparse
 	.globl	_main
   .globl  l__INITIALIZER
   .globl  s__INITIALIZED
@@ -16,12 +17,19 @@
   .area _CODE
 
 init:
+
   ; Parse command line arguments (start address passed in BC)
   ; Implement I/O redirection in command line
 
 	;; Initialise global variables
 	call	gsinit
+	ld hl, #0x4318   ; Model-I command buffer
+	ld de, #p_argc
+	call _argparse
+	; argv(DE) = argparse(char *buf, int *p_argc)
+	ld hl, (p_argc)
 	call	_main
+	; unused(DE) = main(argc, argv)
 	jp	_exit
 
 	;; Ordering of segments for the linker.
@@ -76,7 +84,11 @@ gsinit_next:
 	.area   _GSFINAL
 	ret
 
-  .area _DATA
+	.area _DATA
+	; argc computed by _argparse()
+p_argc:
+	.dw   0
+
   ; First address of freespace, used by brk()
 _brkaddr::
   .dw   #s__FREE
