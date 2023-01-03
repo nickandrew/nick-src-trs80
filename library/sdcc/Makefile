@@ -1,4 +1,9 @@
 # vim:noexpandtab:ts=8:sts=8:
+SHELL=/bin/bash
+
+Z80LIBDIR=-L ~/sdcc/share/sdcc/lib/z80
+MYLIBDIR=.
+EXTRALIBDIR=-L $(MYLIBDIR)
 
 all: basicio.lib newdos80.lib crt0.rel echo.cmd
 
@@ -15,10 +20,10 @@ crt0.rel: crt0.s
 	sdasz80 -l -o crt0.s
 
 echo.ihx: echo.rel basicio.lib
-	sdcc -mz80 --code-loc 0x5200 -o $@ --lib-path /home/nick-trs80/GIT/nick-src-trs80/library/sdcc -l basicio echo.rel
+	sdcc -mz80 --code-loc 0x5200 -o $@ $(Z80LIBDIR) $(EXTRALIBDIR) -l basicio echo.rel
 
 helloworld.ihx: helloworld.rel basicio.lib
-	sdcc -mz80 --code-loc 0x5200 -o $@ --lib-path /home/nick-trs80/GIT/nick-src-trs80/library/sdcc -l basicio helloworld.rel
+	sdcc -mz80 --code-loc 0x5200 -o $@ $(Z80LIBDIR) $(EXTRALIBDIR) -l basicio helloworld.rel
 
 # Edit the Intel Hex file to hardcode the program entry address to 0x5200
 %.cmd: %.ihx
