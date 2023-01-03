@@ -1,8 +1,10 @@
 # vim:noexpandtab:ts=8:sts=8:
 SHELL=/bin/bash
-include include.mk
+D=../../library/sdcc
 
-MYLIBDIR=../../library/sdcc
+include $(D)/include.mk
+
+MYLIBDIR=$(D)
 EXTRALIBS=-l basicio.lib
 PROGRAM=anagram
 
