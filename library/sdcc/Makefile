@@ -6,7 +6,7 @@ MYLIBDIR=.
 EXTRALIBDIR=-L $(MYLIBDIR)
 CRT0=--no-std-crt0 crt0.rel
 
-all: basicio.lib newdos80.lib crt0.rel echo.cmd hworld.cmd
+all: basicio.lib newdos80.lib crt0.rel echo.cmd hworld.cmd testhw.cmd
 
 clean:
 	rm -f basicio.lib newdos80.lib crt0.rel *.cmd *.ihx
@@ -25,6 +25,9 @@ echo.ihx: echo.rel basicio.lib crt0.rel
 
 hworld.ihx: hworld.rel basicio.lib crt0.rel
 	sdcc -mz80 --code-loc 0x5200 -o $@ $(Z80LIBDIR) $(EXTRALIBDIR) $(CRT0) -l basicio hworld.rel
+
+testhw.ihx: testhw.rel basicio.lib newdos80.lib hardware_id.rel crt0.rel
+	sdcc -mz80 --code-loc 0x5200 -o $@ $(Z80LIBDIR) $(EXTRALIBDIR) $(CRT0) -l basicio -l newdos80 testhw.rel hardware_id.rel
 
 # Edit the Intel Hex file to hardcode the program entry address to 0x5200
 %.cmd: %.ihx
