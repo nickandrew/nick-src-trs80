@@ -43,8 +43,8 @@ extern long dos_file_eof(union dos_fcb *fcb);
 extern long dos_file_next(union dos_fcb *fcb);
 
 // File and device bytewise I/O
-extern int dos_write_byte(union dos_fcb *fcb, char ch);
-extern int dos_read_byte(union dos_fcb *fcb);
+extern int dos_write_byte(union dos_fcb *fcb, char ch) __sdcccall(0);
+extern int dos_read_byte(union dos_fcb *fcb) __sdcccall(0);
 
 // Implement these later
 extern int dos_file_kill(union dos_fcb *fcb);
