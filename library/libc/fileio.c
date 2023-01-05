@@ -143,3 +143,54 @@ int fclose(FILE *fp)
 
   return 0;
 }
+
+int fputc(int c, FILE *fp)
+{
+  struct open_file *ofp = (struct open_file *) fp;
+
+  if (!ofp->flag & OF_FLAG_INUSE) {
+    // errno = ?
+    return -1;
+  }
+
+  int rc = dos_write_byte(ofp->fcbptr, c);
+  if (rc) {
+    // errno = ?
+    return -1;
+  }
+
+  return 0;
+}
+
+int putc(int c, FILE *fp)
+{
+  return fputc(c, fp);
+}
+
+int fputs(const char *s, FILE *fp)
+{
+  int rc;
+
+  while (*s) {
+    rc = fputc(*s++, fp);
+    if (rc) {
+      return rc;
+    }
+  }
+
+  return 0;
+}
+
+int fgetc(FILE *fp)
+{
+  struct open_file *ofp = (struct open_file *) fp;
+  int rc = dos_read_byte(ofp->fcbptr);
+  return rc;
+}
+
+long ftell(FILE *fp)
+{
+  struct open_file *ofp = (struct open_file *) fp;
+  long rc = dos_file_next(ofp->fcbptr);
+  return rc;
+}
