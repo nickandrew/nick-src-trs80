@@ -96,6 +96,26 @@ int dos_file_close(union dos_fcb *fcb) __naked __sdcccall(0)
   __endasm;
 }
 
+// Return value: 0 if all OK, else dos error code
+int dos_file_seek_eof(union dos_fcb *fcb) __naked __sdcccall(0)
+{
+  fcb;
+
+  __asm
+
+  ld iy, #2   ; Skip over return address
+  add iy,sp
+  ld e,0(iy)  ; fcb low
+  ld d,1(iy)  ; fcb high
+  call 0x4448 ; DOS_POS_EOF
+  ld hl, #0
+  ret z
+  ld l, a
+  ret
+
+  __endasm;
+}
+
 // 0x4409 DOS Error Exit (returns if err == 0 or err >= 128)
 // To always test for an error, code this idiom:
 //     dos_error(dos_function(args ...))
