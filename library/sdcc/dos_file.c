@@ -191,7 +191,7 @@ int dos_read_byte(union dos_fcb *fcb) __naked __sdcccall(0)
   ld d,1(iy)  ; fcb high
   call 0x0013 ; DOS_READ_BYTE
   ld l, a
-  ld h, #1
+  ld h, #0
   ret z
   ld h, #0xff ; Error condition. Register A contains DOS error code.
   ret
