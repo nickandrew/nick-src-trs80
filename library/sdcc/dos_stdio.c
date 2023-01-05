@@ -12,6 +12,8 @@
 #define MAX_FILES 20
 #define OF_FLAG_INUSE 1
 
+static const int sector_size = 256;  // Fixed by DOS
+
 // Mode bits
 #define MODE_READ 2
 #define MODE_WRITE 4
@@ -20,6 +22,7 @@
 
 struct open_file {
   char flag;
+  char *buf;
   union dos_fcb *fcbptr;
 };
 
@@ -66,14 +69,6 @@ int fileno(FILE *fp)
   return (struct open_file *) fp - fd_array;
 }
 
-void junk() {
-  union dos_fcb bill;
-  strcpy(bill.filename, "filename/txt\r"); // Terminate with \r or \x03
-  // This can be done after opening
-  bill.next_l = 0;
-  bill.next_h = 0;
-}
-
 int _openfcb(const char *pathname, const char *mode, union dos_fcb *buf) {
   int mode_bits = parse_mode(mode);
   // Ignore terminating the pathname with \r for the moment
@@ -101,8 +96,19 @@ int _openfcb(const char *pathname, const char *mode, union dos_fcb *buf) {
 }
 
 int fclose(FILE *stream) {
-  stream;
-  // TODO
+  struct open_file *ofp = (struct open_file *) stream;
+
+  if (!ofp->flag & OF_FLAG_INUSE) {
+    // errno = ?
+    return -1;
+  }
+
+  dos_file_close(ofp->fcbptr);
+  free(ofp->fcbptr);
+  free(ofp->buf);
+  ofp->buf = NULL;
+  ofp->flag = 0;
+
   return 0;
 }
 
@@ -113,9 +119,9 @@ int feof(FILE *stream) {
 }
 
 int fgetc(FILE *stream) {
-  stream;
-  // TODO
-  return EOF;
+  struct open_file *ofp = (struct open_file *) stream;
+  int rc = dos_read_byte(ofp->fcbptr);
+  return rc;
 }
 
 // TODO: This needs to be checked for accuracy
@@ -154,20 +160,91 @@ char *fgets(char *s, int size, FILE *stream) {
 // mode can be 'r', 'w', 'a', 'r+', 'w+', 'a+' and possible trailing 'b'
 FILE *fopen(const char *pathname, const char *mode)
 {
-  pathname; mode; // Mark as used
-
   int fd = 0;
+  int rc;
+  char mode_char = mode[0];
 
+  if (mode_char != 'a' && mode_char != 'r' && mode_char != 'w') {
+    // errno = ??
+    return NULL;
+  }
+
+  // Order of operations:
+  // 1. Allocate and prepare an FCB
+  // 2. Allocate a 256-byte buffer
+  // 3. DOS open the FCB
+  // 4. If Append mode, position the FCB
+  // 5. Find a free file descriptor and update it
+  // 6. Return a pointer to the file descriptor
+
+  union dos_fcb *fcb_ptr;
+
+  fcb_ptr = malloc(sizeof(*fcb_ptr));
+  if (!fcb_ptr) {
+    // Out of memory
+    // errno = ??
+    return NULL;
+  }
+
+  rc = dos_file_extract(pathname, fcb_ptr);
+  if (rc) {
+    // errno = rc;
+    free(fcb_ptr);
+    return NULL;
+  }
+
+  char *buf = malloc(sector_size);
+  if (!buf) {
+    // Out of memory
+    // errno = ??
+    free(fcb_ptr);
+    return NULL;
+  }
+
+  if (mode_char == 'r') {
+    rc = dos_file_open_ex(fcb_ptr, buf, sector_size);
+  } else {
+    rc = dos_file_open_new(fcb_ptr, buf, sector_size);
+  }
+
+  if (rc) {
+    // errno = rc;
+    free(fcb_ptr);
+    free(buf);
+    return NULL;
+  }
+
+  // TODO: Set FCB access level 5 (READ) in FCB
+
+  if (mode_char == 'a') {
+    rc = dos_file_seek_eof(fcb_ptr);
+    if (rc) {
+      // errno = rc;
+      free(fcb_ptr);
+      free(buf);
+      return NULL;
+    }
+  }
+
+  // Set EOF to NEXT only on successful writes which result in NEXT
+  // exceeding EOF.
+  fcb_ptr->bits2 |= 1<<6;
+
+  // Find an available free file descriptor
   for (fd = 0; fd < MAX_FILES; ++fd) {
     struct open_file *ofp = fd_array + fd;
-    if (!ofp->flag & OF_FLAG_INUSE) {
+    if (!(ofp->flag & OF_FLAG_INUSE)) {
       ofp->flag |= OF_FLAG_INUSE;
+      ofp->buf = buf;
+      ofp->fcbptr = fcb_ptr;
       return (FILE *) ofp;
     }
   }
 
   // Maximum number of files are open
-  return (FILE *) 0;
+  free(fcb_ptr);
+  free(buf);
+  return NULL;
 }
 
 int fprintf(FILE *stream, const char *format, ...) {
@@ -177,8 +254,19 @@ int fprintf(FILE *stream, const char *format, ...) {
 }
 
 int fputc(int c, FILE *stream) {
-  c; stream;
-  // TODO
+  struct open_file *ofp = (struct open_file *) stream;
+
+  if (!ofp->flag & OF_FLAG_INUSE) {
+    // errno = ?
+    return -1;
+  }
+
+  int rc = dos_write_byte(ofp->fcbptr, c);
+  if (rc) {
+    // errno = ?
+    return -1;
+  }
+
   return 0;
 }
 
@@ -204,8 +292,9 @@ int fseek(FILE *stream, long offset, int whence) {
 }
 
 long ftell(FILE *stream) {
-  stream; // Mark as used
-  return 0;
+  struct open_file *ofp = (struct open_file *) stream;
+  long rc = dos_file_next(ofp->fcbptr);
+  return rc;
 }
 
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
@@ -227,16 +316,10 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
 	return ndone;
 }
 
-int getchar(void) {
-  // TODO
-  return EOF;
-}
-
 int putc(int c, FILE *stream) {
   return fputc(c, stream);
 }
 
 void rewind(FILE *stream) {
-  stream;
-  // TODO
+  fseek(stream, 0L, 0);
 }
