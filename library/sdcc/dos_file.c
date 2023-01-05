@@ -97,6 +97,26 @@ int dos_file_close(union dos_fcb *fcb) __naked __sdcccall(0)
 }
 
 // Return value: 0 if all OK, else dos error code
+int dos_file_rewind(union dos_fcb *fcb) __naked __sdcccall(0)
+{
+  fcb;
+
+  __asm
+
+        ld      iy, #2   ; Skip over return address
+        add     iy,sp
+        ld      e,0(iy)  ; fcb low
+        ld      d,1(iy)  ; fcb high
+        call    0x443f   ; DOS_REWIND
+        ld      hl, #0
+        ret     z
+        ld      l, a
+        ret
+
+  __endasm;
+}
+
+// Return value: 0 if all OK, else dos error code
 int dos_file_seek_eof(union dos_fcb *fcb) __naked __sdcccall(0)
 {
   fcb;
@@ -112,6 +132,29 @@ int dos_file_seek_eof(union dos_fcb *fcb) __naked __sdcccall(0)
   ret z
   ld l, a
   ret
+
+  __endasm;
+}
+
+// Return value: 0 if all OK, else dos error code
+int dos_file_seek_rba(union dos_fcb *fcb, long pos) __naked __sdcccall(0)
+{
+  fcb; pos;
+
+  __asm
+
+        ld      iy, #2   ; Skip over return address
+        add     iy,sp
+        ld      e,0(iy)  ; fcb low
+        ld      d,1(iy)  ; fcb high
+        ld      c,2(iy)  ; pos low
+        ld      l,3(iy)  ; pos medium
+        ld      h,4(iy)  ; pos high
+        call    0x444e   ; DOS_POS_RBA
+        ld      hl, #0
+        ret     z
+        ld      l, a
+        ret
 
   __endasm;
 }

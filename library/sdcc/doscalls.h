@@ -36,9 +36,9 @@ extern int dos_file_open_new(union dos_fcb *fcb, char *buf, unsigned short lrecl
 extern int dos_file_open_ex(union dos_fcb *fcb, char *buf, unsigned short lrecl) __sdcccall(0);
 extern int dos_file_extract(const char *filename, union dos_fcb *fcb) __sdcccall(0);
 extern int dos_file_close(union dos_fcb *fcb) __sdcccall(0);
-extern int dos_file_rewind(union dos_fcb *fcb);
-extern int dos_file_seek_eof(union dos_fcb *fcb);
-extern int dos_file_seek_rba(union dos_fcb *fcb, long pos);
+extern int dos_file_rewind(union dos_fcb *fcb) __sdcccall(0);
+extern int dos_file_seek_eof(union dos_fcb *fcb) __sdcccall(0);
+extern int dos_file_seek_rba(union dos_fcb *fcb, long pos) __sdcccall(0);
 extern long dos_file_eof(union dos_fcb *fcb);
 extern long dos_file_next(union dos_fcb *fcb);
 
