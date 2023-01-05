@@ -12,10 +12,10 @@ clean:
 	rm -f basicio.lib newdos80.lib crt0.rel *.cmd *.ihx
 
 basicio.lib: argparse.rel putchar.rel getchar.rel
-	sdar r $@ $+
+	sdar r $@ $^
 
 newdos80.lib: $(patsubst %.c,%.rel,$(wildcard dos_*.c))
-	sdar r newdos80.lib $?
+	sdar r newdos80.lib $^
 
 crt0.rel: crt0.s
 	sdasz80 -l -o crt0.s
