@@ -281,8 +281,24 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 }
 
 int fseek(FILE *stream, long offset, int whence) {
-  stream; offset; whence;
-  // TODO
+  struct open_file *ofp = (struct open_file *) stream;
+  int rc;
+
+  switch (whence)
+  {
+    case 1:
+      offset += dos_file_next(ofp->fcbptr);
+      break;
+    case 2:
+      offset += dos_file_eof(ofp->fcbptr);
+  }
+
+  rc = dos_file_seek_rba(ofp->fcbptr, offset);
+
+  if (rc) {
+    return -1;
+  }
+
   return 0;
 }
 
@@ -316,7 +332,8 @@ int putc(int c, FILE *stream) {
 }
 
 void rewind(FILE *stream) {
-  fseek(stream, 0L, 0);
+  struct open_file *ofp = (struct open_file *) stream;
+  dos_file_rewind(ofp->fcbptr);
 }
 
 static void output_char_file(char c, void *p)
