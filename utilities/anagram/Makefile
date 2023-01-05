@@ -1,11 +1,11 @@
 # vim:noexpandtab:ts=8:sts=8:
 SHELL=/bin/bash
-D=../../library/sdcc
 
-include $(D)/include.mk
+LIB_SDCC=../../library/sdcc
+include $(LIB_SDCC)/include.mk
 
-MYLIBDIR=$(D)
-EXTRALIBS=-l basicio.lib
+EXTRALIBDIR=-L $(LIB_SDCC)
+EXTRALIBS=basicio.lib
 PROGRAM=anagram
 
 all: $(PROGRAM).cmd

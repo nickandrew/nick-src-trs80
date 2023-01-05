@@ -2,8 +2,7 @@
 SHELL=/bin/bash
 
 Z80LIBDIR=-L ~/sdcc/share/sdcc/lib/z80
-MYLIBDIR=.
-EXTRALIBDIR=-L $(MYLIBDIR)
+EXTRALIBDIR=-L .
 CRT0=--no-std-crt0 crt0.rel
 
 all: basicio.lib newdos80.lib crt0.rel echo.cmd hworld.cmd testhw.cmd

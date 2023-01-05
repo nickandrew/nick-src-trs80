@@ -1,8 +1,8 @@
 # vim:noexpandtab:ts=8:sts=8:
 INCLUDES=-I../../include/sdcc
 Z80LIBDIR=-L ~/sdcc/share/sdcc/lib/z80
-MYLIBDIR=
-EXTRALIBDIR=-L $(MYLIBDIR)
+# If EXTRALIBDIR is used, do:
+#   EXTRALIBDIR=-L /path/to/directory
 EXTRALIBS=
 # In Makefile, set LIB_SDCC to relative pathname of this dir
 CRT0=$(LIB_SDCC)/crt0.rel
