@@ -1,7 +1,8 @@
 LIB_SDCC=../../library/sdcc
 include $(LIB_SDCC)/include.mk
 
-EXTRALIBS=../../library/sdcc/newdos80.lib ../../library/libc/libc.lib
+EXTRALIBDIR=
+EXTRALIBS=../../library/sdcc/basicio.lib ../../library/sdcc/newdos80.lib
 
 all: fileio.cmd
 
