@@ -244,13 +244,8 @@ FILE *fopen(const char *pathname, const char *mode)
   // Maximum number of files are open
   free(fcb_ptr);
   free(buf);
+  dos_mess_pr("fopen() maximum number of files are open\r");
   return NULL;
-}
-
-int fprintf(FILE *stream, const char *format, ...) {
-  stream; format;
-  // TODO
-  return EOF;
 }
 
 int fputc(int c, FILE *stream) {
@@ -322,4 +317,21 @@ int putc(int c, FILE *stream) {
 
 void rewind(FILE *stream) {
   fseek(stream, 0L, 0);
+}
+
+static void output_char_file(char c, void *p)
+{
+  fputc(c, (FILE *) p);
+}
+
+int fprintf(FILE *fp, const char *format, ...)
+{
+  va_list arg;
+  int i;
+
+  va_start(arg, format);
+  i = _print_format(output_char_file, (void *) fp, format, arg);
+  va_end(arg);
+
+  return i;
 }
