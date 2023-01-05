@@ -18,7 +18,7 @@ void test_read(void) {
 }
 
 void test_write(void) {
-  FILE *fp = fopen("output:1", "r");
+  FILE *fp = fopen("output:1", "w");
   int rc;
   rc = fputc('\n', fp);
   printf("fputc() rc %d\n", rc);
@@ -31,7 +31,7 @@ void test_write(void) {
   fclose(fp);
 }
 
-int main()
+int main(void)
 {
   test_read();
   test_write();
