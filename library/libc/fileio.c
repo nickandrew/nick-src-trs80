@@ -136,8 +136,9 @@ int fclose(FILE *fp)
     return -1;
   }
 
-  free(ofp->buf);
   dos_file_close(ofp->fcbptr);
+  free(ofp->buf);
+  ofp->buf = NULL;
   ofp->flag = 0;
 
   return 0;
