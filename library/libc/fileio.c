@@ -95,6 +95,8 @@ FILE *fopen(const char *pathname, const char *mode)
     return NULL;
   }
 
+  // TODO: Set FCB access level 5 (READ) in FCB
+
   if (mode_char == 'a') {
     rc = dos_file_seek_eof(fcb_ptr);
     if (rc) {
@@ -105,8 +107,9 @@ FILE *fopen(const char *pathname, const char *mode)
     }
   }
 
-  // Ensure writes do not bugger eof
-  fcb_ptr->bits1 |= 1<<6;
+  // Set EOF to NEXT only on successful writes which result in NEXT
+  // exceeding EOF.
+  fcb_ptr->bits2 |= 1<<6;
 
   for (fd = 0; fd < MAX_FILES; ++fd) {
     struct open_file *ofp = fd_array + fd;
