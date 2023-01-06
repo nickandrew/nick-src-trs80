@@ -9,7 +9,7 @@ char string[MAX];
 
 void putint(int n);
 
-int main()
+int main(void)
 {
     int count;
     int rba;                    /* file position (should be long) */
@@ -44,10 +44,8 @@ int main()
     putint(count);
 */
 
-    fputs("There are ", stdout);
-    itoa(count, str);
-    fputs(str, stdout);
-    fputs(" wisdoms.\n", stdout);
+    fprintf(stdout, "There are %d wisdoms.\n", count);
+    fclose(out);
     return 0;
 }
 
