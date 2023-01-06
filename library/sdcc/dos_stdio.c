@@ -10,7 +10,11 @@
 // Maximum number of concurrently open files. fds from 0 to 19.
 // fd 0 = stdin, 1 = stdout, 2 = stderr
 #define MAX_FILES 20
+
+// open_file slot is in use
 #define OF_FLAG_INUSE 1
+// It is a device, not a disk file (affects fclose)
+#define OF_FLAG_DCB   2
 
 static const int sector_size = 256;  // Fixed by DOS
 
@@ -101,6 +105,15 @@ int fclose(FILE *stream) {
   if (!ofp->flag & OF_FLAG_INUSE) {
     // errno = ?
     return -1;
+  }
+
+  if (ofp->flag & OF_FLAG_DCB) {
+    // It's a device, not a file.
+    // There's no explicit close action, just free the slot.
+    ofp->flag = 0;
+    ofp->buf = NULL;
+    ofp->fcbptr = NULL;
+    return 0;
   }
 
   dos_file_close(ofp->fcbptr);
@@ -245,6 +258,31 @@ FILE *fopen(const char *pathname, const char *mode)
   free(fcb_ptr);
   free(buf);
   dos_mess_pr("fopen() maximum number of files are open\r");
+  return NULL;
+}
+
+/* fopen_dcb() ... Associate an open file with an existing Device Control Block
+**
+**  Call this 3 times at program initialization time, to associate
+**  file descriptors 0, 1, 2 with stdin, stdout and stderr.
+*/
+
+FILE *fopen_dcb(void *ptr)
+{
+  unsigned int fd;
+
+  // Find an available free file descriptor
+  for (fd = 0; fd < MAX_FILES; ++fd) {
+    struct open_file *ofp = fd_array + fd;
+    if (!(ofp->flag & OF_FLAG_INUSE)) {
+      ofp->flag |= OF_FLAG_INUSE | OF_FLAG_DCB;
+      ofp->buf = (void *) 0;
+      ofp->fcbptr = (union dos_fcb *) ptr;
+      return (FILE *) ofp;
+    }
+  }
+
+  // Maximum number of files are open
   return NULL;
 }
 

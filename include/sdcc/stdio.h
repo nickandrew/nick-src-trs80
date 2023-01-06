@@ -29,6 +29,7 @@ extern  int       fgetpos(FILE *stream, fpos_t *pos);
 extern  int       fileno(FILE *stream);
 extern  char      *fgets(char *s, int size, FILE *stream);
 extern  FILE      *fopen(const char *pathname, const char *mode);
+extern  FILE      *fopen_dcb(void *ptr);
 extern  int       fprintf(FILE *stream, const char *format, ...);
 extern  int       fputc(int c, FILE *stream);
 extern  int       fputs(const char *s, FILE *stream);
