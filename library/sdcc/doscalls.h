@@ -23,6 +23,16 @@ union dos_fcb {
   };
 };
 
+// Device Control Block
+struct dos_dcb {
+  char bits1;
+  void *driver;
+  char bits2;
+  char bits3;
+  char bits4;
+  char device_code[2];
+};
+
 extern void dos_exit(void); // 0x402d No Error Exit
 extern void dos_disp_error(void); // 0x4030 Error Displayed Exit
 extern void dos_command(const char *s) __sdcccall(0); // 0x4405 Enter DOS and execute a command (don't return)
