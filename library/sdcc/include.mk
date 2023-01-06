@@ -1,4 +1,5 @@
 # vim:noexpandtab:ts=8:sts=8:
+SHELL=/bin/bash
 INCLUDES=-I../../include/sdcc
 Z80LIBDIR=-L ~/sdcc/share/sdcc/lib/z80
 # If EXTRALIBDIR is used, do:
