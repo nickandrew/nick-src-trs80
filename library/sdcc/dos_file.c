@@ -242,6 +242,26 @@ int dos_read_byte(union dos_fcb *fcb) __naked __sdcccall(0)
   __endasm;
 }
 
+int dos_control_byte(union dos_fcb *fcb) __naked __sdcccall(0)
+{
+  fcb;
+
+  __asm
+
+        ld      iy, #2   ; Skip over return address
+        add     iy,sp
+        ld      e,0(iy)  ; fcb low
+        ld      d,1(iy)  ; fcb high
+        call    0x0023   ; $CTL/@CTL/CTLBYT
+        ld      l, a
+        ld      h, #0
+        ret     z
+        ld      h, #0xff ; Error condition. Register A contains DOS error code.
+        ret
+
+  __endasm;
+}
+
 long dos_file_eof(union dos_fcb *fcb)
 {
   // Test that fcb is open
