@@ -10,7 +10,7 @@ all: basicio.lib newdos80.lib crt0.rel echo.cmd hworld.cmd testhw.cmd
 clean:
 	rm -f basicio.lib newdos80.lib crt0.rel *.cmd *.ihx
 
-basicio.lib: argparse.rel putchar.rel getchar.rel
+basicio.lib: argparse.rel hardware_id.rel putchar.rel getchar.rel soft_time.rel
 	sdar r $@ $^
 
 newdos80.lib: $(patsubst %.c,%.rel,$(wildcard dos_*.c))
@@ -26,7 +26,7 @@ hworld.ihx: hworld.rel basicio.lib crt0.rel
 	sdcc -mz80 --code-loc 0x5200 -o $@ $(Z80LIBDIR) $(EXTRALIBDIR) $(CRT0) -l basicio hworld.rel
 
 testhw.ihx: testhw.rel basicio.lib newdos80.lib hardware_id.rel crt0.rel
-	sdcc -mz80 --code-loc 0x5200 -o $@ $(Z80LIBDIR) $(EXTRALIBDIR) $(CRT0) -l basicio -l newdos80 testhw.rel hardware_id.rel
+	sdcc -mz80 --code-loc 0x5200 -o $@ $(Z80LIBDIR) $(EXTRALIBDIR) $(CRT0) -l newdos80 -l basicio testhw.rel
 
 # Edit the Intel Hex file to hardcode the program entry address to 0x5200
 %.cmd: %.ihx
