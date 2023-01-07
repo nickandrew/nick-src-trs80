@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 
-int main()
+int main(void)
 {
     char string[80];
     char outstr[80];
