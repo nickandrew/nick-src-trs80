@@ -269,7 +269,7 @@ long dos_file_eof(union dos_fcb *fcb)
     return -1L;
   }
 
-  return (fcb->eof_h << 8) | fcb->eof_l;
+  return ((long)fcb->eof_h << 8) | fcb->eof_l;
 }
 
 long dos_file_next(union dos_fcb *fcb)
@@ -279,5 +279,5 @@ long dos_file_next(union dos_fcb *fcb)
     return -1L;
   }
 
-  return (fcb->next_h << 8) | fcb->next_l;
+  return ((long)fcb->next_h << 8) | fcb->next_l;
 }
