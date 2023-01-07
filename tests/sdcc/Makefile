@@ -1,11 +1,13 @@
 LIB_SDCC=../../library/sdcc
 include $(LIB_SDCC)/include.mk
 
-EXTRALIBDIR=
-EXTRALIBS=../../library/sdcc/basicio.lib ../../library/sdcc/newdos80.lib
+EXTRALIBDIR=-L ../../library/extras
+EXTRALIBS=-l basicio.lib -l newdos80.lib -l extras.lib
 
-all: fileio.cmd
+all: fileio.cmd testtime.cmd
 
-fileio.cmd: $(EXTRALIBS)
+clean:
+	rm -f fileio.{asm,cmd,ihx,lk,lst,map,noi,rel,sym}
+	rm -f testtime.{asm,cmd,ihx,lk,lst,map,noi,rel,sym}
 
 .PHONY: all

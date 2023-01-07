@@ -28,6 +28,7 @@ void test_write(void) {
   printf("fputs() rc %d\n", rc);
   long fpos = ftell(fp);
   printf("ftell() rc %ld\n", fpos);
+  fprintf(fp, "rc=%d fpos=%ld fp=%p\n", rc, fpos, fp);
   fclose(fp);
 }
 
