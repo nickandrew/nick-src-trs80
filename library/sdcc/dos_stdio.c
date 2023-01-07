@@ -134,6 +134,10 @@ int feof(FILE *stream) {
 int fgetc(FILE *stream) {
   struct open_file *ofp = (struct open_file *) stream;
   int rc = dos_read_byte(ofp->fcbptr);
+  if (rc < 0) {
+    // errno = ?
+    return EOF;
+  }
   return rc;
 }
 
