@@ -1,23 +1,4 @@
-cwiz1.asm:
-  sdcc: cwiz1.c
-  depends:
-  - zeta-bbs/utilities/wisdom/cwiz1.c
 cwiz.cmd:
-  assemble: cwiz.asm
-  depends:
-  - atoi.asm
-  - cinit.asm
-  - include/include/call.asm
-  - include/include/doscalls.asm
-  - include/include/ascii.asm
-  - include/include/external.asm
-  - include/include/ftell.asm
-  - include/include/libc.asm
-  - strcmp.asm
-  - zeta-bbs/utilities/cwiz/cwiz.asm
-  - cwiz1.asm
-  skip: Not yet ready to link C code
-wisdom1.asm:
-  sdcc: wisdom1.c
-  depends:
-  - zeta-bbs/utilities/wisdom/wisdom1.c
+  skip: Not yet ready to compile/link C code
+wisdom.cmd:
+  skip: Not yet ready to compile/link C code
