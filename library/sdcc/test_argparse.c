@@ -28,7 +28,6 @@ struct test tests[] = {
   { .in = "echo \"'\"\x0d", .argc = 2, .argv = {"echo", "'", NULL}},
   { .in = "echo \"dq \\\"inside\\\" dq string\" finally\x0d", .argc = 3, .argv = {"echo", "dq \"inside\" dq string", "finally", NULL}},
   { .in = "'unterminated sq\x0d", .argc = 1, .argv = {"unterminated sq", NULL}},
-  NULL,
 };
 
 int do_test(struct test *t) {
@@ -40,7 +39,7 @@ int do_test(struct test *t) {
   char **argv = argparse(buf, &argc);
 
   if (argc != t->argc) {
-    printf("test(%s) argc got %d, want %d\n", t->in, argc, t->argc);
+    fprintf(stderr, "test(%s) argc got %d, want %d\n", t->in, argc, t->argc);
     return 1;
   }
 
@@ -49,35 +48,35 @@ int do_test(struct test *t) {
   for (i = 0; i < argc; ++i) {
     // Compare argv values
     if (strcmp(argv[i], t->argv[i])) {
-      printf("test(%s) arg %d got %s, want %s\n", t->in, i, argv[i], t->argv[i]);
+      fprintf(stderr, "test(%s) arg %d got %s, want %s\n", t->in, i, argv[i], t->argv[i]);
       rc = 1;
     }
   }
 
   if (argv[argc] != NULL) {
-    printf("test(%s) argv[argc] got %s, want NULL\n", t->in, argv[argc]);
+    fprintf(stderr, "test(%s) argv[argc] got %s, want NULL\n", t->in, argv[argc]);
     rc = 2;
   }
 
   // Print what we got, without testing
   for (i = 0; i < argc; ++i) {
-    printf("OUT test(%s) arg %d got %s\n", t->in, i, argv[i]);
+    fprintf(stderr, "OUT test(%s) arg %d got %s\n", t->in, i, argv[i]);
   }
 
   return rc;
 }
 
-int main()
+int main(void)
 {
 
   struct test *t;
   int rc = 0;
 
-  for (t=tests; t != NULL && t->in; ++t) {
-    fprintf(stdout, "Doing a test against %s\n", t->in);
+  for (t=tests; t < tests + (sizeof tests)/sizeof(TestCase); ++t) {
+    fprintf(stderr, "Doing a test against %s\n", t->in);
     rc |= do_test(t);
   }
 
-  fprintf(stdout, "Done tests.\n");
+  fprintf(stderr, "Done tests.\n");
   return rc;
 }
