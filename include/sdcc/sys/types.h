@@ -19,7 +19,7 @@ typedef int           intptr_t;
 typedef long          off_t;
 typedef unsigned int  size_t;
 typedef int           ssize_t;
-typedef int           time_t;
+typedef long          time_t;
 
 /* Maximum value of a signed size */
 #define SSIZE_MAX  32767
