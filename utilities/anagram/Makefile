@@ -1,14 +1,10 @@
 # vim:noexpandtab:ts=8:sts=8:
-SHELL=/bin/bash
-
 LIB_SDCC=../../library/sdcc
 include $(LIB_SDCC)/include.mk
 
-EXTRALIBDIR=-L $(LIB_SDCC)
-EXTRALIBS=basicio.lib
-PROGRAM=anagram
+EXTRALIBS=-l basicio.lib
 
-all: $(PROGRAM).cmd
+all: anagram.cmd
 
 clean:
-	rm -f $(PROGRAM).{asm,cmd,ihx,lk,lst,map,noi,rel,sym}
+	rm -f anagram.{asm,cmd,ihx,lk,lst,map,noi,rel,sym}
