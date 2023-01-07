@@ -390,3 +390,23 @@ int fprintf(FILE *fp, const char *format, ...)
 
   return i;
 }
+
+/*  _init_stdio() ...
+**
+**  This runs just after global/static initialization.
+**  It sets up stdin/stdout/stderr for use before _main starts.
+*/
+
+void _init_stdio(void)
+{
+  stdin = fopen_dcb((void *) 0x4015);
+  stdout = fopen_dcb((void *) 0x401d);
+  stderr = fopen_dcb((void *) 0x4025);
+
+  // Run this function at program start time
+  __asm
+  .area _GSINIT
+  call  __init_stdio
+  .area _CODE
+  __endasm;
+}
