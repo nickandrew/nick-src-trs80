@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 char string[MAX];
 FILE *winx, *fp;
@@ -70,8 +71,7 @@ int main(void)
     // The number of wizards is the number read from the file
     maxwiz = i;
 
-    // TODO: Find a source of randomness
-    srand(12345);
+    srand((int) time(0));
 
     /* 0 to maxwiz-1 */
     wiznum = rand() % maxwiz;
