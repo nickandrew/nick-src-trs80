@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define SURVEY   "quest.zms"
 #define RESULT   "answers.zms"
@@ -16,14 +17,14 @@ int question(void);
 int readq(void);
 
 // Somewhere else
-extern void reada(char *line);
-extern void getuname(char *line);
+#include <string.h>
+void getuname(char *line) { strcpy(line, "Big Dummy"); }
 
 FILE *in, *out;
 char line[80], qname[20];
 char prompt[] = "\n>  ";
 
-int main()
+int main(void)
 {
     init();
     signon();
@@ -69,34 +70,47 @@ int question(void)
     if (readq())
         return 0;
     std_out(prompt);
-    reada(line);
+    fgets(line, sizeof(line), stdin);
     fputs(qname, out);
     fputs(": ", out);
     fputs(line, out);
-    fputs("\n", out);
     return 1;
 }
 
+// Read a question from 'in' and display on the screen.
+// Questions are one of the forms:
+//     Question Text
+//     question name>Question Text
+// A blank line separates questions
+// Question name is copied into qname
+
 int readq(void)
 {
-    char *cp, *cp2, *cp3;
-    *qname = 0;
+    char *cp;
+    strcpy(qname, "Q");
+
     while (1) {
-        if (fgets(line, 80, in) == NULL)
+        if (fgets(line, 80, in) == NULL) {
             return 1;
-        cp = cp3 = line;
+        }
+        cp = line;
         if (*line == '\n')
-            return 0;;
+            return 0;
         while (*cp && *cp != '>')
             ++cp;
         if (*cp) {
-            cp2 = qname;
-            while (cp3 != cp)
-                *(cp2++) = *(cp3++);
-            *cp2 = 0;
+            // Copy question name, if short enough
+            if (cp - line < sizeof(qname)) {
+              strncpy(qname, line, cp - line);
+              qname[cp - line] = '\0';
+            }
+            else {
+              strcpy(qname, "Long question name");
+            }
             ++cp;
-        } else
+        } else {
             cp = line;
+        }
         std_out(cp);
     }
 }
