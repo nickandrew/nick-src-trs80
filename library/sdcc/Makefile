@@ -5,16 +5,19 @@ Z80LIBDIR=-L ~/sdcc/share/sdcc/lib/z80
 EXTRALIBDIR=-L .
 CRT0=--no-std-crt0 crt0.rel
 
-all: basicio.lib newdos80.lib crt0.rel echo.cmd hworld.cmd testhw.cmd testargp.cmd
+all: basicio.lib newdos80.lib rom.lib crt0.rel echo.cmd hworld.cmd testhw.cmd testargp.cmd
 
 clean:
-	rm -f basicio.lib newdos80.lib crt0.rel *.cmd *.ihx
+	rm -f basicio.lib newdos80.lib rom.lib crt0.rel *.cmd *.ihx
 
-basicio.lib: argparse.rel hardware_id.rel putchar.rel getchar.rel soft_time.rel
+basicio.lib: argparse.rel hardware_id.rel putchar.rel getchar.rel signal.rel soft_time.rel
 	sdar r $@ $^
 
 newdos80.lib: $(patsubst %.c,%.rel,$(wildcard dos_*.c))
 	sdar r newdos80.lib $^
+
+rom.lib: $(patsubst %.c,%.rel,$(wildcard rom_*.c))
+	sdar r rom.lib $^
 
 crt0.rel: crt0.s
 	sdasz80 -l -o crt0.s
