@@ -4,7 +4,6 @@
 
 #define YES 1
 #define NO  0
-#define ERROR   -1
 #define MASK    127
 
 int main(int argc, char *argv[])
@@ -12,19 +11,20 @@ int main(int argc, char *argv[])
     int c, inword;
     FILE *fp;
     int nl, nw, nc;
-    char s[20];
 
     if (argc != 2) {
         fputs("Usage: wc filename\n", stdout);
-        exit(2);
+        return 2;
     }
+
     if ((fp = fopen(argv[1], "r")) == NULL) {
         fputs("wc: cannot open input file\n", stdout);
-        exit(2);
+        return 2;
     }
+
     inword = NO;
     nl = nw = nc = 0;
-    while ((c = (getc(fp))) != EOF) {
+    while ((c = (fgetc(fp))) != EOF) {
         ++nc;
         c = (c & MASK);
         if (c == '\n')
@@ -36,20 +36,10 @@ int main(int argc, char *argv[])
             ++nw;
         }
     }
-    fputs("Number of lines = ", stdout);
-    itoa(nl, s);
-    strcat(s, "\n");
-    fputs(s, stdout);
 
-    fputs("Number of words = ", stdout);
-    itoa(nw, s);
-    strcat(s, "\n");
-    fputs(s, stdout);
-
-    fputs("Number of chars = ", stdout);
-    itoa(nc, s);
-    strcat(s, "\n");
-    fputs(s, stdout);
+    fprintf(stdout, "Number of lines = %d\n", nl);
+    fprintf(stdout, "Number of words = %d\n", nw);
+    fprintf(stdout, "Number of chars = %d\n", nc);
 
     return 0;
 }
