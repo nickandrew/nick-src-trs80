@@ -30,7 +30,7 @@ struct open_file {
   union dos_fcb *fcbptr;
 };
 
-// TODO Make these do something
+// These are initialized by _init_stdio()
 FILE *stdin = (FILE *) 0;
 FILE *stdout = (FILE *) 0;
 FILE *stderr = (FILE *) 0;
@@ -71,32 +71,6 @@ int fileno(FILE *fp)
 
   // Subtracting two pointers should return an integer
   return (struct open_file *) fp - fd_array;
-}
-
-int _openfcb(const char *pathname, const char *mode, union dos_fcb *buf) {
-  int mode_bits = parse_mode(mode);
-  // Ignore terminating the pathname with \r for the moment
-  int rc = dos_file_extract(pathname, buf);
-  if (rc) {
-    return rc;
-  }
-  char *buffer = malloc(256);
-  if (!buffer) {
-    // Error exit
-    return 1;
-  }
-
-  if (mode_bits & MODE_EXISTING) {
-    // Urk need a 256-byte buffer for the file
-    rc = dos_file_open_ex(buf, buffer, 0);
-    // Reclaim buffer
-    return rc;
-  }
-  else {
-    // Urk need a 256-byte buffer for the file
-    rc = dos_file_open_new(buf, buffer, 0);
-    return rc;
-  }
 }
 
 int fclose(FILE *stream) {
@@ -393,7 +367,7 @@ long ftell(FILE *stream) {
 }
 
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
-	size_t s;
+  size_t s;
   size_t ndone = 0;
   // Not sure why I had to do this to stop an error on the putc call
   const char *p = (const char *) ptr;
@@ -408,7 +382,7 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
       ++ndone;
     }
 
-	return ndone;
+  return ndone;
 }
 
 int putc(int c, FILE *stream) {
