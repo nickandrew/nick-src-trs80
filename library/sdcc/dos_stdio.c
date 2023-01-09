@@ -338,10 +338,30 @@ int fputs(const char *s, FILE *stream) {
   return 0;
 }
 
+/* fread(ptr, size, nmemb, stream) ... Read 'nmemb' items of size
+** 'size' from 'stream'. Return the number of items successfully
+** read.
+*/
+
 size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-  ptr; size; nmemb; stream;
-  // TODO
-  return 0;
+  size_t s;
+  size_t ndone = 0;
+  int ch;
+  char *p = (char *) ptr;
+
+  if (size) {
+    while (ndone < nmemb) {
+      s = size;
+      do {
+        ch = fgetc(stream);
+        if (ch == EOF) return ndone;
+        *p++ = ch;
+      } while (--s);
+      ++ndone;
+    }
+  }
+
+  return ndone;
 }
 
 int fseek(FILE *stream, long offset, int whence) {
