@@ -17,6 +17,8 @@
 #define OF_FLAG_INUSE 1
 // It is a device, not a disk file (affects fclose)
 #define OF_FLAG_DCB   2
+// End Of File has been seen on this open file
+#define OF_FLAG_EOF   4
 
 static const int sector_size = 256;  // Fixed by DOS
 
@@ -102,8 +104,11 @@ int fclose(FILE *stream) {
 }
 
 int feof(FILE *stream) {
-  stream;
-  // TODO
+  struct open_file *ofp = (struct open_file *) stream;
+
+  if (ofp->flag & OF_FLAG_EOF) {
+    return 1;
+  }
   return 0;
 }
 
@@ -124,6 +129,7 @@ int fgetc(FILE *stream) {
     }
     // ESC can mean EOF for the moment
     if (rc == 1) {
+      ofp->flag |= OF_FLAG_EOF;
       return EOF;
     }
     return rc;
@@ -133,6 +139,7 @@ int fgetc(FILE *stream) {
 
   if (rc < 0) {
     // errno = ?
+    ofp->flag |= OF_FLAG_EOF;
     return EOF;
   }
   return rc;
@@ -259,7 +266,7 @@ FILE *fopen(const char *pathname, const char *mode)
   for (fd = 0; fd < MAX_FILES; ++fd) {
     struct open_file *ofp = fd_array + fd;
     if (!(ofp->flag & OF_FLAG_INUSE)) {
-      ofp->flag |= OF_FLAG_INUSE;
+      ofp->flag = OF_FLAG_INUSE;
       ofp->buf = buf;
       ofp->fcbptr = fcb_ptr;
       return (FILE *) ofp;
@@ -287,7 +294,7 @@ FILE *fopen_dcb(void *ptr)
   for (fd = 0; fd < MAX_FILES; ++fd) {
     struct open_file *ofp = fd_array + fd;
     if (!(ofp->flag & OF_FLAG_INUSE)) {
-      ofp->flag |= OF_FLAG_INUSE | OF_FLAG_DCB;
+      ofp->flag = OF_FLAG_INUSE | OF_FLAG_DCB;
       ofp->buf = (void *) 0;
       ofp->fcbptr = (union dos_fcb *) ptr;
       return (FILE *) ofp;
@@ -370,6 +377,7 @@ int fseek(FILE *stream, long offset, int whence) {
     return -1;
   }
 
+  ofp->flag &= !OF_FLAG_EOF;
   return 0;
 }
 
@@ -405,6 +413,7 @@ int putc(int c, FILE *stream) {
 void rewind(FILE *stream) {
   struct open_file *ofp = (struct open_file *) stream;
   dos_file_rewind(ofp->fcbptr);
+  ofp->flag &= !OF_FLAG_EOF;
 }
 
 static void output_char_file(char c, void *p)
