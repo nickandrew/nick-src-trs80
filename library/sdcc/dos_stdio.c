@@ -325,12 +325,13 @@ int fputc(int c, FILE *stream) {
     return -1;
   }
 
-  return 0;
+  return c & 0xff;
 }
 
 int fputs(const char *s, FILE *stream) {
   while (*s) {
-    fputc(*s, stream);
+    if (fputc(*s, stream) == EOF)
+      return EOF;
     s++;
   }
 
