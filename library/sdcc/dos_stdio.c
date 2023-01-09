@@ -133,7 +133,28 @@ int feof(FILE *stream) {
 
 int fgetc(FILE *stream) {
   struct open_file *ofp = (struct open_file *) stream;
-  int rc = dos_read_byte(ofp->fcbptr);
+  int rc;
+
+  // FIXME: Hack for reading from stdin.
+  // I really need to implement cooked mode, to read a line of text
+  // at a time
+  if (ofp->fcbptr == (void *) 0x4015) {
+    do {
+      rc = dos_read_byte(ofp->fcbptr);
+    } while (rc == 0);
+    rc &= 0xff;
+    if (rc == 0x0d) {
+      rc = 0x0a;
+    }
+    // ESC can mean EOF for the moment
+    if (rc == 1) {
+      return EOF;
+    }
+    return rc;
+  }
+
+  rc = dos_read_byte(ofp->fcbptr);
+
   if (rc < 0) {
     // errno = ?
     return EOF;
