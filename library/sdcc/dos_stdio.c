@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <rom.h>
+
 // Maximum number of concurrently open files. fds from 0 to 19.
 // fd 0 = stdin, 1 = stdout, 2 = stderr
 #define MAX_FILES 20
@@ -140,6 +142,17 @@ int fgetc(FILE *stream) {
 char *fgets(char *s, int size, FILE *stream) {
   if (feof(stream)) {
     return NULL;
+  }
+
+  // FIXME: Hack for reading from stdin.
+  struct open_file *ofp = (struct open_file *) stream;
+  if (ofp->fcbptr == (void *) 0x4015) {
+    int rc = rom_kbline(s, size - 1);
+    if (rc < 0) {
+      return NULL;
+    }
+    strcat(s, "\n");
+    return s;
   }
 
   char *buf = s;
