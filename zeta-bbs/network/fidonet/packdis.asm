@@ -93,7 +93,7 @@ DB_LOOP
 *GET	STRCHR
 *GET	STRCMP		;Handles strcat, strcmp, strcpy
 ;;*GET	STRLEN
-;;*GET	SYSTEM
+;;*GET	_SYSTEM
 *GET	UNLINK
 ;;*GET	WILD
 ;
