@@ -78,7 +78,7 @@ DB_LOOP
 *GET	BB7FUNC
 *GET	ATOI		;Requires ctype
 *GET	CTYPE		;Required by atoi
-;;*GET	FTELL
+;;*GET	_FTELL
 *GET	FWRITE
 ;;*GET	GETOPT
 *GET	GETTIME
