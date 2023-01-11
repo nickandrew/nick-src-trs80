@@ -274,12 +274,19 @@ STR_CMP
 ;
 	ENDIF	;ifref STR_CMP
 ;
-;User_search: Search the USERFILE for a particular name.
-	IFREF	USER_SEARCH!ZERO_SEARCH
+;ZERO_SEARCH: Search the USERFILE for an empty slot?
+; Sets the US_ZERO flag, and does not set US_HASH.
+	IFREF	ZERO_SEARCH
 ZERO_SEARCH
 	LD	A,1
 	LD	(US_ZERO),A
-	JR	_US_03
+	JP	COMMON_SEARCH
+;
+	ENDIF	;ifref ZERO_SEARCH
+;
+;USER_SEARCH: Search the USERFILE for a particular name.
+; On input: HL contains the username, terminated by CR, ETX or NUL
+	IFREF	USER_SEARCH
 USER_SEARCH
 	LD	A,0
 	LD	(US_ZERO),A
@@ -297,7 +304,14 @@ _US_02	LD	(HL),0
 	LD	HL,(US_NSTR)
 	CALL	CI_HASH
 	LD	(US_HASH),A
-_US_03
+	JP	COMMON_SEARCH
+;
+	ENDIF	;ifref USER_SEARCH
+;
+;COMMON_SEARCH: Search the USERFILE for a particular name.
+; This module is common between USER_SEARCH and ZERO_SEARCH.
+	IFREF	COMMON_SEARCH
+COMMON_SEARCH
 	LD	HL,0
 	LD	(US_POSN),HL
 ;
@@ -467,7 +481,7 @@ US_ZERO		DEFB	0	;Zero search flag.
 ;
 *GET	USERFILE		;Data definitions.
 ;
-	ENDIF	;user_search ! zero_search
+	ENDIF	;COMMON_SEARCH
 ;
 ;strcmp_ci - Case Independant STRCMP
 	IFREF	STRCMP_CI
