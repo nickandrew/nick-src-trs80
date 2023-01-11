@@ -130,6 +130,7 @@ ERROR	PUSH	AF
 	JP	TERMINATE
 ;
 *GET	ROUTINES
+*GET	CI_CMP
 ;
 LOG_CLOSE	DEFB	3,0	;close the log file.
 LOG_OPEN	DEFB	4,0	;open the log file.

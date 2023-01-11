@@ -480,26 +480,6 @@ STRCMP_CI:
 	JR	STRCMP_CI
 	ENDIF	;strcmp_ci
 ;
-;CI_CMP: Case independent    CP (hl),(de) for Z,NZ
-	IFREF	CI_CMP
-CI_CMP
-	LD	A,(DE)
-	XOR	(HL)
-	RET	Z
-	CP	20H
-	RET	NZ
-	LD	A,(HL)
-	RES	5,A	;UC/LC bit
-;;	DEC	A	;now 40 to 59h
-	CP	41H
-	RET	C
-	CP	5AH	;59h='Z'=Zero Flag.
-	RET	NC
-	CP	A
-	RET
-;
-	ENDIF	;ci_cmp
-;
 ;HASH: Calculate 8-bit hash of a string
 	IFREF	HASH
 HASH

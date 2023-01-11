@@ -700,6 +700,7 @@ TO_UPPER_C
 ;
 ; Include globals
 *GET	ROUTINES
+*GET	CI_CMP
 *GET	SEC10
 ;
 C_FLAG	DEFB	0	;1=Already connected

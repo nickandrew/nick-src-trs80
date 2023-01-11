@@ -3,6 +3,7 @@ deluser.cmd:
   depends:
   - zeta-bbs/maintain/deluser/deluser.asm
   - include/include/ascii.asm
+  - include/include/ci_cmp.asm
   - include/include/doscalls.asm
   - include/include/external.asm
   - zeta-bbs/include/routines.asm

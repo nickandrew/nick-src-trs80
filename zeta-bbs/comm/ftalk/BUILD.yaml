@@ -3,6 +3,7 @@ ftalk.cmd:
   depends:
   - zeta-bbs/comm/ftalk/ftalk.asm
   - include/include/ascii.asm
+  - include/include/ci_cmp.asm
   - include/include/doscalls.asm
   - include/include/external.asm
   - zeta-bbs/include/fidonet.asm
@@ -16,6 +17,7 @@ ftalk2.cmd:
   depends:
   - zeta-bbs/comm/ftalk/ftalk2.asm
   - include/include/ascii.asm
+  - include/include/ci_cmp.asm
   - include/include/doscalls.asm
   - include/include/external.asm
   - zeta-bbs/include/fidonet.asm

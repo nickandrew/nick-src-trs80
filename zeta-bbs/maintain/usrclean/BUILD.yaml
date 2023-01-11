@@ -3,6 +3,7 @@ usrclean.cmd:
   depends:
   - zeta-bbs/maintain/usrclean/usrclean.asm
   - include/include/ascii.asm
+  - include/include/ci_cmp.asm
   - include/include/doscalls.asm
   - include/include/external.asm
   - zeta-bbs/include/routines.asm
