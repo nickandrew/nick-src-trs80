@@ -1,0 +1,29 @@
+;
+;list_nostop: list a file without allowing aborting.
+LIST_NOSTOP:
+	LD	DE,_LN_FCB
+	CALL	DOS_EXTRACT
+	LD	HL,_LN_BUFF
+	LD	B,0
+	CALL	DOS_OPEN_EX
+	RET	NZ
+;
+_LN_LOOP	LD	DE,_LN_FCB
+	CALL	$GET
+	JR	Z,_LN_NEOF
+	CP	1CH
+	RET	Z
+	CP	1DH
+	RET	Z
+	OR	80H
+	CALL	DOS_ERROR
+	RET
+;
+_LN_NEOF	LD	DE,DCB_2O
+	CALL	$PUT
+	CALL	$GET
+	JR	_LN_LOOP
+;
+_LN_FCB	DEFS	32
+_LN_BUFF	DEFS	256
+;

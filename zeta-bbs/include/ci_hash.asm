@@ -1,0 +1,28 @@
+;
+;CI_HASH: Case independant hash.
+CI_HASH
+	LD	C,0
+CIH_1	LD	A,(HL)
+	OR	A
+	JR	Z,CIH_3
+	CP	CR
+	JR	Z,CIH_3
+	CP	ETX
+	JR	Z,CIH_3
+	CP	'a'
+	JR	C,CIH_2
+	CP	'z'+1
+	JR	NC,CIH_3
+	AND	5FH		;To U/C
+CIH_2	XOR	C
+	RLCA
+	LD	C,A
+	INC	HL
+	JR	CIH_1
+CIH_3	LD	A,C
+	OR	A
+	JR	NZ,CIH_4
+	INC	A
+	LD	C,A
+CIH_4	RET
+;

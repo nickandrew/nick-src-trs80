@@ -24,8 +24,7 @@ SPUTNUM:
 	LD	(DE),A		;null terminator
 	RET
 ;
-_SP_DIGIT
-	LD	B,'0'-1
+_SP_DIGIT	LD	B,'0'-1
 _SP1	INC	B
 	OR	A
 	SBC	HL,DE
