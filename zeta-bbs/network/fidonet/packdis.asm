@@ -94,7 +94,7 @@ DB_LOOP
 *GET	STRCMP		;Handles strcat, strcmp, strcpy
 ;;*GET	STRLEN
 ;;*GET	_SYSTEM
-*GET	UNLINK
+*GET	_UNLINK
 ;;*GET	WILD
 ;
 	IF	ZETA
