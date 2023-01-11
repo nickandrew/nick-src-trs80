@@ -70,10 +70,6 @@ _PRNU_DEV DEFW	0
 ;PRINT_SUFF. Print suffix related to TENS & ONES values.
 	IFREF	PRINT_SUFF
 ;
-	IFNDEF	PRINT_NUMB
-	ERR	'Cant use PRINT_SUFF without PRINT_NUMB!!
-	ENDIF
-;
 PRINT_SUFF
 	LD	A,(TENS)
 	CP	'1'
