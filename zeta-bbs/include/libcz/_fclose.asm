@@ -1,0 +1,22 @@
+;
+;fclose(fp)
+;FILE *fp;
+_FCLOSE
+	LD	HL,2
+	ADD	HL,SP
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	EX	DE,HL
+	BIT	IS_USED,(HL)
+	RET	Z
+	BIT	IS_TERM,(HL)
+	LD	(HL),0
+	RET	NZ
+	LD	DE,FD_FCBPTR
+	ADD	HL,DE
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	CALL	DOS_CLOSE
+	RET

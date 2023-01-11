@@ -1,0 +1,16 @@
+;
+;putchar(c)
+;int  c;
+_PUTCHAR
+	LD	HL,2
+	ADD	HL,SP
+	LD	E,(HL)
+	INC	HL
+	LD	D,(HL)
+	PUSH	DE
+	LD	HL,STDOUT
+	PUSH	HL
+	CALL	_FPUTC
+	POP	BC
+	POP	BC
+	RET
