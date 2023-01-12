@@ -4,3 +4,22 @@ cron1.asm:
   - library/lib/gettime.h
   - library/lib/setpos.h
   - zeta-bbs/internal/cron/cron1.c
+cinit.asm:
+  sdcc: cinit.c
+  depends:
+  - lang/smallc/cinit.c
+  skip: Does not build yet
+cron.cmd:
+  assemble: cron.asm
+  depends:
+  - zeta-bbs/internal/cron/cron.asm
+  - zeta-bbs/internal/cron/cron2.asm
+  - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - include/include/gettime.asm
+  - include/include/savepos.asm
+  - zeta-bbs/include/_system.asm
+  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/libcz.asm
+  skip: Cannot combine zmac ASM sources with sdcc ASM sources

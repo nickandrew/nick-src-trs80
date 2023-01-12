@@ -5,7 +5,6 @@
 ;char *ptr;
 ;int  nitems;
 ;FILE *ioptr;
-	IFREF	_FREAD
 _FREAD
 	LD	HL,2
 	ADD	HL,SP
@@ -84,6 +83,3 @@ FR_IO	DEFW	0
 FR_SI	DEFW	0
 FR_PTR	DEFW	0
 FR_NREAD	DEFW	0
-;
-	ENDIF	;_fread
-;

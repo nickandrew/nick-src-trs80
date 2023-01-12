@@ -3,6 +3,7 @@ adduser.cmd:
   depends:
   - zeta-bbs/maintain/adduser/adduser.asm
   - include/include/ascii.asm
+  - include/include/ci_cmp.asm
   - include/include/doscalls.asm
   - include/include/external.asm
   - zeta-bbs/include/routines.asm

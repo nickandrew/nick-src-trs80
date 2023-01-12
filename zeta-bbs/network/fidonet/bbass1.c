@@ -32,7 +32,7 @@
 #include "zeta.h"
 #include "packctl.h"
 
-int main()
+int main(void)
 {
     int n;
 

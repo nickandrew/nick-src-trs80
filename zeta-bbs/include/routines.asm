@@ -63,17 +63,12 @@ BLANK	DEFB	0
 DIGIT	DEFB	0
 TENS	DEFB	0
 ONES	DEFB	0
-_PRNU_DEV
-	DEFW	0
+_PRNU_DEV DEFW	0
 ;
 	ENDIF	;print_numb_dev
 ;
 ;PRINT_SUFF. Print suffix related to TENS & ONES values.
 	IFREF	PRINT_SUFF
-;
-	IFNDEF	PRINT_NUMB
-	ERR	'Cant use PRINT_SUFF without PRINT_NUMB!!
-	ENDIF
 ;
 PRINT_SUFF
 	LD	A,(TENS)
@@ -99,8 +94,7 @@ SUFF_1	ADD	A,A
 	CALL	$PUT
 	RET
 ;
-SUFF_TBL
-	DEFM	'th','st','nd','rd'
+SUFF_TBL DEFM	'th','st','nd','rd'
 ;
 	ENDIF	;ifref print_suff
 ;
@@ -190,7 +184,8 @@ MESS_NOCR:
 ;
 ;X_today: put today's date as in dd-mmm-yy in buffer.
 	IFREF	X_TODAY
-X_TODAY	PUSH	HL
+X_TODAY
+	PUSH	HL
 	CALL	4470H
 	POP	HL
 	PUSH	HL
@@ -274,12 +269,19 @@ STR_CMP
 ;
 	ENDIF	;ifref STR_CMP
 ;
-;User_search: Search the USERFILE for a particular name.
-	IFREF	USER_SEARCH!ZERO_SEARCH
+;ZERO_SEARCH: Search the USERFILE for an empty slot?
+; Sets the US_ZERO flag, and does not set US_HASH.
+	IFREF	ZERO_SEARCH
 ZERO_SEARCH
 	LD	A,1
 	LD	(US_ZERO),A
-	JR	_US_03
+	JP	COMMON_SEARCH
+;
+	ENDIF	;ifref ZERO_SEARCH
+;
+;USER_SEARCH: Search the USERFILE for a particular name.
+; On input: HL contains the username, terminated by CR, ETX or NUL
+	IFREF	USER_SEARCH
 USER_SEARCH
 	LD	A,0
 	LD	(US_ZERO),A
@@ -297,7 +299,14 @@ _US_02	LD	(HL),0
 	LD	HL,(US_NSTR)
 	CALL	CI_HASH
 	LD	(US_HASH),A
-_US_03
+	JP	COMMON_SEARCH
+;
+	ENDIF	;ifref USER_SEARCH
+;
+;COMMON_SEARCH: Search the USERFILE for a particular name.
+; This module is common between USER_SEARCH and ZERO_SEARCH.
+	IFREF	COMMON_SEARCH
+COMMON_SEARCH
 	LD	HL,0
 	LD	(US_POSN),HL
 ;
@@ -314,8 +323,7 @@ _US_03
 	LD	A,(US_FCB+1)
 	AND	0F8H		;Unprotect
 	LD	(US_FCB+1),A
-_US_04
-	LD	A,(US_FCB+1)	;Prevent shrink on write
+_US_04	LD	A,(US_FCB+1)	;Prevent shrink on write
 	OR	0C0H		;and force lrl read.
 	LD	(US_FCB+1),A
 	LD	BC,1
@@ -330,15 +338,13 @@ _US_04
 	LD	HL,(UF_NCALLS)	;max. rrecno posn.
 	LD	(US_PMAX),HL
 ;
-_US_LOOP
-	LD	DE,(US_POSN)
+_US_LOOP	LD	DE,(US_POSN)
 	LD	HL,(US_PMAX)
 	CALL	CPHLDE
 	JR	NC,_US_05
 	CCF
 	RET	;nz
-_US_05
-	LD	HL,(US_POSN)
+_US_05	LD	HL,(US_POSN)
 	LD	A,L
 	OR	A
 	JR	NZ,_US_06
@@ -355,8 +361,7 @@ _US_05
 	SCF
 	RET	NZ
 ;
-_US_06
-	LD	A,(US_POSN)	;low.
+_US_06	LD	A,(US_POSN)	;low.
 	LD	HL,US_HBUFF
 	ADD	A,L
 	LD	L,A
@@ -372,20 +377,17 @@ _US_06
 	CP	B
 	JR	NZ,_US_INC
 	JR	_US_07
-_US_06A
-	LD	A,(US_HASH)
+_US_06A	LD	A,(US_HASH)
 	CP	B
 	JR	Z,_US_07
 ;
 ;Increment position
-_US_INC
-	LD	HL,(US_POSN)
+_US_INC	LD	HL,(US_POSN)
 	INC	HL
 	LD	(US_POSN),HL
 	JR	_US_LOOP
 ;
-_US_07
-	LD	HL,(US_POSN)
+_US_07	LD	HL,(US_POSN)
 	PUSH	HL
 	INC	H
 	LD	L,0
@@ -418,16 +420,14 @@ _US_07
 	BIT	UF_ST_ZERO,A
 	JR	NZ,_US_INC
 	RET			;is OK. (Z)
-_US_07A
-	LD	A,(UF_STATUS)
+_US_07A	LD	A,(UF_STATUS)
 	BIT	UF_ST_ZERO,A	;if Z, recd unused.
 	JR	Z,_US_INC
 	CALL	_US_CHKNM
 	RET	Z
 	JR	_US_INC
 ;
-_US_RDREC
-	LD	B,UF_LRL
+_US_RDREC	LD	B,UF_LRL
 	LD	HL,US_UBUFF
 	LD	DE,US_FCB
 _US_08	CALL	$GET
@@ -439,11 +439,9 @@ _US_08	CALL	$GET
 	CP	A
 	RET
 ;
-_US_CHKNM
-	LD	HL,(US_NSTR)
+_US_CHKNM	LD	HL,(US_NSTR)
 	LD	DE,UF_NAME
-_US_09
-	CALL	CI_CMP
+_US_09	CALL	CI_CMP
 	RET	NZ
 	LD	A,(HL)
 	OR	A
@@ -467,7 +465,7 @@ US_ZERO		DEFB	0	;Zero search flag.
 ;
 *GET	USERFILE		;Data definitions.
 ;
-	ENDIF	;user_search ! zero_search
+	ENDIF	;COMMON_SEARCH
 ;
 ;strcmp_ci - Case Independant STRCMP
 	IFREF	STRCMP_CI
@@ -481,26 +479,6 @@ STRCMP_CI:
 	INC	DE
 	JR	STRCMP_CI
 	ENDIF	;strcmp_ci
-;
-;CI_CMP: Case independent    CP (hl),(de) for Z,NZ
-	IFREF	CI_CMP
-CI_CMP
-	LD	A,(DE)
-	XOR	(HL)
-	RET	Z
-	CP	20H
-	RET	NZ
-	LD	A,(HL)
-	RES	5,A	;UC/LC bit
-;;	DEC	A	;now 40 to 59h
-	CP	41H
-	RET	C
-	CP	5AH	;59h='Z'=Zero Flag.
-	RET	NC
-	CP	A
-	RET
-;
-	ENDIF	;ci_cmp
 ;
 ;HASH: Calculate 8-bit hash of a string
 	IFREF	HASH
@@ -520,8 +498,7 @@ HASH_2	LD	A,C
 	OR	A
 	JR	NZ,HASH_3	;use 0 = no user here.
 	INC	A
-HASH_3
-	LD	C,A
+HASH_3	LD	C,A
 	RET
 ;
 	ENDIF	;ifref HASH
@@ -546,7 +523,8 @@ _MULT2	SRL	H
 ;
 ;CPHLDE: Compare HL to DE.
 	IFREF	CPHLDE
-CPHLDE	LD	A,H
+CPHLDE
+	LD	A,H
 	CP	D
 	RET	NZ
 	LD	A,L
@@ -556,7 +534,8 @@ CPHLDE	LD	A,H
 ;
 ;CI_HASH: Case independant hash.
 	IFREF	CI_HASH
-CI_HASH	LD	C,0
+CI_HASH
+	LD	C,0
 CIH_1	LD	A,(HL)
 	OR	A
 	JR	Z,CIH_3
@@ -618,8 +597,7 @@ TERMINATE_S
 	JR	Z,_TERM_01
 	INC	HL
 	JR	TERMINATE_S
-_TERM_01
-	LD	(HL),0
+_TERM_01	LD	(HL),0
 	RET
 ;
 	ENDIF	;terminate_s
@@ -635,8 +613,7 @@ _STR_01	LD	A,(HL)
 	INC	C
 	INC	HL
 	JR	_STR_01
-_STR_02
-	LD	A,C
+_STR_02	LD	A,C
 	RET
 ;
 	ENDIF	;str_len
@@ -655,7 +632,8 @@ MESS_0
 ;
 ;puts: Put a string to $stdout_def.
 	IFREF	PUTS
-PUTS	PUSH	DE
+PUTS
+	PUSH	DE
 	LD	DE,DCB_2O
 	CALL	FPUTS
 	POP	DE
@@ -694,7 +672,8 @@ _FG2	LD	(HL),0
 ;
 ;List: List a file to DCB_2O, allow abort with ^C
 	IFREF	LIST_FILE
-LIST_FILE	LD	DE,_L_DCB
+LIST_FILE
+	LD	DE,_L_DCB
 	CALL	EXTRACT
 	LD	HL,_L_BUFF
 	LD	B,0
@@ -729,8 +708,7 @@ _L_BUFF	DEFS	256
 EXTRACT:
 	PUSH	DE
 	LD	B,24
-_EXT_01
-	LD	A,(HL)
+_EXT_01	LD	A,(HL)
 	CP	CR
 	JR	Z,_EXT_02
 	CP	' '
@@ -749,17 +727,14 @@ _EXT_01
 	OR	A
 	RET
 ;
-_EXT_02
-	LD	A,ETX		;For the dos.
+_EXT_02	LD	A,ETX		;For the dos.
 	LD	(DE),A
-_EXT_03
-	LD	A,(HL)		;bypass extra spaces
+_EXT_03	LD	A,(HL)		;bypass extra spaces
 	CP	' '
 	JR	NZ,_EXT_04
 	INC	HL
 	JR	_EXT_03
-_EXT_04
-	POP	DE
+_EXT_04	POP	DE
 	CP	A
 	RET
 	ENDIF	;extract
@@ -820,8 +795,7 @@ STRCAT
 	JR	Z,_STRCAT_1
 	INC	DE
 	JR	STRCAT
-_STRCAT_1
-	LD	A,(HL)
+_STRCAT_1	LD	A,(HL)
 	LD	(DE),A
 	OR	A
 	RET	Z
@@ -834,8 +808,7 @@ _STRCAT_1
 	IFREF	STRLEN
 STRLEN
 	LD	HL,0
-_STRLEN_1
-	LD	A,(DE)
+_STRLEN_1	LD	A,(DE)
 	OR	A
 	RET	Z
 	INC	HL
@@ -847,21 +820,18 @@ _STRLEN_1
 	IFREF	GET_NUMBER
 GET_NUMBER
 	LD	DE,0
-$GN_01
-	LD	A,(HL)
+$GN_01	LD	A,(HL)
 	CALL	IF_NUM
 	JR	NZ,$GN_02
 	CALL	$GN_03
 	INC	HL
 	JR	$GN_01
 ;
-$GN_02
-	PUSH	DE
+$GN_02	PUSH	DE
 	POP	HL
 	RET
 ;
-$GN_03
-	PUSH	HL
+$GN_03	PUSH	HL
 	SUB	'0'
 	PUSH	DE
 	POP	HL
@@ -900,8 +870,7 @@ LIST_NOSTOP:
 	CALL	DOS_OPEN_EX
 	RET	NZ
 ;
-_LN_LOOP
-	LD	DE,_LN_FCB
+_LN_LOOP	LD	DE,_LN_FCB
 	CALL	$GET
 	JR	Z,_LN_NEOF
 	CP	1CH
@@ -912,8 +881,7 @@ _LN_LOOP
 	CALL	DOS_ERROR
 	RET
 ;
-_LN_NEOF
-	LD	DE,DCB_2O
+_LN_NEOF	LD	DE,DCB_2O
 	CALL	$PUT
 	CALL	$GET
 	JR	_LN_LOOP
@@ -925,7 +893,8 @@ _LN_BUFF	DEFS	256
 ;
 ;twirl: Reselect & spin the last selected drive.
 	IFREF	TWIRL
-TWIRL	LD	A,(4308H)
+TWIRL
+	LD	A,(4308H)
 	CALL	445BH
 	RET
 	ENDIF	;twirl

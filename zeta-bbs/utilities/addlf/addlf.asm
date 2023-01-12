@@ -123,6 +123,7 @@ MESS_WORD
 	JR	MESS_WORD
 ;
 *GET	ROUTINES
+*GET	CI_CMP
 ;
 M_ADDLF	DEFM	'addlf: ',0
 M_NOFILE	DEFM	'addlf: Cannot open ',0

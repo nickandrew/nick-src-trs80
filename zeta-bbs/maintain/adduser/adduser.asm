@@ -288,6 +288,7 @@ SET_MEM	LD	A,(HL)
 ;
 ;
 *GET	ROUTINES
+*GET	CI_CMP
 ;
 M_REG	DEFM	'Registering: "',0
 M_REG_E	DEFM	'".',CR,0

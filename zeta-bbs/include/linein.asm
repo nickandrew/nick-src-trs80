@@ -5,7 +5,6 @@
 ;Output  : in buffer LI_BUF, null terminated.
 ;Other   : LI_PRE	1=pre-input in buffer.
 ;
-	IFREF	LINEIN
 LINEIN	LD	A,(LI_PRE)
 	OR	A
 	JR	Z,_LI_01
@@ -212,15 +211,3 @@ LI_INBUFF
 LI_POS	DEFW	LI_INBUFF
 LI_ENBUFF
 	DEFW	0
-;
-	IFREF	STRCPY
-STRCPY	LD	A,(HL)
-	LD	(DE),A
-	OR	A
-	RET	Z
-	INC	HL
-	INC	DE
-	JR	STRCPY
-	ENDIF			;str_cpy
-	ENDIF			;linein
-;

@@ -3,8 +3,6 @@
 ;the string with a null rather than CR.
 ;Last modified on 20-Jan-87 for no-echo.
 ;
-	IFREF	FORTYHEX
-;
 FORTYHEX:
 	LD	A,B
 	LD	(_40H_LEN),A
@@ -101,5 +99,3 @@ PUT_VISIBLE
 _40H_INV	DEFB	0
 _40H_LEN	DEFB	0
 _40H_BUF	DEFW	0
-;
-	ENDIF

@@ -26,6 +26,7 @@ START	LD	SP,START
 *GET	BB7
 ;
 *GET	ROUTINES
+*GET	CI_CMP
 ;
 ;Data section...........................................
 ;

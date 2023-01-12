@@ -191,6 +191,7 @@ ERROR	PUSH	AF
 	JP	TERMINATE
 ;
 *GET	ROUTINES
+*GET	CI_CMP
 ;
 ;Definitions for UF_STATUS
 UF_ST_ZERO	EQU	6	;=1 if record used.

@@ -7,8 +7,6 @@
 ;			If transfer fails, do not do line turnaround
 ;2.0	24 Mar 90:	Base version
 ;
-DOS_WRITE_EOF	EQU	4451H
-;
 *GET	DOSCALLS
 *GET	EXTERNAL
 *GET	ASCII
@@ -393,9 +391,9 @@ FS_02
 	LD	B,2
 	CALL	GET_BYTE
 	JR	C,FS_02		;Timed out
-	CP	NAK
+	CP	ASC_NAK
 	JR	Z,FS_03		;Got Nak
-	CP	ACK
+	CP	ASC_ACK
 	JR	Z,FF_05
 	CP	TSYNC
 	JR	Z,FF_02		;Tsync
@@ -439,7 +437,7 @@ FF_06
 	JR	NZ,FF_07
 ;
 FF_08
-	LD	A,EOT
+	LD	A,ASC_EOT
 	CALL	PUT_BYTE
 	LD	HL,MT_8
 	CALL	LOG_MSG_1
@@ -494,9 +492,9 @@ MF1_00A	;Must WAIT for a Nak ... no good just sending ACK!
 	LD	B,3
 	CALL	GET_BYTE
 	JR	C,FS_MS0	;Timeout
-	CP	NAK
+	CP	ASC_NAK
 	JR	NZ,FS_MS0	;Retry
-MF1_01	LD	A,ACK
+MF1_01	LD	A,ASC_ACK
 	CALL	PUT_BYTE
 	LD	HL,TEMPFN
 	LD	A,(HL)
@@ -517,7 +515,7 @@ MF1_02	LD	A,'u'
 	CALL	LOG_MSG_1
 	JR	FS_MS0
 MF1_03
-	CP	ACK
+	CP	ASC_ACK
 	JR	NZ,MF1_02
 	POP	HL
 	LD	A,(HL)
@@ -534,9 +532,9 @@ MF1_03
 	INC	HL
 	PUSH	HL
 	JR	FS_MS1
-MF1_04	LD	A,SUB
+MF1_04	LD	A,ASC_SUB
 	CALL	PUT_BYTE
-	LD	A,SUB
+	LD	A,ASC_SUB
 	POP	BC
 	ADD	A,C
 	LD	C,A
@@ -546,7 +544,7 @@ FS_MS2
 	JR	C,FS_MS0
 	CP	C
 	JR	NZ,FS_MS0
-	LD	A,ACK
+	LD	A,ASC_ACK
 	CALL	PUT_BYTE
 	CP	A
 	RET
@@ -843,7 +841,7 @@ FILE_RECV
 	CALL	GET_BYTE	;Flush
 FR_01	CALL	MODEM7_FNAME
 	JR	NC,FR_03	;Failed
-	CP	EOT
+	CP	ASC_EOT
 	RET	Z
 ;
 	LD	HL,CMD_TELINK
@@ -936,17 +934,17 @@ MF_00
 	LD	(M7_TRY),A
 	CP	20
 	JP	Z,M7_FAILED
-	LD	A,NAK
+	LD	A,ASC_NAK
 	CALL	PUT_BYTE
 MF_01
 	LD	B,5
 	CALL	GET_BYTE
 	JR	C,MF_00		;If timeout.
-	CP	ACK
+	CP	ASC_ACK
 	JR	Z,MF_03
-	CP	SUB
+	CP	ASC_SUB
 	JP	Z,MF_08
-	CP	EOT
+	CP	ASC_EOT
 	JR	Z,MF_02
 ;Unknown character.
 	PUSH	AF
@@ -968,7 +966,7 @@ MF_02
 ;
 	LD	HL,M_NMFILES
 	CALL	LOG_MSG_2
-	LD	A,EOT
+	LD	A,ASC_EOT
 	SCF
 	RET
 ;
@@ -982,9 +980,9 @@ MF_04
 	LD	B,1
 	CALL	GET_BYTE
 	JP	C,MF_00		;If timeout
-	CP	EOT
+	CP	ASC_EOT
 	JR	Z,MF_02		;If ACK then EOT .!?
-	CP	SUB
+	CP	ASC_SUB
 	JR	Z,MF_05
 	CP	'u'
 	JP	Z,MF_00		;If timeout
@@ -993,7 +991,7 @@ MF_04
 	ADD	A,C
 	LD	C,A
 ;
-	LD	A,ACK
+	LD	A,ASC_ACK
 	CALL	PUT_BYTE
 ;
 	JR	MF_04
@@ -1004,7 +1002,7 @@ MF_06
 	LD	B,1
 	CALL	GET_BYTE
 	JP	C,MF_00
-	CP	ACK
+	CP	ASC_ACK
 	JR	Z,MF_07		;convert filename.
 	JP	MF_00
 ;
@@ -1048,9 +1046,9 @@ MF_07D
 MF_08
 	LD	HL,MT_5
 	CALL	LOG_MSG_1
-	LD	A,ACK
+	LD	A,ASC_ACK
 	CALL	PUT_BYTE
-	LD	A,EOT
+	LD	A,ASC_EOT
 	SCF
 	RET
 ;
@@ -1233,10 +1231,14 @@ BS_2
 	OUT	(WRDATA),A
 	RET
 ;
-;- Data -
-;
+; Include globals
 *GET	ROUTINES
+*GET	CI_CMP
+*GET	SEC10
+*GET	SPUTNUM
 *GET	STATS
+;
+;- Data -
 ;
 C_FLAG		DEFB	0	;1 = Calling out to NNN/NNN
 L_FLAG		DEFB	0	;1 = Listen first (we were called)

@@ -5,8 +5,6 @@
 	ERR	'Can only use system() with Zeta'
 	ENDIF
 ;
-	IFREF	_SYSTEM
-;
 _SYSTEM
 	LD	HL,2
 	ADD	HL,SP
@@ -18,6 +16,3 @@ _SYSTEM
 	LD	L,A
 	LD	H,0
 	RET
-;
-	ENDIF	;_system
-;

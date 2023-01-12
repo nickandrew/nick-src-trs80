@@ -1,11 +1,14 @@
-deluser.cmd:
-  assemble: deluser.asm
+fcp.cmd:
+  assemble: fcp.asm
   depends:
-  - zeta-bbs/maintain/deluser/deluser.asm
+  - zeta-bbs/comm/fcp/fcp.asm
   - include/include/ascii.asm
-  - include/include/ci_cmp.asm
   - include/include/doscalls.asm
   - include/include/external.asm
+  - zeta-bbs/include/fidonet.asm
   - zeta-bbs/include/routines.asm
   - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/sec10.asm
+  - zeta-bbs/include/stats.asm
   - zeta-bbs/include/userfile.asm
+  skip: Looks like a work in progress
