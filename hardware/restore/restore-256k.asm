@@ -339,6 +339,9 @@ SETUP	LD	HL,PATCH	;setup dos for restore.
 	LD	(47F4H),HL
 	RET
 ;
+; Include globals
+*GET	MESS_0_VDU
+;
 ;Variables etc used only by initial loader.
 BUFF_IN	DEFS	256
 FCB_IN	DEFS	32

@@ -1,6 +1,9 @@
 /* standard IO file for sdcc TRS-80 */
 /*  STDIO.H */
 
+#ifndef _STDIO_H_
+#define _STDIO_H_
+
 #include <sys/types.h>
 #include <stdarg.h>
 
@@ -51,3 +54,5 @@ extern  int       scanf(const char *format, ...);
 extern  int       sprintf(char *str, const char *format, ...);
 extern  int       sscanf(const char *str, const char *format, ...);
 extern  int       ungetc(int c, FILE *stream);
+
+#endif /* _STDIO_H_ */

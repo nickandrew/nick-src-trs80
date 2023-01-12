@@ -6,8 +6,6 @@
 **
 */
 
-#include <stdio.h>
-
 extern  int  errorfound;
 
 void error(const char *msg);
