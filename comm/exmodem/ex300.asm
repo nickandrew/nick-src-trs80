@@ -1499,79 +1499,10 @@ MESS_NOCR
 	INC	HL
 	JR	MESS_NOCR
 ;
-;Get useful routines.
-;SPUTNUM: Put a decimal integer into a string.
-	IFREF	SPUTNUM
-SPUTNUM:
-	LD	(_SPPOS),DE
-	XOR	A
-	LD	(_SPBLANK),A
-	LD	DE,10000
-	CALL	_SP_DIGIT
-	LD	DE,1000
-	CALL	_SP_DIGIT
-	LD	DE,100
-	CALL	_SP_DIGIT
-	LD	DE,10
-	CALL	_SP_DIGIT
-	LD	(_SPTENS),A
-	LD	DE,1
-	LD	A,E
-	LD	(_SPBLANK),A
-	CALL	_SP_DIGIT
-	LD	(_SPONES),A
-	XOR	A
-	LD	DE,(_SPPOS)
-	LD	(DE),A		;null terminator
-	RET
-;
-_SP_DIGIT
-	LD	B,'0'-1
-_SP1	INC	B
-	OR	A
-	SBC	HL,DE
-	JR	NC,_SP1
-	ADD	HL,DE
-	LD	A,(_SPBLANK)
-	OR	A
-	JR	NZ,_SP2
-	LD	A,B
-	CP	'0'
-	RET	Z
-_SP2	LD	(_SPBLANK),A
-	LD	A,B
-	LD	DE,(_SPPOS)
-	LD	(DE),A
-	INC	DE
-	LD	(_SPPOS),DE
-	RET
-;
-_SPBLANK	DEFB	0
-_SPTENS		DEFB	0
-_SPONES		DEFB	0
-_SPPOS		DEFW	0
-;
-	ENDIF	; ifref SPUTNUM
-;
-	IFREF	SEC10
-SEC10:		;Wait 'B'x 0.1 seconds
-	PUSH	BC
-S1_1	PUSH	AF
-	LD	A,(TICKER)
-	LD	C,A
-	LD	B,4
-S1_2	LD	A,(TICKER)
-	CP	C
-	LD	C,A
-	JR	Z,S1_2
-	DJNZ	S1_2
-	POP	AF
-	DEC	A
-	JR	NZ,S1_1
-	POP	BC
-	RET
-	ENDIF	; ifref SEC10
-;
+; Include globals
+*GET	MESS_0_VDU
+*GET	SEC10
+*GET	SPUTNUM
 ;
 ;Special flags & stuff.
 QUIET		DEFB	0	;Quiet flag
