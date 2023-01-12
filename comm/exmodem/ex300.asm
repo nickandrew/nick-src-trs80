@@ -206,9 +206,9 @@ BYP_WORD
 ;
 NO_PAR
 	LD	HL,M_SIGNON	;Print signon msg.
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 NP_01	LD	HL,M_S_OR_R	;cmd mode
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,B_TYPE	;Get S or R.
 	LD	B,1
 	CALL	40H
@@ -225,7 +225,7 @@ NP_01	LD	HL,M_S_OR_R	;cmd mode
 	CP	'R'
 	JR	NZ,NP_01
 NP_02	LD	HL,M_FILE
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,B_FILE	;Get filename.
 	LD	B,23
 	CALL	40H
@@ -307,7 +307,7 @@ CU_03	INC	HL
 ;
 USAGE
 	LD	HL,M_USAGE
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	XOR	A
 	CP	1		;send to interactive
 	RET
@@ -375,9 +375,9 @@ START2
 	JR	Z,RECV_0
 ;If bad extract
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,M_BDFL
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	A,1		;bad filename on recv.
 	JP	EXIT_EXMF
 ;
@@ -391,7 +391,7 @@ RECV_0
 	JR	Z,GETDESC
 	PUSH	AF
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF		;unknown error on initial
 	JP	DOSERR		;file open, receive.
 ;
@@ -406,7 +406,7 @@ NODESC
 	JR	Z,AEZ
 	PUSH	AF		;error opening RECV file
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF
 	JP	DOSERR		;error opening for RECV.
 ;
@@ -429,9 +429,9 @@ EXISTS				;recv file exists
 	JR	AEZ		;accept it anyway.
 EXIST_1
 	LD	HL,M_SENDEX
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,M_EXISTS	;file already exists
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	A,2
 	JP	EXIT_EXMF
 ;
@@ -668,9 +668,9 @@ SEND	LD	HL,M_SENDING
 	JR	Z,SEND_1
 ;
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,M_BDFL	;If bad extract (send)
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	RET			;loop to send next file.
 ;
 SEND_1	LD	HL,BUFF_1	;File buffer.
@@ -683,9 +683,9 @@ SEND_1	LD	HL,BUFF_1	;File buffer.
 	JR	NZ,IS_ERROR
 ;Special stuff....
 	LD	HL,M_RECVNO
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,M_FNID
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	A,20
 	CALL	SEC10
 	RET			;loop to next file.
@@ -693,7 +693,7 @@ SEND_1	LD	HL,BUFF_1	;File buffer.
 IS_ERROR
 	PUSH	AF
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF
 	JP	DOSERR
 ;
@@ -707,7 +707,7 @@ AFF				;check file access.
 ;ha! Stop this transfer!
 BUST_EM
 	LD	HL,M_BUSTED
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	A,19H
 	JR	IS_ERROR
 ;
@@ -1067,7 +1067,7 @@ F_CLOSE
 	RET	Z
 	PUSH	AF
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF
 	JP	DOSERR
 ;
@@ -1100,7 +1100,7 @@ AGK	PUSH	DE
 	PUSH	AF
 	CALL	AGD		;cancel
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF
 	CALL	DISP_DOS_ERROR
 	JP	AHD
@@ -1160,7 +1160,7 @@ AGT	PUSH	DE
 	PUSH	AF
 	CALL	AGD		;cancel sent
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF
 	CALL	DISP_DOS_ERROR
 	JP	AHD
@@ -1224,7 +1224,7 @@ INIT_AHC
 IAHC_1	DEC	E
 	JR	NZ,INIT_AHC
 	LD	HL,M_TIME1	;timeout waiting for
-	CALL	MESS_0		;initial nak.
+	CALL	MESS_0_VDU		;initial nak.
 	LD	HL,M_TIME1
 	CALL	VDU_PUTS
 	CALL	AGD
@@ -1240,7 +1240,7 @@ IAHC_2
 ;
 AHD				;filexfer aborted exit.
 	LD	HL,M_ABORTED
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	A,(B_TYPE)
 	CP	'R'
 	JR	NZ,AHD_2
@@ -1251,7 +1251,7 @@ AHD				;filexfer aborted exit.
 	CALL	DISP_DOS_ERROR
 ;
 K_OK	LD	HL,M_KILLED
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 ;
 AHD_2
 	LD	HL,M_ABRT
@@ -1266,7 +1266,7 @@ MSG_EX	PUSH	HL
 	LD	A,20
 	CALL	Z,SEC10
 	POP	HL
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	RET		;back to xfer_loop....
 ;
 SCREEN_SETUP
@@ -1274,7 +1274,7 @@ SCREEN_SETUP
 ;
 QUIET_0	LD	A,(QUIET)
 	OR	A
-	CALL	Z,MESS_0
+	CALL	Z,MESS_0_VDU
 	RET
 QUIET_PUT
 	PUSH	BC
@@ -1348,7 +1348,7 @@ CONFIG
 ;
 FILE_STATS			;print file length etc..
 	LD	HL,M_SRDY	;Ready to send
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,FCB_1+12
 	LD	E,(HL)
 	INC	HL
@@ -1370,10 +1370,10 @@ NUM_SECT
 	LD	DE,STRING
 	CALL	SPUTNUM
 	LD	HL,STRING
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 ;
 	LD	HL,M_SRDY2
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 ;
 	POP	HL
 	PUSH	HL
@@ -1398,10 +1398,10 @@ MIN_2
 	LD	DE,STRING
 	CALL	SPUTNUM
 	LD	HL,STRING
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 ;
 	LD	HL,M_SRDY3
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	RET
 ;
 ;send character
@@ -1486,6 +1486,7 @@ DISP_DOS_ERROR
 	RET
 ;
 ;
+$$PUT	JP	33H
 MESS_NOCR
 	LD	A,(HL)
 	CP	ETX
@@ -1498,13 +1499,6 @@ MESS_NOCR
 	INC	HL
 	JR	MESS_NOCR
 ;
-$$PUT	JP	33H
-MESS_0	LD	A,(HL)
-	OR	A
-	RET	Z
-	CALL	$$PUT
-	INC	HL
-	JR	MESS_0
 ;Get useful routines.
 ;SPUTNUM: Put a decimal integer into a string.
 	IFREF	SPUTNUM

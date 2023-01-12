@@ -171,12 +171,12 @@ ISEND
 ;
 	CALL	SETUP		;fix dos pointers.
 	LD	HL,MESS1
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	JP	DOS		;Auth.
 ;
 USAGE
 	LD	HL,M_USAGE
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	JP	DOS
 ;
 NOTEND	CALL	GETNUM		;GET NUMBER OF SYSTEM FILE
@@ -338,13 +338,6 @@ SETUP	LD	HL,PATCH	;setup dos for restore.
 	LD	HL,0C000H	;New Index Pulse delay
 	LD	(47F4H),HL
 	RET
-;
-MESS_0	LD	A,(HL)
-	OR	A
-	RET	Z
-	CALL	33H
-	INC	HL
-	JR	MESS_0
 ;
 ;Variables etc used only by initial loader.
 BUFF_IN	DEFS	256

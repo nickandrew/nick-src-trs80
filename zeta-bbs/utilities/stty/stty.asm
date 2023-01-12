@@ -80,14 +80,6 @@ USAGE
 	LD	A,0
 	JP	TERMINATE
 ;
-MESS_0
-	LD	A,(HL)
-	OR	A
-	RET	Z
-	CALL	$PUT
-	INC	HL
-	JR	MESS_0
-;
 BYP_SP
 	LD	A,(HL)
 	CP	' '
