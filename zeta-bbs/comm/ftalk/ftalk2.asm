@@ -7,8 +7,6 @@
 ;			If transfer fails, do not do line turnaround
 ;2.0	24 Mar 90:	Base version
 ;
-DOS_WRITE_EOF	EQU	4451H
-;
 *GET	DOSCALLS
 *GET	EXTERNAL
 *GET	ASCII
@@ -1233,10 +1231,13 @@ BS_2
 	OUT	(WRDATA),A
 	RET
 ;
-;- Data -
-;
+; Include globals
 *GET	ROUTINES
+*GET	SEC10
+*GET	SPUTNUM
 *GET	STATS
+;
+;- Data -
 ;
 C_FLAG		DEFB	0	;1 = Calling out to NNN/NNN
 L_FLAG		DEFB	0	;1 = Listen first (we were called)

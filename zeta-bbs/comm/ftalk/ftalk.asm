@@ -698,7 +698,9 @@ TO_UPPER_C
 	AND	5FH
 	RET
 ;
+; Include globals
 *GET	ROUTINES
+*GET	SEC10
 ;
 C_FLAG	DEFB	0	;1=Already connected
 D_FLAG	DEFB	0	;1=Dial out
