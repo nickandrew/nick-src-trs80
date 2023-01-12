@@ -1,0 +1,10 @@
+usrclean.cmd:
+  assemble: usrclean.asm
+  depends:
+  - zeta-bbs/maintain/usrclean/usrclean.asm
+  - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/userfile.asm
