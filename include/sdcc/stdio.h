@@ -2,6 +2,7 @@
 /*  STDIO.H */
 
 #include <sys/types.h>
+#include <stdarg.h>
 
 typedef long          fpos_t;
 typedef void          FILE;
@@ -15,6 +16,10 @@ extern  FILE      *stdin;
 extern  FILE      *stdout;
 extern  FILE      *stderr;
 
+// These are used by implementations of printf: fprintf, etc.
+typedef void (*pfn_outputchar)(char c, void* p);
+extern int _print_format (pfn_outputchar pfn, void* pvoid, const char *format, va_list ap);
+
 extern  void      clearerr(FILE *stream);
 extern  int       fclose(FILE *stream);
 extern  int       feof(FILE *stream);
@@ -24,6 +29,7 @@ extern  int       fgetpos(FILE *stream, fpos_t *pos);
 extern  int       fileno(FILE *stream);
 extern  char      *fgets(char *s, int size, FILE *stream);
 extern  FILE      *fopen(const char *pathname, const char *mode);
+extern  FILE      *fopen_dcb(void *ptr);
 extern  int       fprintf(FILE *stream, const char *format, ...);
 extern  int       fputc(int c, FILE *stream);
 extern  int       fputs(const char *s, FILE *stream);

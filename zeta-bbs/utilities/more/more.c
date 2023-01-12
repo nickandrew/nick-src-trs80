@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 #include <signal.h>
 
@@ -30,7 +31,7 @@
 int input(char *fp);
 void output(char c);
 void oflush(void);
-void lwrite(int fd, char *buf, int len);
+void lwrite(char *buf, int len);
 int wtch(void);
 void cbreak(void);
 void nocbreak(void);
@@ -147,7 +148,7 @@ int input(char *fp)
 void output(char c)
 {
     if (obc == BUFFER) {
-        lwrite(1, obuf, BUFFER);
+        lwrite(obuf, BUFFER);
         obc = 0;
     }
     if (!isrewind)
@@ -157,11 +158,11 @@ void output(char c)
 void oflush(void)
 {
     if (!isdone)
-        lwrite(1, obuf, obc);
+        lwrite(obuf, obc);
     obc = 0;
 }
 
-void lwrite(int fd, char *buf, int len)
+void lwrite(char *buf, int len)
 {
     int here, start;
     char cmd;
@@ -177,7 +178,7 @@ void lwrite(int fd, char *buf, int len)
         case '\012':           /* definitive linefeed */
             col = 0;
             if (++line == LINES) {
-                write(fd, buf + start, here - start);
+                write(1, buf + start, here - start);
                 write(1, "--More--", 8);
                 cmd = wtch();
                 clearln();
@@ -251,7 +252,7 @@ int wtch(void)
 
     do {
         ch = getchar();
-    } while (index(" \r\nqQ'nN?", ch) == 0);
+    } while (strchr(" \r\nqQ'nN?", ch) == 0);
     return ch;
 }
 

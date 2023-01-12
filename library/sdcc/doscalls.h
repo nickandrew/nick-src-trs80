@@ -23,6 +23,16 @@ union dos_fcb {
   };
 };
 
+// Device Control Block
+struct dos_dcb {
+  char bits1;
+  void *driver;
+  char bits2;
+  char bits3;
+  char bits4;
+  char device_code[2];
+};
+
 extern void dos_exit(void); // 0x402d No Error Exit
 extern void dos_disp_error(void); // 0x4030 Error Displayed Exit
 extern void dos_command(const char *s) __sdcccall(0); // 0x4405 Enter DOS and execute a command (don't return)
@@ -36,11 +46,16 @@ extern int dos_file_open_new(union dos_fcb *fcb, char *buf, unsigned short lrecl
 extern int dos_file_open_ex(union dos_fcb *fcb, char *buf, unsigned short lrecl) __sdcccall(0);
 extern int dos_file_extract(const char *filename, union dos_fcb *fcb) __sdcccall(0);
 extern int dos_file_close(union dos_fcb *fcb) __sdcccall(0);
-extern int dos_file_rewind(union dos_fcb *fcb);
-extern int dos_file_seek_eof(union dos_fcb *fcb);
-extern int dos_file_seek_rba(union dos_fcb *fcb, long pos);
+extern int dos_file_rewind(union dos_fcb *fcb) __sdcccall(0);
+extern int dos_file_seek_eof(union dos_fcb *fcb) __sdcccall(0);
+extern int dos_file_seek_rba(union dos_fcb *fcb, long pos) __sdcccall(0);
 extern long dos_file_eof(union dos_fcb *fcb);
 extern long dos_file_next(union dos_fcb *fcb);
+
+// File and device bytewise I/O
+extern int dos_write_byte(union dos_fcb *fcb, char ch) __sdcccall(0);
+extern int dos_read_byte(union dos_fcb *fcb) __sdcccall(0);
+extern int dos_control_byte(union dos_fcb *fcb) __sdcccall(0);
 
 // Implement these later
 extern int dos_file_kill(union dos_fcb *fcb);

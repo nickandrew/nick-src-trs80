@@ -97,6 +97,26 @@ int dos_file_close(union dos_fcb *fcb) __naked __sdcccall(0)
 }
 
 // Return value: 0 if all OK, else dos error code
+int dos_file_rewind(union dos_fcb *fcb) __naked __sdcccall(0)
+{
+  fcb;
+
+  __asm
+
+        ld      iy, #2   ; Skip over return address
+        add     iy,sp
+        ld      e,0(iy)  ; fcb low
+        ld      d,1(iy)  ; fcb high
+        call    0x443f   ; DOS_REWIND
+        ld      hl, #0
+        ret     z
+        ld      l, a
+        ret
+
+  __endasm;
+}
+
+// Return value: 0 if all OK, else dos error code
 int dos_file_seek_eof(union dos_fcb *fcb) __naked __sdcccall(0)
 {
   fcb;
@@ -112,6 +132,29 @@ int dos_file_seek_eof(union dos_fcb *fcb) __naked __sdcccall(0)
   ret z
   ld l, a
   ret
+
+  __endasm;
+}
+
+// Return value: 0 if all OK, else dos error code
+int dos_file_seek_rba(union dos_fcb *fcb, long pos) __naked __sdcccall(0)
+{
+  fcb; pos;
+
+  __asm
+
+        ld      iy, #2   ; Skip over return address
+        add     iy,sp
+        ld      e,0(iy)  ; fcb low
+        ld      d,1(iy)  ; fcb high
+        ld      c,2(iy)  ; pos low
+        ld      l,3(iy)  ; pos medium
+        ld      h,4(iy)  ; pos high
+        call    0x444e   ; DOS_POS_RBA
+        ld      hl, #0
+        ret     z
+        ld      l, a
+        ret
 
   __endasm;
 }
@@ -159,6 +202,66 @@ int dos_file_read(union dos_fcb *fcb, char *buf) __naked __sdcccall(0)
   __endasm;
 }
 
+int dos_write_byte(union dos_fcb *fcb, char ch) __naked __sdcccall(0)
+{
+  fcb; ch;
+
+  __asm
+
+  ld iy, #2   ; Skip over return address
+  add iy,sp
+  ld e,0(iy)  ; fcb low
+  ld d,1(iy)  ; fcb high
+  ld a,2(iy)  ; buf low
+  call 0x001b ; DOS_WRIT_BYTE
+  ld hl, #0
+  ret z
+  ld l, a
+  ret
+
+  __endasm;
+}
+
+int dos_read_byte(union dos_fcb *fcb) __naked __sdcccall(0)
+{
+  fcb;
+
+  __asm
+
+  ld iy, #2   ; Skip over return address
+  add iy,sp
+  ld e,0(iy)  ; fcb low
+  ld d,1(iy)  ; fcb high
+  call 0x0013 ; DOS_READ_BYTE
+  ld l, a
+  ld h, #0
+  ret z
+  ld h, #0xff ; Error condition. Register A contains DOS error code.
+  ret
+
+  __endasm;
+}
+
+int dos_control_byte(union dos_fcb *fcb) __naked __sdcccall(0)
+{
+  fcb;
+
+  __asm
+
+        ld      iy, #2   ; Skip over return address
+        add     iy,sp
+        ld      e,0(iy)  ; fcb low
+        ld      d,1(iy)  ; fcb high
+        call    0x0023   ; $CTL/@CTL/CTLBYT
+        ld      l, a
+        ld      h, #0
+        ret     z
+        ld      h, #0xff ; Error condition. Register A contains DOS error code.
+        ret
+
+  __endasm;
+}
+
 long dos_file_eof(union dos_fcb *fcb)
 {
   // Test that fcb is open
@@ -166,7 +269,7 @@ long dos_file_eof(union dos_fcb *fcb)
     return -1L;
   }
 
-  return (fcb->eof_h << 8) | fcb->eof_l;
+  return ((long)fcb->eof_h << 8) | fcb->eof_l;
 }
 
 long dos_file_next(union dos_fcb *fcb)
@@ -176,5 +279,5 @@ long dos_file_next(union dos_fcb *fcb)
     return -1L;
   }
 
-  return (fcb->next_h << 8) | fcb->next_l;
+  return ((long)fcb->next_h << 8) | fcb->next_l;
 }

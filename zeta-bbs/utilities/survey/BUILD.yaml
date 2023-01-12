@@ -1,4 +1,2 @@
-survey1.asm:
-  sdcc: survey1.c
-  depends:
-  - zeta-bbs/utilities/survey/survey1.c
+survey.cmd:
+  skip: Not ready to compile/link C programs

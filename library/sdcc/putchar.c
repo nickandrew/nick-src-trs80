@@ -6,7 +6,7 @@ int putchar(int c) __naked
 
   ld a,l
   call 0x0033
-  ld  hl,#0   ; Success return
+  ld  de,#0   ; Success return
   ret
 
   __endasm;

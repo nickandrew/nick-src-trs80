@@ -25,9 +25,15 @@ int putchar(int c) __naked
   ld   a,#0x0d
 001$:
   ld   de,#0x4025 ; PR_DCB
-  call 0x001B
+  call 002$
   ld   hl,#0
   ret
+
+; Avoid calling 001b directly, so it can be used as a breakpoint
+002$:
+  push  bc
+  ld    b,#2
+  jp    0x0046
 
   __endasm;
 }
