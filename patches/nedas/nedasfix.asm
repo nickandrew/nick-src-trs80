@@ -22,7 +22,7 @@
 ;L contains the low order address of the next byte
 ;to be read from the file buffer NOT the Fcb's
 ;next value (which is always 00H).
-	JR	NZ,590CH	;jr if NˆNE.
+	JR	NZ,590CH	;jr if Not Equal
 	LD	A,1AH		;return a 1AH instead.
 	RET
 	NOP

@@ -211,7 +211,7 @@ ADD_5	LD	A,(HL)
 	LD	DE,US_FCB
 	CALL	DOS_POSIT
 	JP	NZ,ERROR
-”
+;
 	CALL	_US_RDREC
 	JP	NZ,ERROR
 ;Update record and write.
