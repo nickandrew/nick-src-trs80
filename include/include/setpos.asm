@@ -10,7 +10,7 @@ _SAVEPOS
 	ADD	HL,SP
 	LD	E,(HL)
 	INC	HL
-	LD	D,(HL)    ;de = fp
+	LD	D,(HL)		;de = fp
 	INC	HL
 	LD	C,(HL)
 	INC	HL
