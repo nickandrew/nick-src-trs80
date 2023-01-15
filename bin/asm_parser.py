@@ -8,32 +8,32 @@ from lark.lexer import Lexer, Token
 grammar = """
     start: (line? LF)+
     line: TABS? comment
-        | label TABS? comment?
-        | label TABS "DEFL" TABS expression TABS? comment?
-        | label TABS "EQU" TABS expression TABS? comment?
+        | label colon? TABS? comment?
+        | label colon? TABS "DEFL" TABS expression TABS? comment?
+        | label TABS equ TABS expression TABS? comment?
         | get_line
-        | "*LIST" TABS ("OFF" | "ON")
+        | "*LIST" TABS (on | off)
         | std_line
         | TABS com TABS sq_string
-        | TABS "IF" TABS symbol TABS? comment?
-        | TABS "IFREF" TABS symbol TABS? comment?
+        | TABS pseudo_op_if TABS symbol TABS? comment?
+        | TABS pseudo_op_ifref TABS symbol TABS? comment?
         | ifdef_line
         | endif_line
 
-    std_line : label? TABS instruction TABS? comment?
+    std_line : (label colon?)? TABS instruction TABS? comment?
     get_line: star_get TABS filename comment?
-    ifdef_line: TABS "IFDEF" TABS symbol TABS? comment?
-    endif_line: TABS "ENDIF" TABS? comment?
+    ifdef_line: TABS pseudo_op_ifdef TABS symbol TABS? comment?
+    endif_line: TABS pseudo_op_endif TABS? comment?
 
     expression: add_expr
 
     add_expr: mul_expr
-        | add_expr "+" mul_expr
-        | add_expr "-" mul_expr
+        | add_expr eop_plus mul_expr
+        | add_expr eop_minus mul_expr
 
     mul_expr: primary_expr
-        | mul_expr "*" primary_expr
-        | mul_expr "/" primary_expr
+        | mul_expr eop_times primary_expr
+        | mul_expr eop_divide primary_expr
 
     !primary_expr: hexnumber
         | number
@@ -75,11 +75,11 @@ grammar = """
         | "SUB" TABS op15
         | "XOR" TABS op15
 
-    add_instruction: "ADD" TABS "A" "," op15
-        | "ADD" TABS ("HL" | "IX" | "IY") "," ("BC" | "DE" | "SP")
-        | "ADD" TABS "HL" "," "HL"
-        | "ADD" TABS "IX" "," "IX"
-        | "ADD" TABS "IY" "," "IY"
+    add_instruction: "ADD" TABS reg_a "," op15
+        | "ADD" TABS (reg_hl | reg_ix | reg_iy) "," (reg_bc | reg_de | reg_sp)
+        | "ADD" TABS reg_hl "," reg_hl
+        | "ADD" TABS reg_ix "," reg_ix
+        | "ADD" TABS reg_iy "," reg_iy
 
     org: "ORG" TABS expression
 
@@ -87,9 +87,9 @@ grammar = """
     // ADC A,int8
     // ADC A,(HL) or (IX+n) or (IY+n)
     // ADC HL,(BC|DE|HL|SP)
-    adc_instruction: "ADC" TABS adc_args
-    adc_args: "A,A"
-        | "A,C"
+    adc_instruction: op_adc TABS adc_args
+    adc_args: reg_a "," reg_a
+        | reg_a "," reg_c
 
     // ADD instruction is like ADC with this addition:
     // ADD (IX|IY),(BC|DE|HL|SP)
@@ -108,7 +108,7 @@ grammar = """
     // SUB, AND, OR have identical arguments
 
     dec_instruction: "DEC" TABS op14
-        | "DEC" TABS ("BC" | "DE" | "HL" | "SP" )
+        | "DEC" TABS (reg_bc | reg_de | reg_hl | reg_sp )
 
     defb_instruction: "DEFB" TABS expression
 
@@ -120,85 +120,122 @@ grammar = """
     defw_instruction: "DEFW" TABS expression
 
     ex_instruction: "EX" TABS ("DE,HL" | "AF,AF'")
-        | "EX" TABS "(SP)" "," ("HL" | "IX" | "IY")
+        | "EX" TABS "(SP)" "," (reg_hl | reg_ix | reg_iy)
 
     inc_instruction: "INC" TABS op14
-        | "INC" TABS ("BC" | "DE" | "HL" | "SP" )
+        | "INC" TABS (reg_bc | reg_de | reg_hl | reg_sp )
 
-    !op10: "A" | "B" | "C" | "D" | "E" | "H" | "L"
-        | "(HL)"
-        | "(" "IX" (("+" | "-") expression)? ")"
-        | "(" "IY" (("+" | "-") expression)? ")"
+    !op10: reg_a | reg_b | reg_c | reg_d | reg_e | reg_h | reg_l
+        | ind_hl
+        | "(" reg_ix (("+" | "-") expression)? ")"
+        | "(" reg_iy (("+" | "-") expression)? ")"
 
     !op14: "A" | "B" | "C" | "D" | "E" | "H" | "L"
-        | "IXH" | "IXL" | "IYH" | "IYL"
-        | "(HL)"
-        | "(" "IX" (("+" | "-") expression)? ")"
-        | "(" "IY" (("+" | "-") expression)? ")"
+        | reg_ixh | reg_ixl | reg_iyh | reg_iyl
+        | ind_hl
+        | "(" reg_ix (("+" | "-") expression)? ")"
+        | "(" reg_iy (("+" | "-") expression)? ")"
 
     !op15: op14
         | expression
         | character_string
+
+    colon: ":"
+    equ: "EQU"
+    on: "ON"
+    off: "OFF"
+    reg_a: "A"
+    reg_b: "B"
+    reg_c: "C"
+    reg_d: "D"
+    reg_e: "E"
+    reg_h: "H"
+    reg_l: "L"
+    reg_af: "AF"
+    reg_bc: "BC"
+    reg_de: "DE"
+    reg_hl: "HL"
+    reg_sp: "SP"
+    reg_ix: "IX"
+    reg_iy: "IY"
+    reg_ixh: "IXH"
+    reg_ixl: "IXL"
+    reg_iyh: "IYH"
+    reg_iyl: "IYL"
+    ind_hl: "(HL)"
+
+    flag_z:  "Z"
+    flag_nz: "NZ"
+    flag_c:  "C"
+    flag_nc: "NC"
+    flag_m:  "M"
+    flag_p:  "P"
+    flag_pe: "PE"
+    flag_po: "PO"
+
+    // Pseudo-Opcodes
+    pseudo_op_endif: "ENDIF"
+    pseudo_op_if:    "IF"
+    pseudo_op_ifdef: "IFDEF"
+    pseudo_op_ifref: "IFREF"
+
+    // Opcodes
+    op_adc:  "ADC"
+    op_jr:   "JR"
+    op_jp:   "JP"
+    op_ld:   "LD"
+
+    // Expression operations
+    eop_plus:   "+"
+    eop_minus:  "-"
+    eop_times:  "*"
+    eop_divide: "/"
 
     // character_string belongs as part of expression
     // What about:   'A'+20H
     // Does it assemble?
     character_string: /'.'/
 
-    jump_instruction: "JP" TABS (flag ",")? expression
-        | "JR" TABS (flag ",")? expression
+    jump_instruction: op_jp TABS (flag ",")? expression
+        | op_jr TABS (flag ",")? expression
 
     // load_instruction needs a lot of work
-    load_instruction : ld_opcode TABS register "," register
-        | ld_opcode TABS register "," expression
-        | ld_opcode TABS "(HL)" "," (expression | character_string)
-        | ld_opcode TABS "(" expression ")" "," ("A" | "BC" | "HL" | "DE")
-        | ld_opcode TABS "(" ("IX" | "IY") (("+" | "-") expression)? ")" "," (expression | character_string)
+    load_instruction : op_ld TABS register "," register
+        | op_ld TABS register "," expression
+        | op_ld TABS ind_hl "," expression
+        | op_ld TABS "(" expression ")" "," (reg_a | reg_bc | reg_hl | reg_de)
+        | op_ld TABS "(" ("IX" | "IY") (("+" | "-") expression)? ")" "," expression
 
-    pop_instruction: "POP" TABS ("AF" | "BC" | "DE" | "HL" | "IX" | "IY")
-    push_instruction: "PUSH" TABS ("AF" | "BC" | "DE" | "HL" | "IX" | "IY")
+    pop_instruction: "POP" TABS (reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy)
+    push_instruction: "PUSH" TABS (reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy)
 
     // TODO Needs work
-    sbc_args: "HL,DE"
-        | "HL,BC"
+    sbc_args: reg_hl "," reg_de
+        | reg_hl "," reg_bc
 
     contents_of: "(" long_register ")"
     comment: COMMENT
     symbol: label
 
-    ld_opcode: "LD"
     filename:   /[A-Z0-9_$]+/
     hexnumber: /[0-9A-F]{1,5}H/
     number:  /-?[0-9]+/
-    label:   /[A-Z0-9_$]+/ ":"?
-        | /@[A-Z0-9_$]+/ ":"?           // LDOS @RAMDIR
+    label:   /[A-Z0-9_$]+/
+        | /@[A-Z0-9_$]+/           // LDOS @RAMDIR
 
     macro_arg:  /#[A-Z0-9_$]+/
 
-    flag: "Z"
-        | "NZ"
-        | "C"
-        | "NC"
-        | "M"
-        | "P"
-        | "PE"
-        | "PO"
+    flag: flag_z | flag_nz | flag_c | flag_nc | flag_m | flag_p | flag_pe | flag_po
 
-    short_register: "A"
-        | "B"
-        | "C"
-        | "D"
-        | "E"
-        | "H"
-        | "L"
+    short_register: reg_a | reg_b | reg_c | reg_d | reg_e | reg_h | reg_l
 
-    long_register: "AF"
-        | "BC"
-        | "DE"
-        | "HL"
-        | "IX"
-        | "IY"
-        | "SP"
+    long_register: reg_af
+        | reg_bc
+        | reg_de
+        | reg_hl
+        | reg_ix
+        | reg_iy
+        | reg_sp
 
     register: short_register
         | long_register
@@ -224,7 +261,7 @@ grammar = """
 
 class ASMParser(object):
     def __init__(self):
-        self.parser = Lark(grammar, parser='earley')
+        self.parser = Lark(grammar, parser='earley', maybe_placeholders=False)
         self.tree = None
 
     def parse(self, data: str):
