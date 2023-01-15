@@ -2,19 +2,8 @@
 #  vim:expandtab:sw=4:ts=8:sts=4:ai:
 """Construct a parse tree of an ASM file."""
 
-import argparse
-
 from lark import Lark, Transformer, v_args
 from lark.lexer import Lexer, Token
-
-class TypeLexer(Lexer):
-    def __init__(self, lexer_conf):
-        pass
-
-    def lex(self, filename):
-        with open(filename, 'r') as in_f:
-            for line in in_f:
-                yield line
 
 grammar = """
     start: (line? LF)+
@@ -233,35 +222,17 @@ grammar = """
 
 """
 
-def lex_file(filename):
-    """Just run the lexical analyser on the file. No grammar."""
-    parser = Lark(grammar, parser='earley')
-    with open(filename, 'r') as in_f:
-        print('Lexing only')
-        lexer = parser.lex(in_f.read())
+class ASMParser(object):
+    def __init__(self):
+        self.parser = Lark(grammar, parser='earley')
+        self.tree = None
 
-    for token in lexer:
-        print(f'{repr(token)}')
+    def parse(self, data: str):
+        self.tree = self.parser.parse(data)
 
-def parse_file(filename):
-    parser = Lark(grammar, parser='earley')
-    with open(filename, 'r') as in_f:
-        tree = parser.parse(in_f.read())
-    print(tree.pretty())
+        return self.tree
 
-def parse_args():
-    p = argparse.ArgumentParser(description='Parse ASM source files')
-    p.add_argument('--lex', action='store_true', help='Do lexical analysis only')
-    p.add_argument('filename', help='Filename to parse')
-    return p.parse_args()
+    def lex(self, data: str):
+        tokens = self.parser.lex(data)
 
-def main():
-    args = parse_args()
-    if args.filename:
-        if args.lex:
-            lex_file(args.filename)
-        else:
-            parse_file(args.filename)
-
-if __name__ == '__main__':
-    main()
+        return tokens
