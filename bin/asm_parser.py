@@ -49,7 +49,7 @@ grammar = """
 
     !primary_expr: hexnumber
         | number
-        | label
+        | symbol
         | "$"
         | "(" expression ")"
         | macro_arg
@@ -208,6 +208,8 @@ grammar = """
     reg_iyh: "IYH"
     reg_iyl: "IYL"
 
+    ind_bc: "(BC)"
+    ind_de: "(DE)"
     ind_hl: "(HL)"
     ind_sp: "(SP)"
     ind_index: "(" (reg_ix | reg_iy) ((eop_uplus | eop_uminus) expression)? ")"
@@ -298,9 +300,13 @@ grammar = """
 
     // load_instruction needs a lot of work
     load_instruction : op_ld TABS register "," register
+        | op_ld TABS short_register "," (ind_hl | ind_index)
+        | op_ld TABS reg_a "," (ind_bc | ind_de)
         | op_ld TABS register "," expression
+        | op_ld TABS ind_hl "," short_register
         | op_ld TABS ind_hl "," expression
         | op_ld TABS "(" expression ")" "," (reg_a | reg_bc | reg_hl | reg_de | reg_sp)
+        | op_ld TABS ind_index "," short_register
         | op_ld TABS ind_index "," expression
 
     pop_instruction: "POP" TABS (reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy)
@@ -317,7 +323,8 @@ grammar = """
 
     contents_of: "(" long_register ")"
     comment: COMMENT
-    symbol: label
+    symbol:   /[A-Z0-9_$]+/
+        | /@[A-Z0-9_$]+/           // LDOS @RAMDIR
 
     filename:   /[A-Z0-9_$]+(\/[A-Z0-9_$]{1,3})?/
     hexnumber: /[0-9A-F]{1,5}H/
