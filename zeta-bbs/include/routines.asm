@@ -63,7 +63,7 @@ BLANK	DEFB	0
 DIGIT	DEFB	0
 TENS	DEFB	0
 ONES	DEFB	0
-_PRNU_DEV DEFW	0
+_PRNU_DEV	DEFW	0
 ;
 	ENDIF	;print_numb_dev
 ;
@@ -94,7 +94,7 @@ SUFF_1	ADD	A,A
 	CALL	$PUT
 	RET
 ;
-SUFF_TBL DEFM	'th','st','nd','rd'
+SUFF_TBL	DEFM	'th','st','nd','rd'
 ;
 	ENDIF	;ifref print_suff
 ;

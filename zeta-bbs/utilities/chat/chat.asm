@@ -179,7 +179,7 @@ S1_1	LD	A,(TICKER)
 *GET	LINEIN
 *GET	ROUTINES
 ;
-M_THANKS DEFM	CR,'Thanks for the chat!',CR,0
+M_THANKS	DEFM	CR,'Thanks for the chat!',CR,0
 ;
 MESS1
 	DEFM	CR,CR,0

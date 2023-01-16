@@ -438,7 +438,7 @@ H5499	LD	(HL),' '
 	RET
 ;
 DO_MORE	LD	(HL),0DH
-	LD	HL,MORE ;more.
+	LD	HL,MORE	;more.
 	CALL	MSG_NUL	;was H54b6
 	CALL	0049H	;wait for key hit.
 	LD	HL,HAAAD
@@ -475,7 +475,7 @@ H54D8
 	ENDIF
 ;
 ;
-	LD	HL,M_ROOM ;Room.
+	LD	HL,M_ROOM	;Room.
 	CALL	MSG_NUL	;was H54b6
 ;
 	LD	A,10H	;Room II.
@@ -483,11 +483,11 @@ H54D8
 	LD	A,L
 	CALL	H484A
 ;
-	LD	HL,M_SCOR ;Score.
+	LD	HL,M_SCOR	;Score.
 	CALL	MSG_NUL	;was H54b6.
 	LD	A,11H	;Score II.
 	CALL	H5532	;set cursor & call h4588.
-	LD	HL,M_MOVE ;Moves.
+	LD	HL,M_MOVE	;Moves.
 	CALL	MSG_NUL	;was H54b6.
 	LD	A,12H	;Moves II.
 	CALL	H5532	;set cursor & call h4588.

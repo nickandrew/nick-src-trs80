@@ -322,7 +322,7 @@ $ALLOC_PAGE
 	LD	B,0	;=256 pages to search.
 _AP_1	LD	A,(HL)
 	OR	A
-	JR	Z,_AP_2	 ;found a free one.
+	JR	Z,_AP_2	;found a free one.
 	INC	HL
 	INC	D
 	DJNZ	_AP_1

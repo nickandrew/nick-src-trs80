@@ -12,7 +12,7 @@
 	LD	SP,SYSTEM_STACK	;init SP.
 ;
 	IF	STAND_ALONE	;initialise devices
-*GET INITDEV
+*GET	INITDEV
 	ENDIF
 ;
 ; Set syscall level to 1 to print messages.
@@ -23,7 +23,7 @@
 	CALL	SET_INTRPT
 ;
 ; Now initialise all tables & flags.
-*GET INITTAB
+*GET	INITTAB
 ;
 ; Set 'system call level' to 1 to stop the interrupt
 ;handler trying to execute nonexistent processes.

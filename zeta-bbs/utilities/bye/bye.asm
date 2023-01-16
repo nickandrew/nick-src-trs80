@@ -213,7 +213,7 @@ M_NOBYE
 	DEFM	'** Logoff Aborted **',CR
 	DEFM	'** Back to Shell  **',CR,0
 ;
-BYE_FILE DEFM	'bye.zms',CR
+BYE_FILE	DEFM	'bye.zms',CR
 COMMENT	DEFM	'Comment',0
 ;
 FLAG_QUICK	DEFB	0

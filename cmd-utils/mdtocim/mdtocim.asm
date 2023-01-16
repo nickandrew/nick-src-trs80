@@ -13,7 +13,7 @@ ADDRESS		EQU	80H	;start address
 LENGTH		EQU	64	;number of sectors
 ;
 	ORG	5200H
-*GET DOSCALLS	;Dos Call addresses.
+*GET	DOSCALLS	;Dos Call addresses.
 ;
 START	CALL	OPEN_2
 	LD	A,ADDRESS

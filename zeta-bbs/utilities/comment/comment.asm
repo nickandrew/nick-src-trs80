@@ -58,7 +58,7 @@ W_USER	LD	A,(HL)		;Copy user name,
 	INC	HL
 	JR	W_USER
 ;
-COPY_DATE LD	HL,DATE		;Copy date & time
+COPY_DATE	LD	HL,DATE		;Copy date & time
 	CALL	X_TODAY
 	LD	HL,TIME
 	CALL	446DH
@@ -197,9 +197,9 @@ KILL	LD	DE,C_FCB
 M_TYPE	DEFM	CR,CR
 	DEFM	'Type out your comments now,',CR
 	DEFM	'Hit <CR> on an empty line when finished',CR,CR,0
-M_DISREG DEFM	'** Previous line disregarded **',CR,0
-M_PROMPT DEFM	': ',0
-M_THANKS DEFM	'Thanks for your comments',CR,0
+M_DISREG	DEFM	'** Previous line disregarded **',CR,0
+M_PROMPT	DEFM	': ',0
+M_THANKS	DEFM	'Thanks for your comments',CR,0
 M_NOTHANKS
 	DEFM	CR,CR
 	DEFM	'You certainly don''t waste your words!'
@@ -211,7 +211,7 @@ M_CMDERR
 	DEFM	'Usage:   Comment [kl]',CR,0
 M_FROM	DEFM	'From: ',0
 ;
-M_TIMDAT DEFM	' {'
+M_TIMDAT	DEFM	' {'
 DATE	DEFM	'DD-MMM-YY '
 TIME	DEFM	'HH:MM:SS}',CR,0
 ;

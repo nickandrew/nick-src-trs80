@@ -293,9 +293,9 @@ SET_MEM	LD	A,(HL)
 M_REG	DEFM	'Registering: "',0
 M_REG_E	DEFM	'".',CR,0
 M_REG_2	DEFM	'With password "',0
-M_REG_2E DEFM	'".',CR,0
+M_REG_2E	DEFM	'".',CR,0
 M_REG_3	DEFM	'Is this correct? (Y/N): ',0
-M_REG_OK DEFM	'Register Successful.',CR,0
+M_REG_OK	DEFM	'Register Successful.',CR,0
 ;
 M_WHO	DEFM	'Register who? ',0
 M_PWD	DEFM	'With what password? (CR if none): ',0

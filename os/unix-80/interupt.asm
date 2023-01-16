@@ -73,7 +73,7 @@ NEXT_PROCESS	POP	AF
 ;process is to be executed next.
 ;
 ;
-*GET PRIORITY	;returns 'A' = next process.
+*GET	PRIORITY	;returns 'A' = next process.
 ;
 ; Set next process number to value in A.
 	LD	(CURR_PROCESS),A

@@ -4,7 +4,7 @@
 GET_BLK	XOR	A
 	LD	(NNAKS),A	;No of NAKs sent
 ;
-GBL_01	LD	B,9	 	;wait 9 sec for SOH
+GBL_01	LD	B,9		;wait 9 sec for SOH
 ;(exact 10 second wait seems to confuse Prophet TBBS / Binkley ?)
 	CALL	GET_BYTE
 	JR	C,GBL_02	;Nothing received

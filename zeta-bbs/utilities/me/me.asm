@@ -994,9 +994,9 @@ SAVE_ERROR
 *GET	TIMES
 *GET	ROUTINES
 ;
-ZZZZZZZY EQU $		;End of required data (?)
+ZZZZZZZY	EQU	$		;End of required data (?)
 	DEFS	4096	;Text buffer.
-ZZZZZZZZ EQU $		;End of 4k buffer.
+ZZZZZZZZ	EQU	$		;End of 4k buffer.
 ;
 THIS_PROG_END	EQU	$
 ;

@@ -1,7 +1,7 @@
 ;hdp/asm: Hex dump of file sectors to printer.
 ; Version 1.2, 26-Jan-85.
 ;
-*GET DOSCALLS
+*GET	DOSCALLS
 ;
 ;Equates...
 CR	EQU	0DH

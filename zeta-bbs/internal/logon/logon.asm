@@ -74,14 +74,14 @@ M_WHPASS
 ;
 M_AGRD	DEFM	CR,'   Thank you.',CR,CR,0
 ;
-M_BADSTAT DEFM	CR,'Logging you on as SYSOP',CR,'Done',CR,0
+M_BADSTAT	DEFM	CR,'Logging you on as SYSOP',CR,'Done',CR,0
 ;
 M_WAIT	DEFM	'Wait...',CR,0
 ;
 M_YOURE	DEFM	'You are Zeta''s ',0
 M_SCALL	DEFM	' logged-in caller.',CR,0
-M_YOURNO DEFM	'This is your ',0
-M_YOURCL DEFM	' call to Zeta.',CR,0
+M_YOURNO	DEFM	'This is your ',0
+M_YOURCL	DEFM	' call to Zeta.',CR,0
 ;
 M_OLDMATE
 	DEFM	CR,CR,'You last called over a month ago. Please call',CR
@@ -158,9 +158,9 @@ M_CRED3	DEFM	'You owe Zeta $',0
 M_CRED4	DEFM	' (monthly usage charge).',CR
 	DEFM	'Note: Payment is currently optional.',CR,0
 ;
-M_PASSWD DEFM	'Password (will not echo): ',0
+M_PASSWD	DEFM	'Password (will not echo): ',0
 M_INFOQ	DEFM	'  [y,n]: ',0
-NAME_FAIL DEFM	' (failed)',CR,0
+NAME_FAIL	DEFM	' (failed)',CR,0
 ;
 LOGIN_FILE
 	DEFM	'login.zms',CR

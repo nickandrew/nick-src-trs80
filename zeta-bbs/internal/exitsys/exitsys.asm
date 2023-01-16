@@ -370,7 +370,7 @@ REWR_1	LD	A,(HL)
 ;
 *GET	ROUTINES
 ;
-STAT_COPY DEFB	0
+STAT_COPY	DEFB	0
 FLAG	DEFB	0
 ;
 S_FCB	DEFM	'stats.zms',CR
@@ -402,9 +402,9 @@ L_NOCARR
 L_NOLOGON
 	DEFM	'Didn''t log on',CR,0
 ;
-L_DISCON DEFM	' (Discon)',CR,0
-L_LOGOFF DEFM	CR,0
-L_RUDE	 DEFM	' (Rude)',CR,0
+L_DISCON	DEFM	' (Discon)',CR,0
+L_LOGOFF	DEFM	CR,0
+L_RUDE	DEFM	' (Rude)',CR,0
 ;
 M_EXITERR
 	DEFM	'** EXITSYS ** Error encountered.',CR,0
