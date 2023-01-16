@@ -8,7 +8,7 @@ RS	EQU	1EH
 CR	EQU	0DH
 BUFF_LEN	EQU	36	;sectors/track.
 ;
-	COM	'<pack 1.1  02-Nov-86>
+	COM	'<pack 1.1  02-Nov-86>'
 ;
 	ORG	5300H
 START	LD	SP,START

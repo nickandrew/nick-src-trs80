@@ -16,7 +16,7 @@ BUFF_LEN	EQU	36	;36 sectors per track.
 	DEFW	TERMINATE
 	DEFW	0
 ;End of program load info.
-	COM	'<pack z1.0a 22-Oct-86>
+	COM	'<pack z1.0a 22-Oct-86>'
 ;
 	ORG	BASE+100H
 START	LD	SP,START
