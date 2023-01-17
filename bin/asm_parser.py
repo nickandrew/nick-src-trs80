@@ -18,7 +18,7 @@ grammar = """
         | TABS com TABS sq_string
         | TABS err TABS sq_string
         | TABS pseudo_op_else TABS? comment?
-        | TABS pseudo_op_end TABS symbol TABS? comment?
+        | TABS pseudo_op_end TABS expression TABS? comment?
         | TABS pseudo_op_if TABS expression TABS? comment?
         | TABS pseudo_op_ifdef TABS symbol TABS? comment?
         | TABS pseudo_op_ifndef TABS symbol TABS? comment?
@@ -56,10 +56,10 @@ grammar = """
         | character_string
 
     !instruction : org
-        | adc_instruction
-        | add_instruction
-        | "AND" TABS op15
-        | bit_instruction
+        | op_adc TABS adc_args
+        | op_add TABS add_args
+        | op_and TABS op15
+        | op_bit TABS bit_args
         | call_instruction
         | "CCF"
         | op_cp TABS op15
@@ -85,9 +85,10 @@ grammar = """
         | op_halt
         | op_im TABS im_args
         | op_in TABS reg_a "," "(" expression ")"
-        | inc_instruction
-        | jump_instruction
-        | load_instruction
+        | op_inc TABS inc_args
+        | op_jp TABS jp_args
+        | op_jr TABS jr_args
+        | op_ld TABS ld_args
         | op_lddr
         | op_ldir
         | "MACRO" (TABS /.+/)?       // TODO
@@ -100,8 +101,8 @@ grammar = """
         | "RES" TABS expression "," op10
         | "RET" (TABS flag)?
         | op_rst TABS expression
-        | "SET" TABS expression "," op10
-        | "SBC" TABS sbc_args
+        | op_set TABS expression "," op10
+        | op_sbc TABS sbc_args
         | op_rla
         | op_rlca
         | op_rlc TABS op10
@@ -114,14 +115,14 @@ grammar = """
         | op_sla TABS op10
         | op_sra TABS op10
         | op_srl TABS op10
-        | "SUB" TABS op15
-        | "XOR" TABS op15
+        | op_sub TABS op15
+        | op_xor TABS op15
 
-    add_instruction: op_add TABS reg_a "," op15
-        | op_add TABS (reg_hl | reg_ix | reg_iy) "," (reg_bc | reg_de | reg_sp)
-        | op_add TABS reg_hl "," reg_hl
-        | op_add TABS reg_ix "," reg_ix
-        | op_add TABS reg_iy "," reg_iy
+    add_args: reg_a "," op15
+        | (reg_hl | reg_ix | reg_iy) "," (reg_bc | reg_de | reg_sp)
+        | reg_hl "," reg_hl
+        | reg_ix "," reg_ix
+        | reg_iy "," reg_iy
 
     org: "ORG" TABS expression
 
@@ -129,8 +130,8 @@ grammar = """
     // ADC A,int8
     // ADC A,(HL) or (IX+n) or (IY+n)
     // ADC HL,(BC|DE|HL|SP)
-    adc_instruction: op_adc TABS reg_a "," op15
-        | op_adc TABS reg_hl "," (reg_bc | reg_de | reg_hl | reg_sp)
+    adc_args: reg_a "," op15
+        | reg_hl "," (reg_bc | reg_de | reg_hl | reg_sp)
 
     // ADD instruction is like ADC with this addition:
     // ADD (IX|IY),(BC|DE|HL|SP)
@@ -141,7 +142,7 @@ grammar = """
     // n is 0..7
     // 2nd is one of A|B|C|D|E|H|L or (HL) or (IX+n) or (IY+n) -- so no I[XY][HL]
 
-    bit_instruction: "BIT" TABS expression "," op10
+    bit_args: expression "," op10
 
     call_instruction: "CALL" TABS (flag ",")? expression
 
@@ -170,17 +171,23 @@ grammar = """
     im_one:  "1"
     im_two:  "2"
 
-    inc_instruction: op_inc TABS op14
-        | op_inc TABS (reg_bc | reg_de | reg_hl | reg_sp | reg_ix | reg_iy)
+    inc_args: op14
+        | (reg_bc | reg_de | reg_hl | reg_sp | reg_ix | reg_iy)
 
-    !op10: reg_a | reg_b | reg_c | reg_d | reg_e | reg_h | reg_l
+    ?short_register: reg_a | reg_b | reg_c | reg_d | reg_e | reg_h | reg_l
+
+    ?long_register: reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy | reg_sp
+
+    ?register: short_register | long_register
+
+    ?op10: reg_a | reg_b | reg_c | reg_d | reg_e | reg_h | reg_l
         | ind_hl
         | ind_index
 
-    !op14: op10
+    ?op14: op10
         | reg_ixh | reg_ixl | reg_iyh | reg_iyl
 
-    !op15: op14
+    ?op15: op14
         | expression
 
     colon: ":"
@@ -211,6 +218,8 @@ grammar = """
     ind_bc: "(BC)"
     ind_de: "(DE)"
     ind_hl: "(HL)"
+    ind_ix: "(IX)"
+    ind_iy: "(IY)"
     ind_sp: "(SP)"
     ind_index: "(" (reg_ix | reg_iy) ((eop_uplus | eop_uminus) expression)? ")"
 
@@ -243,6 +252,8 @@ grammar = """
     // Opcodes
     op_adc:  "ADC"
     op_add:  "ADD"
+    op_and:  "AND"
+    op_bit:  "BIT"
     op_cp:   "CP"
     op_cpir: "CPIR"
     op_cpl:  "CPL"
@@ -254,8 +265,8 @@ grammar = """
     op_exx:  "EXX"
     op_halt: "HALT"
     op_im:   "IM"
-    op_in:   "IN"
     op_inc:  "INC"
+    op_in:   "IN"
     op_jp:   "JP"
     op_jr:   "JR"
     op_lddr: "LDDR"
@@ -271,12 +282,16 @@ grammar = """
     op_rra:  "RRA"
     op_rrca: "RRCA"
     op_rrc:  "RRC"
-    op_rst:  "RST"
     op_rr:   "RR"
+    op_rst:  "RST"
+    op_sbc:  "SBC"
     op_scf:  "SCF"
+    op_set:  "SET"
     op_sla:  "SLA"
     op_sra:  "SRA"
     op_srl:  "SRL"
+    op_sub:  "SUB"
+    op_xor:  "XOR"
 
     // Expression operations
     eop_and:    ".AND."
@@ -295,31 +310,32 @@ grammar = """
     // Does it assemble?
     character_string: /'.'/
 
-    jump_instruction: op_jp TABS (flag ",")? expression
-        | op_jr TABS (flag ",")? expression
+    jp_args: (ind_hl | ind_ix | ind_iy)
+        | (flag ",")? expression
 
-    // load_instruction needs a lot of work
-    load_instruction : op_ld TABS register "," register
-        | op_ld TABS short_register "," (ind_hl | ind_index)
-        | op_ld TABS reg_a "," (ind_bc | ind_de)
-        | op_ld TABS register "," expression
-        | op_ld TABS ind_hl "," short_register
-        | op_ld TABS ind_hl "," expression
-        | op_ld TABS "(" expression ")" "," (reg_a | reg_bc | reg_hl | reg_de | reg_sp)
-        | op_ld TABS ind_index "," short_register
-        | op_ld TABS ind_index "," expression
+    jr_args: (flag ",")? expression
+
+    // ld_args needs a lot of work
+    ld_args : register "," register
+        | short_register "," (ind_hl | ind_index)
+        | reg_a "," (ind_bc | ind_de)
+        | (ind_bc | ind_de) "," reg_a
+        | (ind_hl | ind_index) "," short_register
+        | register "," expression
+        | ind_hl "," expression
+        | "(" expression ")" "," (reg_a | reg_bc | reg_hl | reg_de | reg_sp)
+        | ind_index "," expression
 
     pop_instruction: "POP" TABS (reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy)
     push_instruction: "PUSH" TABS (reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy)
 
     // TODO Needs work
-    sbc_args: reg_hl "," reg_de
-        | reg_hl "," reg_bc
-        | reg_a "," expression
+    sbc_args: reg_a "," op15
+        | reg_hl "," (reg_bc | reg_de | reg_hl | reg_sp)
 
-    out_args: "(" expression ")" "," reg_a
-        | "(" reg_c ")" "," short_register
+    out_args: "(" reg_c ")" "," short_register
         | "(" reg_c ")" "," "0"
+        | "(" expression ")" "," reg_a
 
     contents_of: "(" long_register ")"
     comment: COMMENT
@@ -335,19 +351,6 @@ grammar = """
     macro_arg:  /#[A-Z0-9_$]+/
 
     flag: flag_z | flag_nz | flag_c | flag_nc | flag_m | flag_p | flag_pe | flag_po
-
-    short_register: reg_a | reg_b | reg_c | reg_d | reg_e | reg_h | reg_l
-
-    long_register: reg_af
-        | reg_bc
-        | reg_de
-        | reg_hl
-        | reg_ix
-        | reg_iy
-        | reg_sp
-
-    register: short_register
-        | long_register
 
     com: "COM"
     err: "ERR"
