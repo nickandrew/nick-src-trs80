@@ -354,7 +354,7 @@ grammar = """
 
     com: "COM"
     err: "ERR"
-    sq_string: /'[^']*'/
+    sq_string: /'((?:''|[^'])*)'/
     defw: "DEFW"
     star_get: "*GET"
 
