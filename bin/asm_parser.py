@@ -48,6 +48,8 @@ grammar = """
         | primary_expr
 
     !primary_expr: hexnumber
+        | binary_number
+        | octal_number
         | number
         | symbol
         | "$"
@@ -335,6 +337,8 @@ grammar = """
 
     filename:   /[A-Z0-9_$]+(\/[A-Z0-9_$]{1,3})?/
     hexnumber: /[0-9A-F]{1,5}H/
+    binary_number: /[01]{8}B/
+    octal_number: /[0-7]{1,7}O/
     number:  /-?[0-9]+/
     label:   /[A-Z0-9_$]+/
         | /@[A-Z0-9_$]+/           // LDOS @RAMDIR
