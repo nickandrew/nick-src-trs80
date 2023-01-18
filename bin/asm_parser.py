@@ -53,7 +53,7 @@ grammar = """
         | "$"
         | "(" expression ")"
         | macro_arg
-        | character_string
+        | sq_string
 
     !instruction : org
         | op_adc TABS adc_args
@@ -152,13 +152,9 @@ grammar = """
     dec_instruction: op_dec TABS op14
         | op_dec TABS (reg_bc | reg_de | reg_hl | reg_sp | reg_ix | reg_iy)
 
-    defb_args: sq_string
-        | expression
-        | character_string
+    defb_args: expression
 
-    defm_args: sq_string
-        | expression
-        | character_string
+    defm_args: expression
 
     defw_args: expression
 
@@ -305,11 +301,6 @@ grammar = """
     eop_uplus:  "+"
     eop_xor:    ".XOR."
 
-    // character_string belongs as part of expression
-    // What about:   'A'+20H
-    // Does it assemble?
-    character_string: /'.'/
-
     jp_args: (ind_hl | ind_ix | ind_iy)
         | (flag ",")? expression
 
@@ -365,9 +356,6 @@ grammar = """
 
     %import common.INT    -> INT
     %import common.LF -> LF
-
-    // %import common.WS
-    // %ignore WS
 
 """
 
