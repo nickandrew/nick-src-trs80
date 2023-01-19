@@ -308,14 +308,9 @@ ORIGIN_3
 ORIGIN_2
 ORIGIN_1
 	DEFM	'--- Zeta',CR,LF
-	DEFM	' * Origin: Zeta, the first TRS-80 in Fidoworld (3:'
-	ZETA_NUM
-	DEFM	')',CR,LF
-	DEFM	'SEEN-BY: '
-	ZETA_NUM
-	DEFM	' '
-	SCAN_NUM
-	DEFM	CR,LF,CR,LF,0
+	DEFM	' * Origin: Zeta, the first TRS-80 in Fidoworld (3:713/602)',CR,LF	; --ZETA_NUM--
+	DEFM	'SEEN-BY: 713/602 713/600',CR,LF	; --ZETA_NUM-- --SCAN_NUM--
+	DEFM	CR,LF,0
 ;
 BIG_BUFF	DEFS	1024
 ;
