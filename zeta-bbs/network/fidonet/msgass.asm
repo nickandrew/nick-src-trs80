@@ -1,4 +1,4 @@
-;pktass: Assemble messages into outgoing packets.
+;msgass: Assemble messages into outgoing packets.
 ;
 *GET	DOSCALLS
 *GET	EXTERNAL
@@ -12,7 +12,7 @@
 	DEFW	0
 ;End of program load info
 ;
-	COM	'<Pktass 1.3c 19-Dec-87>'
+	COM	'<msgass 1.3c 19-Dec-87>'
 	ORG	BASE+100H
 ;
 START	LD	SP,START
