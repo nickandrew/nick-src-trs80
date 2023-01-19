@@ -199,9 +199,4 @@ TEMP_PAGEX	EQU	46	;temp logical page offset
 ;
 EXTERNALS	EQU	0FE00H	;Start of externals
 ;
-;Macros...
-SIZE	MACRO	#$A
-	ORG	$+#$A
-	ENDM
-;
 *LIST	ON
