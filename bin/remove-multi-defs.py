@@ -4,11 +4,20 @@
 
 import argparse
 import asm_parser
+import os
 import sys
 
 from lark import Token,Tree
 from lark.reconstruct import Reconstructor
 from lark.visitors import Discard,Transformer,Visitor
+
+class GetIncludes(Visitor):
+    def __init__(self, includes):
+        self.includes = includes
+
+    def get_line(self, tree):
+        filename = tree.children[2].children[0].value.lower()
+        self.includes.add(filename)
 
 class GetEquates(Visitor):
     def __init__(self, symtab):
@@ -40,7 +49,34 @@ class DeleteEquates(Transformer):
                 return Discard
         return Tree('line', children)
 
-def process_file(filename, symtab):
+class AddIncludeEarly(Transformer):
+    def __init__(self, filename, includes=None):
+        self.filename = filename.upper()
+        self.includes = includes
+
+    def start(self, children):
+        # children are a sequence of lines
+        cl = len(children)
+        for i in range(cl):
+            # Add *GET before the first non-comment line
+            child = children[i].children[0]  # Actually grandchild
+            if child.data != 'comment':
+                break
+        # Now, i is the index of the first non-comment line, from 0 to cl-1 inclusive
+        new_line = Tree('line', [
+            Tree('get_line', [
+                Tree('star_get', []),
+                Token('TABS', '\t'),
+                Tree('filename', [Token('__ANON_19', self.filename)]),  # Apparently the anon name matters
+            ]),
+            Token('LF', '\n')
+        ])
+
+        children = children[0:i] + [new_line] + children[i:]
+        return Tree('start', children)
+
+
+def process_file(filename, symtab, prefer_file):
     """Edit the contents of filename and remove any definitions of symbols in symtab."""
     parser = asm_parser.ASMParser()
 
@@ -51,10 +87,17 @@ def process_file(filename, symtab):
             print(f'Unable to parse {filename}, skipping')
             return
 
+    includes = set()
+    v = GetIncludes(includes=includes)
+    v.visit(tree)
+
     t = DeleteEquates(symtab=symtab)
     new_tree = t.transform(tree)
     if t.modified:
         print(f'Modified {filename}')
+        if prefer_file not in includes:
+            t = AddIncludeEarly(filename=prefer_file, includes=includes)
+            new_tree = t.transform(new_tree)
         result = Reconstructor(parser.parser).reconstruct(new_tree)
         with open(filename, 'w') as out_f:
             print(result, end='', file=out_f)
@@ -85,9 +128,12 @@ def parse_args():
 def main():
     args = parse_args()
     symtab = get_labels(filename=args.prefer)
+    base_filename = os.path.basename(args.prefer)
+    (base_filename,_) = os.path.splitext(base_filename)
+
     for filename in args.filenames:
         if filename != args.prefer:
-            process_file(filename=filename, symtab=symtab)
+            process_file(filename=filename, symtab=symtab, prefer_file=base_filename)
 
 if __name__ == '__main__':
     main()
