@@ -6,24 +6,25 @@ from lark import Lark, Transformer, v_args
 from lark.lexer import Lexer, Token
 
 grammar = """
-    start: (line? LF)+
-    line: TABS? comment
-        | label colon? TABS? comment?
-        | label colon? TABS "DEFL" TABS expression TABS? comment?
-        | label TABS equ TABS expression TABS? comment?
-        | get_line
-        | "*LIST" TABS (on | off)
-        | "*MOD"
-        | std_line
-        | TABS com TABS sq_string
-        | TABS err TABS sq_string
-        | TABS pseudo_op_else TABS? comment?
-        | TABS pseudo_op_end TABS expression TABS? comment?
-        | TABS pseudo_op_if TABS expression TABS? comment?
-        | TABS pseudo_op_ifdef TABS symbol TABS? comment?
-        | TABS pseudo_op_ifndef TABS symbol TABS? comment?
-        | TABS pseudo_op_ifref TABS symbol TABS? comment?
-        | endif_line
+    start: line+
+    line: TABS? comment LF
+        | label colon? TABS? comment? LF
+        | label colon? TABS "DEFL" TABS expression TABS? comment? LF
+        | label TABS equ TABS expression TABS? comment? LF
+        | get_line LF
+        | "*LIST" TABS (on | off) LF
+        | "*MOD" LF
+        | std_line LF
+        | TABS com TABS sq_string LF
+        | TABS err TABS sq_string LF
+        | TABS pseudo_op_else TABS? comment? LF
+        | TABS pseudo_op_end TABS expression TABS? comment? LF
+        | TABS pseudo_op_if TABS expression TABS? comment? LF
+        | TABS pseudo_op_ifdef TABS symbol TABS? comment? LF
+        | TABS pseudo_op_ifndef TABS symbol TABS? comment? LF
+        | TABS pseudo_op_ifref TABS symbol TABS? comment? LF
+        | endif_line LF
+        | LF
 
     std_line : (label colon?)? TABS instruction TABS? comment?
     get_line: star_get TABS filename TABS? comment?
