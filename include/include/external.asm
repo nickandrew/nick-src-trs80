@@ -33,8 +33,6 @@ $VDU	EQU	401DH		;VDU device driver
 $S	EQU	0FF10H
 ;
 ;Rom / Dos System calls.
-$GET	EQU	0013H		;get a byte
-$PUT	EQU	001BH		;write a byte
 $CTL	EQU	0023H		;device control
 ;
 ;High Memory ZETA System calls and data

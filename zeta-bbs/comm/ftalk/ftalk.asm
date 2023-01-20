@@ -1,5 +1,4 @@
 ;Ftalk:  Send mail packet (and file attaches)
-DOS_WRITE_EOF	EQU	4451H
 ;
 *GET	DOSCALLS
 *GET	EXTERNAL

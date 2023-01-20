@@ -2,6 +2,7 @@
 ;and high memory locations.
 ;last modified 30-Apr-89.
 ;
+*GET	DOSCALLS
 *LIST	OFF
 ;
 MAX_LOWMEM	EQU	0B400H
@@ -31,8 +32,6 @@ $VDU	EQU	401DH		;VDU device driver
 $S	EQU	0FF10H
 ;
 ;Rom / Dos System calls.
-$GET	EQU	0013H		;get a byte
-$PUT	EQU	001BH		;write a byte
 $CTL	EQU	0023H		;device control
 ;
 ;High Memory ZETA System calls and data
