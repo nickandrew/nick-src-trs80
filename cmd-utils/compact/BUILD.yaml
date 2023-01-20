@@ -2,3 +2,4 @@ compact.cmd:
   assemble: compact.asm
   depends:
   - cmd-utils/compact/compact.asm
+  - include/include/doscalls.asm

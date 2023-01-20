@@ -1,13 +1,15 @@
 decode.cmd:
   assemble: decode.asm
   depends:
-  - lang/decode/decode.asm
   - include/include/doscalls.asm
+  - lang/decode/decode.asm
 decode1.cmd:
   assemble: decode1.asm
   depends:
+  - include/include/doscalls.asm
   - lang/decode/decode1.asm
 decodem.cmd:
   assemble: decodem.asm
   depends:
+  - include/include/doscalls.asm
   - lang/decode/decodem.asm

@@ -11,3 +11,4 @@ restore.cmd:
   assemble: restore.asm
   depends:
   - hardware/restore/restore.asm
+  - include/include/doscalls.asm

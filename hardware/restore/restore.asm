@@ -22,16 +22,15 @@
 ;
 ; Assembled OK 30-Mar-85.
 ;
+*GET	DOSCALLS
 ;Newdos/80 Version 2 Function addresses:
 COMBUF	EQU	4318H	;Address of command buffer
-DOS	EQU	402DH	;No error exit
 DOSERR	EQU	4409H	;Dos error exit
 EXTRCT	EQU	441CH	;Extract a filespec
 OPENEX	EQU	4424H	;Open an existing file
 READRC	EQU	4436H	;Read a file's record
 MESSDI	EQU	4467H	;Send message to display
 EXTEND	EQU	4473H	;Insert default extension
-HIMEM	EQU	4049H	;Address of Dos himem
 ;Program dependent equates follow:
 ORIG48	EQU	0FC00H	;Origin for 48K machine.
 ORIG32	EQU	0BC00H	;Origin for 32K machine.
