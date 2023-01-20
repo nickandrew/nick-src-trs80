@@ -13,7 +13,7 @@ grammar = """
         | label TABS equ TABS expression TABS? comment? LF
         | get_line LF
         | "*LIST" TABS (on | off) LF
-        | "*MOD" LF
+        | star_mod LF
         | std_line LF
         | TABS com TABS sq_string LF
         | TABS err TABS sq_string LF
@@ -353,6 +353,7 @@ grammar = """
     sq_string: /'((?:''|[^'])*)'/
     defw: "DEFW"
     star_get: "*GET"
+    star_mod: "*MOD"
 
     // Terminals
 
