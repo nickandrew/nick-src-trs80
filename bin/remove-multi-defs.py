@@ -20,15 +20,27 @@ class GetIncludes(Visitor):
         self.includes.add(filename)
 
 class GetEquates(Visitor):
-    def __init__(self, symtab):
+    def __init__(self, symtab, parser):
         self.symtab = symtab
+        self.parser = parser
 
     def line(self, tree):
         nchildren = len(tree.children)
         if nchildren < 5:
             return
         if isinstance(tree.children[2], Tree) and tree.children[2].data == 'equ':
-            self.symtab.add(tree.children[0].children[0].value)
+            name = tree.children[0].children[0].value
+            value = self.expression_to_string(tree.children[4])
+            self.symtab[name] = value
+
+    def expression_to_string(self, tree):
+        """Turn an expression into the corresponding assembler string."""
+        if tree.data != 'expression':
+            raise ValueError(f'Called expression_to_string() on a non-expression')
+
+        result = Reconstructor(self.parser.parser).reconstruct(tree)
+        return result
+
 
 class DeleteEquates(Transformer):
     def __init__(self, symtab):
@@ -113,10 +125,23 @@ def get_labels(filename):
     with open(filename, 'r') as in_f:
         tree = parser.parse(in_f.read())
 
-    symtab = set()
-    visitor = GetEquates(symtab=symtab)
+    symtab = {}
+    visitor = GetEquates(symtab=symtab, parser=parser)
     visitor.visit(tree)
     print(f'Final symtab to prune is {symtab}')
+    # Check the symtab
+    values = {}
+    failed = False
+    for k in symtab:
+        v = symtab[k]
+        if v in values:
+            failed = True
+            print(f'Value {v} is shared by keys {values[v]} and {k} in equates')
+        values[v] = k
+
+    if failed:
+        raise ValueError('Duplicate symbols have the same value')
+
     return symtab
 
 def parse_args():
