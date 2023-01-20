@@ -363,7 +363,7 @@ _EXIT
 	ADD	HL,SP
 	LD	A,(HL)
 	OR	A
-	JP	Z,DOS
+	JP	Z,DOS_NOERROR
 	JP	DOS_DISP_ERROR
 ;
 CLOSEALL			;Close all open files

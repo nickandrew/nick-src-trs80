@@ -11,3 +11,4 @@ xmf.cmd:
   assemble: xmf.asm
   depends:
   - comm/exmodem/xmf.asm
+  - include/include/doscalls.asm

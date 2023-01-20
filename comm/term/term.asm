@@ -920,7 +920,7 @@ COMTAB	DEFB	'X'	;Back to Dos.
 	DEFB	'W'	;what is status
 COMEND	DEFB	NULL
 ;
-COMVEC	DEFW	DOS	;'X': Back to Dos.
+COMVEC	DEFW	DOS_NOERROR	;'X': Back to Dos.
 	DEFW	TERM2	;'T': Terminal.
 	DEFW	PTRTG2	;'P': Toggle Printer.
 	DEFW	LOAD2	;'L': Load Data.

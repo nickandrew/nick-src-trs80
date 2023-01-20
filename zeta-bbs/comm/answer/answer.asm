@@ -497,7 +497,7 @@ SHUTDOWN
 ;
 	LD	HL,SYS_STAT	;Set test mode
 	SET	6,(HL)
-	JP	DOS		;Valid jump to dos.
+	JP	DOS_NOERROR		;Valid jump to dos.
 ;
 SHELL_ESC			;A shell escape.
 	LD	HL,NICK		;as nick

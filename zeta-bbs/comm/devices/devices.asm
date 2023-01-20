@@ -263,7 +263,7 @@ HI_OK	LD	DE,END_DRIVERS-DRIVERS
 	OUT	(WRSTAT),A
 	LD	(MODEM_STAT2),A
 ;
-	JP	DOS
+	JP	DOS_NOERROR
 ;
 ;Here are the DCBs for the devices.
 ;

@@ -130,12 +130,12 @@ START	LD	SP,START
 	LD	(DE),A
 	DEC	DE
 	CALL	DOS_POS_EOF
-	JP	DOS		;Auth.
+	JP	DOS_NOERROR		;Auth.
 ;
 CANT_OPEN
 	LD	HL,LOG_BYTE
 	RES	ON_DISK,(HL)
-	JP	DOS		;Auth.
+	JP	DOS_NOERROR		;Auth.
 ;
 ST_CODE				;Relocatable routine.
 ;

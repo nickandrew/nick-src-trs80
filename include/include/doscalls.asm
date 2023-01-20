@@ -3,7 +3,6 @@
 ;
 
 CURSOR		EQU	4020H	; cursor position?
-DOS		EQU	402DH	;no error exit
 DOS_NOERROR	EQU	402DH	;no error
 DOS_DISP_ERROR	EQU	4030H	;error displayed exit
 DOS_COMMAND	EQU	4405H	;enter DOS and execute a command

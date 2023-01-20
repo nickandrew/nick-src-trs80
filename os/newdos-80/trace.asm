@@ -1,6 +1,6 @@
 ; TRACE utility - 9 Nov 82
+*GET	DOSCALLS
 
-HIMEM	EQU	4049H	; top of memory pointer
 
 ; Initialization routine - moves trace routine to top of
 ;	memory, links it into clock interrupt chain, &

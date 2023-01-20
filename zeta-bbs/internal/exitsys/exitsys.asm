@@ -34,7 +34,7 @@ START	LD	SP,START
 	LD	A,(SYS_STAT)
 	BIT	4,A		;=1 if booted in TEST.
 	JP	Z,RUN_ANSWER
-	JP	DOS		;back to Newdos.
+	JP	DOS_NOERROR		;back to Newdos.
 ;
 NO_TEST	LD	A,(SYS_STAT)
 	LD	(STAT_COPY),A

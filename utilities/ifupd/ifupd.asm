@@ -36,14 +36,14 @@ IF_1	LD	A,(HL)
 ;
 	LD	A,(FCB+2)	;Updated bit
 	BIT	5,A
-	JP	Z,DOS		;Exit if not updated.
+	JP	Z,DOS_NOERROR		;Exit if not updated.
 ;
 	LD	HL,(COMMAND)
 	JP	4405H		;Execute the command.
 ;
 USAGE	LD	HL,M_USAGE
 	CALL	MSG
-	JP	DOS
+	JP	DOS_NOERROR
 ;
 MSG	LD	A,(HL)
 	OR	A

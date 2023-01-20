@@ -21,9 +21,9 @@ MEMTOP	EQU	4049H		; himem for model 1
 	COM	'<Unarc 1988 release, 06-May-89>'
 	ORG	TBASE
 _EXIT
-	JP	DOS
+	JP	DOS_NOERROR
 _ERROR
-	JP	DOS
+	JP	DOS_NOERROR
 ;
 *GET	FILEA
 *GET	FILEB

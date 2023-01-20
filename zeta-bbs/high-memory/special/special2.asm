@@ -53,7 +53,7 @@ NOT_FF	LD	DE,EN_CODE-ST_CODE
 	LD	(HL),0C9H	;disable log output
 ;will be later enabled by PTRLOG.
 ;
-	JP	DOS		;auth.
+	JP	DOS_NOERROR		;auth.
 ;
 ST_CODE
 ;Buffer for User Name.

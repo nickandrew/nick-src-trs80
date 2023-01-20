@@ -749,7 +749,7 @@ QUIT
 	LD	A,OLD2
 	LD	HL,PAGE2
 	CALL	SET_PAGE
-	JP	DOS
+	JP	DOS_NOERROR
 ;
 ;Delete lines: default is .,.d
 ;after deleting DOT is set to line after last deleted,

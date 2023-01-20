@@ -152,7 +152,7 @@ NOT_FF	LD	DE,EN_CODE-ST_CODE	; Length of the code to be relocated
 	ADD	HL,DE
 	LD	(SWAP_PAGE+1),HL
 ;
-	JP	DOS
+	JP	DOS_NOERROR
 ;
 ORIGIN	DEFW	0
 ;

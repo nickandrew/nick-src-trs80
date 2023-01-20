@@ -25,7 +25,7 @@ UNOFF	LD	SP,UNOFF
 	CALL	OPEN2	;Insert Dest. & open file/ori.
 	CALL	WRITFL	;Write out file.
 	CALL	CLOSFL
-	JP	DOS
+	JP	DOS_NOERROR
 DUMMY	DEFW	0202H	;Meaning exec addr. follows.
 EXECAD	DEFW	0000H	;Original exec addr.
 	DEFB	0

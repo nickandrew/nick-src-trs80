@@ -9,7 +9,7 @@
 START
 	LD	A,(HL)
 	CP	0DH
-	JP	Z,DOS
+	JP	Z,DOS_NOERROR
 ;
 SPOOL_LOOP
 	DI
@@ -54,13 +54,13 @@ SP_3	INC	HL
 ;Done.
 SPOOL_DONE
 	EI
-	JP	DOS
+	JP	DOS_NOERROR
 ;
 Q_FULL
 	LD	HL,M_QF
 	CALL	4467H
 	EI
-	JP	DOS
+	JP	DOS_NOERROR
 ;
 M_QF	DEFM	'Spool: Queue is full. Try later.',0DH
 ;

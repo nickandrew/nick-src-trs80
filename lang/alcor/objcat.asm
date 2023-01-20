@@ -100,7 +100,7 @@ ERROR	PUSH	AF
 	OR	80H
 	CALL	DOS_ERROR
 	POP	AF
-	JP	DOS
+	JP	DOS_NOERROR
 ;
 BYP_WORD
 	LD	A,(HL)
@@ -116,7 +116,7 @@ BW_1	INC	HL
 	JR	Z,BW_1
 	RET
 ;
-EXIT	JP	DOS
+EXIT	JP	DOS_NOERROR
 ;
 M_USAGE	DEFM	'Objcat:  Concatenate Alcor C object files',CR
 	DEFM	'Usage:   OBJCAT infile1 [infile2] [infile3] ... outfile',CR
