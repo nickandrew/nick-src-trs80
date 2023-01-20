@@ -3,6 +3,7 @@
 """Where a symbol is defined in 2 or more files, remove the redundant definitions."""
 
 import argparse
+from   asm_helpers import GetIncludes,GetEquates,DeleteEquates,AddIncludeEarly
 import asm_parser
 import os
 import sys
@@ -10,82 +11,6 @@ import sys
 from lark import Token,Tree
 from lark.reconstruct import Reconstructor
 from lark.visitors import Discard,Transformer,Visitor
-
-class GetIncludes(Visitor):
-    def __init__(self, includes):
-        self.includes = includes
-
-    def get_line(self, tree):
-        filename = tree.children[2].children[0].value.lower()
-        self.includes.add(filename)
-
-class GetEquates(Visitor):
-    def __init__(self, symtab, parser):
-        self.symtab = symtab
-        self.parser = parser
-
-    def line(self, tree):
-        nchildren = len(tree.children)
-        if nchildren < 5:
-            return
-        if isinstance(tree.children[2], Tree) and tree.children[2].data == 'equ':
-            name = tree.children[0].children[0].value
-            value = self.expression_to_string(tree.children[4])
-            self.symtab[name] = value
-
-    def expression_to_string(self, tree):
-        """Turn an expression into the corresponding assembler string."""
-        if tree.data != 'expression':
-            raise ValueError(f'Called expression_to_string() on a non-expression')
-
-        result = Reconstructor(self.parser.parser).reconstruct(tree)
-        return result
-
-
-class DeleteEquates(Transformer):
-    def __init__(self, symtab):
-        self.symtab = symtab
-        self.modified = False
-
-    def line(self, children):
-        # print(f'DeleteEquates line called with {repr(children)}')
-
-        nchildren = len(children)
-        if nchildren < 5:
-            return Tree('line', children)
-        if isinstance(children[2], Tree) and children[2].data == 'equ':
-            symbol = children[0].children[0].value
-            if symbol in self.symtab:
-                self.modified = True
-                # print(f'Discarding line called with {repr(children)}')
-                return Discard
-        return Tree('line', children)
-
-class AddIncludeEarly(Transformer):
-    def __init__(self, filename, includes=None):
-        self.filename = filename.upper()
-        self.includes = includes
-
-    def start(self, children):
-        # children are a sequence of lines
-        cl = len(children)
-        for i in range(cl):
-            # Add *GET before the first non-comment line
-            child = children[i].children[0]  # Actually grandchild
-            if child.data != 'comment':
-                break
-        # Now, i is the index of the first non-comment line, from 0 to cl-1 inclusive
-        new_line = Tree('line', [
-            Tree('get_line', [
-                Tree('star_get', []),
-                Token('TABS', '\t'),
-                Tree('filename', [Token('__ANON_19', self.filename)]),  # Apparently the anon name matters
-            ]),
-            Token('LF', '\n')
-        ])
-
-        children = children[0:i] + [new_line] + children[i:]
-        return Tree('start', children)
 
 
 def process_file(filename, symtab, prefer_file):
