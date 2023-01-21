@@ -23,6 +23,9 @@ grammar = """
         | TABS pseudo_op_ifdef TABS symbol TABS? comment? LF
         | TABS pseudo_op_ifndef TABS symbol TABS? comment? LF
         | TABS pseudo_op_ifref TABS symbol TABS? comment? LF
+        | TABS pseudo_op_page TABS? comment? LF
+        | TABS pseudo_op_subttl TABS? /.+/ LF
+        | TABS pseudo_op_title TABS? /.+/ LF
         | endif_line LF
         | LF
 
@@ -109,6 +112,7 @@ grammar = """
         | op_rla
         | op_rlca
         | op_rlc TABS op10
+        | op_rld
         | op_rl TABS op10
         | op_rra
         | op_rrca
@@ -243,10 +247,13 @@ grammar = """
     pseudo_op_else:   "ELSE"
     pseudo_op_end:    "END"
     pseudo_op_endif:  "ENDIF"
-    pseudo_op_if:     "IF"
     pseudo_op_ifdef:  "IFDEF"
+    pseudo_op_if:     "IF"
     pseudo_op_ifndef: "IFNDEF"
     pseudo_op_ifref:  "IFREF"
+    pseudo_op_page:   "PAGE"
+    pseudo_op_subttl: "SUBTTL"
+    pseudo_op_title:  "TITLE"
 
     // Opcodes
     op_adc:  "ADC"
@@ -277,6 +284,7 @@ grammar = """
     op_rla:  "RLA"
     op_rlca: "RLCA"
     op_rlc:  "RLC"
+    op_rld:  "RLD"
     op_rl:   "RL"
     op_rra:  "RRA"
     op_rrca: "RRCA"
@@ -317,7 +325,7 @@ grammar = """
         | (ind_hl | ind_index) "," short_register
         | register "," expression
         | ind_hl "," expression
-        | "(" expression ")" "," (reg_a | reg_bc | reg_hl | reg_de | reg_sp)
+        | "(" expression ")" "," (reg_a | reg_bc | reg_hl | reg_de | reg_ix | reg_iy | reg_sp)
         | ind_index "," expression
 
     pop_instruction: "POP" TABS (reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy)
@@ -333,16 +341,14 @@ grammar = """
 
     contents_of: "(" long_register ")"
     comment: COMMENT
-    symbol:   /[A-Z0-9_$]+/
-        | /@[A-Z0-9_$]+/           // LDOS @RAMDIR
+    label:    /[A-Z_$@][A-Z0-9_$@?]{0,14}/     // A label cannot start with a number
+    symbol:   /[A-Z_$@][A-Z0-9_$@?]{0,14}/     // A symbol cannot start with a number
 
     filename:   /[A-Z0-9_$]+(\/[A-Z0-9_$]{1,3})?/
     hexnumber: /[0-9A-F]{1,5}H/
     binary_number: /[01]{8}B/
     octal_number: /[0-7]{1,7}O/
     number:  /-?[0-9]+/
-    label:   /[A-Z0-9_$]+/
-        | /@[A-Z0-9_$]+/           // LDOS @RAMDIR
 
     macro_arg:  /#[A-Z0-9_$]+/
 
