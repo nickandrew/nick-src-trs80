@@ -1,0 +1,14 @@
+za.cmd:
+  assemble: za.asm
+  depends:
+  - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - zeta-bbs/games/zork/za.asm
+  - zeta-bbs/games/zork/zorka.asm
+  - zeta-bbs/games/zork/zorkb.asm
+  - zeta-bbs/games/zork/zorkboot.asm
+  - zeta-bbs/games/zork/zorkc.asm
+  - zeta-bbs/games/zork/zorkdos.asm
+  - zeta-bbs/games/zork/zorkfix.asm
+  - zeta-bbs/games/zork/zorksec1.asm

@@ -1,7 +1,9 @@
-;ZorkC/src
+;Zorkc.asm
 ;Zork 1 for TRS-80 I, File 3.
 ;Last updated 15-Feb-86
-;
+
+*GET	DOSCALLS
+
 	LD	A,D
 	LD	HL,H58E7
 	CALL	ADDHLA
@@ -379,7 +381,7 @@ H53B1	POP	DE
 	RET
 ;
 WAIT_KEY	PUSH	DE	;Keyboard input.
-	CALL	0049H
+	CALL	ROM@WAIT_KEY
 	POP	DE
 	RET
 ;
@@ -440,7 +442,7 @@ H5499	LD	(HL),' '
 DO_MORE	LD	(HL),0DH
 	LD	HL,MORE	;more.
 	CALL	MSG_NUL	;was H54b6
-	CALL	0049H	;wait for key hit.
+	CALL	ROM@WAIT_KEY	;wait for key hit.
 	LD	HL,HAAAD
 	CALL	MSG_NUL
 	RET
