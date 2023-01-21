@@ -131,7 +131,7 @@ M_LIST	DEFM	'listbas: ',03H
 M_NOTBAS
 	DEFM	'listbas: Not a tokenised BASIC file.',0DH
 ;
-PUT	CALL	0033H
+PUT	CALL	ROM@PUT_VDU
 	CALL	002BH
 	OR	A
 	RET	Z

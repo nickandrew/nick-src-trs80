@@ -277,7 +277,7 @@ CRLF:	LD	A,CR
 ;
 ; Print character
 PCHAR:	PUSH	DE		; Save register
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	POP	DE		; Restore register
 	RET			; Return
 ;
@@ -298,7 +298,7 @@ PRINTS:	LD	A,(DE)
 	OR	A
 	RET	Z
 	PUSH	DE
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	POP	DE
 	INC	DE
 	JR	PRINTS

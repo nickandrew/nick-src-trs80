@@ -2,3 +2,4 @@ write.cmd:
   assemble: write.asm
   depends:
   - disk-utils/write/write.asm
+  - include/include/doscalls.asm

@@ -1,8 +1,10 @@
 edbann.cmd:
   assemble: edbann.asm
   depends:
+  - include/include/doscalls.asm
   - patches/edtasm/edbann.asm
 edbann2.cmd:
   assemble: edbann2.asm
   depends:
+  - include/include/doscalls.asm
   - patches/edtasm/edbann2.asm

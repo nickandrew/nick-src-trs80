@@ -94,7 +94,7 @@ EXIT:	CALL	ICLOSE		;Close input, output files
 MESS	LD	A,(HL)
 	OR	A
 	RET	Z
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	INC	HL
 	JR	MESS
 ;

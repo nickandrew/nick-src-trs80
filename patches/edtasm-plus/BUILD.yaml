@@ -1,6 +1,7 @@
 diskedt.cmd:
   assemble: diskedt.asm
   depends:
+  - include/include/doscalls.asm
   - patches/edtasm-plus/diskedt.asm
 plus.cmd:
   assemble: plus.asm

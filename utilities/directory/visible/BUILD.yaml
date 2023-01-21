@@ -1,4 +1,5 @@
 visible.cmd:
   assemble: visible.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/directory/visible/visible.asm

@@ -1,4 +1,5 @@
 peekhash.cmd:
   assemble: peekhash.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/peekhash/peekhash.asm

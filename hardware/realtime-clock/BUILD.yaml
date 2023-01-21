@@ -16,3 +16,4 @@ setreal.cmd:
   assemble: setreal.asm
   depends:
   - hardware/realtime-clock/setreal.asm
+  - include/include/doscalls.asm

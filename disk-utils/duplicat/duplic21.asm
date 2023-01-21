@@ -1,6 +1,9 @@
 ;Duplic2/asm: Copies Adventure onto STD disk.
 ;Version 2.1 - saves onto standard disk.
 ; 27-Nov-84.
+
+*GET	DOSCALLS
+
 	ORG	8000H
 START	CALL	RESTOR
 	DI
@@ -24,7 +27,7 @@ DMES	DEFM	'INSERT <DESTINATION> DISK AND HIT RETURN:'
 	DEFB	0DH
 INSDES	LD	HL,DMES
 WTINP	LD	A,(HL)
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	CP	0DH
 	JR	Z,WTOUT
 	INC	HL

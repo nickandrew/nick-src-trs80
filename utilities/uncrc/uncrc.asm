@@ -5,6 +5,9 @@
 ;* Passwords are displayed surrounded by ' *
 ;* Version 1.00, 24-June-84.               *
 ;*******************************************
+
+*GET	DOSCALLS
+
 	ORG	5200H
 BYTE	DEFB	0E0H	;Encoded password value
 	DEFB	42H	;equals E042H.
@@ -21,21 +24,21 @@ LOOP	CALL	COMPARE
 	CALL	INCREM
 	JR	LOOP
 PRINT	LD	A,27H
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	LD	HL,TABLE
 	LD	B,8
 PRINT8	PUSH	BC
 	PUSH	HL
 	LD	A,(HL)
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	POP	HL
 	POP	BC
 	INC	HL
 	DJNZ	PRINT8
 	LD	A,27H
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	LD	A,20H
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	RET	
 INCREM	LD	HL,TABLE
 	LD	C,0

@@ -6,6 +6,9 @@
 ;ports 64/80 to 79/95 are MSM5832rs registers.
 ;
 ;
+
+*GET	DOSCALLS
+
 	ORG	5300H
 START	LD	SP,START
 D_1	LD	HL,M_DATE
@@ -105,7 +108,7 @@ MESSAGE	LD	A,(HL)
 	CP	03H
 	RET	Z
 	INC	HL
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	JR	MESSAGE
 ;
 M_DATE	DEFM	'Enter date in form DD/MM/YY: ',03H

@@ -1,4 +1,5 @@
 prime2.cmd:
   assemble: prime2.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/prime/prime2.asm
