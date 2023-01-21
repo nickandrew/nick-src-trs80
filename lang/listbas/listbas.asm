@@ -18,7 +18,7 @@ START
 	JP	NZ,FILE_ERR
 ;
 	LD	DE,FCB_I
-	CALL	$GET
+	CALL	ROM@GET
 	CP	0FFH
 	JR	Z,HEADER
 ;Should jump to LIST filename instead.
@@ -27,22 +27,22 @@ START
 	JP	DOS_NOERROR
 ;
 HEADER	LD	DE,FCB_I
-	CALL	$GET		;addr 1
+	CALL	ROM@GET		;addr 1
 	LD	L,A
-	CALL	$GET		;addr 2
+	CALL	ROM@GET		;addr 2
 	LD	H,A
 	LD	A,H
 	OR	L
 	JP	Z,EXIT
-	CALL	$GET		;line 1
+	CALL	ROM@GET		;line 1
 	LD	L,A
-	CALL	$GET		;line 2
+	CALL	ROM@GET		;line 2
 	LD	H,A
 ;
 ;;	call	print_numb
 ;
 LOOP	LD	DE,FCB_I
-	CALL	$GET
+	CALL	ROM@GET
 	JR	NZ,EOF
 	CP	80H
 	JR	NC,XLATE
@@ -100,7 +100,7 @@ PUT_TOK
 	JR	PUT_TOK
 ;
 F0_HEX	LD	DE,FCB_I
-	CALL	$GET
+	CALL	ROM@GET
 	JR	LOOP
 ;
 FILE_ERR

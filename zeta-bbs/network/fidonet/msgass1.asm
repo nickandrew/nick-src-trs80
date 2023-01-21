@@ -65,7 +65,7 @@ OPEN_FILES
 	LD	HL,STATS_REC
 	LD	B,16
 	LD	DE,TOP_FCB
-OF_01	CALL	$GET
+OF_01	CALL	ROM@GET
 	JP	NZ,ERROR
 	LD	(HL),A
 	INC	HL
@@ -102,7 +102,7 @@ RN_01	LD	HL,(EM)		;store addr of start
 	LD	(NODE_SHORT),HL
 RN_02				;read in shortname
 	LD	DE,NETN_FCB
-	CALL	$GET
+	CALL	ROM@GET
 	JR	Z,RN_04
 	CP	1CH
 	JR	Z,RN_03
@@ -193,7 +193,7 @@ RL_03	LD	HL,(EM)		;store addr of start
 	LD	(LINK_NAME),HL
 RL_04				;read in shortname
 	LD	DE,NETL_FCB
-	CALL	$GET
+	CALL	ROM@GET
 	JR	Z,RL_06
 	CP	1CH
 	JR	Z,RL_05
@@ -812,10 +812,10 @@ COPY_MSG:
 	JR	NZ,CM_01	;Must be public if echomail
 	LD	A,B
 CM_01
-	CALL	$PUT
+	CALL	ROM@PUT
 ;
 	XOR	A		;2nd flags byte
-	CALL	$PUT
+	CALL	ROM@PUT
 ;
 ;And set the cost to something...
 	LD	HL,10		;10 cents
@@ -861,9 +861,9 @@ CM_01A
 	LD	HL,ADDRESS
 	CALL	FPUTS
 	LD	A,CR
-	CALL	$PUT
+	CALL	ROM@PUT
 	LD	A,LF
-	CALL	$PUT
+	CALL	ROM@PUT
 CM_01B
 ;If not echomail bypass area line append.
 	LD	A,(F_ECHO)
@@ -888,17 +888,17 @@ CM_02
 	JR	NZ,CM_03
 ;
 	LD	DE,PKT_FCB
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 	LD	A,LF
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 	JR	CM_02
 ;
 CM_03	OR	A
 	JR	Z,CM_04
 	LD	DE,PKT_FCB
-	CALL	$PUT
+	CALL	ROM@PUT
 	JR	CM_02
 ;
 CM_04
@@ -913,14 +913,14 @@ CM_04
 ;
 CM_05	LD	DE,PKT_FCB
 	XOR	A
-	CALL	$PUT
+	CALL	ROM@PUT
 ;Write the two zero bytes signifying end of packet
 ; into the packet file.
 	XOR	A
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 	XOR	A
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 	RET			;finished copy.
 ;
@@ -977,19 +977,19 @@ ERROR	PUSH	AF
 	OR	20H
 	JP	TERMINATE
 ;
-GETZ	CALL	$GET
+GETZ	CALL	ROM@GET
 	RET	Z
 	JP	ERROR
 ;
 PUTW	LD	A,L
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET	NZ
 	LD	A,H
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 PUTNULL	XOR	A
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 CORRUPT:
@@ -1014,7 +1014,7 @@ BAD_ADDRESS
 	CALL	LOG_MSG
 	LD	A,CR
 	LD	DE,DCB_2O
-	CALL	$PUT
+	CALL	ROM@PUT
 	XOR	A
 	CP	1
 	RET		;from FIO, bypass this msg.
@@ -1026,7 +1026,7 @@ MESS	LD	DE,DCB_2O
 ;
 PUTCR	LD	A,CR
 	LD	DE,DCB_2O
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 ADD_SUM	PUSH	HL
@@ -1067,7 +1067,7 @@ FPUTS_ID
 	RET	Z
 	CP	'@'
 	RET	Z
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET	NZ
 	INC	HL
 	JR	FPUTS_ID

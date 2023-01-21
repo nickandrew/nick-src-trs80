@@ -105,7 +105,7 @@ WRIT_STATUS
 	CALL	DOS_POS_RBA
 	JP	NZ,ERROR
 	LD	A,(UF_STATUS)
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 ;
 	;now zero the hash byte if deleting.
@@ -123,7 +123,7 @@ WRIT_STATUS
 	CALL	DOS_POS_RBA
 	JP	NZ,ERROR
 	XOR	A		;hash of zero=empty slot
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 ;
 	;finished. close files & leave.

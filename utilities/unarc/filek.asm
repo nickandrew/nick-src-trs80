@@ -43,7 +43,7 @@ BITS:	DS	1		;  Bit count for crunched input
 STRCT:	DS	2		; No. entries in crunched string table
 ; Tables and buffers for file output
 ; (All of the following must be page-aligned)
-	ORG $+255.AND.0FF00H	; Align to page boundary
+	ORG	$+255.AND.0FF00H	; Align to page boundary
 CRCTAB:	DS	256*2		; CRC lookup table (256 2-byte values)
 BUFF	EQU	$		; Output buff for non-squeezed/crunched
 				; or:
@@ -59,5 +59,3 @@ HSHT	EQU	BUFFCR		; Extra table for hash code chaining
 HSHSZ	EQU	4096*2		; (4K 2-byte entries)
 BUFFCX	EQU	HSHT+HSHSZ	; Output buffer for older crunched files
 ; That's all, folks!
-;
-	END	BEGIN

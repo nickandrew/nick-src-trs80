@@ -40,7 +40,7 @@ HV_3	LD	HL,M_AGRD
 PUTS_0	LD	A,(HL)
 	OR	A
 	RET	Z
-	CALL	$PUT
+	CALL	ROM@PUT
 	JR	NZ,PUTS_0A	;fileio error.
 	INC	HL
 	JR	PUTS_0
@@ -138,7 +138,7 @@ REG_00B	;is OK.
 	JP	NZ,ERROR
 	LD	B,0
 ADD_1	XOR	A		;Write 256 zeroes.
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 	DJNZ	ADD_1
 ADD_2
@@ -153,7 +153,7 @@ ADD_2
 	CALL	DOS_POS_RBA
 	JP	NZ,ERROR
 	LD	A,(US_HASH)
-	CALL	$PUT		;Write hash.
+	CALL	ROM@PUT		;Write hash.
 	JP	NZ,ERROR
 ;
 ;Now write rest of data.
@@ -258,7 +258,7 @@ ADD_25
 	LD	B,UF_LRL
 	LD	DE,US_FCB
 ADD_5	LD	A,(HL)
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 	INC	HL
 	DJNZ	ADD_5
@@ -283,7 +283,7 @@ ADD_5	LD	A,(HL)
 	LD	HL,US_UBUFF
 	LD	B,UF_LRL
 ADD_6	LD	A,(HL)
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 	INC	HL
 	DJNZ	ADD_6
@@ -300,7 +300,7 @@ ADD_6	LD	A,(HL)
 	RET
 ;
 PUT_CR	LD	A,CR
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 ;instr: Check if one string contains another.

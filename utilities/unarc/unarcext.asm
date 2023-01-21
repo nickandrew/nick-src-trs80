@@ -29,7 +29,7 @@ $KBD	EQU	4015H		;Kbd device driver
 $VDU	EQU	401DH		;VDU device driver
 ;
 ;Rom / Dos System calls.
-$CTL	EQU	0023H		;device control
+ROM@CTL	EQU	0023H		;device control
 ;
 ;High Memory ZETA System calls and data
 LOST_CARRIER	EQU	0FF40H	;J- Lost Carrier

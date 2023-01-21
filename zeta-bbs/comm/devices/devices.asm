@@ -301,7 +301,7 @@ DEV_2	JR	C,DEV_2I
 DEV_2O	LD	A,C
 	PUSH	BC
 	LD	DE,$DO
-	CALL	$PUT
+	CALL	ROM@PUT
 	POP	BC
 ;;	RET	NZ
 	LD	A,(SYS_STAT)
@@ -309,7 +309,7 @@ DEV_2O	LD	A,C
 	JR	NZ,NO_2SO
 	LD	A,C
 	LD	DE,$SO
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 NO_2SO
@@ -321,14 +321,14 @@ NO_2SO
 ;Dual $KI and $SI input driver.
 DEV_2I
 	LD	DE,$KI
-	CALL	$GET		;first keyboard.
+	CALL	ROM@GET		;first keyboard.
 	OR	A
 	JR	NZ,D2I_KEY
 	LD	A,(SYS_STAT)
 	BIT	SYS_TEST,A
 	JR	NZ,NO_2SI
 	LD	DE,$SI
-	CALL	$GET		;then serial.
+	CALL	ROM@GET		;then serial.
 	CP	A
 	RET
 ;

@@ -93,7 +93,7 @@ MESS	LD	A,(HL)
 ;
 PUTCHAR
 	LD	DE,($STDOUT_DEF)
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 TO_UPPER
@@ -488,10 +488,10 @@ AD_4
 ;Assume that stuff above is correct. Write file
 ;byte by byte to DAT file.
 AD_5	LD	DE,FILE
-	CALL	$GET		;**** Patch Place ****
+	CALL	ROM@GET		;**** Patch Place ****
 	JR	NZ,AD_6
 	LD	DE,DIR_DAT
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,BAD_ERROR
 	JR	AD_5
 AD_6	CP	1CH
@@ -602,7 +602,7 @@ ED_5	LD	A,H
 	JR	NZ,ED_6
 	DEC	HL
 ED_6	LD	DE,DIR_DAT
-	CALL	$GET		;**** Patch Place ****
+	CALL	ROM@GET		;**** Patch Place ****
 	JP	NZ,BAD_ERROR
 	PUSH	HL
 	PUSH	BC
@@ -649,7 +649,7 @@ OF_1	PUSH	HL
 	LD	A,(HL)
 	LD	DE,FILE
 	INC	HL
-	CALL	$PUT
+	CALL	ROM@PUT
 	JR	Z,OF_1
 	JP	BAD_ERROR
 OF_2	LD	HL,START_BUFFER

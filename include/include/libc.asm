@@ -101,7 +101,7 @@ _FPUTC
 	INC	HL
 	LD	D,(HL)
 	LD	A,C
-	CALL	$PUT
+	CALL	ROM@PUT
 	JR	NZ,$C_03
 	LD	L,C
 	LD	H,0
@@ -299,7 +299,7 @@ _FGETC
 	LD	E,(HL)
 	INC	HL
 	LD	D,(HL)
-	CALL	$GET
+	CALL	ROM@GET
 	LD	L,A
 	LD	H,0
 	RET	Z
@@ -311,7 +311,7 @@ FG_01				;fgetc from terminal
 	LD	E,(HL)
 	INC	HL
 	LD	D,(HL)
-FG_02	CALL	$GET
+FG_02	CALL	ROM@GET
 	OR	A
 	JR	Z,FG_02
 	LD	L,A
@@ -347,7 +347,7 @@ _FPUTS
 $C_04	LD	A,(HL)
 	OR	A
 	RET	Z
-	CALL	$PUT
+	CALL	ROM@PUT
 ;;	RET	NZ
 	INC	HL
 	JR	$C_04

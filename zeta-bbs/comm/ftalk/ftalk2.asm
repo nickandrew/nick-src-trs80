@@ -1,11 +1,11 @@
 ;Ftalk2:  Zeta implementation of the Fidonet data link protocol
 ;Incorporating Ftalk and Getpkt.
 ;
-;2.0b   14 Jun 90:	Log the PKTnnnn.NET file into INFILES
-;			Reorganise, add some error logging
-;2.0a	19 May 90:	Stop ftalk2 from removing received bundles!
-;			If transfer fails, do not do line turnaround
-;2.0	24 Mar 90:	Base version
+;2.0b   14 Jun 90:      Log the PKTnnnn.NET file into INFILES
+;                       Reorganise, add some error logging
+;2.0a	19 May 90:      Stop ftalk2 from removing received bundles!
+;                       If transfer fails, do not do line turnaround
+;2.0	24 Mar 90:      Base version
 ;
 *GET	DOSCALLS
 *GET	EXTERNAL
@@ -602,17 +602,17 @@ CV_03	LD	A,(HL)
 CV_06
 	LD	DE,$DO
 	LD	A,''''
-	CALL	$PUT
+	CALL	ROM@PUT
 	LD	HL,TEMPFN
 	LD	B,11
 CV_07	LD	A,(HL)
-	CALL	$PUT
+	CALL	ROM@PUT
 	INC	HL
 	DJNZ	CV_07
 	LD	A,''''
-	CALL	$PUT
+	CALL	ROM@PUT
 	LD	A,CR
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 ; Zap a digit to a corresponding letter
@@ -635,7 +635,7 @@ READFN
 	LD	HL,FA_FILE
 	LD	DE,FA_FCB
 	LD	B,31
-RF_01	CALL	$GET
+RF_01	CALL	ROM@GET
 	RET	NZ
 	CP	CR
 	JR	Z,RF_02
@@ -903,13 +903,13 @@ WRITE_INF
 	PUSH	HL
 	LD	DE,FCB_INF
 	LD	A,' '
-	CALL	$PUT
+	CALL	ROM@PUT
 	LD	A,' '
-	CALL	$PUT
+	CALL	ROM@PUT
 	POP	HL
 	CALL	FPUTS
 	LD	A,CR
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 ;Close the INFILES file
@@ -950,13 +950,13 @@ MF_01
 	PUSH	AF
 	LD	A,'"'
 	LD	DE,$DO
-	CALL	$PUT
+	CALL	ROM@PUT
 	POP	AF
-	CALL	$PUT
+	CALL	ROM@PUT
 	LD	A,'"'
-	CALL	$PUT
+	CALL	ROM@PUT
 	LD	A,' '
-	CALL	$PUT
+	CALL	ROM@PUT
 	JR	MF_00
 ;
 ;No files attached.
@@ -1084,7 +1084,7 @@ WHICH_LINK
 	LD	DE,PKT_FCB
 	LD	HL,HEAD
 	LD	B,58
-WL_01	CALL	$GET
+WL_01	CALL	ROM@GET
 	JP	NZ,WL_02	;If error
 	LD	(HL),A
 	INC	HL
@@ -1102,7 +1102,7 @@ WL_02
 ;
 ;Get the next word from the file
 GET_WORD
-	CALL	$GET
+	CALL	ROM@GET
 	RET	NZ
 	CP	' '
 	JR	Z,GW_01
@@ -1243,7 +1243,7 @@ BS_2
 C_FLAG		DEFB	0	;1 = Calling out to NNN/NNN
 L_FLAG		DEFB	0	;1 = Listen first (we were called)
 FATAL		DEFB	0	;1 = Connection failed somewhere
-SENTPKT 	DEFB	0	;1 = Outgoing bundle was sent
+SENTPKT		DEFB	0	;1 = Outgoing bundle was sent
 TRIES		DEFB	0	;Count of file send attempts
 ;
 TO_NET		DEFW	0	;Calling/called net

@@ -41,8 +41,9 @@ DOS_TIME	EQU	446DH	;convert clock time to HH:MM:SS format
 DOS_DATE	EQU	4470H	;convert date to MM/DD/YY format
 DOS_EXTEND	EQU	4473H	;Insert default name extension into filespec
 ;
-$GET		EQU	0013H	;read byte from device/file
-$PUT		EQU	001BH	;write byte to device/file
+ROM@GET		EQU	0013H	;read byte from device/file
+ROM@PUT		EQU	001BH	;write byte to device/file
+ROM@CTL		EQU	0023H	;write control byte to device/file
 ;
 ; Dos Errors.
 DE_DR_NF_DR	EQU	05H

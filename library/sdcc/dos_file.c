@@ -213,7 +213,7 @@ int dos_write_byte(union dos_fcb *fcb, char ch) __naked __sdcccall(0)
   ld e,0(iy)  ; fcb low
   ld d,1(iy)  ; fcb high
   ld a,2(iy)  ; buf low
-  call 0x001b ; DOS_WRIT_BYTE
+  call 0x001b ; ROM@PUT
   ld hl, #0
   ret z
   ld l, a
@@ -232,7 +232,7 @@ int dos_read_byte(union dos_fcb *fcb) __naked __sdcccall(0)
   add iy,sp
   ld e,0(iy)  ; fcb low
   ld d,1(iy)  ; fcb high
-  call 0x0013 ; DOS_READ_BYTE
+  call 0x0013 ; ROM@GET
   ld l, a
   ld h, #0
   ret z
@@ -252,7 +252,7 @@ int dos_control_byte(union dos_fcb *fcb) __naked __sdcccall(0)
         add     iy,sp
         ld      e,0(iy)  ; fcb low
         ld      d,1(iy)  ; fcb high
-        call    0x0023   ; $CTL/@CTL/CTLBYT
+        call    0x0023   ; ROM@CTL/@CTL/CTLBYT
         ld      l, a
         ld      h, #0
         ret     z

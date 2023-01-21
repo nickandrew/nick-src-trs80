@@ -113,7 +113,7 @@ RDF_1	PUSH	BC
 ;Force the topic file into byte (or LRL) I/O mode, so
 ;write_topic will not trash the first sector.
 	LD	DE,TOP_FCB
-	CALL	$GET
+	CALL	ROM@GET
 ;
 	RET
 ;
@@ -310,7 +310,7 @@ WRITE_TOPIC_NO
 	JP	NZ,WRT_ERROR
 ;
 	LD	A,1
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,WRT_ERROR
 	RET
 ;

@@ -71,7 +71,7 @@ GET
 	PUSH	DE
 	PUSH	HL
 	LD	DE,IFCB
-	CALL	$GET
+	CALL	ROM@GET
 	SCF
 	CCF			;Ensure carry flag is cleared
 	POP	HL
