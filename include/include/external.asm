@@ -29,9 +29,6 @@ DCB_2O	EQU	0FF28H		;8- Screen AND serial out (equivalent to DCB_2I)
 $KBD	EQU	4015H		;Kbd device driver
 $VDU	EQU	401DH		;VDU device driver
 ;
-;Aliased devices...
-$S	EQU	0FF10H
-;
 ;Rom / Dos System calls.
 $CTL	EQU	0023H		;device control
 ;
