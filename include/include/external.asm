@@ -26,8 +26,8 @@ DCB_2O	EQU	0FF28H		;8- Screen AND serial out (equivalent to DCB_2I)
 ;;$TA	EQU	0FF38H		;8- type-ahead.
 ;
 ;Standard devices
-$KBD	EQU	4015H		;Kbd device driver
-$VDU	EQU	401DH		;VDU device driver
+DCB_KBD$	EQU	4015H		;Kbd device driver
+DCB_VDU$	EQU	401DH		;VDU device driver
 ;
 ;High Memory ZETA System calls and data
 LOST_CARRIER	EQU	0FF40H	;J- Lost Carrier (See special.asm)

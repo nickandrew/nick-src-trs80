@@ -397,9 +397,9 @@ GI_04
 ;
 ;I don't think this is wise at all!
 SETUP	LD	HL,(DCB_2I+1)	;Route devices
-	LD	($KBD+1),HL
+	LD	(DCB_KBD$+1),HL
 	LD	HL,(DCB_2O+1)
-	LD	($VDU+1),HL
+	LD	(DCB_VDU$+1),HL
 ;
 	CALL	OPEN_UFILE
 	RET

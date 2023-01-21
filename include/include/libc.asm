@@ -11,9 +11,9 @@ _NULL	EQU	0
 ;
 MAX_FILES	EQU	20
 FD_LEN		EQU	3
-KBD_DCB		EQU	4015H
-VDU_DCB		EQU	401DH
-PTR_DCB		EQU	4025H
+DCB_KBD$		EQU	4015H
+DCB_VDU$		EQU	401DH
+DCB_PTR$		EQU	4025H
 ;
 FD_ARRAY	DC	MAX_FILES*FD_LEN,0
 ;
@@ -461,15 +461,15 @@ _FOPEN
 	LD	DE,NULL_DCB
 	JR	Z,$C_11B
 	CP	'L'		; ":L" is line printer
-	LD	DE,PTR_DCB
+	LD	DE,DCB_PTR$
 	JR	Z,$C_11B
 	CP	'C'		; ":C" is console
 	JR	NZ,$C_13
 	LD	A,($C_06V)	; Get mode
 	CP	'r'
-	LD	DE,KBD_DCB	; If 'r' then use keyboard
+	LD	DE,DCB_KBD$	; If 'r' then use keyboard
 	JR	Z,$C_11B
-	LD	DE,VDU_DCB	; Otherwise, use VDU
+	LD	DE,DCB_VDU$	; Otherwise, use VDU
 	JR	$C_11B
 
 ; Copy the filename into the FCB pointed to by DE

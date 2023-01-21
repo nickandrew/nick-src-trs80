@@ -229,9 +229,9 @@ RUN_ANSWER
 ;
 UNROUTE				;the devices.
 	LD	HL,4516H
-	LD	($KBD+1),HL
+	LD	(DCB_KBD$+1),HL
 	LD	HL,4505H
-	LD	($VDU+1),HL
+	LD	(DCB_VDU$+1),HL
 ;;	LD	HL,SYS_STAT
 ;;	RES	3,(HL)
 	LD	HL,$DO

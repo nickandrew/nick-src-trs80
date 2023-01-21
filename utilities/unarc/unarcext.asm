@@ -25,8 +25,8 @@ DCB_2I	EQU	0FF20H		;8- keyboard OR serial in (equivalent to DCB_2O)
 DCB_2O	EQU	0FF28H		;8- Screen AND serial out (equivalent to DCB_2I)
 ;
 ;Standard devices
-$KBD	EQU	4015H		;Kbd device driver
-$VDU	EQU	401DH		;VDU device driver
+DCB_KBD$	EQU	4015H		;Kbd device driver
+DCB_VDU$	EQU	401DH		;VDU device driver
 ;
 ;Rom / Dos System calls.
 ROM@CTL	EQU	0023H		;device control

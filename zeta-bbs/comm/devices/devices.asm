@@ -404,7 +404,7 @@ VDU_XLATE
 	LD	C,(HL)
 DEV_DO_OUT
 	POP	AF
-	LD	IX,$VDU		;Use $VDU cursor.
+	LD	IX,DCB_VDU$		;Use $VDU cursor.
 	CALL	4505H		;NEWDOS DEPENDANT!!
 ;
 	LD	A,(F_XOFF)	;XOFF flag
