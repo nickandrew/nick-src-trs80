@@ -29,9 +29,6 @@ DCB_2O	EQU	0FF28H		;8- Screen AND serial out (equivalent to DCB_2I)
 $KBD	EQU	4015H		;Kbd device driver
 $VDU	EQU	401DH		;VDU device driver
 ;
-;Rom / Dos System calls.
-ROM@CTL	EQU	0023H		;device control
-;
 ;High Memory ZETA System calls and data
 LOST_CARRIER	EQU	0FF40H	;J- Lost Carrier (See special.asm)
 IO_TIMEOUT	EQU	0FF43H	;J- Timeout. (See special.asm)

@@ -2,7 +2,7 @@
 ; Also common Dos error messages & numbers.
 ;
 
-CURSOR		EQU	4020H	; cursor position?
+CURSOR$		EQU	4020H	; cursor position?
 DOS_NOERROR	EQU	402DH	;no error
 DOS_DISP_ERROR	EQU	4030H	;error displayed exit
 DOS_COMMAND	EQU	4405H	;enter DOS and execute a command
@@ -44,6 +44,8 @@ DOS_EXTEND	EQU	4473H	;Insert default name extension into filespec
 ROM@GET		EQU	0013H	;read byte from device/file
 ROM@PUT		EQU	001BH	;write byte to device/file
 ROM@CTL		EQU	0023H	;write control byte to device/file
+ROM@WAIT_LINE	EQU	0040H	;wait for a line of input from the keyboard
+ROM@WAIT_KEY	EQU	0049H	;wait for a key to be pressed and return it
 ;
 ; Dos Errors.
 DE_DR_NF_DR	EQU	05H

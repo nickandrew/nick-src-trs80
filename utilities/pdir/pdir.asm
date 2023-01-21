@@ -1,6 +1,9 @@
 ;pdir/asm: do a printer oriented 'DIR I P'
 ; Ver 1.4 on 29-Dec-84
 ;
+
+*GET	DOSCALLS
+
 	ORG	5200H
 START	LD	A,(HL)
 	SUB	'0'
@@ -13,7 +16,7 @@ START	LD	A,(HL)
 	JP	NZ,4409H
 	LD	HL,MESS
 	CALL	4467H
-KEY	CALL	0049H
+KEY	CALL	ROM@WAIT_KEY
 	CP	5BH	;Escape
 	JP	Z,402DH
 	CP	0DH	;New Line
