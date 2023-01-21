@@ -69,14 +69,19 @@ class AddIncludeEarly(Transformer):
         for i in range(cl):
             # Add *GET before the first non-comment line
             child = children[i].children[0]  # Actually grandchild
+            # Break at first empty line or non-comment
+            if isinstance(child, Token):
+                break
+
             if child.data != 'comment':
                 break
+
         # Now, i is the index of the first non-comment line, from 0 to cl-1 inclusive
         new_line = Tree('line', [
             Tree('get_line', [
                 Tree('star_get', []),
                 Token('TABS', '\t'),
-                Tree('filename', [Token('__ANON_19', self.filename)]),  # Apparently the anon name matters
+                Tree('filename', [Token('__ANON_18', self.filename)]),  # Apparently the anon name matters
             ]),
             Token('LF', '\n')
         ])
