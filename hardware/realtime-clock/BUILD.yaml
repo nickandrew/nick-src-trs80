@@ -12,6 +12,7 @@ setclock.cmd:
   assemble: setclock.asm
   depends:
   - hardware/realtime-clock/setclock.asm
+  - include/include/doscalls.asm
 setreal.cmd:
   assemble: setreal.asm
   depends:

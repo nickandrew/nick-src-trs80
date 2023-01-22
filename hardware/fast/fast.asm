@@ -3,6 +3,9 @@
 ;'fast N' - low speed.
 ;
 ;Version 1.0, 07-Oct-84.
+
+*GET	DOSCALLS
+
 	ORG	5200H
 FAST	LD	A,(HL)
 	CP	'N'
@@ -10,12 +13,12 @@ FAST	LD	A,(HL)
 	LD	A,1
 	OUT	(254),A
 	LD	HL,MFAST
-	CALL	4467H
+	CALL	MESS_DO
 	JP	402DH
 SLOW	XOR	A
 	OUT	(254),A
 	LD	HL,MSLOW
-	CALL	4467H
+	CALL	MESS_DO
 	JP	402DH
 ;
 MFAST	DEFM	'Now running at HIGH speed.',0DH

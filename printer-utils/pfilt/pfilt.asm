@@ -1,5 +1,8 @@
 ;pfilt: filter out rubbish from printer
 ;such as cursor on/off ...
+
+*GET	DOSCALLS
+
 	COM	'<Printer Filter V1 19-Mar-85>'
 	ORG	5200H
 START	LD	HL,(4049H)
@@ -15,7 +18,7 @@ START	LD	HL,(4049H)
 	POP	BC
 	LDIR
 	LD	HL,M_DVR
-	CALL	4467H
+	CALL	MESS_DO
 	JP	402DH
 ;
 M_DVR	DEFM	'Clean Printer Driver V1 19-Mar-85.',0DH

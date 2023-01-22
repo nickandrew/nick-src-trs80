@@ -17,6 +17,9 @@
 ; density) not the double density track which the DOS
 ; makes. Use Super Utility to write the real track 0.
 ;
+
+*GET	DOSCALLS
+
 NEWDOS	EQU	01H		;use sector 1 as boot.
 DIRTRK	EQU	40
 SECTOR	EQU	NEWDOS
@@ -87,7 +90,7 @@ LOOP	OUT	(C),D
 	LD	DE,37EFH	;data register
 	LD	(HL),00H	;restore r/w head FAST!
 	LD	BC,0
-	CALL	0060H		;delay
+	CALL	ROM@PAUSE		;delay
 LOOP2	BIT	0,(HL)		;wait till done
 	JR	NZ,LOOP2
 ;

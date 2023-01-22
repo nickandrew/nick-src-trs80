@@ -1,6 +1,7 @@
 commands.cmd:
   assemble: commands.asm
   depends:
+  - include/include/doscalls.asm
   - os/newdos-80/commands.asm
 erase.cmd:
   assemble: erase.asm

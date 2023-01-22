@@ -1,4 +1,5 @@
 pfilt.cmd:
   assemble: pfilt.asm
   depends:
+  - include/include/doscalls.asm
   - printer-utils/pfilt/pfilt.asm

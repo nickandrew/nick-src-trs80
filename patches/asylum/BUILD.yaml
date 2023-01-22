@@ -5,4 +5,5 @@ disk.cmd:
 disk2.cmd:
   assemble: disk2.asm
   depends:
+  - include/include/doscalls.asm
   - patches/asylum/disk2.asm

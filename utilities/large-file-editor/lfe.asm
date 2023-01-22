@@ -21,7 +21,7 @@ COMMAND
 	CALL	MESS
 	LD	HL,CMD_BUFF
 	LD	B,62
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	JP	C,COMMAND
 ;
 	LD	HL,0		;Set range defaults.
@@ -849,7 +849,7 @@ INSERT				;Default is .i
 IN_01
 	LD	HL,INS_BUFF
 	LD	B,80
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	JR	C,IN_01
 	LD	A,(HL)
 	CP	'.'
@@ -948,7 +948,7 @@ APPEND				;Default is .a
 AP_01
 	LD	HL,INS_BUFF
 	LD	B,80
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	JR	C,AP_01
 	LD	A,(HL)
 	CP	'.'

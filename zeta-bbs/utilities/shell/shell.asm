@@ -86,7 +86,7 @@ NO_PROMPT
 ;Ask for command line input
 	LD	HL,INPUT_LINE
 	LD	B,62
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	JR	C,COMMAND	;if break hit
 	CALL	TERMINATE_S
 	LD	HL,INPUT_LINE
