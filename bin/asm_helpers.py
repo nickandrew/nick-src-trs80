@@ -91,25 +91,26 @@ class AddIncludeEarly(Transformer):
 
 
 class RenameSymbol(Transformer):
-    def __init__(self, from_symbol, to_symbol):
-        self.from_symbol = from_symbol
-        self.to_symbol = to_symbol
+    def __init__(self, symbol_map: Dict):
+        self.symbol_map= symbol_map
         self.modified = False
 
     def label(self, children):
         # print(f'label() called with {repr(children)}')
 
-        if children[0] == self.from_symbol:
+        if children[0] in self.symbol_map:
+            to_symbol = self.symbol_map[children[0]]
             key = children[0].type
             self.modified = True
-            return Tree('label', [Token(key, self.to_symbol)])
+            return Tree('label', [Token(key, to_symbol)])
         return Tree('label', children)
 
     def symbol(self, children):
         # print(f'symbol() called with {repr(children)}')
 
-        if children[0] == self.from_symbol:
+        if children[0] in self.symbol_map:
+            to_symbol = self.symbol_map[children[0]]
             self.modified = True
             key = children[0].type
-            return Tree('symbol', [Token(key, self.to_symbol)])
+            return Tree('symbol', [Token(key, to_symbol)])
         return Tree('symbol', children)
