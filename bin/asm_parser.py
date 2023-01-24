@@ -41,6 +41,8 @@ grammar = """
         | add_expr eop_xor mul_expr       // Not sure of precedence of .XOR.
         | add_expr eop_and mul_expr       // Not sure of precedence of .AND.
         | add_expr eop_eq mul_expr        // Not sure of precedence of .EQ.
+        | add_expr eop_gt mul_expr        // Not sure of precedence of .GT.
+        | add_expr eop_shleft mul_expr    // Not sure of precedence of .SHL.
 
     mul_expr: unary_expr
         | mul_expr eop_times unary_expr
@@ -304,9 +306,11 @@ grammar = """
     eop_and:    ".AND."
     eop_divide: "/"
     eop_eq:     ".EQ."
+    eop_gt:     ".GT."
     eop_minus:  "-"
     eop_not:    ".NOT."
     eop_plus:   "+"
+    eop_shleft: ".SHL."
     eop_times:  "*"
     eop_uminus: "-"
     eop_uplus:  "+"
