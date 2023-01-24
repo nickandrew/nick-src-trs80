@@ -14,8 +14,3 @@ program-template.cmd:
   - zeta-bbs/include/libcz.asm
   - include/include/libc.asm
   skip: Not intended to assemble
-userfunc.cmd:
-  assemble: userfunc.asm
-  depends:
-  - zeta-bbs/include/userfunc.asm
-  skip: No end statement

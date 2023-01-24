@@ -42,8 +42,8 @@ SIG_PUSH_BYTES	EQU	8
 MAX_ISTACK_BYT	EQU	1024	;?
 ;
 ;	Device numbers of root (ram) & boot (fd0) devices
-ROOT_DEV	EQU	1>>MAJOR
-BOOT_DEV	EQU	2>>MAJOR
+ROOT_DEV	EQU	1.SHL.MAJOR
+BOOT_DEV	EQU	2.SHL.MAJOR
 ;
 ;	Flag bits for i_mode in the inode
 I_TYPE		EQU	0F000H

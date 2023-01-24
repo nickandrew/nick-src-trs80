@@ -1,0 +1,13 @@
+dialout.cmd:
+  assemble: dialout.asm
+  depends:
+  - include/include/ascii.asm
+  - include/include/ci_cmp.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - zeta-bbs/comm/dialout/dialout.asm
+  - zeta-bbs/include/fidonet.asm
+  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/sec10.asm
+  - zeta-bbs/include/userfile.asm
