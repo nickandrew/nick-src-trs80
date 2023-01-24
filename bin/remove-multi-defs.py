@@ -41,7 +41,7 @@ def process_file(filename, symtab, prefer_file):
 
 
 
-def get_labels(filename):
+def get_labels(filename, check_values=False):
     """Parse filename and retrieve the names and values of labels.
 
     Ignore multiple definitions (due to conditional assembly).
@@ -54,30 +54,35 @@ def get_labels(filename):
     visitor = GetEquates(symtab=symtab, parser=parser)
     visitor.visit(tree)
     print(f'Final symtab to prune is {symtab}')
-    # Check the symtab
-    values = {}
-    failed = False
-    for k in symtab:
-        v = symtab[k]
-        if v in values:
-            failed = True
-            print(f'Value {v} is shared by keys {values[v]} and {k} in equates')
-        values[v] = k
 
-    if failed:
-        raise ValueError('Duplicate symbols have the same value')
+    if check_values:
+        # Check for multiple labels sharing the same value. For memory addresses, it often
+        # means one symbol should be renamed to another. But this doesn't apply to other
+        # uses of EQU (e.g. small numbers).
+        values = {}
+        failed = False
+        for k in symtab:
+            v = symtab[k]
+            if v in values:
+                failed = True
+                print(f'Value {v} is shared by keys {values[v]} and {k} in equates')
+            values[v] = k
+
+        if failed:
+            raise ValueError('Duplicate symbols have the same value')
 
     return symtab
 
 def parse_args():
     p = argparse.ArgumentParser(description='Refactor ASM files to remove multiple definitions')
+    p.add_argument('--check_values', action='store_true', help='Check no duplicate values in the prefer file')
     p.add_argument('--prefer', required=True, help='The canonical definition filename')
     p.add_argument('filenames', nargs='*', help='Filenames to process')
     return p.parse_args()
 
 def main():
     args = parse_args()
-    symtab = get_labels(filename=args.prefer)
+    symtab = get_labels(filename=args.prefer, check_values=args.check_values)
     base_filename = os.path.basename(args.prefer)
     (base_filename,_) = os.path.splitext(base_filename)
 
