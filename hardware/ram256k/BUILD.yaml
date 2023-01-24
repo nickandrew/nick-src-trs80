@@ -7,3 +7,4 @@ ramfix.cmd:
   assemble: ramfix.asm
   depends:
   - hardware/ram256k/ramfix.asm
+  - include/include/doscalls.asm

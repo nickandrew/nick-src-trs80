@@ -1,7 +1,9 @@
 ;spool: setup routines to spool printer to disk file.
 ;
-	COM	'<SPOOL 1.0 29-Mar-85>'
+
 *GET	DOSCALLS
+
+	COM	'<SPOOL 1.0 29-Mar-85>'
 ;
 	ORG	5200H
 START	LD	HL,(HIMEM)
@@ -79,7 +81,7 @@ R_3	LD	(STORE),HL
 R_4	LD	HL,NEW_DVR
 	LD	(4026H),HL
 ;finished.
-	JP	402DH
+	JP	DOS_NOERROR
 NEW_DVR
 	LD	A,C
 R_5	LD	DE,FCB
@@ -98,7 +100,7 @@ R_6	LD	DE,FCB
 	JP	NZ,DOS_ERROR
 R_7	LD	HL,(STORE)
 	LD	(4026H),HL
-	JP	402DH
+	JP	DOS_NOERROR
 ;
 FCB	DEFS	32
 BUFFER	DEFS	256

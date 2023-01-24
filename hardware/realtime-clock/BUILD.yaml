@@ -8,6 +8,7 @@ rtclock.cmd:
   assemble: rtclock.asm
   depends:
   - hardware/realtime-clock/rtclock.asm
+  - include/include/doscalls.asm
 setclock.cmd:
   assemble: setclock.asm
   depends:

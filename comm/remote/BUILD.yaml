@@ -2,3 +2,4 @@ remote.cmd:
   assemble: remote.asm
   depends:
   - comm/remote/remote.asm
+  - include/include/doscalls.asm

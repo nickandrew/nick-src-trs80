@@ -1,4 +1,5 @@
 fastfmtt.cmd:
   assemble: fastfmtt.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/fast-format/fastfmtt.asm

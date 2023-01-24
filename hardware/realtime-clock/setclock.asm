@@ -59,7 +59,7 @@ LOOP2	LD	A,(37E0H)
 	LD	A,(37E0H)
 	LD	(37E4H),A
 	EI
-	JP	402DH
+	JP	DOS_NOERROR
 ;
 M_ENTER	DEFM	'Hit any key when seconds are exact',0DH
 M_TIME	DEFM	'Enter time HH:MM:SS : ',03H

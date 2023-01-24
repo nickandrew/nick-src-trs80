@@ -14,7 +14,7 @@ START	LD	HL,TRCEND-1
 	LD	(HIMEM),DE	; set top of mem below trace routine
 	INC	DE
 	CALL	4410H		; activate interrupt routine
-	JP	402DH		; return to DOS
+	JP	DOS_NOERROR		; return to DOS
 
 ; TRACE routine - this is placed at the top of memory by
 ;	the initialization routine (above) & set to run

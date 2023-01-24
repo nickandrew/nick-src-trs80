@@ -19,7 +19,7 @@ START
 	LDIR
 	LD	HL,MESS_1
 	CALL	MESS_DO
-	JP	402DH
+	JP	DOS_NOERROR
 ;
 MESS_1	DEFM	'New Printer Driver Ver 1.0',0AH
 	DEFM	'Written 23-Dec-84.',0DH
