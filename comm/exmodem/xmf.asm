@@ -12,11 +12,6 @@ RDSTAT	EQU	0F9H
 WRSTAT	EQU	0F9H
 DAV	EQU	1
 CTS	EQU	0
-EREXIT	EQU	4030H
-EXTRCT	EQU	441CH
-OPENNW	EQU	4420H
-OPENEX	EQU	4424H
-CLOSE	EQU	4428H
 VDUDVR	EQU	0000H
 ;
 ETX	EQU	03H
@@ -82,12 +77,12 @@ AEW	LD	HL,ADU
 	CALL	ROM@WAIT_LINE
 	JP	C,AHG
 AEX	LD	DE,AIK
-	CALL	EXTRCT
+	CALL	DOS_EXTRACT
 	JP	NZ,AEL
 	LD	HL,AIL
 	LD	DE,AIK
 	LD	B,0H
-	CALL	OPENNW
+	CALL	DOS_OPEN_NEW
 	JR	Z,AEY
 	OR	0C0H
 	CALL	DOSERR
@@ -118,12 +113,12 @@ AFD	LD	HL,ADZ	;'Enter Filename:  '
 	CALL	ROM@WAIT_LINE	;Read 31 chars.
 	JP	C,AHG	;If break hit.
 AFE	LD	DE,AIK	;Extract into FCB.
-	CALL	EXTRCT
+	CALL	DOS_EXTRACT
 	JP	NZ,AEL	;If 'Filename error'.
 	LD	HL,AIL	;File buffer.
 	LD	DE,AIK	;FCB Address.
 	LD	B,0H	;LRL=256.
-	CALL	OPENEX
+	CALL	DOS_OPEN_EX
 	JR	Z,AFF	;If OPEN succeeded.
 	OR	0C0H
 	CALL	DOSERR
@@ -284,7 +279,7 @@ AGF	LD	A,(AIG)
 	LD	(AIG),A
 	RET	
 AGG	LD	DE,AIK
-	CALL	CLOSE
+	CALL	DOS_CLOSE
 	RET	Z
 	OR	0C0H
 	CALL	DOSERR
@@ -464,7 +459,7 @@ AHL	DEC	H
 	CALL	AEU2
 	LD	HL,(VDUDVR)
 	LD	(AHZ),HL
-	LD	HL,458H
+	LD	HL,0458H	;Video driver
 AHM	EQU	$-2
 	LD	(VDUDVR),HL	;Set VDU driver in
 AHN	LD	HL,AEF		;case xm remotely worked.
@@ -584,7 +579,7 @@ SLOW	PUSH	AF
 XM_TODOS	CALL	FAST
 	JP	DOS_NOERROR
 DOSERR	CALL	FAST
-	JP	4409H
+	JP	DOS_ERROR
 ;
 START	LD	(OLDSP),SP
 	CALL	SLOW
@@ -592,10 +587,11 @@ START	LD	(OLDSP),SP
 	LD	HL,SIGNON
 	CALL	MESS
 	LD	DE,721BH
-	LD	A,(54H)		;Decide which machine.
+	LD	A,(0054H)		;Decide which machine.
+					; According to the decoded ROM page, this is a keyboard lookup map.
 	DEC	A
 	JR	Z,AIN		;If Model I.
-	LD	HL,473H
+	LD	HL,0473H
 	LD	(AHM),HL
 	LD	HL,(4411H)	;Himem for Mod/III.
 	JR	AIO
@@ -619,7 +615,7 @@ AIP	INC	HL
 	JP	AEH	;Otherwise param error.
 AIQ	LD	HL,NOMEM	;Lacking memory.
 	CALL	MESS
-	JP	EREXIT		;Error-displayed exit.
+	JP	DOS_DISP_ERROR	;Error-displayed exit.
 ;
 NOMEM	DEFM	'Insufficient memory for file transfer!'
 	DEFB	CR,ETX
