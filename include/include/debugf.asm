@@ -1,6 +1,16 @@
 ;debugf: Help debug C compiler output
 ;Last updated: 12-Jun-89
 ;
+; Function TOVDU scrolls the string in memory which immediately
+; follows the function call, to the VDU 1 line from the top, from
+; right to left. The function returns by jumping past the end of
+; the string.
+; Clobbers AF, BC, DE, HL, maybe more
+;
+; Usage:
+;	CALL	TOVDU
+;	DEFM	'String-to-print', ' ', 0
+;
 TOVDU	POP	HL
 TOVDU1
 	LD	A,(HL)
@@ -13,22 +23,16 @@ TOVDU2
 	LD	BC,63
 	LDIR
 	LD	(3C7FH),A
-	LD	BC,2000H	;Delay per letter
+	LD	BC,0800H	;Delay per letter
 	CALL	ROM@PAUSE
 	POP	HL
 	INC	HL
 	JR	TOVDU1
 TOVDU3
-	LD	BC,0800H	;Delay per function
+	LD	BC,0		;Delay per call
 	CALL	ROM@PAUSE
 	CALL	ROM@PAUSE
 	INC	HL
-;
-	JP	(HL)
-;
-DEBUG	MACRO	#STR
-	CALL	TOVDU
-	DEFM	#STR,' ',0
-	ENDM
+	JP	(HL)		;Jump past the string
 ;
 ;End of debugf
