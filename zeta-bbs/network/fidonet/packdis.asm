@@ -3,7 +3,6 @@
 ;
 ZETA		EQU	1
 DEBUGF		EQU	0	;Function call debugging
-DEBUGG		EQU	0	;Loop at start debug
 SYSOPONLY	EQU	1	;Only the Sysop may run
 REDIRDIS	EQU	1	;1 to disable redirection
 STACKSIZE	EQU	200H	;Size of the stack
@@ -61,11 +60,6 @@ START1	DEC	HL
 	LD	HL,(HIMEM)
 	LD	SP,HL
 ;
-	ENDIF
-;
-	IF	DEBUGG
-DB_LOOP
-	JP	DB_LOOP
 	ENDIF
 ;
 *GET	CINIT
