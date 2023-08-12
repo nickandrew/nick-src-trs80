@@ -1,13 +1,17 @@
 /* cwiz ... Written by Rosko, substantially modified by Nick */
 
 #include <stdio.h>
+#include <stdlib.h>
+
 FILE *in, *out;
 #define  MAX    100
 char string[MAX];
 
-main()
+void putint(int n);
+
+int main()
 {
-    int c, count;
+    int count;
     int rba;                    /* file position (should be long) */
     char str[6];
 
@@ -44,10 +48,10 @@ main()
     itoa(count, str);
     fputs(str, stdout);
     fputs(" wisdoms.\n", stdout);
+    return 0;
 }
 
-putint(n)
-int n;
+void putint(int n)
 {
     fputc(n & 0xff, out);
     fputc((n >> 8) & 0xff, out);

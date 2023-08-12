@@ -1,13 +1,23 @@
 bbass1.asm:
   sdcc: bbass1.c
   depends:
+  - library/lib/bb7func.h
+  - library/lib/gettime.h
+  - library/lib/getw.h
+  - library/lib/msgfunc.h
+  - library/lib/openf2.h
   - zeta-bbs/network/fidonet/bbass1.c
   - zeta-bbs/network/fidonet/bbass.h
+  - zeta-bbs/network/fidonet/bunfunc.h
   - zeta-bbs/network/fidonet/packctl.h
   - zeta-bbs/network/fidonet/zeta.h
 bbass2.asm:
   sdcc: bbass2.c
   depends:
+  - library/lib/bb7func.h
+  - library/lib/getw.h
+  - library/lib/msgfunc.h
+  - library/lib/openf2.h
   - zeta-bbs/network/fidonet/bbass2.c
   - zeta-bbs/network/fidonet/bbass.h
   - zeta-bbs/network/fidonet/packctl.h
@@ -15,17 +25,31 @@ bbass2.asm:
 bunfunc.asm:
   sdcc: bunfunc.c
   depends:
+  - library/lib/gettime.h
+  - library/lib/getw.h
   - zeta-bbs/network/fidonet/bunfunc.c
   - zeta-bbs/network/fidonet/zeta.h
 mailass1.asm:
   sdcc: mailass1.c
   depends:
-  - zeta-bbs/network/fidonet/mailass1.c
+  - library/lib/bb7func.h
+  - library/lib/gettime.h
+  - library/lib/getw.h
+  - library/lib/msgfunc.h
+  - library/lib/openf2.h
+  - zeta-bbs/network/fidonet/bbass.h
+  - zeta-bbs/network/fidonet/bunfunc.h
   - zeta-bbs/network/fidonet/mailass.h
+  - zeta-bbs/network/fidonet/mailass1.c
   - zeta-bbs/network/fidonet/zeta.h
 mailass2.asm:
   sdcc: mailass2.c
   depends:
+  - library/lib/bb7func.h
+  - library/lib/getw.h
+  - library/lib/msgfunc.h
+  - library/lib/openf2.h
+  - zeta-bbs/network/fidonet/bunfunc.h
   - zeta-bbs/network/fidonet/mailass2.c
   - zeta-bbs/network/fidonet/mailass.h
   - zeta-bbs/network/fidonet/zeta.h
@@ -37,11 +61,14 @@ msgass1.cmd:
 packctl.asm:
   sdcc: packctl.c
   depends:
+  - library/lib/openf2.h
   - zeta-bbs/network/fidonet/packctl.c
   - zeta-bbs/network/fidonet/packctl.h
 packdis1.asm:
   sdcc: packdis1.c
   depends:
+  - library/lib/msgfunc.h
+  - library/lib/openf2.h
   - zeta-bbs/network/fidonet/packdis1.c
   - zeta-bbs/network/fidonet/packctl.h
   - zeta-bbs/network/fidonet/packdis.h
@@ -49,6 +76,10 @@ packdis1.asm:
 packdis2.asm:
   sdcc: packdis2.c
   depends:
+  - library/lib/getw.h
+  - library/lib/openf2.h
+  - library/lib/pnumb.h
+  - library/lib/setpos.h
   - zeta-bbs/network/fidonet/packdis2.c
   - zeta-bbs/network/fidonet/packctl.h
   - zeta-bbs/network/fidonet/packdis.h
@@ -56,6 +87,12 @@ packdis2.asm:
 packdis3.asm:
   sdcc: packdis3.c
   depends:
+  - library/lib/bb7func.h
+  - library/lib/gettime.h
+  - library/lib/getw.h
+  - library/lib/msgfunc.h
+  - library/lib/openf2.h
+  - library/lib/setpos.h
   - zeta-bbs/network/fidonet/packdis3.c
   - zeta-bbs/network/fidonet/packctl.h
   - zeta-bbs/network/fidonet/packdis.h
@@ -63,6 +100,7 @@ packdis3.asm:
 packdis4.asm:
   sdcc: packdis4.c
   depends:
+  - library/lib/openf2.h
   - zeta-bbs/network/fidonet/packdis4.c
   - zeta-bbs/network/fidonet/packctl.h
   - zeta-bbs/network/fidonet/packdis.h

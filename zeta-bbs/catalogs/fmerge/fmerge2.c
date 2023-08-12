@@ -5,13 +5,19 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define MAX 255
+
 /* abcdefgh/xyz 22-Dec-86 A B C description.....    */
 /* 0....+....1....+....2....+....3.....+....4....5. */
 
 /* abcdefgh/xyz 22-Dec-86 Disk1234 Description..... */
 /* 0....+....1....+....2....+....3.....+....4....5. */
 
+int scmp(char *cp1, char *cp2, int len);
+void scpy(char *cpo, char *cpi);
 
 char line1[MAX];
 char line2[MAX];
@@ -19,9 +25,8 @@ char lineout[MAX];
 FILE *f1in, *f2in, *fout;
 int eof1, eof2;
 
-main()
+int main()
 {
-    int i, c;
     f1in = fopen("catalog/zms", "r");
     f2in = fopen("filelist/zms", "r");
     fout = fopen("filelist/new:1", "w");
@@ -49,14 +54,12 @@ main()
     fclose(f2in);
     fclose(f2in);
     fclose(fout);
-    exit(0);
+    return 0;
 }
 
 
 
-scmp(cp1, cp2, len)
-char *cp1, *cp2;
-int len;
+int scmp(char *cp1, char *cp2, int len)
 {
     int i = 0;
     while (i < len) {
@@ -69,8 +72,7 @@ int len;
     return 0;
 }
 
-scpy(cpo, cpi)
-char *cpo, *cpi;
+void scpy(char *cpo, char *cpi)
 {
     while (*cpi != 0) {
         *(cpo++) = *(cpi++);

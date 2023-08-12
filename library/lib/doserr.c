@@ -1,12 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-char *(sys_errlist[63]);
+const char *sys_errlist[63];
 int firstcall = 1;
 
-err_init()
+void err_init(void)
 {
     int i;
-    char **s;
+    const char **s;
 
     s = sys_errlist;
     firstcall = 0;
@@ -47,10 +48,10 @@ err_init()
     s[62] = "Can't extend file via read";
 }
 
-doserr(err, str1, str2, rc)
-int err;                        /* error code */
-char *str1, *str2;              /* strings to print */
-int rc;                         /* exit() code */
+void doserr(int err, char *str1, char *str2, int rc)
+// int err;                        /* error code */
+// char *str1, *str2;              /* strings to print */
+// int rc;                         /* exit() code */
 {
     if (firstcall)
         err_init();

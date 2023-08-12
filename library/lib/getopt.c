@@ -71,6 +71,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 char *optarg;                   /* Global argument pointer. */
 int optind = 0;                 /* Global argv index. */
@@ -80,12 +81,7 @@ int optopt;
 char *go_scan;                  /* Private scan pointer. */
 int go_garbage = 1;
 
-extern char *strchr();
-
-int getopt(argc, argv, optstring)
-int argc;
-char *argv[];
-char *optstring;
+int getopt(int argc, char *argv[], char *optstring)
 {
     char c;
     char *place;

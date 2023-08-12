@@ -10,18 +10,7 @@
 #include <string.h>
 
 #include "readnews.h"
-
-/* I will need to implement this somewhere */
-extern void itoa(int n, char *buf);
-
-/* Implemented in include/include/setpos.asm but with LC calling convention */
-extern void savepos(char *buf, FILE *fp);
-extern void setpos(char *buf, FILE *fp);
-
-void readcount();
-void writecount();
-void readrc();
-int asksubs();
+#include "setpos.h"
 
 char countpos[3];               /* save position for count field */
 
@@ -29,7 +18,7 @@ char countpos[3];               /* save position for count field */
 ** readcount() ... Read 4 character count string
 */
 
-void readcount()
+void readcount(void)
 {
     int i, c;
     savepos(countpos, newsrc);  /* save current position */
@@ -62,7 +51,7 @@ void readcount()
 ** writecount() ... update count, "last article read"
 */
 
-void writecount()
+void writecount(void)
 {
     setpos(countpos, newsrc);
     if (status == '-') {
@@ -84,7 +73,7 @@ void writecount()
 ** readrc() ... find and/or create newsrc record for user
 */
 
-void readrc()
+void readrc(void)
 {
     char *cp;
     char user_name[USER_NAME_LENGTH];
@@ -162,7 +151,7 @@ void readrc()
 ** asksubs() ... Ask whether to subscribe to new group
 */
 
-int asksubs()
+int asksubs(void)
 {
     int c;
     while (1) {

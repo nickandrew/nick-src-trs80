@@ -4,6 +4,15 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int read1(void);
+int read2(void);
+void empty1(char *string, int count);
+void empty2(char *string, int count);
+int cmpsrch(void);
+int max(int a, int b);
 
 FILE *fp1, *fp2;
 int unique1, unique2;
@@ -15,9 +24,7 @@ char flag;
 int i;
 
 
-main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
     if (argc != 3) {
         fprintf(stderr, "Usage: SUPERC old new\n");
@@ -64,9 +71,11 @@ char *argv[];
             while (read2()) ;
         }
     }
+
+    return 0;
 }
 
-read1()
+int read1(void)
 {
     int j, len;
     char *cp;
@@ -94,7 +103,7 @@ read1()
     return 1;
 }
 
-read2()
+int read2(void)
 {
     int j, len;
     char *cp;
@@ -123,9 +132,7 @@ read2()
 }
 
 
-empty1(string, count)
-char *string;
-int count;
+void empty1(char *string, int count)
 {
     int i;
     if (count == 0 || count1 == 0)
@@ -145,9 +152,7 @@ int count;
 }
 
 
-empty2(string, count)
-char *string;
-int count;
+void empty2(char *string, int count)
 {
     int i;
     if (count == 0 || count2 == 0)
@@ -167,7 +172,7 @@ int count;
 }
 
 
-cmpsrch()
+int cmpsrch(void)
 {
     int vara, varb;
     int maxa;
@@ -198,4 +203,10 @@ cmpsrch()
         }
     }
     return 0;
+}
+
+/* Quick function to find the maximum of two integers */
+int max(int a, int b)
+{
+    return (a > b ? a : b);
 }

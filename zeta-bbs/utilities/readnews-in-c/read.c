@@ -5,13 +5,15 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "readnews.h"
 
 /*
 ** readnews() ... Give option to read one article
 */
 
-readnews()
+void readnews(void)
 {
     reply = ' ';
 
@@ -28,7 +30,7 @@ readnews()
 
     if (i_article - count > 1) {
         fputs("\nYou missed out on ", stdout);
-        itoa(line, i_article - count - 1);
+        itoa(i_article - count - 1, line, 10);
         fputs(line, stdout);
         fputs(" articles in this group\n", stdout);
     }
@@ -41,10 +43,10 @@ readnews()
         readtxt();
 }
 
-puthdr()
+void puthdr(void)
 {
     fputs("Article ", stdout);
-    itoa(line, i_article);
+    itoa(i_article, line, 10);
     fputs(line, stdout);
     fputs(" dated ", stdout);
     fputs(h_date, stdout);

@@ -55,14 +55,6 @@
 #define PATH	"\001PATH:"
 #define ORIGIN	" * Origin: "
 
-#ifdef	REALC
-extern	int	getsecond(), getminute(), gethour();
-extern	int	getday(), getmonth(), getyear();
-extern	int	secseek(), secread(), secwrite();
-extern	int	zeromem(), getfree(), putfree(), user_search();
-extern	char	*commence(), *numstr();
-#endif
-
 EXTERN
 int	r_flag,		/* 1==remove packet if success */
 	p_flag,		/* 1==process batch file as well as args */
@@ -130,5 +122,54 @@ char	*user_field;	/* points to buffer used by user_search */
 
 extern	int	optind;
 extern	char	*optarg;
+
+// defined in packdis1:
+extern int proc_batch(void);
+extern int proc_pkt(char *fn);
+extern void usage(void);
+
+// defined in packdis2:
+extern int read_body(void);
+extern int read_every(void);
+extern int read_head(void);
+extern int read_msghdr(void);
+extern int read_pkthdr(void);
+extern int readline(void);
+extern void doifna(void);
+extern void doorigin(char *string);
+extern void fidocat(char *s, int zone, int net, int node, int point);
+extern void findconf(char *string);
+extern void reposition(void);
+
+// defined in packdis3:
+extern int getfield(char *s, int n, FILE *fp);
+extern int loc_cpy(void);
+extern int lputc(int c);
+extern int lputs(char *s);
+extern int mputc(int c);
+extern int mputs(char *s);
+extern int msg_cpy(void);
+extern int read_info(FILE *txt_p, FILE *top_p, int *pmsgs, char *freeptr);
+extern int write_loc(void);
+extern int write_msg(void);
+extern int write_top(FILE *fp, int msgs);
+extern int writeh(FILE *hp, int *pmsgs);
+extern int writeld(void);
+extern int writemd(void);
+extern void buildmsg(int flags, int sndr, int rcvr, int topic);
+extern void closef(void);
+extern void localdat(void);
+extern void msgdat(void);
+extern void open_loc(void);
+extern void open_msg(void);
+extern void savetopic(FILE *fp, int msgn, int tc);
+
+// defined in packdis4:
+extern char *commence(char *l, char *s);
+extern char *numstr(char *cp, int num);
+extern void fixfn(char *cp);
+extern void fixstr(char *cp);
+extern void getfn(char *cp1, char *cp2);
+extern void zeropos(char cp[3]);
 
 /* end of packdis.h */

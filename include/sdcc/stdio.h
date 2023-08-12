@@ -4,7 +4,7 @@
 #include <sys/types.h>
 
 typedef long          fpos_t;
-typedef char          FILE;
+typedef void          FILE;
 
 #define EOF       (-1)
 #define BUFSIZ    256
@@ -36,12 +36,12 @@ extern  size_t    fwrite(const void *ptr, size_t size, size_t nmemb, FILE *strea
 extern  int       getc(FILE *stream);
 extern  int       getchar(void);
 extern  char      *gets(char *s);
-extern  char      *malloc();
 extern  int       printf(const char *format, ...);
 extern  int       putc(int c, FILE *stream);
 extern  int       putchar(int c);
 extern  int       puts(const char *s);
 extern  void      rewind(FILE *stream);
 extern  int       scanf(const char *format, ...);
+extern  int       sprintf(char *str, const char *format, ...);
 extern  int       sscanf(const char *str, const char *format, ...);
 extern  int       ungetc(int c, FILE *stream);

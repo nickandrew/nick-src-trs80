@@ -1,4 +1,6 @@
 cron1.asm:
   sdcc: cron1.c
   depends:
+  - library/lib/gettime.h
+  - library/lib/setpos.h
   - zeta-bbs/internal/cron/cron1.c

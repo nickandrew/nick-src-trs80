@@ -1,0 +1,66 @@
+                             Small-Tools Release 1.1
+         
+         Small-Tools  is  a package of text processing programs which are
+         patterned after the ones in the  book  "Software  Tools."    The
+         following programs are included:
+         
+          CHANGE    replace occurrences of a pattern
+          COUNT     count characters, words, and/or lines
+          COPY      copy one or more files into one
+          CRYPT     encrypt or decrypt files
+          DETAB     replace tabs with equivalent blanks
+          EDIT      create or modify files (in-core version of UNIX ed)
+          ENTAB     replace blanks with equivalent tabs
+          FIND      find lines containing a pattern
+          FONT      set printer font (written for EPSON, but modifiable)
+          FORMAT    format and print files (little brother to UNIX roff)
+          LIST      list files (multi-column) on pages of any size
+          MERGE     merge 2 sorted files for unique, equal, or all lines
+          PRINT     print with page skips, headings, and line numbers
+          SORT      sort text lines ascending or descending on key field
+          TRANS     transliterate characters, isolate words, etc.
+         
+         These  are  a  very comfortable set of tools for almost any text
+         processing  task,  including  mail-list  merging  and   spelling
+         checking.
+         
+         EDIT  is  a  line  oriented  editor similar to the standard UNIX
+         editor.  It employs an optional  automatic  redisplay  algorithm
+         which provides  the  visibility  of  full  screen  editors.   It
+         supports  global  search  and  command  execution  capabilities.
+         Pattern  matching  capabilities,  familiar  to  UNIX  users, are
+         available.
+         
+         FORMAT performs text formatting.  It handles standard formatting
+         functions like line filling, justifying, centering, underlining,
+         boldface, headers,  footers,  and  page  numbering.    It   also
+         supports  italics,  and double wide printing if your printer has
+         these features.
+         
+         SORT is a disk-to-disk sort utility which operates  on  standard
+         ASCII files.    It  accepts  files of any size, and creates work
+         files to hold intermediate sort runs if necessary.  It will sort
+         ascending or descending on 1) the whole line, 2) a  fixed  field
+         starting  at  any  character  position,  or 3) a variable length
+         field identified by relative position in the line.  White  space
+         is  the  default  field separator, although any character may be
+         specified.  SORT considers upper- and lower-case letters to have
+         the same colating sequence.
+         
+         The Small-Tools programs are written in Small-C 2.1.   They  are
+         distributed  as  source code and come with a 70 page photocopied
+         manual.
+         
+         
+                                  J. E. Hendrix
+                                     Box 8378
+                              University, MS  38677
+
+
+
+
+
+
+
+
+

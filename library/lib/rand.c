@@ -3,16 +3,17 @@
 **  rand() uses the generator from Oh Pascal! p227
 */
 
+#include <stdlib.h>
+
 int rndseed;
 
-int rand()
+int rand(void)
 {
     rndseed = ((25173 * rndseed) + 13849);
     return rndseed & 0x7fff;
 }
 
-srand(seed)
-int seed;
+void srand(unsigned int seed)
 {
     rndseed = seed;
 }

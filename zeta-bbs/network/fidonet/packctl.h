@@ -28,9 +28,14 @@ char	conftab[500],	/* buffer to store conference names */
 	*confptr;	/* pointer into conftab */
 
 EXTERN
-int	confpos[MAXCONFS],	/* bug in CC for sizes of char * arrays */
-	conftop[MAXCONFS],	/* topic code for each conference */
+char *confpos[MAXCONFS];   // Name of each conference?
+
+EXTERN
+int conftop[MAXCONFS],	/* topic code for each conference */
 	conftyp[MAXCONFS],	/* type (acsnet | fidonet) */
 	confcnt[MAXCONFS];	/* count of messages for each conference */
+
+extern void read_control(void);
+extern int readhex2(char *cp, int *ip);
 
 /* end of packctl.h */

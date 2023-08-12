@@ -293,7 +293,7 @@ _FGETC
 	LD	D,(HL)
 	EX	DE,HL
 	BIT	IS_TERM,(HL)
-	JR	NZ,FG_01
+	JR	NZ,FG_01		;If terminal
 	LD	DE,FD_FCBPTR
 	ADD	HL,DE
 	LD	E,(HL)
@@ -439,12 +439,12 @@ _FOPEN
 	LD	($C_07V),A	;Device name or 0.
 	LD	HL,2
 	ADD	HL,SP
-	LD	E,(HL)
+	LD	E,(HL)		; Get pointer to mode
 	INC	HL
 	LD	D,(HL)
 	LD	A,(DE)
-	LD	($C_06V),A
-	INC	HL
+	LD	($C_06V),A	; Store 1st char as mode
+	INC	HL		; Get pointer to file
 	LD	E,(HL)
 	INC	HL
 	LD	D,(HL)
@@ -452,26 +452,27 @@ _FOPEN
 	LD	DE,(_BRKSIZE)
 	LD	A,(HL)
 	CP	':'
-	JR	NZ,$C_07
-	INC	HL
+	JR	NZ,$C_07	; Copy the filename into new FCB
+	INC	HL		; Devices are represented as ":x"
 	LD	A,(HL)
 	AND	5FH
 	LD	($C_07V),A
-	CP	'D'
+	CP	'D'		; ":D" is null device
 	LD	DE,NULL_DCB
 	JR	Z,$C_11B
-	CP	'L'
+	CP	'L'		; ":L" is line printer
 	LD	DE,PTR_DCB
 	JR	Z,$C_11B
-	CP	'C'
+	CP	'C'		; ":C" is console
 	JR	NZ,$C_13
-	LD	A,($C_06V)	;Mode
+	LD	A,($C_06V)	; Get mode
 	CP	'r'
-	LD	DE,KBD_DCB
+	LD	DE,KBD_DCB	; If 'r' then use keyboard
 	JR	Z,$C_11B
-	LD	DE,VDU_DCB
+	LD	DE,VDU_DCB	; Otherwise, use VDU
 	JR	$C_11B
-;
+
+; Copy the filename into the FCB pointed to by DE
 $C_07	LD	A,(HL)
 	OR	A
 	JR	Z,$C_09
@@ -486,18 +487,18 @@ $C_07	LD	A,(HL)
 ;;	INC	HL
 ;;	INC	DE
 ;;	JR	$C_07
-$C_09	LD	A,3
+$C_09	LD	A,3		; Terminate the filename with 0x03
 	LD	(DE),A
 ;
 	LD	HL,32
 	LD	DE,(_BRKSIZE)
-	ADD	HL,DE
+	ADD	HL,DE		; HL now points to 256-byte file buffer
 	LD	B,0
 	LD	A,($C_06V)
 	CP	'a'
-	JR	Z,$C_10
+	JR	Z,$C_10		;append mode
 	CP	'w'
-	JR	Z,$C_10
+	JR	Z,$C_10		;write mode
 ;
 ;Open for reading.
 	CALL	DOS_OPEN_EX	;assume read
@@ -505,29 +506,34 @@ $C_09	LD	A,3
 	RET	NZ
 	LD	HL,256+32
 	ADD	HL,DE
-	LD	(_BRKSIZE),HL
+	LD	(_BRKSIZE),HL	;update end of memory
 	JR	$C_11A
+;
+;Open for write and append
 $C_10
 	CALL	DOS_OPEN_NEW	;Write & append
 	LD	HL,NULL
 	RET	NZ
 	LD	HL,256+32
 	ADD	HL,DE
-	LD	(_BRKSIZE),HL
-	LD	A,($C_06V)
+	LD	(_BRKSIZE),HL	; Update end of memory
+	LD	A,($C_06V)	; Get file mode
 	CP	'a'
-	JR	NZ,$C_11
-	CALL	DOS_POS_EOF	;Append
+	JR	NZ,$C_11	;If not append
+	CALL	DOS_POS_EOF	;Append, so position to EOF
 	JR	$C_11A
 $C_11
 	;Truncate the file??
 $C_11A	INC	DE
 	LD	A,(DE)
-	SET	6,A		;Writes do not bugger eof
+	SET	6,A		;Ensure writes do not bugger eof
 	LD	(DE),A
 	DEC	DE
+
+; At this point, DE contains the address of a DCB or open FCB.
 $C_11B
-	LD	($C_08V),DE
+	LD	($C_08V),DE	; Store the pointer to FCB or DCB
+; Search for a free file descriptor
 	LD	B,MAX_FILES
 	LD	HL,FD_ARRAY
 	LD	DE,FD_LEN
@@ -537,29 +543,32 @@ $C_12
 	JR	Z,$C_14
 	ADD	HL,DE
 	DJNZ	$C_12
-$C_13	LD	HL,NULL
+$C_13	LD	HL,NULL		; No free file descriptor was found; abort
+				; BUG: Leaks 32+256 bytes of high memory
 	RET
 $C_14
-	LD	(HL),1
+	LD	(HL),1		; Mark file descriptor in use
 	LD	A,($C_07V)
 	OR	A
 	JR	Z,$C_16
-	SET	IS_TERM,(HL)
+	SET	IS_TERM,(HL)	; Mark it's a device
 $C_16
 	PUSH	HL
 	LD	DE,FD_FCBPTR
 	ADD	HL,DE
-	LD	DE,($C_08V)
-	LD	(HL),E
+	LD	DE,($C_08V)	; Get pointer to FCB or DCB
+	LD	(HL),E		; Store it in file descriptor table
 	INC	HL
 	LD	(HL),D
-	POP	HL
+	POP	HL		; Return value is pointer to FCB or DCB
 	RET
-$C_06V	DEFB	0
+
+$C_06V	DEFB	0	; Mode byte
 $C_07V	DEFB	0	;Type of special device C,D,L
 $C_08V	DEFW	0	;Addr of dcb/fcb.
 ;
 NULL_DCB	DC	8,0
+;
 	ENDIF	;_fopen
 ;
 ;int feof(fp)
@@ -764,3 +773,4 @@ _PRINTF
 	ENDIF
 ;
 ;-----------------------------
+;end of libc.asm

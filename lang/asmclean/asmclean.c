@@ -29,7 +29,7 @@ void main(int argc, char *argv[])
         exit(0);
     }
 
-    printf("Files opened OK \n");
+    printf("Files opened OK\n");
     while (1) {
         if (getlin() != 0)
             break;

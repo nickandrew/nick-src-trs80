@@ -1,0 +1,63 @@
+/*
+** CLIB.DEF -- Definitions for Small-C library functions.
+**
+** Copyright 1983  L. E. Payne and J. E. Hendrix
+*/
+
+/*
+** Definition of CP/M FCB and additional parameters
+*/
+#define FCBSIZE   36  /* size of file control block */
+#define DRIVE      0  /* CP/M drive designator offset */
+#define NAMEOFF    1  /* CP/M file name offset */
+#define NAMEOFF2  16  /* CP/M 2nd file name offset */
+#define NAMESIZE   8  /* CP/M file name size */
+#define TYPEOFF    9  /* CP/M file type offset */
+#define TYPESIZE   3  /* CP/M file type size */
+#define NTSIZE    11  /* CP/M file name & type size */
+#define RRNOFF    33  /* CP/M random record number offset */
+#define CPMEOF    26  /* CP/M end-of-file byte */
+#define BUFSIZE  128  /* size of I/O buffer */
+#define MAXFILES  10  /* maximum open files */
+/*
+** CP/M function calls
+*/
+#define GOCPM     0  /* go to CP/M */
+#define RDRINP    3  /* reader input */
+#define PUNOUT    4  /* punch output */
+#define LSTOUT    5  /* list output */
+#define DCONIO    6  /* direct console i/o */
+#define OPNFIL   15  /* open file */
+#define CLOFIL   16  /* close file */
+#define FNDFIL   17  /* find first occurrence of a file */
+#define FNDNXT   18  /* find next occurrence of a file */
+#define DELFIL   19  /* delete file */
+#define MAKFIL   22  /* make file */
+#define RENAME   23  /* rename file */
+#define SETDMA   26  /* set dma */
+#define RDRND    33  /* read sector randomly */
+#define POSEND   35  /* position file to end */
+#define GETPOS   36  /* get number of current sector */
+#define WRTRND   40  /* write sector randomly */
+/*
+** Device codes
+*/
+#define CPMCON DCONIO /* console */
+#define CPMRDR RDRINP /* reader  */
+#define CPMPUN PUNOUT /* punch   */
+#define CPMLST LSTOUT /* list    */
+/*
+** File status bits
+*/
+#define RDBIT      1  /* open for read */
+#define WRTBIT     2  /* open for write */
+#define EOFBIT     4  /* eof condition */
+#define ERRBIT     8  /* error condition */
+/*
+** ASCII characters
+*/
+#define ABORT    3
+#define RUB      8
+#define PAUSE   19
+#define WIPE    24
+#define DEL    127

@@ -1,8 +1,6 @@
 /* index.c */
 
-char *index(list, c)
-int c;
-char *list;
+char *index(char *list, int c)
 {
     while (*list) {
         if (*list == (c & 0xff))

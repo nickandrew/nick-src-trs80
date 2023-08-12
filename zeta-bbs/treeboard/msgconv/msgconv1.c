@@ -3,6 +3,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define O_TXT    "msgtxt.zms:2"
 #define O_HDR    "msghdr.zms:2"
@@ -12,10 +13,26 @@
 
 #define BUFFER   16384
 
+void openem(void);
+int getint(int pos);
+void setint(int place, int i);
+void bputc(int c);
+void bflush(void);
+int getfree(void);
+void writeblk(void);
+void writefree(void);
+void setfree(void);
+int readhdr(void);
+int writehdr(void);
+void fixtxt(void);
+void copytxt(void);
+void closem(void);
+int zgetc(void);
+
 FILE *o_txt, *o_hdr;
 FILE *n_txt, *n_hdr;
 
-char block[256], freemap[256], string[256];
+unsigned char block[256], freemap[256], string[256];
 char *buffer, *bufst, *bufend;
 int i, c, isfull = 0, msgnum = 0;
 int blkpos, thisblk, nextblk, newblk;
@@ -32,7 +49,7 @@ int hdr_rcvr;
 char hdr_topic;
 char hdr_time[3];
 
-main()
+int main()
 {
     if ((buffer = malloc(BUFFER)) == NULL) {
         fputs("No memory\n", stderr);
@@ -55,9 +72,10 @@ main()
     }
     writefree();
     closem();
+    return 0;
 }
 
-openem()
+void openem(void)
 {
     o_txt = fopen(O_TXT, "r");
     o_hdr = fopen(O_HDR, "r");
@@ -71,21 +89,18 @@ openem()
     bufst = bufend = buffer;
 }
 
-int getint(pos)
-int pos;
+int getint(int pos)
 {
     return (block[pos] & 0xff) + ((block[pos + 1] & 0xff) << 8);
 }
 
-setint(place, i)
-int place, i;
+void setint(int place, int i)
 {
     block[place] = i & 0xff;
     block[place + 1] = (i >> 8) & 0xff;
 }
 
-bputc(c)
-int c;
+void bputc(int c)
 {
 
     if (blkpos == 0) {
@@ -107,18 +122,18 @@ int c;
     blkpos = (blkpos + 1) & 0xff;
 }
 
-bflush()
+void bflush(void)
 {
     if (blkpos == 0)
         blkpos = 256;
     writeblk();
 }
 
-int getfree()
+int getfree(void)
 {
     int pos, blk, bit;
     blk = 0;
-    for (pos = 0; (freemap[pos] == -1) && pos < 256; ++pos)
+    for (pos = 0; (freemap[pos] == 0xff) && pos < 256; ++pos)
         blk += 8;
 
     if (pos == 256)
@@ -133,27 +148,27 @@ int getfree()
     return blk;
 }
 
-writeblk()
+void writeblk(void)
 {
     if (fwrite(block, 1, 256, n_txt) != 256)
         fputs("New text file write error\n", stderr);
 }
 
-writefree()
+void writefree(void)
 {
     rewind(n_txt);
     if (fwrite(freemap, 1, 256, n_txt) != 256)
         fputs("New text file freemap write error\n", stderr);
 }
 
-setfree()
+void setfree(void)
 {
     freemap[0] = 1;             /* the free map itself is allocated */
     for (i = 1; i < 256; ++i)
         freemap[i] = 0;
 }
 
-int readhdr()
+int readhdr(void)
 {
     ++msgnum;
     if (fread(&hdr_flag, 1, 16, o_hdr) == 16)
@@ -161,7 +176,7 @@ int readhdr()
     return 0;
 }
 
-writehdr()
+int writehdr(void)
 {
     if (fwrite(&hdr_flag, 1, 16, n_hdr) == 16)
         return 1;
@@ -169,7 +184,7 @@ writehdr()
     return 0;
 }
 
-fixtxt()
+void fixtxt(void)
 {
     thisblk = getfree();
     if (thisblk == -1) {
@@ -185,7 +200,7 @@ fixtxt()
 
 }
 
-copytxt()
+void copytxt(void)
 {
 
     fputs("Msg  ", stderr);
@@ -220,7 +235,7 @@ copytxt()
     bflush();
 }
 
-closem()
+void closem(void)
 {
     fputs("Closing\n", stderr);
     fclose(o_txt);
@@ -229,7 +244,7 @@ closem()
     fclose(n_hdr);
 }
 
-int zgetc()
+int zgetc(void)
 {
     if (bufst == bufend) {
         bufend = buffer + fread(buffer, 1, BUFFER, o_txt);

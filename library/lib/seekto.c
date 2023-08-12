@@ -1,8 +1,6 @@
 #include <stdio.h>
 
-seekto(fp, sector)
-FILE *fp;
-int sector;
+void seekto(FILE *fp, int sector)
 {
     int rba;
     rba = sector << 8;

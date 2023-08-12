@@ -6,8 +6,6 @@
 **      Macro Definitions
 */
 
-#include <stdio.h>
-
 /*
 **      machine dependent parameters
 */

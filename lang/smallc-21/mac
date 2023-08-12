@@ -1,0 +1,66 @@
+                         Small-Mac Assembler Version 1.0
+         
+         A  companion assembler to the Small-C compiler is now available.
+         Small-Mac is a complete  relocatable,  macro  assembler  package
+         written in  Small-C, for use with the Small-C compiler.  It runs
+         on 8080/Z80 machines under CP/M. Its  outstanding  features  are
+         low   cost,   ease   of   use,  CPU  adaptability,  source  code
+         distribution, and educational value.
+         
+         The following programs are included:
+         
+                   MAC       macro assembler
+                   LNK       linkage editor
+                   LGO       load-and-go loader
+                   LIB       library manager
+                   CMIT      CPU configuration utility
+                   DREL      dump relocatable files
+         
+         MAC is a two-pass, table driven, relocatable,  macro  assembler.
+         It  "learns" the target machine from a machine instruction table
+         (MIT) which is created with a text editor and compiled with  the
+         CMIT configuration  utility.    It  generates relocatable object
+         modules in the 8-bit Microsoft format.  MAC is  invoked  with  a
+         simple command syntax and issues descriptive error messages.
+         
+         LNK  combines  specified  object  modules  with modules found in
+         specified libraries to create executable programs.  Its  default
+         output is  a  standard  .COM  file.    However,  it can generate
+         "load-and-go" (.LGO) files for execution at any desired address.
+         
+         LGO loads and optionally executes .LGO files.    It  provides  a
+         convenient  way  to  invoke  operating system extensions at cold
+         start time.
+         
+         LIB builds, maintains, and lists the contents of LNK  compatible
+         libraries.
+         
+         CMIT  compiles  machine  instruction  tables,  lists  them,  and
+         optionally configures the assembler with  the  resulting  object
+         table.
+         
+         DREL produces a formatted dump of .REL and .LIB files.
+         
+         Small-Mac  instruction  operands  may contain expressions of any
+         complexity.   Expression  operators  and  precedence  rules  are
+         follow the   C  language.    The  Small-Mac  macro  facility  is
+         extremely easy  to  learn,  remember,  and  use.     Conditional
+         assembly and repeat pseudo-ops are not supported at this time.
+         
+                                  J. E. Hendrix
+                                     Box 8378
+                              University, MS  38677
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 FILE *in;
 
@@ -15,14 +16,28 @@ int i, n, c;
 int orignode, destnode, orignet, destnet;
 int month, pktver;
 
-char *months[24];               /* should be 12 */
+const char *months[12];
 
 char digits[] = "0123456789abcdef";
 
+// functions defined in this file:
+void look(char *file);
+void dopkthdr(void);
+void outnum(FILE *fp, char *str1, int num, char *str2);
+void outstr(char *lastarg, ...) __smallc; // depends on smallc
+void hexdump(char *cp, int num);
+void puthexc(int c, char *str);
+void puthexl(char *cp, int num);
+void putcharl(char *cp, int num);
+void fixnum(char **cpp, int *nump);
+int domsg(void);
+void ignore(int n);
+void initm(void);
+int getf(char *buf, int off);
+void pnn(int net, int node);
+void pause(void);
 
-main(argc, argv)
-int argc;
-char **argv;
+int main(int argc, char *argv[])
 {
     initm();
     if (argc == 1) {
@@ -32,10 +47,10 @@ char **argv;
 
     while (--argc)
         look(*++argv);
+    return 0;
 }
 
-look(file)
-char *file;
+void look(char *file)
 {
     if ((in = fopen(file, "r")) == NULL) {
         outstr(0, stderr, "\nPktlook: cannot open ", file, "\n");
@@ -50,7 +65,7 @@ char *file;
     fclose(in);
 }
 
-dopkthdr()
+void dopkthdr(void)
 {
     n = fread(pkthdr, 1, 58, in);
     if (n != 58) {
@@ -87,10 +102,7 @@ dopkthdr()
     hexdump(pkthdr + 24, 34);
 }
 
-outnum(fp, str1, num, str2)
-FILE *fp;
-char *str1, *str2;
-int num;
+void outnum(FILE *fp, char *str1, int num, char *str2)
 {
     char string[8];
     itoa(num, string);
@@ -100,8 +112,7 @@ int num;
 }
 
 /* VARARGS */
-outstr(lastarg)
-char *lastarg;
+void outstr(char *lastarg, ...) __smallc
 {
     char **argp;
     FILE *fp;
@@ -116,9 +127,7 @@ char *lastarg;
     } while ((argp--) != &lastarg);
 }
 
-hexdump(cp, num)
-char *cp;
-int num;
+void hexdump(char *cp, int num)
 {
     int addr;
 
@@ -137,9 +146,7 @@ int num;
     fputs("\n", stdout);
 }
 
-puthexc(c, str)
-int c;
-char *str;
+void puthexc(int c, char *str)
 {
     c &= 0xff;
     fputc(digits[c >> 4], stdout);
@@ -147,9 +154,7 @@ char *str;
     fputs(str, stdout);
 }
 
-puthexl(cp, num)
-char *cp;
-int num;
+void puthexl(char *cp, int num)
 {
     int i;
 
@@ -167,11 +172,9 @@ int num;
     fputs("  ", stdout);
 }
 
-putcharl(cp, num)
-char *cp;
-int num;
+void putcharl(char *cp, int num)
 {
-    int n, i;
+    int i;
     char c;
 
     i = 16;
@@ -190,9 +193,7 @@ int num;
     putchar('\n');
 }
 
-fixnum(cpp, nump)
-char **cpp;
-int *nump;
+void fixnum(char **cpp, int *nump)
 {
     int i;
     if (*nump > 15)
@@ -203,7 +204,7 @@ int *nump;
     *nump -= i;
 }
 
-domsg()
+int domsg(void)
 {
     n = fread(msghdr, 1, 14, in);
     if (getf(msghdr, 0) == 0)
@@ -246,15 +247,14 @@ domsg()
     return 1;
 }
 
-ignore(n)
-int n;
+void ignore(int n)
 {
     while (n--) {
         while (((c = getc(in)) & 0xff) > 0) ;
     }
 }
 
-initm()
+void initm(void)
 {
     months[0] = "January";
     months[1] = "February";
@@ -270,9 +270,7 @@ initm()
     months[11] = "December";
 }
 
-int getf(buf, off)
-char *buf;
-int off;
+int getf(char *buf, int off)
 {
     char *place;
     int a, b;
@@ -282,8 +280,7 @@ int off;
     return a + (b << 8);
 }
 
-pnn(net, node)
-int net, node;
+void pnn(int net, int node)
 {
     char string[8];
     itoa(net, string);
@@ -293,7 +290,7 @@ int net, node;
     fputs(string, stdout);
 }
 
-pause()
+void pause(void)
 {
     putchar('?');
     while (getchar() != ' ') ;

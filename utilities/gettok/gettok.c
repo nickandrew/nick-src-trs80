@@ -1,4 +1,4 @@
-/* Gettok.c: Get the BASIC tokens out of ROM.
+/* gettok.c: Get the BASIC tokens out of ROM.
  */
 
 #include <stdio.h>
@@ -20,8 +20,10 @@ int main()
     for (labelnum = 1, toknum = 128; toknum < 251; toknum++, labelnum++) {
         i = 1;
         *name = (*(locn++) & 0x7f);
+
         while (*locn < 0x80)
             name[i++] = *(locn++);
+
         name[i] = 0;
 
         fprintf(fp, "TOK_%d\tDEFM\t'%s',0\n", labelnum, name);

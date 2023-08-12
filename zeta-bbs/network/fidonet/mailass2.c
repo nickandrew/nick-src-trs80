@@ -9,19 +9,21 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define EXTERN extern
 #include "mailass.h"
+#include "bb7func.h"
+#include "bunfunc.h"
+#include "msgfunc.h"
+#include "openf2.h"
+#include "getw.h"
 #include "zeta.h"
-
-#ifdef	REALC
-extern FILE *openf2();
-extern char *nextword();
-#endif
 
 /* open up all files, and ensure the packets contain a valid header */
 
-openf()
+void openf(void)
 {
     loctxt_p = openf2(LOCTXT);
     lochdr_p = openf2(LOCHDR);
@@ -38,7 +40,7 @@ openf()
 
 /* read the number of messages and the free sector bitmap */
 
-init()
+void init(void)
 {
     int n;
 
@@ -71,7 +73,7 @@ init()
 
 /*  read_hdr ... read a 16 byte header record */
 
-int read_hdr()
+int read_hdr(void)
 {
     int n;
 
@@ -87,7 +89,7 @@ int read_hdr()
 
 /* close all the open files */
 
-closef()
+void closef(void)
 {
     fclose(loctxt_p);
     fclose(lochdr_p);
@@ -100,7 +102,7 @@ closef()
 **	read the 4 fields from loctxt
 */
 
-int readhead()
+int readhead(void)
 {
     int n;
 
@@ -135,8 +137,7 @@ int readhead()
 
 /* save the topic code (ha) of the new message */
 
-savetopic(msgn, tc)
-int msgn, tc;
+void savetopic(int msgn, int tc)
 {
     int offset;
 
@@ -149,7 +150,7 @@ int msgn, tc;
 **	write data headers for new local message
 */
 
-int writedat()
+int writedat(void)
 {
     int n;
 
@@ -174,8 +175,7 @@ int writedat()
 **	Write a CR-terminated string to the new message
 */
 
-int write2(s)
-char *s;
+int write2(char *s)
 {
     int n;
 
@@ -189,10 +189,10 @@ char *s;
 ** Copy the entire text of one local message to another
 */
 
-int localcpy()
+int localcpy(void)
 {
     int n;
-    char ch;
+    int ch;
 
     do {
         ch = getctxt(loctxt_p, oldtxt, &read_rec, &read_pos);
@@ -224,7 +224,7 @@ int localcpy()
 **	Set the flags for this message as processed
 */
 
-int setproc()
+int setproc(void)
 {
     int n;
 
@@ -242,10 +242,9 @@ int setproc()
 **	Copy a message and translate into Fidonet standard
 */
 
-int copymsg(fp)
-FILE *fp;
+int copymsg(FILE *fp)
 {
-    char ch;
+    int ch;
 
     do {
         ch = getctxt(loctxt_p, oldtxt, &read_rec, &read_pos);
@@ -274,7 +273,7 @@ FILE *fp;
 **	write the 16 byte local header record
 */
 
-int write_hdr()
+int write_hdr(void)
 {
     int n;
 
@@ -293,7 +292,7 @@ int write_hdr()
 **	rewrite the old local header record (as a deleted message).
 */
 
-int rewrite_hdr()
+int rewrite_hdr(void)
 {
     int n;
 
@@ -313,10 +312,7 @@ int rewrite_hdr()
 **	type == 2	Recover Fidonet packet (p1, p2 = fp, rba)
 */
 
-recover(type, p1, p2)
-int type;
-FILE *p1;
-int p2;
+void recover(int type, FILE *p1, int p2)
 {
     int recnum;
     int n;
@@ -359,8 +355,7 @@ int p2;
 **	2 - bounce to sysop (detected bounce loop)
 */
 
-int bouncecpy(type)
-int type;
+int bouncecpy(int type)
 {
     int n;
 
@@ -414,8 +409,7 @@ int type;
 **	write a string to the text file
 */
 
-int bounce2(s)
-char *s;
+int bounce2(const char *s)
 {
     return putstxt(s, loctxt_p, newtxt, &write_rec, &write_pos, freemap);
 }
@@ -424,10 +418,8 @@ char *s;
 **	rewrite the number of messages
 */
 
-int write_top()
+int write_top(void)
 {
-    int n;
-
     fseek(loctop_p, 0, 0);
     fputc(num_msg & 255, loctop_p);
     fputc((num_msg >> 8) & 255, loctop_p);

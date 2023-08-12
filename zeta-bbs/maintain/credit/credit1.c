@@ -9,12 +9,29 @@
 **/
 
 #include <stdio.h>
+#include <stdlib.h>
+
+// I don't know where these are defined
+extern int  chksysop(void);
+extern int  getmonth(void);
+extern int  getyear(void);
+extern int  readrec(void);
+extern int  search(void);
+extern void skip(void);
+extern void uopen(void);
+extern void uclose(void);
+extern void writrec(void);
+
+void totals(void);
+void repstr(char *string);
+void reptot(char *string, int value);
+int fixbal(void);
 
 FILE *report;
 int adjust, rec, recent = 0;
 char namestr[25], *cp, *ncp;
 char func;                      /* +, -, or = */
-char *balptr;
+int *balptr;
 char *lastcall;
 char *uname;
 
@@ -25,9 +42,7 @@ char *priv2, *status;
 int plus = 0, minus = 0, zero = 0;
 int nouse = 0;
 
-main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
     fputs("Chksysop", stdout);
     if (chksysop() == 0)
@@ -99,9 +114,10 @@ char *argv[];
     if (report != NULL)
         fclose(report);
     uclose();
+    return 0;
 }
 
-totals()
+void totals(void)
 {
     fputs("Printing totals...\n", stdout);
     repstr("Credit adjustment report -- totals\n\n");
@@ -110,16 +126,13 @@ totals()
     reptot("Bankrupt users:             ", zero);
 }
 
-repstr(string)
-char *string;
+void repstr(char *string)
 {
     if (report != NULL)
         fputs(string, report);
 }
 
-reptot(string, value)
-char *string;
-int value;
+void reptot(char *string, int value)
 {
     char str[7];
     if (report != NULL) {
@@ -130,7 +143,7 @@ int value;
     }
 }
 
-fixbal()
+int fixbal(void)
 {
     int month, year;
 

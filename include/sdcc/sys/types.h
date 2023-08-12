@@ -11,7 +11,11 @@
 **   Helped out by: https://pubs.opengroup.org/onlinepubs/009696799/basedefs/sys/types.h.html
 */
 
+#ifndef _SYS_TYPES_H_
+#define _SYS_TYPES_H_
+
 typedef int           mode_t;
+typedef int           intptr_t;
 typedef long          off_t;
 typedef unsigned int  size_t;
 typedef int           ssize_t;
@@ -19,3 +23,5 @@ typedef int           time_t;
 
 /* Maximum value of a signed size */
 #define SSIZE_MAX  32767
+
+#endif /* #ifdef _SYS_TYPES_H_ */

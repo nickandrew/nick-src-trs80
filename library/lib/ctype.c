@@ -4,12 +4,14 @@
 ** Last updated: 17-Jul-87
 */
 
+#include <ctype.h>
+
 /***********************************************************/
 /*                         isalpha                         */
 /***********************************************************/
 
-isalpha(c)                      /* return 1 if c is alphabetic */
-int c;                          /*    else returns 0       */
+isalpha(int c)                      /* return 1 if c is alphabetic */
+// int c;                          /*    else returns 0       */
 {
     if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
         return 1;
@@ -21,8 +23,7 @@ int c;                          /*    else returns 0       */
 /*                         isupper                         */
 /***********************************************************/
 
-isupper(c)
-int c;
+isupper(int c)
 {
     if (c >= 'A' && c <= 'Z')
         return 1;
@@ -34,8 +35,7 @@ int c;
 /*                         islower                         */
 /***********************************************************/
 
-islower(c)
-int c;
+islower(int c)
 {
     if (c >= 'a' && c <= 'z')
         return 1;
@@ -47,8 +47,7 @@ int c;
 /*                         isdigit                         */
 /***********************************************************/
 
-isdigit(c)
-int c;
+isdigit(int c)
 {
     if (c >= '0' && c <= '9')
         return 1;
@@ -60,8 +59,7 @@ int c;
 /*                         isspace                         */
 /***********************************************************/
 
-isspace(c)
-int c;
+isspace(int c)
 {
     if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
         return 1;
@@ -93,8 +91,7 @@ int c;
 /*                         toupper                         */
 /***********************************************************/
 
-toupper(c)
-int c;
+toupper(int c)
 {
     if (c >= 'a' && c <= 'z')
         c -= 32;
@@ -105,8 +102,7 @@ int c;
 /*                         tolower                         */
 /***********************************************************/
 
-tolower(c)
-int c;
+tolower(int c)
 {
     if (c >= 'A' && c <= 'Z')
         c += 32;

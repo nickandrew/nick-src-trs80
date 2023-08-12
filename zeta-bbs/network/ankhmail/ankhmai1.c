@@ -26,12 +26,30 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "ankhmail.h"
 
-main(argc, argv)
-int argc;
-char *argv[];
+int procfile(void);
+int procarc(void);
+void procpac(void);
+void packdis(void);
+int do_pkt(void);
+int procfnews(void);
+int procndiff(void);
+int procnews(void);
+int procnet(void);
+void fixfn(char *cp);
+int find(char *mask, char status);
+void getfn(char *cp1, char *cp2);
+void msg3(char *s1, char *s2, char *s3);
+
+extern int arcnext(FILE *fp, char *filename);
+extern int chkwild(char *wildcard, const char *string);
+
+int main(int argc, char *argv[])
 {
     if (argc > 1) {
         if (!strcmp(argv[1], "-p"))
@@ -86,13 +104,13 @@ char *argv[];
     if (d_flag)
         packdis();              /* process "packets" using packdis */
 
-    exit(retcode);
+    return retcode;
 }
 
 
 /*  procfile : process one file of whatever type */
 
-int procfile()
+int procfile(void)
 {
 
     getfn(line, fn);
@@ -129,7 +147,7 @@ int procfile()
 **  Contents of "packets" file gets processed after ankhmail
 */
 
-int procarc()
+int procarc(void)
 {
 
     if (*line == 'E') {
@@ -202,7 +220,7 @@ int procarc()
 **      then remove the arcmail file
 */
 
-int procpac()
+void procpac(void)
 {
 
     if (pac != NULL)
@@ -258,7 +276,7 @@ int procpac()
 **	In just the same way that routine procpac above does it
 */
 
-packdis()
+void packdis(void)
 {
     if (pac != NULL)
         fclose(pac);
@@ -279,7 +297,7 @@ packdis()
 **	Call packdis to process one bundle
 */
 
-int do_pkt()
+int do_pkt(void)
 {
 
     if ((fp = fopen(fn, "r")) == NULL) {
@@ -316,7 +334,7 @@ int do_pkt()
 
 /*  procfnews : Process the Fnews received weekly */
 
-int procfnews()
+int procfnews(void)
 {
 
     if (*line != ' ')
@@ -354,7 +372,7 @@ int procfnews()
 
 /*  Procndiff ... Process nodediff by removing it */
 
-int procndiff()
+int procndiff(void)
 {
 
     if (*line != ' ')
@@ -374,7 +392,7 @@ int procndiff()
 **	How?  Delete the oldest one in the queue; add this one to the queue
 */
 
-procnews()
+int procnews(void)
 {
 
     if (*line != ' ')
@@ -396,7 +414,7 @@ procnews()
 **	Add password, and run packdis on it
 */
 
-procnet()
+int procnet(void)
 {
     if (*line != ' ')
         return 0;
@@ -430,8 +448,7 @@ procnet()
 
 /*  fixfn : Change first char of name & extension to alpha */
 
-fixfn(cp)
-char *cp;
+void fixfn(char *cp)
 {
 
     if (*cp >= '0' && *cp <= '9')
@@ -449,8 +466,7 @@ char *cp;
 
 /* find the first filename & status match in INFILES */
 
-int find(mask, status)
-char *mask, status;
+int find(char *mask, char status)
 {
 
     oldpos = ftell(inf);
@@ -475,8 +491,7 @@ char *mask, status;
 
 /* get the filename part from a \n-terminated string */
 
-getfn(cp1, cp2)
-char *cp1, *cp2;
+void getfn(char *cp1, char *cp2)
 {
     cp1 += 2;
     while (*cp1 && *cp1 != '\n')
@@ -486,8 +501,7 @@ char *cp1, *cp2;
 
 /* print 3 strings on stderr */
 
-msg3(s1, s2, s3)
-char *s1, *s2, *s3;
+void msg3(char *s1, char *s2, char *s3)
 {
     fputs(s1, stderr);
     fputs(s2, stderr);

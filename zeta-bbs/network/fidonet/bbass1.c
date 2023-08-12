@@ -18,19 +18,21 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define EXTERN
 #include "bbass.h"
+#include "bunfunc.h"
+#include "gettime.h"
+#include "getw.h"
+#include "openf2.h"
+#include "bb7func.h"
+#include "msgfunc.h"
 #include "zeta.h"
 #include "packctl.h"
 
-#ifdef	REALC
-extern FILE *openf2();
-#endif
-
-main(argc, argv)
-int argc;
-char *argv[];
+int main()
 {
     int n;
 
@@ -62,12 +64,12 @@ char *argv[];
     rc |= wtop_msg();
     closef();
 
-    exit(rc);
+    return rc;
 }
 
 /* open up all files, and ensure the bundles contain a valid header */
 
-openf()
+void openf(void)
 {
     openloc();
     openmsg();
@@ -83,7 +85,7 @@ openf()
 
 /* initialise the two database files */
 
-init()
+void init(void)
 {
     initmsg();
     initloc();
@@ -91,7 +93,7 @@ init()
 
 /* close all the open files */
 
-closef()
+void closef(void)
 {
     closloc();
     closmsg();
@@ -105,7 +107,7 @@ closef()
 **	(thats for OUTGOING and INTRANSIT)
 */
 
-int ignorel()
+int ignorel(void)
 {
     if (oldhdr[0] & (F_PROCESSED | F_DELETED))
         return 1;               /* ignore */
@@ -120,7 +122,7 @@ int ignorel()
 **	(thats for F_NEW mostly, and F_OUTGOING for later)
 */
 
-int ignorem()
+int ignorem(void)
 {
     if (oldhdr[0] & (F_PROCESSED | F_DELETED))
         return 1;               /* ignore */
@@ -144,7 +146,7 @@ int ignorem()
 **
 */
 
-int do_msg()
+int do_msg(void)
 {
     int rc;
 
@@ -206,8 +208,7 @@ int do_msg()
 **	Return conf number if found, or -1 if not found
 */
 
-int findtopic(tc)
-int tc;
+int findtopic(int tc)
 {
     int i;
 
@@ -225,7 +226,7 @@ int tc;
 **	Not used in current version of program
 */
 
-int deleteold()
+int deleteold(void)
 {
     int n;
     int recnum;
@@ -257,7 +258,7 @@ int deleteold()
 **	Return 1 if it is a valid Zeta user name
 */
 
-int chk_local()
+int chk_local(void)
 {
     user_no = user_search(oldto);
     if (user_no <= 0) {
@@ -281,7 +282,7 @@ int chk_local()
 **	Set processed flag on old message
 */
 
-int local()
+int local(void)
 {
     int n;
 
@@ -332,7 +333,7 @@ int local()
 **	Set the current message to processed.
 */
 
-int fido()
+int fido(void)
 {
     int n;
 
@@ -351,7 +352,7 @@ int fido()
     fidodat();                  /* convert the old to new headers */
     n = copydat(fido_p);
     if (n) {
-        fputs("Could not copy header info to fidonet\n");
+        fputs("Could not copy header info to fidonet\n", stderr);
         recover(2, fido_p, fp_msg);
         return n;
     }
@@ -365,7 +366,7 @@ int fido()
 
     n = copymsg(fido_p);
     if (n) {
-        fputs("Could not copy message to fidonet\n");
+        fputs("Could not copy message to fidonet\n", stderr);
         recover(2, fido_p, fp_msg);
         return n;
     }
@@ -379,7 +380,7 @@ int fido()
 
     n = setproc();
     if (n) {
-        fputs("Could not set message to processed\n");
+        fputs("Could not set message to processed\n", stderr);
         return n;
     }
 
@@ -391,7 +392,7 @@ int fido()
 **	Basically the same as fido(), except using acs_p
 */
 
-int usenet()
+int usenet(void)
 {
     int n;
 
@@ -410,7 +411,7 @@ int usenet()
     fidodat();                  /* convert the old to new headers */
     n = copydat(acs_p);
     if (n) {
-        fputs("Could not copy header info to ACSnet bundle\n");
+        fputs("Could not copy header info to ACSnet bundle\n", stderr);
         recover(2, acs_p, ap_msg);
         return n;
     }
@@ -424,7 +425,7 @@ int usenet()
 
     n = copymsg(acs_p);
     if (n) {
-        fputs("Could not copy message to ACSnet bundle\n");
+        fputs("Could not copy message to ACSnet bundle\n", stderr);
         recover(2, acs_p, ap_msg);
         return n;
     }
@@ -438,7 +439,7 @@ int usenet()
 
     n = setproc();
     if (n) {
-        fputs("Could not set message to processed\n");
+        fputs("Could not set message to processed\n", stderr);
         return n;
     }
 
@@ -447,8 +448,7 @@ int usenet()
 
 /* build a new message header for lochdr */
 
-buildhdr(send, recv, flags)
-int send, recv, flags;
+void buildhdr(int send, int recv, int flags)
 {
     newhdr[0] = flags;
     newhdr[1] = 8;              /* # lines (dummy - not used?) */
@@ -460,8 +460,8 @@ int send, recv, flags;
     putw(newhdr + 8, send);     /* sender uid */
     putw(newhdr + 10, recv);    /* receiver uid */
     newhdr[12] = 0;             /* topic 0 */
-    newhdr[13] = getsecond();
-    newhdr[14] = getminute();
+    newhdr[13] = getsecon();
+    newhdr[14] = getminut();
     newhdr[15] = gethour();
 }
 
@@ -469,7 +469,7 @@ int send, recv, flags;
 **	Create new data headers for new local messages
 */
 
-localdat()
+void localdat(void)
 {
     strcpy(newfrom, oldfrom);
     strcpy(newto, user_field);  /* from user_search */
@@ -481,7 +481,7 @@ localdat()
 **	Create new data headers for Echomail/USENET
 */
 
-fidodat()
+void fidodat(void)
 {
     char *cp;
 
@@ -512,10 +512,7 @@ fidodat()
 **	type == 2	Recover Fidonet bundle (p1 = fp, p2 = rba)
 */
 
-recover(type, p1, p2)
-int type;
-FILE *p1;
-int p2;
+void recover(int type, FILE *p1, int p2)
 {
     int recnum;
     int n;
@@ -560,7 +557,7 @@ int p2;
 **	Write the message header to the screen
 */
 
-printout()
+void printout(void)
 {
     fputs("From: ", stderr);
     fputs(oldfrom, stderr);

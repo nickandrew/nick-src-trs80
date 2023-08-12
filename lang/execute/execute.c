@@ -43,12 +43,11 @@ int main(int argc, char *argv[])
 
 void execute(int outer)
 {
-    int i, j, nochange, savedpc;
+    int i, j, savedpc;
     char c;
     char line[64];
 
-    nochange = 1;
-    while (nochange) {
+    while (1) {
         i = pc;
         j = 0;
         if (prog[i] == 0)       /* eof */

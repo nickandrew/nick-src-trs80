@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 
-main()
+int main()
 {
     char string[80];
     char outstr[80];
@@ -23,4 +23,6 @@ main()
         outstr[79] = 0;
         puts(outstr);
     }
+
+    return 0;
 }

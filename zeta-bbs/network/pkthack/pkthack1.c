@@ -4,6 +4,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 FILE *in, *out;
 
@@ -13,13 +14,17 @@ char pkthdr[58];
 char msghdr[12];
 int length, number = 0;
 int c, d, maxsize = 20000;
-extern char buffer[];
 char *bp, *wp;
 
+extern char buffer[];
 
-main(argc, argv)
-int argc;
-char *argv[];
+extern int readmh(void);
+extern void copyfield(void);
+extern void copymsg(void);
+extern void flushout(void);
+extern void makefile(void);
+
+int main(int argc, char *argv[])
 {
     if (argc < 3) {
         fputs("Usage: pkthack infile.pkt [bytes]\n", stderr);
@@ -54,9 +59,10 @@ char *argv[];
     fclose(in);
 
     fputs("pkthack: done\n", stderr);
+    return 0;
 }
 
-makefile()
+void makefile(void)
 {
 
     if (out != NULL) {
@@ -86,7 +92,7 @@ makefile()
     length = 58;
 }
 
-readmh()
+int readmh(void)
 {
 
     c = getc(in);
@@ -107,7 +113,7 @@ readmh()
     return 0;
 }
 
-copymsg()
+void copymsg(void)
 {
 
     *bp++ = 2;
@@ -124,7 +130,7 @@ copymsg()
     copyfield();                /* mesg */
 }
 
-copyfield()
+void copyfield(void)
 {
     c = getc(in);
     while (c != EOF && c != 0) {
@@ -139,7 +145,7 @@ copyfield()
     }
 }
 
-flushout()
+void flushout(void)
 {
     *bp++ = 0;
     *bp++ = 0;
