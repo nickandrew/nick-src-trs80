@@ -723,11 +723,11 @@ STATE0
 	DEFB	1		;Go to state 1
 ;
 	DEFB	'LOGIN: ',0
-	DEFB	EOT,0
+	DEFB	ASC_EOT,0
 	DEFB	0
 ;
 	DEFB	'PASSWORD:',0
-	DEFB	EOT,0
+	DEFB	ASC_EOT,0
 	DEFB	0
 ;
 	DEFB	'llo prophet',CR,0
@@ -747,7 +747,7 @@ STATE0
 	DEFB	0
 ;
 	DEFB	'$ ',0
-	DEFB	EOT,0
+	DEFB	ASC_EOT,0
 	DEFB	0
 ;
 	DEFB	'# ',0

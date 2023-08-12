@@ -4,9 +4,9 @@
 MAX_ITEMS	EQU	32
 MAX_ALLOC	EQU	4096
 ;
+;
 ;List_push: Push a buffer onto the end of a list.
 ;Calling: HL=Address of source, C=length, B=list #.
-	IFREF	LIST_PUSH
 LIST_PUSH:
 	PUSH	HL
 	PUSH	BC
@@ -21,11 +21,10 @@ LIST_PUSH:
 	LDIR
 	CP	A
 	RET
-	ENDIF	;list_push
+;
 ;
 ;list_pop: Pop an item off the end of a numbered list.
 ;Calling: HL=Address of destination.
-	IFREF	LIST_POP
 LIST_POP:
 	PUSH	HL
 	CALL	LIST_END
@@ -46,6 +45,7 @@ LIST_POP:
 	CALL	LIST_FREE
 	RET
 ;
+;
 LIST_END:
 	CALL	LIST_INDEX
 	LD	A,(HL)
@@ -54,15 +54,12 @@ LIST_END:
 	LD	B,A
 	JR	LIST_END
 ;
-	ENDIF	;list_pop
 ;
-	IFREF	LIST_ALLOC
 ;List_alloc: Input B=List number (or list entry number),
 ;		   C=Length to save 1-256, 0=256.
 ;Output:	B=Actual list entry allocated
 ;		HL=Physical address
 ;		Z=Successful.
-;
 LIST_ALLOC:
 LA_01
 	CALL	LIST_INDEX
@@ -94,8 +91,7 @@ LA_02
 	LD	(HL),A
 	LD	B,A
 	CALL	LIST_INDEX
-LA_03
-	PUSH	HL
+LA_03	PUSH	HL
 	PUSH	BC
 	CALL	CORE_ALLOC
 	POP	BC
@@ -142,18 +138,13 @@ CORE_ALLOC
 	CP	A
 	RET
 ;
-LIST_TABLE
-	DC	MAX_ITEMS*4,0FFH
-MEM_USED
-	DEFW	0
-FIRST_MEM
-	DEFW	0
-LA_END	DEFB	0
+LIST_TABLE	DC	MAX_ITEMS*4,0FFH
+MEM_USED	DEFW	0
+FIRST_MEM	DEFW	0
+LA_END		DEFB	0
 LA_FOUND	DEFB	0
 ;
-	ENDIF	;list_alloc
 ;
-	IFREF	LIST_FREE
 ;In: B=list item number.
 ;Out: Z/NZ.
 LIST_FREE:
@@ -164,8 +155,7 @@ LIST_FREE:
 	PUSH	HL
 	LD	C,B
 	LD	B,-1
-LF_01
-	INC	B
+LF_01	INC	B
 	LD	A,B
 	CP	MAX_ITEMS-1
 	JR	Z,LF_02
@@ -174,8 +164,7 @@ LF_01
 	CP	C
 	JR	NZ,LF_01
 	LD	(HL),0
-LF_02
-	POP	HL
+LF_02	POP	HL
 	LD	(HL),0FFH
 	INC	HL
 	LD	C,(HL)
@@ -242,11 +231,7 @@ LF_05	LD	HL,(LF_SUB)
 LF_MIN	DEFW	0
 LF_SUB	DEFW	0
 ;
-	ENDIF	;list_free
 ;
-	IFREF	RET_NZ
 RET_NZ:	XOR	A
 	CP	1
 	RET
-	ENDIF
-;

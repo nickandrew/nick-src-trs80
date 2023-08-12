@@ -1,4 +1,4 @@
-wisdom1.asm:
-  sdcc: wisdom1.c
-  depends:
-  - zeta-bbs/utilities/wisdom/wisdom1.c
+cwiz.cmd:
+  skip: Not yet ready to compile/link C code
+wisdom.cmd:
+  skip: Not yet ready to compile/link C code

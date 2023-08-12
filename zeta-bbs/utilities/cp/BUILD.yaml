@@ -2,6 +2,7 @@ cp.cmd:
   assemble: cp.asm
   depends:
   - include/include/ascii.asm
+  - include/include/ci_cmp.asm
   - include/include/external.asm
   - include/include/doscalls.asm
   - zeta-bbs/include/rs232.asm

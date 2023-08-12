@@ -1762,7 +1762,3 @@ Real Programmers disdain structured programming. Structured programming
 Real Programmers don't believe in schedules. Planners make schedules.
      Managers firm up schedules. Frightened coders strive to meet
      schedules. Real programmers ignore schedules.
-
-
-
-5% 

@@ -1,0 +1,11 @@
+logclean.cmd:
+  assemble: logclean.asm
+  depends:
+  - zeta-bbs/maintain/logclean/logclean.asm
+  - include/include/ascii.asm
+  - include/include/ci_cmp.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/userfile.asm

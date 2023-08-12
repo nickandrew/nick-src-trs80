@@ -16,14 +16,14 @@ DAV	EQU	1
 CTS	EQU	0
 ;
 ;XMODEM protocol type equates...
-SOH	EQU	01H
-EOT	EQU	04H
-ENQ	EQU	05H
-ACK	EQU	06H
-NAK	EQU	15H
-CAN	EQU	18H
+ASC_SOH	EQU	01H
+ASC_EOT	EQU	04H
+ASC_ENQ	EQU	05H
+ASC_ACK	EQU	06H
+ASC_NAK	EQU	15H
+ASC_CAN	EQU	18H
 CRCNAK	EQU	'C'	;Initial NAK ala CRC mode
-SUB	EQU	1AH	;Control char for modem7
+ASC_SUB	EQU	1AH	;Control char for modem7
 ;
 ;Constants
 MAX_NAKS	EQU	0AH
@@ -206,9 +206,9 @@ BYP_WORD
 ;
 NO_PAR
 	LD	HL,M_SIGNON	;Print signon msg.
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 NP_01	LD	HL,M_S_OR_R	;cmd mode
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,B_TYPE	;Get S or R.
 	LD	B,1
 	CALL	40H
@@ -225,7 +225,7 @@ NP_01	LD	HL,M_S_OR_R	;cmd mode
 	CP	'R'
 	JR	NZ,NP_01
 NP_02	LD	HL,M_FILE
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,B_FILE	;Get filename.
 	LD	B,23
 	CALL	40H
@@ -307,7 +307,7 @@ CU_03	INC	HL
 ;
 USAGE
 	LD	HL,M_USAGE
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	XOR	A
 	CP	1		;send to interactive
 	RET
@@ -335,7 +335,7 @@ TELINK_RECV
 	LD	(M7_TRY),A
 	CALL	M7R_FILE
 	JP	NC,EXIT_EXMF
-	CP	EOT
+	CP	ASC_EOT
 	JP	Z,EXIT_EXMF
 	CALL	XFER_INIT
 	CALL	START2
@@ -375,9 +375,9 @@ START2
 	JR	Z,RECV_0
 ;If bad extract
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,M_BDFL
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	A,1		;bad filename on recv.
 	JP	EXIT_EXMF
 ;
@@ -391,7 +391,7 @@ RECV_0
 	JR	Z,GETDESC
 	PUSH	AF
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF		;unknown error on initial
 	JP	DOSERR		;file open, receive.
 ;
@@ -406,7 +406,7 @@ NODESC
 	JR	Z,AEZ
 	PUSH	AF		;error opening RECV file
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF
 	JP	DOSERR		;error opening for RECV.
 ;
@@ -429,9 +429,9 @@ EXISTS				;recv file exists
 	JR	AEZ		;accept it anyway.
 EXIST_1
 	LD	HL,M_SENDEX
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,M_EXISTS	;file already exists
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	A,2
 	JP	EXIT_EXMF
 ;
@@ -464,9 +464,9 @@ RCV_OK	PUSH	AF
 	CALL	AGR		;save all blocks
 				;fixup EOF in FCB....
 	POP	AF
-	CP	ENQ
+	CP	ASC_ENQ
 	JR	NZ,ROK_3
-	LD	A,ACK
+	LD	A,ASC_ACK
 	CALL	PUT_BYTE
 ;
 	LD	HL,M_R_ENQ	;signal enq ACK
@@ -531,7 +531,7 @@ ROK_5
 INITIAL_NAK
 	LD	A,(CRCMODE)
 	OR	A
-	LD	A,NAK
+	LD	A,ASC_NAK
 	JR	Z,INAK_1
 	LD	A,CRCNAK
 INAK_1
@@ -541,7 +541,7 @@ INAK_1
 LOAD_NAK
 	LD	A,(CRCMODE)
 	OR	A
-	LD	A,NAK
+	LD	A,ASC_NAK
 ;;	RET	Z
 	RET
 	LD	A,CRCNAK
@@ -557,20 +557,20 @@ M7R_MR0
 	JR	Z,M7R_FAILED
 	IN	A,(RDDATA)
 	IN	A,(RDDATA)
-	LD	A,NAK
+	LD	A,ASC_NAK
 	CALL	PUT_BYTE
 M7R_MR1
 	LD	B,5
 	CALL	GET_BYTE
 	JR	C,M7R_MR0
-	CP	ACK
+	CP	ASC_ACK
 	JR	Z,M7R_MR2
-	CP	EOT
+	CP	ASC_EOT
 	JR	Z,M7R_NOFILES
 	JR	M7R_MR0
 ;
 M7R_NOFILES
-	LD	A,EOT
+	LD	A,ASC_EOT
 	SCF
 	RET
 ;
@@ -589,9 +589,9 @@ M7R_1
 	LD	B,1
 	CALL	GET_BYTE
 	JP	C,M7R_MR0
-	CP	EOT
+	CP	ASC_EOT
 	JR	Z,M7R_NOFILES
-	CP	SUB
+	CP	ASC_SUB
 	JR	Z,M7R_MR3
 	CP	'u'
 	JP	Z,M7R_MR0
@@ -603,7 +603,7 @@ M7R_1
 	ADD	A,C
 	LD	C,A
 ;
-	LD	A,ACK
+	LD	A,ASC_ACK
 	CALL	PUT_BYTE
 ;
 	JR	M7R_1
@@ -615,7 +615,7 @@ M7R_MR3
 	LD	B,1
 	CALL	GET_BYTE
 	JP	C,M7R_MR0
-	CP	ACK
+	CP	ASC_ACK
 	JR	Z,M7R_2
 	JP	M7R_MR0
 ;
@@ -668,9 +668,9 @@ SEND	LD	HL,M_SENDING
 	JR	Z,SEND_1
 ;
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,M_BDFL	;If bad extract (send)
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	RET			;loop to send next file.
 ;
 SEND_1	LD	HL,BUFF_1	;File buffer.
@@ -683,9 +683,9 @@ SEND_1	LD	HL,BUFF_1	;File buffer.
 	JR	NZ,IS_ERROR
 ;Special stuff....
 	LD	HL,M_RECVNO
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,M_FNID
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	A,20
 	CALL	SEC10
 	RET			;loop to next file.
@@ -693,7 +693,7 @@ SEND_1	LD	HL,BUFF_1	;File buffer.
 IS_ERROR
 	PUSH	AF
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF
 	JP	DOSERR
 ;
@@ -707,7 +707,7 @@ AFF				;check file access.
 ;ha! Stop this transfer!
 BUST_EM
 	LD	HL,M_BUSTED
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	A,19H
 	JR	IS_ERROR
 ;
@@ -740,7 +740,7 @@ S_E_I
 ;
 	LD	HL,M_S_ENQ
 	CALL	VDU_PUTS
-	LD	A,ENQ
+	LD	A,ASC_ENQ
 	CALL	PUT_BYTE	;send exmodem ENQ?
 	CALL	AFX		;ack/nak/can check.
 	JR	C,SND_EOT_FIRST	;if NAK or timeout.
@@ -771,7 +771,7 @@ SND_EOT
 	LD	HL,M_S_EOT
 	CALL	VDU_PUTS
 ;
-	LD	A,EOT
+	LD	A,ASC_EOT
 	CALL	PUT_BYTE
 	CALL	POSS_ABRT
 	CALL	AFX		;wait for ack,nak,can
@@ -798,15 +798,15 @@ AFL	LD	B,10	 	;wait 10 sec for SOH
 	OR	A
 	JR	Z,AFL		;ignore padding zeroes.
 				;but why???
-	CP	SOH
+	CP	ASC_SOH
 	JR	Z,AFO
-	CP	CAN
+	CP	ASC_CAN
 	JP	Z,SNDR_CANCELS	;the sender cancels it.
-	CP	EOT		;scf & ret if EOT
+	CP	ASC_EOT		;scf & ret if EOT
 	SCF	
 	RET	Z
 ;******* Start of Exmodem mods *******
-	CP	ENQ
+	CP	ASC_ENQ
 	SCF
 	RET	Z
 ;******* End of Exmodem mods *******
@@ -821,7 +821,7 @@ SEND_NAK
 	LD	A,(CRCMODE)
 	OR	A
 	JR	NZ,SN_2
-SN_1	LD	A,NAK
+SN_1	LD	A,ASC_NAK
 	CALL	PUT_BYTE
 	JR	SN_5
 SN_2
@@ -916,7 +916,7 @@ AFR	CALL	SEND_ACK	;send ACK
 	JP	GET_BLK		;throw away.
 ;
 SEND_ACK
-	LD	A,ACK
+	LD	A,ASC_ACK
 	CALL	PUT_BYTE
 	RET	
 ;
@@ -933,7 +933,7 @@ SNDR_CANCELS
 SEND_HDR
 	LD	A,(BLK_SNT)
 	CALL	BLK_NUMB	;print block number
-	LD	A,SOH
+	LD	A,ASC_SOH
 	CALL	PUT_BYTE	;send SOH
 	LD	A,(BLK_SNT)
 	CALL	PUT_BYTE	;send BLOCK number
@@ -976,11 +976,11 @@ AFX	LD	B,10		;wait 10 sec
 	CALL	POSS_ABRT
 	LD	HL,M_TIME2
 	JR	C,AFY
-	CP	ACK
+	CP	ASC_ACK
 	RET	Z
-	CP	CAN
+	CP	ASC_CAN
 	JP	Z,HE_RCVR_CANS
-	CP	NAK
+	CP	ASC_NAK
 	JR	Z,AFY_0
 	CP	CRCNAK
 	JR	Z,AFY_1
@@ -1041,12 +1041,12 @@ HE_RCVR_CANS
 	JP	AHD
 ;
 AGD	CALL	WAIT_ONE	;wait for no chars
-	LD	A,CAN
+	LD	A,ASC_CAN
 	CALL	PUT_BYTE
 	LD	HL,M_S_CAN
 	CALL	VDU_PUTS
 	CALL	WAIT_ONE
-	LD	A,CAN		;send another
+	LD	A,ASC_CAN		;send another
 	CALL	PUT_BYTE
 	RET
 ;
@@ -1067,7 +1067,7 @@ F_CLOSE
 	RET	Z
 	PUSH	AF
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF
 	JP	DOSERR
 ;
@@ -1100,7 +1100,7 @@ AGK	PUSH	DE
 	PUSH	AF
 	CALL	AGD		;cancel
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF
 	CALL	DISP_DOS_ERROR
 	JP	AHD
@@ -1160,7 +1160,7 @@ AGT	PUSH	DE
 	PUSH	AF
 	CALL	AGD		;cancel sent
 	LD	HL,M_ERROR
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	POP	AF
 	CALL	DISP_DOS_ERROR
 	JP	AHD
@@ -1208,9 +1208,9 @@ INIT_AHC
 	LD	B,1
 	CALL	GET_BYTE
 	JR	C,IAHC_1
-	CP	NAK
+	CP	ASC_NAK
 	JR	Z,IAHC_2
-	CP	CAN
+	CP	ASC_CAN
 	JP	Z,AGC
 	CP	CRCNAK
 	JR	NZ,IAHC_1
@@ -1218,13 +1218,13 @@ INIT_AHC
 	LD	(CRCMODE),A	;Set CRC mode
 	LD	HL,M_CRCNAK
 	CALL	VDU_PUTS
-	LD	A,NAK		;to fool the rest
+	LD	A,ASC_NAK		;to fool the rest
 	CP	A
 	RET
 IAHC_1	DEC	E
 	JR	NZ,INIT_AHC
 	LD	HL,M_TIME1	;timeout waiting for
-	CALL	MESS_0		;initial nak.
+	CALL	MESS_0_VDU		;initial nak.
 	LD	HL,M_TIME1
 	CALL	VDU_PUTS
 	CALL	AGD
@@ -1240,7 +1240,7 @@ IAHC_2
 ;
 AHD				;filexfer aborted exit.
 	LD	HL,M_ABORTED
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	A,(B_TYPE)
 	CP	'R'
 	JR	NZ,AHD_2
@@ -1251,7 +1251,7 @@ AHD				;filexfer aborted exit.
 	CALL	DISP_DOS_ERROR
 ;
 K_OK	LD	HL,M_KILLED
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 ;
 AHD_2
 	LD	HL,M_ABRT
@@ -1266,7 +1266,7 @@ MSG_EX	PUSH	HL
 	LD	A,20
 	CALL	Z,SEC10
 	POP	HL
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	RET		;back to xfer_loop....
 ;
 SCREEN_SETUP
@@ -1274,7 +1274,7 @@ SCREEN_SETUP
 ;
 QUIET_0	LD	A,(QUIET)
 	OR	A
-	CALL	Z,MESS_0
+	CALL	Z,MESS_0_VDU
 	RET
 QUIET_PUT
 	PUSH	BC
@@ -1348,7 +1348,7 @@ CONFIG
 ;
 FILE_STATS			;print file length etc..
 	LD	HL,M_SRDY	;Ready to send
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	LD	HL,FCB_1+12
 	LD	E,(HL)
 	INC	HL
@@ -1370,10 +1370,10 @@ NUM_SECT
 	LD	DE,STRING
 	CALL	SPUTNUM
 	LD	HL,STRING
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 ;
 	LD	HL,M_SRDY2
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 ;
 	POP	HL
 	PUSH	HL
@@ -1398,10 +1398,10 @@ MIN_2
 	LD	DE,STRING
 	CALL	SPUTNUM
 	LD	HL,STRING
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 ;
 	LD	HL,M_SRDY3
-	CALL	MESS_0
+	CALL	MESS_0_VDU
 	RET
 ;
 ;send character
@@ -1486,6 +1486,7 @@ DISP_DOS_ERROR
 	RET
 ;
 ;
+$$PUT	JP	33H
 MESS_NOCR
 	LD	A,(HL)
 	CP	ETX
@@ -1498,86 +1499,10 @@ MESS_NOCR
 	INC	HL
 	JR	MESS_NOCR
 ;
-$$PUT	JP	33H
-MESS_0	LD	A,(HL)
-	OR	A
-	RET	Z
-	CALL	$$PUT
-	INC	HL
-	JR	MESS_0
-;Get useful routines.
-;SPUTNUM: Put a decimal integer into a string.
-	IFREF	SPUTNUM
-SPUTNUM:
-	LD	(_SPPOS),DE
-	XOR	A
-	LD	(_SPBLANK),A
-	LD	DE,10000
-	CALL	_SP_DIGIT
-	LD	DE,1000
-	CALL	_SP_DIGIT
-	LD	DE,100
-	CALL	_SP_DIGIT
-	LD	DE,10
-	CALL	_SP_DIGIT
-	LD	(_SPTENS),A
-	LD	DE,1
-	LD	A,E
-	LD	(_SPBLANK),A
-	CALL	_SP_DIGIT
-	LD	(_SPONES),A
-	XOR	A
-	LD	DE,(_SPPOS)
-	LD	(DE),A		;null terminator
-	RET
-;
-_SP_DIGIT
-	LD	B,'0'-1
-_SP1	INC	B
-	OR	A
-	SBC	HL,DE
-	JR	NC,_SP1
-	ADD	HL,DE
-	LD	A,(_SPBLANK)
-	OR	A
-	JR	NZ,_SP2
-	LD	A,B
-	CP	'0'
-	RET	Z
-_SP2	LD	(_SPBLANK),A
-	LD	A,B
-	LD	DE,(_SPPOS)
-	LD	(DE),A
-	INC	DE
-	LD	(_SPPOS),DE
-	RET
-;
-_SPBLANK	DEFB	0
-_SPTENS		DEFB	0
-_SPONES		DEFB	0
-_SPPOS		DEFW	0
-;
-	ENDIF	; ifref SPUTNUM
-;
-	IFREF	SEC10
-SEC10:		;Wait 'B'x 0.1 seconds
-	PUSH	BC
-S1_1	PUSH	AF
-	LD	A,(TICKER)
-	LD	C,A
-	LD	B,4
-S1_2	LD	A,(TICKER)
-	CP	C
-	LD	C,A
-	JR	Z,S1_2
-	DJNZ	S1_2
-	POP	AF
-	DEC	A
-	JR	NZ,S1_1
-	POP	BC
-	RET
-	ENDIF	; ifref SEC10
-;
+; Include globals
+*GET	MESS_0_VDU
+*GET	SEC10
+*GET	SPUTNUM
 ;
 ;Special flags & stuff.
 QUIET		DEFB	0	;Quiet flag

@@ -7,10 +7,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <rom.h>
+
 // Maximum number of concurrently open files. fds from 0 to 19.
 // fd 0 = stdin, 1 = stdout, 2 = stderr
 #define MAX_FILES 20
+
+// open_file slot is in use
 #define OF_FLAG_INUSE 1
+// It is a device, not a disk file (affects fclose)
+#define OF_FLAG_DCB   2
+// End Of File has been seen on this open file
+#define OF_FLAG_EOF   4
+
+static const int sector_size = 256;  // Fixed by DOS
 
 // Mode bits
 #define MODE_READ 2
@@ -20,10 +30,11 @@
 
 struct open_file {
   char flag;
+  char *buf;
   union dos_fcb *fcbptr;
 };
 
-// TODO Make these do something
+// These are initialized by _init_stdio()
 FILE *stdin = (FILE *) 0;
 FILE *stdout = (FILE *) 0;
 FILE *stderr = (FILE *) 0;
@@ -66,62 +77,89 @@ int fileno(FILE *fp)
   return (struct open_file *) fp - fd_array;
 }
 
-void junk() {
-  union dos_fcb bill;
-  strcpy(bill.filename, "filename/txt\r"); // Terminate with \r or \x03
-  // This can be done after opening
-  bill.next_l = 0;
-  bill.next_h = 0;
-}
-
-int _openfcb(const char *pathname, const char *mode, union dos_fcb *buf) {
-  int mode_bits = parse_mode(mode);
-  // Ignore terminating the pathname with \r for the moment
-  int rc = dos_file_extract(pathname, buf);
-  if (rc) {
-    return rc;
-  }
-  char *buffer = malloc(256);
-  if (!buffer) {
-    // Error exit
-    return 1;
-  }
-
-  if (mode_bits & MODE_EXISTING) {
-    // Urk need a 256-byte buffer for the file
-    rc = dos_file_open_ex(buf, buffer, 0);
-    // Reclaim buffer
-    return rc;
-  }
-  else {
-    // Urk need a 256-byte buffer for the file
-    rc = dos_file_open_new(buf, buffer, 0);
-    return rc;
-  }
-}
-
 int fclose(FILE *stream) {
-  stream;
-  // TODO
+  struct open_file *ofp = (struct open_file *) stream;
+
+  if (!ofp->flag & OF_FLAG_INUSE) {
+    // errno = ?
+    return -1;
+  }
+
+  if (ofp->flag & OF_FLAG_DCB) {
+    // It's a device, not a file.
+    // There's no explicit close action, just free the slot.
+    ofp->flag = 0;
+    ofp->buf = NULL;
+    ofp->fcbptr = NULL;
+    return 0;
+  }
+
+  dos_file_close(ofp->fcbptr);
+  free(ofp->fcbptr);
+  free(ofp->buf);
+  ofp->buf = NULL;
+  ofp->flag = 0;
+
   return 0;
 }
 
 int feof(FILE *stream) {
-  stream;
-  // TODO
+  struct open_file *ofp = (struct open_file *) stream;
+
+  if (ofp->flag & OF_FLAG_EOF) {
+    return 1;
+  }
   return 0;
 }
 
 int fgetc(FILE *stream) {
-  stream;
-  // TODO
-  return EOF;
+  struct open_file *ofp = (struct open_file *) stream;
+  int rc;
+
+  // FIXME: Hack for reading from stdin.
+  // I really need to implement cooked mode, to read a line of text
+  // at a time
+  if (ofp->fcbptr == (void *) 0x4015) {
+    do {
+      rc = dos_read_byte(ofp->fcbptr);
+    } while (rc == 0);
+    rc &= 0xff;
+    if (rc == 0x0d) {
+      rc = 0x0a;
+    }
+    // ESC can mean EOF for the moment
+    if (rc == 1) {
+      ofp->flag |= OF_FLAG_EOF;
+      return EOF;
+    }
+    return rc;
+  }
+
+  rc = dos_read_byte(ofp->fcbptr);
+
+  if (rc < 0) {
+    // errno = ?
+    ofp->flag |= OF_FLAG_EOF;
+    return EOF;
+  }
+  return rc;
 }
 
 // TODO: This needs to be checked for accuracy
 char *fgets(char *s, int size, FILE *stream) {
   if (feof(stream)) {
     return NULL;
+  }
+
+  // FIXME: Hack for reading from stdin.
+  struct open_file *ofp = (struct open_file *) stream;
+  if (ofp->fcbptr == (void *) 0x4015) {
+    int rc = rom_kbline(s, size - 1);
+    if (rc < 0) {
+      return NULL;
+    }
+    strcat(s, "\n");
+    return s;
   }
 
   char *buf = s;
@@ -154,62 +192,203 @@ char *fgets(char *s, int size, FILE *stream) {
 // mode can be 'r', 'w', 'a', 'r+', 'w+', 'a+' and possible trailing 'b'
 FILE *fopen(const char *pathname, const char *mode)
 {
-  pathname; mode; // Mark as used
-
   int fd = 0;
+  int rc;
+  char mode_char = mode[0];
 
+  if (mode_char != 'a' && mode_char != 'r' && mode_char != 'w') {
+    // errno = ??
+    return NULL;
+  }
+
+  // Order of operations:
+  // 1. Allocate and prepare an FCB
+  // 2. Allocate a 256-byte buffer
+  // 3. DOS open the FCB
+  // 4. If Append mode, position the FCB
+  // 5. Find a free file descriptor and update it
+  // 6. Return a pointer to the file descriptor
+
+  union dos_fcb *fcb_ptr;
+
+  fcb_ptr = malloc(sizeof(*fcb_ptr));
+  if (!fcb_ptr) {
+    // Out of memory
+    // errno = ??
+    return NULL;
+  }
+
+  rc = dos_file_extract(pathname, fcb_ptr);
+  if (rc) {
+    // errno = rc;
+    free(fcb_ptr);
+    return NULL;
+  }
+
+  char *buf = malloc(sector_size);
+  if (!buf) {
+    // Out of memory
+    // errno = ??
+    free(fcb_ptr);
+    return NULL;
+  }
+
+  if (mode_char == 'r') {
+    rc = dos_file_open_ex(fcb_ptr, buf, sector_size);
+  } else {
+    rc = dos_file_open_new(fcb_ptr, buf, sector_size);
+  }
+
+  if (rc) {
+    // errno = rc;
+    free(fcb_ptr);
+    free(buf);
+    return NULL;
+  }
+
+  // TODO: Set FCB access level 5 (READ) in FCB
+
+  if (mode_char == 'a') {
+    rc = dos_file_seek_eof(fcb_ptr);
+    if (rc) {
+      // errno = rc;
+      free(fcb_ptr);
+      free(buf);
+      return NULL;
+    }
+  }
+
+  // Set EOF to NEXT only on successful writes which result in NEXT
+  // exceeding EOF.
+  fcb_ptr->bits2 |= 1<<6;
+
+  // Find an available free file descriptor
   for (fd = 0; fd < MAX_FILES; ++fd) {
     struct open_file *ofp = fd_array + fd;
-    if (!ofp->flag & OF_FLAG_INUSE) {
-      ofp->flag |= OF_FLAG_INUSE;
+    if (!(ofp->flag & OF_FLAG_INUSE)) {
+      ofp->flag = OF_FLAG_INUSE;
+      ofp->buf = buf;
+      ofp->fcbptr = fcb_ptr;
       return (FILE *) ofp;
     }
   }
 
   // Maximum number of files are open
-  return (FILE *) 0;
+  free(fcb_ptr);
+  free(buf);
+  dos_mess_pr("fopen() maximum number of files are open\r");
+  return NULL;
 }
 
-int fprintf(FILE *stream, const char *format, ...) {
-  stream; format;
-  // TODO
-  return EOF;
+/* fopen_dcb() ... Associate an open file with an existing Device Control Block
+**
+**  Call this 3 times at program initialization time, to associate
+**  file descriptors 0, 1, 2 with stdin, stdout and stderr.
+*/
+
+FILE *fopen_dcb(void *ptr)
+{
+  unsigned int fd;
+
+  // Find an available free file descriptor
+  for (fd = 0; fd < MAX_FILES; ++fd) {
+    struct open_file *ofp = fd_array + fd;
+    if (!(ofp->flag & OF_FLAG_INUSE)) {
+      ofp->flag = OF_FLAG_INUSE | OF_FLAG_DCB;
+      ofp->buf = (void *) 0;
+      ofp->fcbptr = (union dos_fcb *) ptr;
+      return (FILE *) ofp;
+    }
+  }
+
+  // Maximum number of files are open
+  return NULL;
 }
 
 int fputc(int c, FILE *stream) {
-  c; stream;
-  // TODO
-  return 0;
+  struct open_file *ofp = (struct open_file *) stream;
+
+  if (!ofp->flag & OF_FLAG_INUSE) {
+    // errno = ?
+    return -1;
+  }
+
+  int rc = dos_write_byte(ofp->fcbptr, c);
+  if (rc) {
+    // errno = ?
+    return -1;
+  }
+
+  return c & 0xff;
 }
 
 int fputs(const char *s, FILE *stream) {
   while (*s) {
-    fputc(*s, stream);
+    if (fputc(*s, stream) == EOF)
+      return EOF;
     s++;
   }
 
   return 0;
 }
 
+/* fread(ptr, size, nmemb, stream) ... Read 'nmemb' items of size
+** 'size' from 'stream'. Return the number of items successfully
+** read.
+*/
+
 size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-  ptr; size; nmemb; stream;
-  // TODO
-  return 0;
+  size_t s;
+  size_t ndone = 0;
+  int ch;
+  char *p = (char *) ptr;
+
+  if (size) {
+    while (ndone < nmemb) {
+      s = size;
+      do {
+        ch = fgetc(stream);
+        if (ch == EOF) return ndone;
+        *p++ = ch;
+      } while (--s);
+      ++ndone;
+    }
+  }
+
+  return ndone;
 }
 
 int fseek(FILE *stream, long offset, int whence) {
-  stream; offset; whence;
-  // TODO
+  struct open_file *ofp = (struct open_file *) stream;
+  int rc;
+
+  switch (whence)
+  {
+    case 1:
+      offset += dos_file_next(ofp->fcbptr);
+      break;
+    case 2:
+      offset += dos_file_eof(ofp->fcbptr);
+  }
+
+  rc = dos_file_seek_rba(ofp->fcbptr, offset);
+
+  if (rc) {
+    return -1;
+  }
+
+  ofp->flag &= !OF_FLAG_EOF;
   return 0;
 }
 
 long ftell(FILE *stream) {
-  stream; // Mark as used
-  return 0;
+  struct open_file *ofp = (struct open_file *) stream;
+  long rc = dos_file_next(ofp->fcbptr);
+  return rc;
 }
 
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
-	size_t s;
+  size_t s;
   size_t ndone = 0;
   // Not sure why I had to do this to stop an error on the putc call
   const char *p = (const char *) ptr;
@@ -224,12 +403,7 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
       ++ndone;
     }
 
-	return ndone;
-}
-
-int getchar(void) {
-  // TODO
-  return EOF;
+  return ndone;
 }
 
 int putc(int c, FILE *stream) {
@@ -237,6 +411,44 @@ int putc(int c, FILE *stream) {
 }
 
 void rewind(FILE *stream) {
-  stream;
-  // TODO
+  struct open_file *ofp = (struct open_file *) stream;
+  dos_file_rewind(ofp->fcbptr);
+  ofp->flag &= !OF_FLAG_EOF;
+}
+
+static void output_char_file(char c, void *p)
+{
+  fputc(c, (FILE *) p);
+}
+
+int fprintf(FILE *fp, const char *format, ...)
+{
+  va_list arg;
+  int i;
+
+  va_start(arg, format);
+  i = _print_format(output_char_file, (void *) fp, format, arg);
+  va_end(arg);
+
+  return i;
+}
+
+/*  _init_stdio() ...
+**
+**  This runs just after global/static initialization.
+**  It sets up stdin/stdout/stderr for use before _main starts.
+*/
+
+void _init_stdio(void)
+{
+  stdin = fopen_dcb((void *) 0x4015);
+  stdout = fopen_dcb((void *) 0x401d);
+  stderr = fopen_dcb((void *) 0x4025);
+
+  // Run this function at program start time
+  __asm
+  .area _GSINIT
+  call  __init_stdio
+  .area _CODE
+  __endasm;
 }

@@ -6,3 +6,7 @@ all: libc.lib
 
 libc.lib: $(patsubst %.c,%.rel,$(wildcard *.c))
 	sdar r libc.lib $?
+
+clean:
+	rm -f *.{asm,lst,rel,sym}
+	rm -f libc.lib

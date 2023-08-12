@@ -16,16 +16,35 @@
 /* abcdefgh/xyz 22-Dec-86 Disk1234 Description..... */
 /* 0....+....1....+....2....+....3.....+....4....5. */
 
-int scmp(char *cp1, char *cp2, int len);
-void scpy(char *cpo, char *cpi);
-
 char line1[MAX];
 char line2[MAX];
 char lineout[MAX];
 FILE *f1in, *f2in, *fout;
 int eof1, eof2;
 
-int main()
+
+int scmp(char *cp1, char *cp2, int len)
+{
+    int i = 0;
+    while (i < len) {
+        if (*cp1 != *cp2)
+            return (*cp1 - *cp2);
+        cp1++;
+        cp2++;
+        i++;
+    }
+    return 0;
+}
+
+void scpy(char *cpo, char *cpi)
+{
+    while (*cpi != 0) {
+        *(cpo++) = *(cpi++);
+    }
+    *cpo = 0;
+}
+
+int main(void)
 {
     f1in = fopen("catalog/zms", "r");
     f2in = fopen("filelist/zms", "r");
@@ -55,27 +74,4 @@ int main()
     fclose(f2in);
     fclose(fout);
     return 0;
-}
-
-
-
-int scmp(char *cp1, char *cp2, int len)
-{
-    int i = 0;
-    while (i < len) {
-        if (*cp1 != *cp2)
-            return (*cp1 - *cp2);
-        cp1++;
-        cp2++;
-        i++;
-    }
-    return 0;
-}
-
-void scpy(char *cpo, char *cpi)
-{
-    while (*cpi != 0) {
-        *(cpo++) = *(cpi++);
-    }
-    *cpo = 0;
 }

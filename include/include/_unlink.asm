@@ -1,7 +1,6 @@
 ;unlink : Provide the unlink(filename) call.
 ; Last updated: 14-Jan-88
 ;
-	IFREF	_UNLINK
 _UNLINK
 	LD	HL,2
 	ADD	HL,SP
@@ -40,5 +39,3 @@ UNL_2	LD	A,CR
 ;
 UNL_FCB	DEFS	32
 UNL_BUF	DEFS	256
-;
-	ENDIF	;_unlink

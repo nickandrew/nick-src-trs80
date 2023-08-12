@@ -211,7 +211,7 @@ ADD_5	LD	A,(HL)
 	LD	DE,US_FCB
 	CALL	DOS_POSIT
 	JP	NZ,ERROR
-”
+;
 	CALL	_US_RDREC
 	JP	NZ,ERROR
 ;Update record and write.
@@ -247,13 +247,6 @@ MESS	LD	DE,DCB_2O
 ;
 EXIT	XOR	A
 	JP	TERMINATE	;finish up.
-;
-MESS_0	LD	A,(HL)
-	OR	A
-	RET	Z
-	CALL	$PUT
-	INC	HL
-	JR	MESS_0
 ;
 EXISTS	LD	HL,M_EXISTS
 	CALL	MESS
@@ -295,6 +288,7 @@ SET_MEM	LD	A,(HL)
 ;
 ;
 *GET	ROUTINES
+*GET	CI_CMP
 ;
 M_REG	DEFM	'Registering: "',0
 M_REG_E	DEFM	'".',CR,0

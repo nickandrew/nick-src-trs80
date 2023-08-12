@@ -1,0 +1,18 @@
+;
+;sec10: Delay A x 0.1 seconds
+SEC10:
+	PUSH	BC
+S1_1	PUSH	AF
+	LD	A,(TICKER)
+	LD	C,A
+	LD	B,4
+S1_2	LD	A,(TICKER)
+	CP	C
+	LD	C,A
+	JR	Z,S1_2
+	DJNZ	S1_2
+	POP	AF
+	DEC	A
+	JR	NZ,S1_1
+	POP	BC
+	RET

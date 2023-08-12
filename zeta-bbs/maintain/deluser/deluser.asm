@@ -141,6 +141,7 @@ ERROR	PUSH	AF
 	JP	TERMINATE
 ;
 *GET	ROUTINES
+*GET	CI_CMP
 ;
 M_WHO	DEFM	'Delete who? ',0
 M_NONEX	DEFM	'User does not exist!',CR,0

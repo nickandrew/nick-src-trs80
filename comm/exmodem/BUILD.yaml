@@ -2,8 +2,11 @@ ex300.cmd:
   assemble: ex300.asm
   depends:
   - comm/exmodem/ex300.asm
-  - include/include/doscalls.asm
   - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - include/include/mess_0_vdu.asm
+  - zeta-bbs/include/sec10.asm
+  - zeta-bbs/include/sputnum.asm
 xmf.cmd:
   assemble: xmf.asm
   depends:

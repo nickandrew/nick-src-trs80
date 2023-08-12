@@ -375,7 +375,7 @@ FILE_SEND
 FS_01	XOR	A
 	LD	(TRIES),A
 FS_02
-	LD	HL,MT_1
+	LD	HL,FS_MT_1
 	CALL	LOG_MSG_1
 	LD	A,(TRIES)
 	INC	A
@@ -385,9 +385,9 @@ FS_02
 	LD	B,2
 	CALL	GET_BYTE
 	JR	C,FS_02		;Timed out
-	CP	NAK
+	CP	ASC_NAK
 	JR	Z,FS_03		;Got Nak
-	CP	ACK
+	CP	ASC_ACK
 	JR	Z,FF_05
 	CP	TSYNC
 	JR	Z,FF_02		;Tsync
@@ -396,32 +396,32 @@ FS_02
 	LD	L,A
 	LD	H,0
 	PUSH	HL
-	LD	HL,MT_3
+	LD	HL,FS_MT_3
 	CALL	LOG_MSG_1
 	POP	HL
 	LD	DE,$DO
 	CALL	PRINT_NUMB
 	JR	FS_02
 ;
-FS_03	LD	HL,MT_2		;Rcvd nak
+FS_03	LD	HL,FS_MT_2		;Rcvd nak
 	CALL	LOG_MSG_1
 	JR	FF_06
 ;
-FF_02	LD	HL,MT_4		;Rcvd Tsync
+FF_02	LD	HL,FS_MT_4		;Rcvd Tsync
 	CALL	LOG_MSG_1
 	RET
 ;
-FF_03	LD	HL,MT_5		;Gave up
+FF_03	LD	HL,FS_MT_5		;Gave up
 	CALL	LOG_MSG_1
 	LD	A,1
 	LD	(FAILED),A
 	RET
 ;
-FF_04	LD	HL,MT_6		;Rcvd C
+FF_04	LD	HL,FS_MT_6		;Rcvd C
 	CALL	LOG_MSG_1
 	JR	FF_06
 FF_05
-	LD	HL,MT_7		;Rcvd ACK
+	LD	HL,FS_MT_7		;Rcvd ACK
 	CALL	LOG_MSG_1
 	JR	FS_02
 ;
@@ -431,9 +431,9 @@ FF_06
 	JR	NZ,FF_07
 ;
 FF_08
-	LD	A,EOT
+	LD	A,ASC_EOT
 	CALL	PUT_BYTE
-	LD	HL,MT_8
+	LD	HL,FS_MT_8
 	CALL	LOG_MSG_1
 	JR	FS_02
 ;
@@ -476,12 +476,13 @@ FS_MS0
 	LD	(TRIES),A
 	CP	20
 	JR	NZ,MF_01
-	LD	HL,M7_TRY
+
+	LD	HL,M7_TRY_MSG	; Too many tries
 	CALL	LOG_MSG_1
 	LD	A,3
 	CP	0
 	RET	;nz
-MF_01	LD	A,ACK
+MF_01	LD	A,ASC_ACK
 	CALL	PUT_BYTE
 	LD	HL,TEMPFN
 	PUSH	HL
@@ -496,11 +497,11 @@ FS_MS1
 MF_02	LD	A,'u'
 	CALL	PUT_BYTE
 	POP	HL		;Discard
-	LD	HL,M7_U
+	LD	HL,M7_U		;Sending 'u'
 	CALL	LOG_MSG_1
 	JR	FS_MS0
 MF_03
-	CP	ACK
+	CP	ASC_ACK
 	JR	NZ,MF_02
 	POP	HL
 	LD	A,(HL)
@@ -515,9 +516,9 @@ MF_03
 	INC	HL
 	PUSH	HL
 	JR	FS_MS1
-MF_04	LD	A,SUB
+MF_04	LD	A,ASC_SUB
 	CALL	PUT_BYTE
-	LD	A,SUB
+	LD	A,ASC_SUB
 	ADD	A,C
 	LD	C,A
 FS_MS2
@@ -526,10 +527,10 @@ FS_MS2
 	JR	C,FS_MS0
 	CP	C
 	JR	NZ,FS_MS0
-	LD	A,ACK
+	LD	A,ASC_ACK
 	CALL	PUT_BYTE
-	CP	A
-	RET
+	CP	A		; Set Z flag
+	RET			; Success!
 ;
 CONVFN
 	LD	DE,TEMPFN
@@ -674,7 +675,7 @@ GB_2	LD	A,(CD_STAT)
 	DJNZ	GB_1
 GB_3	POP	DE
 	SCF		;If timeout or carrier loss
-	RET	
+	RET
 ;
 GB_4	IN	A,(RDDATA)
 	POP	DE
@@ -719,8 +720,7 @@ TO_UPPER_C
 ;getpkt: Do all functions required to get a Fidonet
 ;	 packet
 ;
-START	LD	SP,START
-;
+; *notreached* - Looks like this fcp.asm is a work in progress
 ST_1A
 	LD	A,(FAILED)
 	OR	A
@@ -851,7 +851,7 @@ FILE_RECV
 	CALL	GET_BYTE	;Flush
 FR_01	CALL	MODEM7_FNAME
 	JR	NC,FR_FAILED
-	CP	EOT
+	CP	ASC_EOT
 	RET	Z
 ;
 	LD	HL,M7_FILE
@@ -896,17 +896,17 @@ MODEM7_FNAME
 	JP	Z,M7_FAILED
 ;;;	IN	A,(0F8H)
 ;;;	IN	A,(0F8H)	;Flush.
-	LD	A,NAK
+	LD	A,ASC_NAK
 	CALL	PUT_BYTE
 MF_01
 	LD	B,5
 	CALL	GET_BYTE
 	JR	C,MODEM7_FNAME	;If timeout.
-	CP	ACK
+	CP	ASC_ACK
 	JR	Z,MF_03
-	CP	SUB
+	CP	ASC_SUB
 	JR	Z,MF_SUB
-	CP	EOT
+	CP	ASC_EOT
 	JR	Z,MF_02
 ;Unknown character.
 	PUSH	AF
@@ -928,16 +928,16 @@ MF_02
 ;
 	LD	HL,M_NMFILES
 	CALL	LOG_MSG_2
-	LD	A,EOT
+	LD	A,ASC_EOT
 	SCF
 	RET
 ;
 MF_SUB
 	LD	HL,MT_5
 	CALL	LOG_MSG_1
-	LD	A,ACK
+	LD	A,ASC_ACK
 	CALL	PUT_BYTE
-	LD	A,EOT
+	LD	A,ASC_EOT
 	SCF
 	RET
 ;
@@ -951,9 +951,9 @@ MF_04
 	LD	B,1
 	CALL	GET_BYTE
 	JP	C,MODEM7_FNAME	;If timeout
-	CP	EOT
+	CP	ASC_EOT
 	JR	Z,MF_02		;If ACK then EOT .!?
-	CP	SUB
+	CP	ASC_SUB
 	JR	Z,MF_05
 	CP	'u'
 	JP	Z,MODEM7_FNAME
@@ -962,7 +962,7 @@ MF_04
 	ADD	A,C
 	LD	C,A
 ;
-	LD	A,ACK
+	LD	A,ASC_ACK
 	CALL	PUT_BYTE
 ;
 	JR	MF_04
@@ -975,7 +975,7 @@ MF_06
 	LD	B,1
 	CALL	GET_BYTE
 	JP	C,MODEM7_FNAME
-	CP	ACK
+	CP	ASC_ACK
 	JR	Z,MF_07		;convert filename.
 	JP	MODEM7_FNAME
 ;
@@ -1209,7 +1209,10 @@ ADD_SUM	PUSH	HL
 	POP	HL
 	RET
 ;
+; Include globals
 *GET	ROUTINES
+*GET	SEC10
+*GET	SPUTNUM
 *GET	STATS
 ;
 D_FLAG	DEFB	0	;1=Dial-out.
@@ -1224,14 +1227,14 @@ M_ISFILES
 	DEFM	'We have files to send',CR,0
 M_WHACK
 	DEFM	'Whacking CR',CR,0
-MT_1	DEFM	'Waiting for their question',CR,0
-MT_2	DEFM	'Received nak',CR,0
-MT_3	DEFM	'Received other: ',0
-MT_4	DEFM	'Received early Tsync',CR,0
-MT_5	DEFM	'Gave up on no file send',CR,0
-MT_6	DEFM	'Saw "C"',CR,0
-MT_7	DEFM	'Received ack',CR,0
-MT_8	DEFM	'Sent EOT',CR,0
+FS_MT_1	DEFM	'Waiting for their question',CR,0
+FS_MT_2	DEFM	'Received nak',CR,0
+FS_MT_3	DEFM	'Received other: ',0
+FS_MT_4	DEFM	'Received early Tsync',CR,0
+FS_MT_5	DEFM	'Gave up on no file send',CR,0
+FS_MT_6	DEFM	'Saw "C"',CR,0
+FS_MT_7	DEFM	'Received ack',CR,0
+FS_MT_8	DEFM	'Sent EOT',CR,0
 M_DIAL1	DEFM	CR,'FTalk...',CR,CR,0
 M_DIAL2	DEFM	'Fido carrier detected',CR,0
 M_DIAL3	DEFM	'** No carrier found',CR,0
@@ -1246,7 +1249,7 @@ M_FNFAIL
 	DEFM	'Modem7 filename send failed',CR,0
 M_FTFAIL
 	DEFM	'File send transfer failed',CR,0
-M7_TRY	DEFM	'Too many tries',CR,0
+M7_TRY_MSG	DEFM	'Too many tries',CR,0
 M7_U	DEFM	'Sending U',CR,0
 M_HANG1	DEFM	'Disconnecting from Fido',CR,0
 M_LOST1	DEFM	'** Lost Fido carrier',CR,0

@@ -34,7 +34,7 @@ int montab[12] = { 31, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 };
 /* order is:          dec jan feb mar apr may jun jul aug sep oct nov */
 
 
-int main()
+int main(void)
 {
 
     n_y = getyear();

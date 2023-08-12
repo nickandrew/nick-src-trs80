@@ -4,13 +4,13 @@
 #include <stdio.h>
 #include <unistd.h>
 
-int main()
+int main(void)
 {
     int toknum, labelnum, i;
     FILE *fp;
     char *locn, name[10];
 
-    if ((fp = fopen("tokens.asm", "w")) == NULL) {
+    if ((fp = fopen("tokens/asm", "w")) == NULL) {
         return 1;
     }
 
