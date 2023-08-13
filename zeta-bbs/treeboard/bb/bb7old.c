@@ -4,10 +4,10 @@
 
 /* External functions. Not sure if I wrote these. */
 extern int seekto(int blk);
-extern int writeblk();
-extern int readblk();
+extern int writeblk(void);
+extern int readblk(void);
 
-int getfree();
+int getfree(void);
 void putfree(int blk);
 
 int blkpos, thisblk, nextblk, newblk;
@@ -68,14 +68,14 @@ int bputc(int c)
     return 0;
 }
 
-int bflush()
+int bflush(void)
 {
     if (blkpos == 0)
         blkpos = 256;
     return writeblk();
 }
 
-int bgetc()
+int bgetc(void)
 {
     if ((blkpos & 0xff) == 0) {
         thisblk = getint(0);
@@ -96,7 +96,7 @@ int bgetc()
 ** A free block is a '0' bit in the freemap.
 */
 
-int getfree()
+int getfree(void)
 {
     int pos, blk, bit;
     blk = 0;

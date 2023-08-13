@@ -7,7 +7,7 @@
 
 void convert(char *icp, char *ocp);
 
-void main()
+int main(void)
 {
     char instr[256];
     char outstr[256];
@@ -16,6 +16,8 @@ void main()
         convert(instr, outstr);
         puts(outstr);
     }
+
+    return 0;
 }
 
 void convert(char *icp, char *ocp)

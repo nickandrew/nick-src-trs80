@@ -11,13 +11,13 @@ void scopy(char *cpi, char *cpo, int len);
 char linein[100], lineout[100];
 FILE *fpin, *fpout;
 
-int main()
+int main(void)
 {
     fpin = fopen("catalog/zms:2", "r");
     fpout = fopen("catalog/new:1", "w");
 
     if (fpin == NULL || fpout == NULL)
-        exit(2);
+        return 2;
 
     while (readin()) {
         rearr();

@@ -11,22 +11,22 @@
 char line[200], lineout[200];
 FILE *fpin, *fpout;
 
-int getlin();
-void putlin();
-void clean();
+int getlin(void);
+void putlin(void);
+void clean(void);
 
-void main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     if (argc < 2) {
         printf("Usage: asmclean.c infile.asm outfile.asm\n");
-        exit(4);
+        return 4;
     }
 
     fpin = fopen(argv[1], "r");
     fpout = fopen(argv[2], "w");
     if (fpin == NULL || fpout == NULL) {
         printf("Couldn't open files\n");
-        exit(0);
+        return 0;
     }
 
     printf("Files opened OK\n");
@@ -38,10 +38,10 @@ void main(int argc, char *argv[])
         putlin();
     }
     putc(0x1a, fpout);
-    exit(0);
+    return 0;
 }
 
-int getlin()
+int getlin(void)
 {
     int c;
     char *cp;
@@ -59,7 +59,7 @@ int getlin()
     return 0;
 }
 
-void putlin()
+void putlin(void)
 {
     char *cp;
     cp = lineout;
@@ -69,7 +69,7 @@ void putlin()
     putc('\n', fpout);
 }
 
-void clean()
+void clean(void)
 {
     /* leave a line beginning with a comment alone */
     char *cp;

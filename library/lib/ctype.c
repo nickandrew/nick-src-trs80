@@ -10,8 +10,8 @@
 /*                         isalpha                         */
 /***********************************************************/
 
-isalpha(int c)                      /* return 1 if c is alphabetic */
-// int c;                          /*    else returns 0       */
+int isalpha(int c)                      /* return 1 if c is alphabetic */
+                                        /*    else returns 0       */
 {
     if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
         return 1;
@@ -23,7 +23,7 @@ isalpha(int c)                      /* return 1 if c is alphabetic */
 /*                         isupper                         */
 /***********************************************************/
 
-isupper(int c)
+int isupper(int c)
 {
     if (c >= 'A' && c <= 'Z')
         return 1;
@@ -35,7 +35,7 @@ isupper(int c)
 /*                         islower                         */
 /***********************************************************/
 
-islower(int c)
+int islower(int c)
 {
     if (c >= 'a' && c <= 'z')
         return 1;
@@ -47,7 +47,7 @@ islower(int c)
 /*                         isdigit                         */
 /***********************************************************/
 
-isdigit(int c)
+int isdigit(int c)
 {
     if (c >= '0' && c <= '9')
         return 1;
@@ -59,7 +59,7 @@ isdigit(int c)
 /*                         isspace                         */
 /***********************************************************/
 
-isspace(int c)
+int isspace(int c)
 {
     if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
         return 1;
@@ -91,7 +91,7 @@ isspace(int c)
 /*                         toupper                         */
 /***********************************************************/
 
-toupper(int c)
+int toupper(int c)
 {
     if (c >= 'a' && c <= 'z')
         c -= 32;
@@ -102,7 +102,7 @@ toupper(int c)
 /*                         tolower                         */
 /***********************************************************/
 
-tolower(int c)
+int tolower(int c)
 {
     if (c >= 'A' && c <= 'Z')
         c += 32;

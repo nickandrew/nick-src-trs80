@@ -48,7 +48,7 @@
 #include "msgfunc.h"
 #include "zeta.h"
 
-int main()
+int main(void)
 {
     int n;
 

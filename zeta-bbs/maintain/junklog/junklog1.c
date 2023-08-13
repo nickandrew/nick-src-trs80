@@ -13,14 +13,14 @@
 FILE *fpin, *fpout;
 char line[80];
 
-int main()
+int main(void)
 {
 
     fpin = fopen(LOGIN, "r");
     fpout = fopen(LOGOUT, "w");
 
     if (fpin == NULL || fpout == NULL)
-        exit(2);
+        return 2;
 
     while (fgets(line, 80, fpin) != NULL) {
         if (strcmp(line + 43, "No carrier found\n") && strcmp(line + 43, "Didn't log on\n")) {

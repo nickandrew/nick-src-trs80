@@ -9,7 +9,7 @@
 // defined in this file:
 void ioer(void);
 
-int main()
+int main(void)
 {
     int i, ch = 0, ct = 0, k;
     char ln[80];

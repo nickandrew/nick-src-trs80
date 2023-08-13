@@ -29,12 +29,12 @@ char *resvd[] = { "int", "char", "float", "double", "struct",
 };
 
 void pack(char *file);
-void spaces();
-void tabs();
-void dquote();
-void squote();
-void backslsh();
-void acomment();
+void spaces(void);
+void tabs(void);
+void dquote(void);
+void squote(void);
+void backslsh(void);
+void acomment(void);
 void anychar(int c);
 
 int main(int argc, char *argv[])
@@ -101,7 +101,7 @@ void pack(char *file)
     fclose(fpout);
 }
 
-void spaces()
+void spaces(void)
 {
     int i, j, c;
     i = 1;
@@ -118,7 +118,7 @@ void spaces()
         putc(' ', fpout);
 }
 
-void tabs()
+void tabs(void)
 {
     int i, j, c;
     i = 1;
@@ -135,7 +135,7 @@ void tabs()
         putc('\t', fpout);
 }
 
-void dquote()
+void dquote(void)
 {
     int c;
     putc('"', fpout);
@@ -147,7 +147,7 @@ void dquote()
     putc('"', fpout);
 }
 
-void squote()
+void squote(void)
 {
     int c;
     while ((c = getc(fpin)) != '\'' && c != EOF) {
@@ -183,7 +183,7 @@ void anychar(int c)
         putc(c, fpout);
 }
 
-void backslsh()
+void backslsh(void)
 {
     int c;
     putc('\\', fpout);
@@ -196,7 +196,7 @@ void backslsh()
     }
 }
 
-void acomment()
+void acomment(void)
 {
     int c, c_l;
     putc('/', fpout);

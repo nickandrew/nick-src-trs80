@@ -7,7 +7,7 @@
 
 char buf[81], c, *cp, q;
 
-int main()
+int main(void)
 {
     while (fgets(buf, 80, stdin) != NULL) {
         cp = buf;

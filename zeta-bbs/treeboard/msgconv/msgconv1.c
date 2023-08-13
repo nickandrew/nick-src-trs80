@@ -49,11 +49,11 @@ int hdr_rcvr;
 char hdr_topic;
 char hdr_time[3];
 
-int main()
+int main(void)
 {
     if ((buffer = malloc(BUFFER)) == NULL) {
         fputs("No memory\n", stderr);
-        exit(1);
+        return 1;
     }
 
     openem();

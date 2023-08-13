@@ -18,8 +18,8 @@ char *ops[] = {
     0
 };
 
-void opcode();
-void label();
+void opcode(void);
+void label(void);
 
 int main(int argc, char *argv[])
 {
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 **  opcode() ... If the opcode part is known then print it
 */
 
-void opcode()
+void opcode(void)
 {
     int i = 0;
     char *cp, *cp2, *str, oldchar;
@@ -114,7 +114,7 @@ void opcode()
 **  label() ... Print the label portion of a line
 */
 
-void label()
+void label(void)
 {
 
     int i = 0;

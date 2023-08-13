@@ -64,7 +64,7 @@ void syscall(void);
 int white(char c);
 FILE *openup(char *file, char *mode);
 
-main()
+int main(void)
 {
     fprintf(stderr, "Direct version %s, %s\n", VERSION, VERDATE);
     is_open = 0;
@@ -120,14 +120,14 @@ main()
 }
 
 
-void prompt()
+void prompt(void)
 {
     printf("Direct %s> ", VERSION);
     if (fgets(cmd, 80, stdin) == NULL)
         doexit();
 }
 
-void set()
+void set(void)
 {
     char fnm[80], fn1[80], dirdesc[DESCLEN];
     int created, i;
@@ -220,7 +220,7 @@ void set()
     printf("%s Opened successfully\n", fnm);
 }
 
-void dclose()
+void dclose(void)
 {
     if (!is_open)
         return;

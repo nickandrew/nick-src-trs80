@@ -14,7 +14,7 @@ char *blanks(char *x);
 ** readgrp() ... Read active line, return 0 if eof
 */
 
-int readgrp()
+int readgrp(void)
 {
     char *cp, *cp2;
     if (fgets(line, 80, active) == NULL)

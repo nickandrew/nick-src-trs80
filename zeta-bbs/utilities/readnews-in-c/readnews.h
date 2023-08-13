@@ -7,7 +7,7 @@
 
 extern void fatal(char *err);
 extern void getuname(char *buf);  /* Implemented in zeta-bbs/include/getuname.asm with LC calling convention */
-extern int readgrp(); /* Implemented in active.c */
+extern int readgrp(void); /* Implemented in active.c */
 
 extern int
 
