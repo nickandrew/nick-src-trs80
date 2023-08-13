@@ -1,0 +1,16 @@
+;
+;Multiply: Multiply HL by A, result in HLC like Newdos
+MULTIPLY
+	PUSH	DE
+	EX	DE,HL
+	LD	C,80H
+	LD	HL,0
+_MULT1	RRCA
+	JR	NC,_MULT2
+	ADD	HL,DE
+_MULT2	SRL	H
+	RR	L
+	RR	C
+	JR	NC,_MULT1
+	POP	DE
+	RET

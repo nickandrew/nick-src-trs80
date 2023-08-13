@@ -125,7 +125,7 @@ RF_3
 	LD	DE,($STDOUT)
 	LD	HL,INPUT_LINE
 RF_4	LD	A,(HL)
-;;	CALL	$PUT		;No verbose.
+;;	CALL	ROM@PUT		;No verbose.
 	LD	A,(HL)
 	CP	CR
 	JR	Z,RF_5
@@ -215,19 +215,19 @@ TEST_RETURN			;test return code.
 ;	PUSH	AF
 ;	LD	DE,$DO
 ;	LD	A,'{'
-;	CALL	$PUT
+;	CALL	ROM@PUT
 ;	POP	AF
 ;	LD	L,A
 ;	LD	H,0
 ;	CALL	PRINT_NUMB_DEV
 ;	LD	A,' '
-;	CALL	$PUT
+;	CALL	ROM@PUT
 ;	LD	HL,(START_LINE)
 ;	CALL	MESS_NCR
 ;	LD	A,'}'
-;	CALL	$PUT
+;	CALL	ROM@PUT
 ;	LD	A,CR
-;	CALL	$PUT
+;	CALL	ROM@PUT
 ;	JP	COMMAND
 ;
 ;Set standard devices for next program.

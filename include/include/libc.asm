@@ -39,7 +39,6 @@ BUFSIZ	EQU	256
 ;int fileno(fp);
 ;FILE *fp;
 ;
-	IFREF	_FILENO
 _FILENO	LD	HL,2
 	ADD	HL,SP
 	LD	E,(HL)
@@ -58,11 +57,9 @@ $C_01	INC	BC
 $C_02	PUSH	BC
 	POP	HL
 	RET
-	ENDIF	;_fileno
 ;
 ;putchar(c)
 ;int  c;
-	IFREF	_PUTCHAR
 _PUTCHAR
 	LD	HL,2
 	ADD	HL,SP
@@ -76,16 +73,12 @@ _PUTCHAR
 	POP	BC
 	POP	BC
 	RET
-	ENDIF	;_putchar
 ;
-	IFREF	_PUTC
 _PUTC
 	JP	_FPUTC
-	ENDIF	;_putc
 ;
 ;int fputc(int c, FILE *fp)
 ;  -> Warning: this function implements _FPUTC with args backwards
-	IFREF	_FPUTC
 _FPUTC
 	LD	HL,2
 	ADD	HL,SP
@@ -108,30 +101,24 @@ _FPUTC
 	RET
 $C_03	LD	HL,EOF
 	RET
-	ENDIF	;_fputc
 ;
-	IFREF	_GETCHAR
 _GETCHAR
 	LD	HL,STDIN
 	PUSH	HL
 	CALL	_FGETC
 	POP	BC
 	RET
-	ENDIF	;_getchar
 ;
 ;int getc(fp)
 ;FILE *fp;
 ;
-	IFREF	_GETC
 _GETC
 	JP	_FGETC
-	ENDIF	;_getc
 ;
 ;fgets(s,n,ioptr)
 ;char *s;
 ;int  n;
 ;FILE *ioptr;
-	IFREF	_FGETS
 _FGETS
 	LD	HL,2
 	ADD	HL,SP
@@ -193,13 +180,11 @@ FG_N	DEFW	0
 FG_IO	DEFW	0
 FG_S	DEFW	0
 ;
-	ENDIF	;_fgets
 ;
 ;fread(ptr,sizeof ptr, nitems, ioptr)
 ;char *ptr;
 ;int  nitems;
 ;FILE *ioptr;
-	IFREF	_FREAD
 _FREAD
 	LD	HL,2
 	ADD	HL,SP
@@ -279,12 +264,10 @@ FR_SI	DEFW	0
 FR_PTR	DEFW	0
 FR_NREAD	DEFW	0
 ;
-	ENDIF	;_fread
 ;
 ;int fgetc(fp)
 ;FILE *fp;
 ;
-	IFREF	_FGETC
 _FGETC
 	LD	HL,2
 	ADD	HL,SP
@@ -320,13 +303,11 @@ FG_02	CALL	ROM@GET
 	RET	NZ
 	LD	HL,EOF
 	RET
-	ENDIF	;_fgetc
 ;
 ;fputs(s,fp)
 ;char *s;
 ;FILE *fp;
 ;
-	IFREF	_FPUTS
 _FPUTS
 	LD	HL,2
 	ADD	HL,SP
@@ -351,12 +332,10 @@ $C_04	LD	A,(HL)
 ;;	RET	NZ
 	INC	HL
 	JR	$C_04
-	ENDIF	;_fputs
 ;
 ;exit(errcode)
 ;char errcode;
 ;
-	IFREF	_EXIT
 _EXIT
 	CALL	CLOSEALL
 	LD	HL,2
@@ -381,12 +360,10 @@ CL_1	PUSH	BC
 	DJNZ	CL_1
 	RET
 ;
-	ENDIF	;_exit
 ;
 ;strcpy(out,in)
 ;char *out,*in;
 ;
-	IFREF	_STRCPY
 _STRCPY
 	LD	HL,2
 	ADD	HL,SP
@@ -404,11 +381,9 @@ $C_05	LD	A,(BC)
 	OR	A
 	JR	NZ,$C_05
 	RET
-	ENDIF	;_strcpy
 ;
 ;fclose(fp)
 ;FILE *fp;
-	IFREF	_FCLOSE
 _FCLOSE
 	LD	HL,2
 	ADD	HL,SP
@@ -428,12 +403,10 @@ _FCLOSE
 	LD	D,(HL)
 	CALL	DOS_CLOSE
 	RET
-	ENDIF	;_fclose
 ;
 ;FILE *fopen(file,mode)
 ;char *file,*mode;
 ;
-	IFREF	_FOPEN
 _FOPEN
 	XOR	A
 	LD	($C_07V),A	;Device name or 0.
@@ -569,11 +542,9 @@ $C_08V	DEFW	0	;Addr of dcb/fcb.
 ;
 NULL_DCB	DC	8,0
 ;
-	ENDIF	;_fopen
 ;
 ;int feof(fp)
 ;FILE *fp;
-	IFREF	_FEOF
 _FEOF
 	LD	HL,2
 	ADD	HL,SP
@@ -605,20 +576,16 @@ $C_15	LD	HL,1
 	RET	NC
 $C_17	LD	HL,0
 	RET
-	ENDIF	;_feof
 ;
 ;fflush(fp)
 ;FILE *fp
-	IFREF	_FFLUSH
 _FFLUSH
 	RET
-	ENDIF	;_fflush
 ;
 ;fseek(fp,offset,n)
 ;FILE *fp;
 ;int offset;   /* should be long */
 ;int n;
-	IFREF	_FSEEK
 _FSEEK
 	LD	HL,2
 	ADD	HL,SP
@@ -676,11 +643,9 @@ FSE_N1
 	POP	DE
 	CALL	DOS_POS_RBA
 	RET
-	ENDIF	;_fseek
 ;
 ;rewind(ioptr)
 ;char *ioptr;
-	IFREF	_REWIND
 _REWIND
 	LD	HL,2
 	ADD	HL,SP
@@ -694,10 +659,8 @@ _REWIND
 	LD	D,(HL)
 	CALL	DOS_REWIND
 	RET
-	ENDIF	;_rewind
 ;
 ;_brk: Set the end of the data space allocated to this program
-	IFREF	_BRK
 _BRK
 	LD	HL,2
 	ADD	HL,SP
@@ -735,42 +698,33 @@ $C_20
 	LD	HL,-1		;Tried to allocate above HIMEM
 	RET
 ;
-	ENDIF	;_brk
 ;
 ;fix_prog_end: Update the end of the program according to the _brksize
-	IFREF	FIX_PROG_END
 FIX_PROG_END
 	LD	HL,(_BRKSIZE)
 ;;	ld	(prog_end),hl		;Not needed as not Zeta!
 	RET
-	ENDIF	;fix_prog_end
 ;
 ;sprintf(string,format,args)
 ;char *string,*format;
 ;unkn args;
-	IFREF	_SPRINTF
 _SPRINTF
 	RET
-	ENDIF	;_sprintf
 ;
 ;fprintf(fp,format,args)
 ;FILE *fp;
 ;char *format;
 ;???? args;
 ;
-	IFREF	_FPRINTF
 _FPRINTF
 	RET
-	ENDIF
 ;
 ;printf(format,args)
 ;char *format;
 ;???? args;
 ;
-	IFREF	_PRINTF
 _PRINTF
 	RET
-	ENDIF
 ;
 ;-----------------------------
 ;end of libc.asm

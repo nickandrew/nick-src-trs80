@@ -1,8 +1,4 @@
-;Filename: Filename manipulation routines.
-;Last modified 03-May-86.
-;
 ;Fn_Make: Make a valid filename out of almost anything.
-	IFREF	FN_MAKE
 FN_MAKE:
 	CALL	_FN_BYP
 	LD	IX,_FN_FLAGS
@@ -116,16 +112,4 @@ _FN_04
 ;
 _FN_FLAGS
 	DEFB	0
-;
-	ENDIF	;fn_make
-;
-;_fn_byp: Bypass any spaces.
-	IFREF	_FN_BYP
-_FN_BYP:
-	LD	A,(HL)
-	CP	' '
-	RET	NZ
-	INC	HL
-	JR	_FN_BYP
-	ENDIF
 ;

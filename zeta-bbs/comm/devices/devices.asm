@@ -615,7 +615,7 @@ RELOC31	LD	(MDM_TA_2),A
 ;wait for ctrl-Q or CR hit.
 WAIT_Q
 ;;	LD	DE,$KI
-;;	CALL	$GET
+;;	CALL	ROM@GET
 ;;	OR	A
 ;;	JR	NZ,WQ_2
 	CALL	SER_INP

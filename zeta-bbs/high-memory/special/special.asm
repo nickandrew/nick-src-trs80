@@ -261,7 +261,7 @@ TIMEOUT
 ;;	JR	Z,PMESS_ETX
 ;;	OR	A
 ;;	JR	Z,PMESS_ETX
-;;	CALL	$PUT
+;;	CALL	ROM@PUT
 ;;	INC	HL
 ;;	JR	PMESS
 ;;
@@ -269,9 +269,9 @@ TIMEOUT
 ;;	PUSH	DE
 ;;	LD	DE,$DO
 ;;	LD	A,'%'
-;;	CALL	$PUT
+;;	CALL	ROM@PUT
 ;;	LD	A,'%'
-;;	CALL	$PUT
+;;	CALL	ROM@PUT
 ;;	POP	DE
 ;;	RET
 ;
@@ -291,7 +291,7 @@ LOGOUT				;do disconnect exit.
 ;;
 ;;LOOP
 ;;RELOC4	LD	DE,DCB1
-;;	CALL	$GET
+;;	CALL	ROM@GET
 ;;	JR	Z,LP_NEOF
 ;;	CP	1CH
 ;;	JR	Z,CLOSIT
@@ -302,13 +302,13 @@ LOGOUT				;do disconnect exit.
 ;;LP_NEOF	OR	A
 ;;	JR	Z,CLOSIT
 ;;	LD	DE,DCB_2O
-;;	CALL	$PUT
-;;	CALL	$GET
+;;	CALL	ROM@PUT
+;;	CALL	ROM@GET
 ;;	CP	1
 ;;	JR	NZ,LOOP
 ;;	LD	A,CR
 ;;	LD	DE,DCB_2O
-;;	CALL	$PUT
+;;	CALL	ROM@PUT
 ;;
 ;;CLOSIT		;dont close we're only reading it.
 ;;	RET
