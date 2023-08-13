@@ -1,11 +1,14 @@
 ;setclock: set the real time clock.
+
+*GET	DOSCALLS
+
 	COM	'<HW RealTime Clock setter V1 30-Jan-85>'
 	ORG	5200H
 START	LD	HL,M_TIME
-	CALL	4467H
+	CALL	MESS_DO
 	LD	HL,IN_BUFF
 	LD	B,10
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	JR	C,START
 	LD	A,(IN_BUFF+2)
 	CP	':'
@@ -45,7 +48,7 @@ START	LD	HL,M_TIME
 	LD	A,1
 	LD	(44A3H),A	;to sync.
 	LD	HL,M_ENTER
-	CALL	4467H
+	CALL	MESS_DO
 LOOP	LD	A,(38FFH)
 	OR	A
 	JR	Z,LOOP
@@ -56,7 +59,7 @@ LOOP2	LD	A,(37E0H)
 	LD	A,(37E0H)
 	LD	(37E4H),A
 	EI
-	JP	402DH
+	JP	DOS_NOERROR
 ;
 M_ENTER	DEFM	'Hit any key when seconds are exact',0DH
 M_TIME	DEFM	'Enter time HH:MM:SS : ',03H

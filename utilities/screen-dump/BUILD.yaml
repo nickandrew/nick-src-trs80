@@ -1,4 +1,5 @@
 scrdmp.cmd:
   assemble: scrdmp.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/screen-dump/scrdmp.asm

@@ -5,7 +5,7 @@
 ;
 	IF	NEWDOS_80
 ; Get dos call addresses and Dos error message numbers.
-*GET DOSCALLS
+*GET	DOSCALLS
 	ENDIF
 ;
 ; Firstly, System calls for use by system routines.

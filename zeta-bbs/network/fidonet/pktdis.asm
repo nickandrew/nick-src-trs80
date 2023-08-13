@@ -175,17 +175,17 @@ H_X		DEFS	34
 M_CR	DEFM	CR,0
 M_HDROK	DEFM	'Header correct',CR,0
 M_NOMSG	DEFM	'** Could not read message',CR,0
-M_NOCOPY DEFM	'** Could not copy message',CR,0
+M_NOCOPY	DEFM	'** Could not copy message',CR,0
 M_NOTME	DEFM	'** Packet not intended for Zeta',CR,0
-M_BADVER DEFM	'** Packet version # not = 2',CR,0
-M_BADHDR DEFM	'** Bad message header in packet',CR,0
-M_BADMSG DEFM	'** Bad message format (echomail?)',CR,0
+M_BADVER	DEFM	'** Packet version # not = 2',CR,0
+M_BADHDR	DEFM	'** Bad message header in packet',CR,0
+M_BADMSG	DEFM	'** Bad message format (echomail?)',CR,0
 M_LONGLINE
 	DEFM	'** First line too long',CR,0
 M_EMPTY	DEFM	'** Empty message',CR,0
-M_WRITERR DEFM	'** Write error',CR,0
+M_WRITERR	DEFM	'** Write error',CR,0
 M_PKTOK	DEFM	'Packet was OK',CR,0
-M_PKTDIS DEFM	'pktdis: ',0
+M_PKTDIS	DEFM	'pktdis: ',0
 M_STATS	DEFM	'Echomail message counts:',CR,0
 M_RDERR	DEFM	'Error while reading message',CR,0
 BLANKS	DEFM	'                    ',0

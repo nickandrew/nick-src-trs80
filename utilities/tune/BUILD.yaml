@@ -1,4 +1,5 @@
 tune.cmd:
   assemble: tune.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/tune/tune.asm

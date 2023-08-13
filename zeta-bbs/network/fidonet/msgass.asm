@@ -1,4 +1,4 @@
-;pktass: Assemble messages into outgoing packets.
+;msgass: Assemble messages into outgoing packets.
 ;
 *GET	DOSCALLS
 *GET	EXTERNAL
@@ -12,7 +12,7 @@
 	DEFW	0
 ;End of program load info
 ;
-	COM	'<Pktass 1.3c 19-Dec-87>'
+	COM	'<msgass 1.3c 19-Dec-87>'
 	ORG	BASE+100H
 ;
 START	LD	SP,START
@@ -108,7 +108,7 @@ ACSLINK	DEFM	'acsnet',0
 ON_ACS	DEFB	0
 ;
 ADDRESS	DEFM	'To: '
-ADDRESSL DEFB	0
+ADDRESSL	DEFB	0
 	DC	64,0
 ;
 ;
@@ -308,14 +308,9 @@ ORIGIN_3
 ORIGIN_2
 ORIGIN_1
 	DEFM	'--- Zeta',CR,LF
-	DEFM	' * Origin: Zeta, the first TRS-80 in Fidoworld (3:'
-	ZETA_NUM
-	DEFM	')',CR,LF
-	DEFM	'SEEN-BY: '
-	ZETA_NUM
-	DEFM	' '
-	SCAN_NUM
-	DEFM	CR,LF,CR,LF,0
+	DEFM	' * Origin: Zeta, the first TRS-80 in Fidoworld (3:713/602)',CR,LF	; --ZETA_NUM--
+	DEFM	'SEEN-BY: 713/602 713/600',CR,LF	; --ZETA_NUM-- --SCAN_NUM--
+	DEFM	CR,LF,0
 ;
 BIG_BUFF	DEFS	1024
 ;

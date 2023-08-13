@@ -2,8 +2,7 @@
 ; Also common Dos error messages & numbers.
 ;
 
-CURSOR		EQU	4020H	; cursor position?
-DOS		EQU	402DH	;no error exit
+CURSOR$		EQU	4020H	; cursor position?
 DOS_NOERROR	EQU	402DH	;no error
 DOS_DISP_ERROR	EQU	4030H	;error displayed exit
 DOS_COMMAND	EQU	4405H	;enter DOS and execute a command
@@ -42,10 +41,16 @@ DOS_TIME	EQU	446DH	;convert clock time to HH:MM:SS format
 DOS_DATE	EQU	4470H	;convert date to MM/DD/YY format
 DOS_EXTEND	EQU	4473H	;Insert default name extension into filespec
 ;
-$GET		EQU	0013H	;read byte from dev
-DOS_READ_BYTE	EQU	0013H	;read byte from file
-$PUT		EQU	001BH	;write byte
-DOS_WRIT_BYTE	EQU	001BH	;write byte to file
+ROM@GET		EQU	0013H	;read byte from device/file
+ROM@PUT		EQU	001BH	;write byte to device/file
+ROM@CTL		EQU	0023H	;write control byte to device/file
+ROM@KEY_NOWAIT	EQU	002BH	;non-blocking read keyboard; return 0 if no key pressed
+ROM@PUT_VDU	EQU	0033H	;write a byte to the video display
+ROM@PUT_PRT	EQU	003BH	;write a byte to the printer
+ROM@WAIT_LINE	EQU	0040H	;wait for a line of input from the keyboard
+ROM@WAIT_KEY	EQU	0049H	;wait for a key to be pressed and return it
+ROM@PAUSE	EQU	0060H	;busy wait (M1:14.67uS, M3:14.796uS) per count (BC: count)
+ROM@CLS		EQU	01C9H	;clear the screen
 ;
 ; Dos Errors.
 DE_DR_NF_DR	EQU	05H

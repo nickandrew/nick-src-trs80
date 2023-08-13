@@ -1,4 +1,5 @@
 copyit.cmd:
   assemble: copyit.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/copyit/copyit.asm

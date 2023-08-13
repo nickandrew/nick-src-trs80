@@ -207,7 +207,7 @@ ENTER_PMPT
 	CALL	PUT
 	LD	A,0EH		;Cursor on
 	LD	DE,$DO
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 MESG_QUEST
@@ -693,7 +693,7 @@ KEY_GET
 	PUSH	DE
 	LD	DE,DCB_2I
 KEYGET_1
-	CALL	$GET
+	CALL	ROM@GET
 	OR	A
 	JR	Z,KEYGET_1
 	POP	DE
@@ -705,7 +705,7 @@ EDIT_PUT
 	PUSH	BC
 	PUSH	DE
 	LD	DE,DCB_2O
-	CALL	$PUT
+	CALL	ROM@PUT
 	POP	DE
 	POP	BC
 	POP	AF
@@ -994,9 +994,9 @@ SAVE_ERROR
 *GET	TIMES
 *GET	ROUTINES
 ;
-ZZZZZZZY EQU $		;End of required data (?)
+ZZZZZZZY	EQU	$		;End of required data (?)
 	DEFS	4096	;Text buffer.
-ZZZZZZZZ EQU $		;End of 4k buffer.
+ZZZZZZZZ	EQU	$		;End of 4k buffer.
 ;
 THIS_PROG_END	EQU	$
 ;

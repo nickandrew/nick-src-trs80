@@ -1,8 +1,10 @@
 granules.cmd:
   assemble: granules.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/granules/granules.asm
 map.cmd:
   assemble: map.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/granules/map.asm

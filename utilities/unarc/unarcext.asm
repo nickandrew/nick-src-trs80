@@ -2,6 +2,7 @@
 ;and high memory locations.
 ;last modified 30-Apr-89.
 ;
+*GET	DOSCALLS
 *LIST	OFF
 ;
 MAX_LOWMEM	EQU	0B400H
@@ -24,16 +25,11 @@ DCB_2I	EQU	0FF20H		;8- keyboard OR serial in (equivalent to DCB_2O)
 DCB_2O	EQU	0FF28H		;8- Screen AND serial out (equivalent to DCB_2I)
 ;
 ;Standard devices
-$KBD	EQU	4015H		;Kbd device driver
-$VDU	EQU	401DH		;VDU device driver
-;
-;Aliased devices...
-$S	EQU	0FF10H
+DCB_KBD$	EQU	4015H		;Kbd device driver
+DCB_VDU$	EQU	401DH		;VDU device driver
 ;
 ;Rom / Dos System calls.
-$GET	EQU	0013H		;get a byte
-$PUT	EQU	001BH		;write a byte
-$CTL	EQU	0023H		;device control
+ROM@CTL	EQU	0023H		;device control
 ;
 ;High Memory ZETA System calls and data
 LOST_CARRIER	EQU	0FF40H	;J- Lost Carrier

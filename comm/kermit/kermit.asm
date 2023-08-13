@@ -159,12 +159,12 @@ DBAUD	EQU	55H		;Default baud rate (300)
 ;we use the values given below.
 PDPSIZ	EQU	5EH		;Send packet max size
 PDPAD	EQU	00H		;Send padding
-PDPADCH EQU	00H		;No pad char
+PDPADCH	EQU	00H		;No pad char
 PDEOL	EQU	CR		;Carriage return
 PDQUOTE	EQU	'#'		;ordinary quote
-PDQUOTE8 EQU	'&'
+PDQUOTE8	EQU	'&'
 PDCHK	EQU	'1'		;1-char checksum
-PDQUOTER EQU	' '		;no repeat quoting
+PDQUOTER	EQU	' '		;no repeat quoting
 ;
 ;End of kermit protocol defaults.
 ;
@@ -188,10 +188,10 @@ DREOL	EQU	PDEOL		;Default recv EOL char.
 DSQUOT	EQU	PDQUOTE		;Default send quote char.
 DRQUOT	EQU	PDQUOTE		;Default recv quote char.
 ;
-DSQUOTE8  EQU	PDQUOTE8	;Default quote8 (none!)
-DRQUOTE8  EQU	PDQUOTE8	;Default quote8 (none!)
-DSQUOTER  EQU	PDQUOTER	;Default repeat quote
-DRQUOTER  EQU	PDQUOTER	;Default repeat quote
+DSQUOTE8	EQU	PDQUOTE8	;Default quote8 (none!)
+DRQUOTE8	EQU	PDQUOTE8	;Default quote8 (none!)
+DSQUOTER	EQU	PDQUOTER	;Default repeat quote
+DRQUOTER	EQU	PDQUOTER	;Default repeat quote
 ;
 ;
 ;Parity related fields

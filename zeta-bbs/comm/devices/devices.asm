@@ -263,7 +263,7 @@ HI_OK	LD	DE,END_DRIVERS-DRIVERS
 	OUT	(WRSTAT),A
 	LD	(MODEM_STAT2),A
 ;
-	JP	DOS
+	JP	DOS_NOERROR
 ;
 ;Here are the DCBs for the devices.
 ;
@@ -301,7 +301,7 @@ DEV_2	JR	C,DEV_2I
 DEV_2O	LD	A,C
 	PUSH	BC
 	LD	DE,$DO
-	CALL	$PUT
+	CALL	ROM@PUT
 	POP	BC
 ;;	RET	NZ
 	LD	A,(SYS_STAT)
@@ -309,26 +309,26 @@ DEV_2O	LD	A,C
 	JR	NZ,NO_2SO
 	LD	A,C
 	LD	DE,$SO
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 NO_2SO
 	LD	BC,310H
-	CALL	60H
+	CALL	ROM@PAUSE
 	CP	A
 	RET
 ;
 ;Dual $KI and $SI input driver.
 DEV_2I
 	LD	DE,$KI
-	CALL	$GET		;first keyboard.
+	CALL	ROM@GET		;first keyboard.
 	OR	A
 	JR	NZ,D2I_KEY
 	LD	A,(SYS_STAT)
 	BIT	SYS_TEST,A
 	JR	NZ,NO_2SI
 	LD	DE,$SI
-	CALL	$GET		;then serial.
+	CALL	ROM@GET		;then serial.
 	CP	A
 	RET
 ;
@@ -404,7 +404,7 @@ VDU_XLATE
 	LD	C,(HL)
 DEV_DO_OUT
 	POP	AF
-	LD	IX,$VDU		;Use $VDU cursor.
+	LD	IX,DCB_VDU$		;Use $VDU cursor.
 	CALL	4505H		;NEWDOS DEPENDANT!!
 ;
 	LD	A,(F_XOFF)	;XOFF flag
@@ -459,8 +459,8 @@ KEY_WQ_3
 	RES	1,(HL)
 	RET
 ;
-VDU_CRTAB	DEFB	'?',CR ,CR ,1DH,1DH
-VDU_LFTAB	DEFB	'?',LF ,1DH,1AH,CR
+VDU_CRTAB	DEFB	'?',CR,CR,1DH,1DH
+VDU_LFTAB	DEFB	'?',LF,1DH,1AH,CR
 ;
 KEY_PUT_BUFFER			;To type-ahead
 RELOC14	LD	A,(KEY_TA_2)

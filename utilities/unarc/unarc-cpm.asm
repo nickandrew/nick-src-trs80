@@ -7,7 +7,7 @@ ENDM
 ; (Remember to update version/date here and maintain history log below)
 
 COPR	MACRO
-DB	'Copyright (C) 1986 by Robert A. Freed.  All Rights Reserved.'
+	DB	'Copyright (C) 1986 by Robert A. Freed.  All Rights Reserved.'
 ENDM
 
 	.COMMENT \

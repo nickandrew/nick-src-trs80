@@ -21,7 +21,7 @@ COMMAND
 	CALL	MESS
 	LD	HL,CMD_BUFF
 	LD	B,62
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	JP	C,COMMAND
 ;
 	LD	HL,0		;Set range defaults.
@@ -328,7 +328,7 @@ READ_FILE
 	CALL	SET_PAGE
 ;
 RF_01	LD	DE,FCB_FILE
-	CALL	$GET
+	CALL	ROM@GET
 	JP	NZ,RF_ERR
 RF_02	CP	CR
 	JR	Z,RF_CR
@@ -370,7 +370,7 @@ RF_CR	CALL	PAGE1_PUT
 	LD	(LAST_PTR),HL
 ;
 	LD	DE,FCB_FILE
-	CALL	$GET
+	CALL	ROM@GET
 	JP	NZ,RF_ERR
 	CP	LF
 	JR	NZ,RF_02
@@ -734,11 +734,11 @@ WF_03	CALL	PAGE2_GET
 	CP	CR
 	JR	Z,WF_04
 	LD	DE,FCB_FILE
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,WF_ERR
 	JR	WF_03
 WF_04	LD	DE,FCB_FILE
-	CALL	$PUT
+	CALL	ROM@PUT
 ;* code for CRLF here I suppose *
 	RET
 ;
@@ -749,7 +749,7 @@ QUIT
 	LD	A,OLD2
 	LD	HL,PAGE2
 	CALL	SET_PAGE
-	JP	DOS
+	JP	DOS_NOERROR
 ;
 ;Delete lines: default is .,.d
 ;after deleting DOT is set to line after last deleted,
@@ -849,7 +849,7 @@ INSERT				;Default is .i
 IN_01
 	LD	HL,INS_BUFF
 	LD	B,80
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	JR	C,IN_01
 	LD	A,(HL)
 	CP	'.'
@@ -948,7 +948,7 @@ APPEND				;Default is .a
 AP_01
 	LD	HL,INS_BUFF
 	LD	B,80
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	JR	C,AP_01
 	LD	A,(HL)
 	CP	'.'

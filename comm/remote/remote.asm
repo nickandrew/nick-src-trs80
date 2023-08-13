@@ -1,6 +1,9 @@
 ;remote : Source for remote driver.
 ;Last updated : 24-Jan-88
 ;
+
+*GET	DOSCALLS
+
 	ORG	0FF00H
 NEW_DO
 	DC	12,0		;For device linking
@@ -67,6 +70,6 @@ START	LD	A,082H
 	OUT	(0F9H),A
 	LD	A,025H
 	OUT	(0F9H),A
-	JP	402DH
+	JP	DOS_NOERROR
 ;
 	END	START

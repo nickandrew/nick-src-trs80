@@ -1,25 +1,30 @@
 commands.cmd:
   assemble: commands.asm
   depends:
+  - include/include/doscalls.asm
   - os/newdos-80/commands.asm
 erase.cmd:
   assemble: erase.asm
   depends:
+  - include/include/doscalls.asm
   - os/newdos-80/erase.asm
 res.cmd:
   assemble: res.asm
   depends:
+  - include/include/doscalls.asm
   - os/newdos-80/res.asm
 sys80.cmd:
   assemble: sys80.asm
   depends:
+  - include/include/doscalls.asm
   - os/newdos-80/sys80.asm
 sysres.cmd:
   assemble: sysres.asm
   depends:
-  - os/newdos-80/sysres.asm
   - include/include/doscalls.asm
+  - os/newdos-80/sysres.asm
 trace.cmd:
   assemble: trace.asm
   depends:
+  - include/include/doscalls.asm
   - os/newdos-80/trace.asm

@@ -1,4 +1,5 @@
 newc.cmd:
   assemble: newc.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/newc/newc.asm

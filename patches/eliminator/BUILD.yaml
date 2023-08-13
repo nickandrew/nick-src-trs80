@@ -5,4 +5,5 @@ clear.cmd:
 patches.cmd:
   assemble: patches.asm
   depends:
+  - include/include/doscalls.asm
   - patches/eliminator/patches.asm

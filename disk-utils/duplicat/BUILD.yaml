@@ -2,19 +2,24 @@ duplic20.cmd:
   assemble: duplic20.asm
   depends:
   - disk-utils/duplicat/duplic20.asm
+  - include/include/doscalls.asm
 duplic21.cmd:
   assemble: duplic21.asm
   depends:
   - disk-utils/duplicat/duplic21.asm
+  - include/include/doscalls.asm
 duplicat.cmd:
   assemble: duplicat.asm
   depends:
   - disk-utils/duplicat/duplicat.asm
+  - include/include/doscalls.asm
 format2.cmd:
   assemble: format2.asm
   depends:
   - disk-utils/duplicat/format2.asm
+  - include/include/doscalls.asm
 format3.cmd:
   assemble: format3.asm
   depends:
   - disk-utils/duplicat/format3.asm
+  - include/include/doscalls.asm

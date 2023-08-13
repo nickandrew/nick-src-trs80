@@ -22,7 +22,7 @@ P_MSG	LD	A,(HL)
 	LD	(HL),0		;past end of string!!!!
 	POP	HL
 	CALL	LOG_MSG
-	JP	DOS		;Auth.
+	JP	DOS_NOERROR		;Auth.
 ;
 STRING	DEFM	'{'
 DATE	DEFM	'dd-mmm-yy  '

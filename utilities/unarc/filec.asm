@@ -94,7 +94,7 @@ EXIT:	CALL	ICLOSE		;Close input, output files
 MESS	LD	A,(HL)
 	OR	A
 	RET	Z
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	INC	HL
 	JR	MESS
 ;
@@ -343,12 +343,12 @@ CLOSE
 ;	
 ;Check for CTRL-C abort (and/or read console char if any)
 CABORT
-	CALL	002BH		;read char from keyboard
+	CALL	ROM@KEY_NOWAIT		;read char from keyboard
 	CP	CTLC		;Is it CTRL-C?
 	JP	Z,ABORT
 	CP	CTLS		;Is it pause?
 	RET	NZ		;No, return char (and NZ) to caller
-CABORT2	CALL	002BH		;Wait for control-Q
+CABORT2	CALL	ROM@KEY_NOWAIT		;Wait for control-Q
 	CP	CTLQ
 	JR	NZ,CABORT2
 	CP	1

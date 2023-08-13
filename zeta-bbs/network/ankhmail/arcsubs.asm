@@ -23,19 +23,19 @@ _ARCNEXT:
 	LD	(AN_FBUF),BC
 ;
 	EX	DE,HL
-	CALL	$GET		;Get 1st character 1A
+	CALL	ROM@GET		;Get 1st character 1A
 	JP	NZ,AN_EOF
 	CP	1AH
 	JP	NZ,AN_ERR
 ;
 	LD	DE,(AN_FCB)
-	CALL	$GET		;Get compression type
+	CALL	ROM@GET		;Get compression type
 	JP	NZ,AN_EOF
 	OR	A
 	JP	Z,AN_EOF
 ;
 AN_FILE
-	CALL	$GET
+	CALL	ROM@GET
 	JP	NZ,AN_EOF
 	LD	HL,(AN_FBUF)
 	LD	(HL),A
@@ -45,16 +45,16 @@ AN_FILE
 	JR	NZ,AN_FILE
 ;
 	LD	DE,(AN_FCB)
-	CALL	$GET		;Read stored length lsb
+	CALL	ROM@GET		;Read stored length lsb
 	LD	(AN_LEN+0),A
 ;
-	CALL	$GET
+	CALL	ROM@GET
 	LD	(AN_LEN+1),A
 ;
-	CALL	$GET
+	CALL	ROM@GET
 	LD	(AN_LEN+2),A
 ;
-	CALL	$GET
+	CALL	ROM@GET
 	LD	(AN_LEN+3),A
 ;
 	LD	IX,(AN_FCB)

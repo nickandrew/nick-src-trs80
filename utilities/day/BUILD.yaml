@@ -1,4 +1,5 @@
 day.cmd:
   assemble: day.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/day/day.asm

@@ -146,7 +146,7 @@ MORE_09
 	LD	HL,MO_STRING
 	CALL	MESS_0
 	LD	A,CR
-	CALL	$PUT
+	CALL	ROM@PUT
 	LD	HL,0
 	LD	(MO_SAVED),HL
 	RET
@@ -161,7 +161,7 @@ MORE_10
 	LD	DE,DCB_2O
 	CALL	MESS_0
 	LD	A,CR
-	CALL	$PUT
+	CALL	ROM@PUT
 ;
 ; Copy the right half back to the start of the string
 	LD	HL,(MO_ENDSTR)
@@ -200,7 +200,7 @@ MORE_10A
 ; (dummy) if 'Q', set stack again and return to morepipe's caller
 MORE_11
 	LD	DE,DCB_2I
-	CALL	$GET
+	CALL	ROM@GET
 	OR	A
 	JR	Z,MORE_11
 	CP	' '

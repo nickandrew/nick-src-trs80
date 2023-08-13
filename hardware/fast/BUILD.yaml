@@ -2,3 +2,4 @@ fast.cmd:
   assemble: fast.asm
   depends:
   - hardware/fast/fast.asm
+  - include/include/doscalls.asm

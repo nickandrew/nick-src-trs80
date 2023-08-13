@@ -1,5 +1,8 @@
 ;rtclock: implement realtime clock feature.
 ; only for hardware-modified machines.
+
+*GET	DOSCALLS
+
 	COM	'<HW RealTime Clock driver V1 30-Jan-85>'
 	ORG	5200H
 START
@@ -11,7 +14,7 @@ START
 ;set time & date.
 	CALL	PUT_TIMDAT
 ;finished!
-	JP	402DH
+	JP	DOS_NOERROR
 ;
 MOVE_UP	LD	HL,(4049H)
 	LD	DE,EN_CODE-ST_CODE

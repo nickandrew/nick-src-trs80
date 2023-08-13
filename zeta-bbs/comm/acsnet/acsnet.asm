@@ -271,7 +271,7 @@ GETNEWS
 	LD	DE,FCB_NNEWS
 	CALL	MESS_0
 	LD	A,CR
-	CALL	$PUT
+	CALL	ROM@PUT
 	RET
 ;
 PUTNEWS
@@ -447,11 +447,11 @@ FILENAME
 STRING	DEFS	256
 ;
 BUF_NEW	DEFS	256	;Common buffer
-FCB_NNEWS DEFM	'newnews.zms',CR,0
+FCB_NNEWS	DEFM	'newnews.zms',CR,0
 	DC	32-13,0
-FCB_NMAIL DEFM	'newmail.zms',CR,0
+FCB_NMAIL	DEFM	'newmail.zms',CR,0
 	DC	32-13,0
-FCB_NFILES DEFM	'newfiles.zms',CR,0
+FCB_NFILES	DEFM	'newfiles.zms',CR,0
 	DC	32-14,0
 FCB_ACS	DEFM	'acsnet.net/poof',CR,0
 	DC	32-17,0

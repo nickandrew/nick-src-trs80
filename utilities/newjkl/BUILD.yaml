@@ -1,4 +1,5 @@
 newjkl.cmd:
   assemble: newjkl.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/newjkl/newjkl.asm

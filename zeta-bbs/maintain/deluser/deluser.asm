@@ -41,7 +41,7 @@ NOSPEC:
 	CALL	PUTS
 	LD	HL,IN_BUFF
 	LD	B,24
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	LD	A,0
 	JP	C,TERMINATE
 	LD	A,(HL)
@@ -71,7 +71,7 @@ EXISTS
 	CALL	PUTS
 	LD	HL,D_OR_L
 	LD	B,1
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	XOR	A
 	JP	C,TERMINATE
 ;
@@ -105,7 +105,7 @@ WRIT_STATUS
 	CALL	DOS_POS_RBA
 	JP	NZ,ERROR
 	LD	A,(UF_STATUS)
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 ;
 	;now zero the hash byte if deleting.
@@ -123,7 +123,7 @@ WRIT_STATUS
 	CALL	DOS_POS_RBA
 	JP	NZ,ERROR
 	XOR	A		;hash of zero=empty slot
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,ERROR
 ;
 	;finished. close files & leave.

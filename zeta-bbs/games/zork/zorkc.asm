@@ -1,7 +1,9 @@
-;ZorkC/src
+;Zorkc.asm
 ;Zork 1 for TRS-80 I, File 3.
 ;Last updated 15-Feb-86
-;
+
+*GET	DOSCALLS
+
 	LD	A,D
 	LD	HL,H58E7
 	CALL	ADDHLA
@@ -379,7 +381,7 @@ H53B1	POP	DE
 	RET
 ;
 WAIT_KEY	PUSH	DE	;Keyboard input.
-	CALL	0049H
+	CALL	ROM@WAIT_KEY
 	POP	DE
 	RET
 ;
@@ -438,9 +440,9 @@ H5499	LD	(HL),' '
 	RET
 ;
 DO_MORE	LD	(HL),0DH
-	LD	HL,MORE ;more.
+	LD	HL,MORE	;more.
 	CALL	MSG_NUL	;was H54b6
-	CALL	0049H	;wait for key hit.
+	CALL	ROM@WAIT_KEY	;wait for key hit.
 	LD	HL,HAAAD
 	CALL	MSG_NUL
 	RET
@@ -461,7 +463,7 @@ M_MOVE	DEFM	'  MOVES: ',00H
 ;
 H54D8
 	LD	A,8
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	LD	A,(4020H)
 	AND	3FH
 	RET	NZ
@@ -475,7 +477,7 @@ H54D8
 	ENDIF
 ;
 ;
-	LD	HL,M_ROOM ;Room.
+	LD	HL,M_ROOM	;Room.
 	CALL	MSG_NUL	;was H54b6
 ;
 	LD	A,10H	;Room II.
@@ -483,11 +485,11 @@ H54D8
 	LD	A,L
 	CALL	H484A
 ;
-	LD	HL,M_SCOR ;Score.
+	LD	HL,M_SCOR	;Score.
 	CALL	MSG_NUL	;was H54b6.
 	LD	A,11H	;Score II.
 	CALL	H5532	;set cursor & call h4588.
-	LD	HL,M_MOVE ;Moves.
+	LD	HL,M_MOVE	;Moves.
 	CALL	MSG_NUL	;was H54b6.
 	LD	A,12H	;Moves II.
 	CALL	H5532	;set cursor & call h4588.
@@ -723,8 +725,8 @@ H5730	PUSH	BC
 	XOR	A
 	LD	(H5899),A
 	JP	H5673
-H5747	JP	402DH	;quit/killed3 exit point.
-H574A	JP	402DH
+H5747	JP	DOS_NOERROR	;quit/killed3 exit point.
+H574A	JP	DOS_NOERROR
 ;
 H574D	LD	A,(H584D)
 	OR	A
@@ -738,11 +740,11 @@ H574D	LD	A,(H584D)
 ;
 ;New keyboard input routine.
 HAAAC	LD	A,'>'
-	CALL	0033H
+	CALL	ROM@PUT_VDU
 	LD	HL,(H5889)
 	INC	HL
 	LD	B,62
-	CALL	40H
+	CALL	ROM@WAIT_LINE
 	JR	C,HAAAC
 	PUSH	BC
 HAAAA	LD	A,(HL)

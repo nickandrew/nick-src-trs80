@@ -1,4 +1,5 @@
 errors.cmd:
   assemble: errors.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/errors/errors.asm

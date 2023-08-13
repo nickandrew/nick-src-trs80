@@ -2,6 +2,9 @@
 ;code - using standard disk format.
 ;Version 1.1 on 27-Nov-84.
 ;
+
+*GET	DOSCALLS
+
 NULL	EQU	00H
 CR	EQU	0DH
 ;
@@ -49,7 +52,7 @@ EXEC	LD	A,S_SECT
 	LD	(CUR_TRK),A
 	LD	HL,MESS_1
 M_LOOP	LD	A,(HL)
-	CALL	33H
+	CALL	ROM@PUT_VDU
 	INC	HL
 	LD	A,(HL)
 	AND	A

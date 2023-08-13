@@ -1,4 +1,5 @@
 memtest.cmd:
   assemble: memtest.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/memtest/memtest.asm

@@ -8,3 +8,4 @@ game1.cmd:
   - games/game1/wavedata.asm
   - games/game1/mvalien.asm
   - games/game1/wavelang.asm
+  - include/include/doscalls.asm

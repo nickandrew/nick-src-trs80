@@ -1,6 +1,9 @@
 ;Printer/asm: New printer driver
 ; Version 1.0 on 23-Dec-84.
 ;
+
+*GET	DOSCALLS
+
 	ORG	5200H
 START
 	LD	HL,(4049H)
@@ -15,8 +18,8 @@ START
 	EX	DE,HL
 	LDIR
 	LD	HL,MESS_1
-	CALL	4467H
-	JP	402DH
+	CALL	MESS_DO
+	JP	DOS_NOERROR
 ;
 MESS_1	DEFM	'New Printer Driver Ver 1.0',0AH
 	DEFM	'Written 23-Dec-84.',0DH

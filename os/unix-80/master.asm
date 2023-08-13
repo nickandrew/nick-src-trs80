@@ -6,10 +6,10 @@
 ; system including kernel and table, buffer structure.
 ;Now include all master labels (relevant globally).
 ;
-*GET GLOBEQU
+*GET	GLOBEQU
 ;
 ;Also include macro definitions.
-*GET MACROS
+*GET	MACROS
 ;
 ;KERNEL_ORIGIN is lowest memory address not dedicated
 ;  to either dos (if running under Newdos/80)
@@ -18,33 +18,33 @@
 	ORG	KERNEL_ORIGIN
 ;
 ; Flags and other data follow...
-*GET TABLES
+*GET	TABLES
 ; Tables for processes etc...
-*GET FLAGS
+*GET	FLAGS
 ;
 ; Now, the starting point for execution.
 UNIX_START	NOP
 ;
 ;Include bootstrap code (newdos/80 & otherwise).
-*GET BOOTER
+*GET	BOOTER
 ;
 ; If debugging then include the debug module.
 	IF	DEBUG
-*GET DEBUG
+*GET	DEBUG
 	ENDIF
 ; Now include the code to handle interrupts
 ; and run processes.
-*GET INTERUPT
+*GET	INTERUPT
 ;
 ; Now include general subroutines.
-*GET SUBROUT
+*GET	SUBROUT
 ;
 ;Include Disk I/O subroutines ie. read/write on
 ; files, etc...
-*GET DISKIO
+*GET	DISKIO
 ;
 ; Lastly, code to enqueue and dequeue processes.
-*GET PROCESS
+*GET	PROCESS
 ;
 ;
 ZZZZZ	EQU	$	;last address used.

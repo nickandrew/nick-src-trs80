@@ -1,4 +1,5 @@
 printer.cmd:
   assemble: printer.asm
   depends:
+  - include/include/doscalls.asm
   - printer-utils/driver/printer.asm

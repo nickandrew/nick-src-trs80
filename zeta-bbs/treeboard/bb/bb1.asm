@@ -351,7 +351,7 @@ RDT_1	PUSH	BC
 ;
 	LD	HL,MSG_TOPIC
 	LD	DE,TOP_FCB
-RDTOP	CALL	$GET		;read in topic each msg.
+RDTOP	CALL	ROM@GET		;read in topic each msg.
 	JR	NZ,RDT_2
 	LD	(HL),A
 	INC	HL

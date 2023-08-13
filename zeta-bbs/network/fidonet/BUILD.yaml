@@ -53,11 +53,22 @@ mailass2.asm:
   - zeta-bbs/network/fidonet/mailass2.c
   - zeta-bbs/network/fidonet/mailass.h
   - zeta-bbs/network/fidonet/zeta.h
-msgass1.cmd:
-  assemble: msgass1.asm
+msgass.cmd:
+  assemble: msgass.asm
   depends:
-  - zeta-bbs/network/fidonet/msgass1.asm
-  skip: No end statement
+  - zeta-bbs/network/fidonet/msgass.asm
+  - include/include/ascii.asm
+  - include/include/ci_cmp.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - zeta-bbs/include/fidonet.asm
+  - zeta-bbs/include/msghdr.asm
+  - zeta-bbs/include/msgtop.asm
+  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/userfile.asm
+  - zeta-bbs/treeboard/bb/bb7.asm
+  skip: Not ready to build ASM with embedded C functions yet
 packctl.asm:
   sdcc: packctl.c
   depends:

@@ -1,4 +1,5 @@
 uncrc.cmd:
   assemble: uncrc.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/uncrc/uncrc.asm

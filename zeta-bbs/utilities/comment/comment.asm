@@ -53,12 +53,12 @@ W_USER	LD	A,(HL)		;Copy user name,
 	JR	Z,COPY_DATE
 	OR	A
 	JR	Z,COPY_DATE
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,COMM_ERR
 	INC	HL
 	JR	W_USER
 ;
-COPY_DATE LD	HL,DATE		;Copy date & time
+COPY_DATE	LD	HL,DATE		;Copy date & time
 	CALL	X_TODAY
 	LD	HL,TIME
 	CALL	446DH
@@ -84,7 +84,7 @@ LOOP	LD	HL,M_PROMPT
 	LD	DE,C_FCB
 	CALL	FILE_MSG
 	LD	A,CR
-	CALL	$PUT
+	CALL	ROM@PUT
 	JP	NZ,COMM_ERR
 ;increment lines.
 	LD	A,(LINES)
@@ -118,7 +118,7 @@ COMM_ERR	;for file access errors.
 EXIT
 	LD	A,0CH		;A formfeed!
 	LD	DE,C_FCB
-	CALL	$PUT
+	CALL	ROM@PUT
 	CALL	DOS_CLOSE
 	JP	NZ,COMM_ERR
 ;
@@ -141,7 +141,7 @@ NO_THANKS
 FILE_MSG	LD	A,(HL)
 	OR	A
 	RET	Z
-	CALL	$PUT
+	CALL	ROM@PUT
 	INC	HL
 	JR	FILE_MSG
 ;
@@ -163,7 +163,7 @@ L_COMM
 ;
 ;print comment on screen.
 PC_LP	LD	DE,C_FCB
-	CALL	$GET
+	CALL	ROM@GET
 	JR	Z,PC_LP_2
 	LD	A,0
 	JP	TERMINATE
@@ -197,9 +197,9 @@ KILL	LD	DE,C_FCB
 M_TYPE	DEFM	CR,CR
 	DEFM	'Type out your comments now,',CR
 	DEFM	'Hit <CR> on an empty line when finished',CR,CR,0
-M_DISREG DEFM	'** Previous line disregarded **',CR,0
-M_PROMPT DEFM	': ',0
-M_THANKS DEFM	'Thanks for your comments',CR,0
+M_DISREG	DEFM	'** Previous line disregarded **',CR,0
+M_PROMPT	DEFM	': ',0
+M_THANKS	DEFM	'Thanks for your comments',CR,0
 M_NOTHANKS
 	DEFM	CR,CR
 	DEFM	'You certainly don''t waste your words!'
@@ -211,7 +211,7 @@ M_CMDERR
 	DEFM	'Usage:   Comment [kl]',CR,0
 M_FROM	DEFM	'From: ',0
 ;
-M_TIMDAT DEFM	' {'
+M_TIMDAT	DEFM	' {'
 DATE	DEFM	'DD-MMM-YY '
 TIME	DEFM	'HH:MM:SS}',CR,0
 ;

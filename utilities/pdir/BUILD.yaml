@@ -1,4 +1,5 @@
 pdir.cmd:
   assemble: pdir.asm
   depends:
+  - include/include/doscalls.asm
   - utilities/pdir/pdir.asm

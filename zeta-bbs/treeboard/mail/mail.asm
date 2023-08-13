@@ -36,9 +36,9 @@ MAX_MSGS	EQU	400
 ;
 *GET	MAILDATA
 ;
-ZZZZZZZY EQU $		;End of required data
+ZZZZZZZY	EQU	$		;End of required data
 	DEFS	5120	;Text buffer.
-ZZZZZZZZ EQU $		;End of 4k buffer.
+ZZZZZZZZ	EQU	$		;End of 4k buffer.
 ;
 THIS_PROG_END	EQU	$
 ;

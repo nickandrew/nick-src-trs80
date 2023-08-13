@@ -37,9 +37,9 @@ MAX_MSGS	EQU	1024
 ;
 *GET	BBDATA
 ;
-ZZZZZZZY EQU $		;End of required data
+ZZZZZZZY	EQU	$		;End of required data
 	DEFS	4096	;Text buffer.
-ZZZZZZZZ EQU $		;End of 4k buffer.
+ZZZZZZZZ	EQU	$		;End of 4k buffer.
 ;
 THIS_PROG_END	EQU	$
 ;

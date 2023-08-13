@@ -39,7 +39,7 @@ _LI_SETW
 ;
 _LI_LOOP
 	LD	DE,($STDIN_DEF)
-	CALL	$GET
+	CALL	ROM@GET
 	OR	A
 	JR	Z,_LI_LOOP
 ;
@@ -48,7 +48,7 @@ _LI_LOOP
 ;Break handling
 	LD	A,CR
 	LD	DE,($STDOUT_DEF)
-	CALL	$PUT
+	CALL	ROM@PUT
 	SCF
 	RET
 ;
@@ -60,7 +60,7 @@ _LI_03	CP	CR
 	CALL	STRCPY
 	LD	A,CR
 	LD	DE,($STDOUT_DEF)
-	CALL	$PUT
+	CALL	ROM@PUT
 	XOR	A		;clear carry flag
 	RET
 ;
@@ -78,7 +78,7 @@ _LI_04	CP	BS
 	LD	(LI_POS),DE
 	LD	A,8
 	LD	DE,($STDOUT_DEF)
-	CALL	$PUT		;backspace
+	CALL	ROM@PUT		;backspace
 	JP	_LI_LOOP
 ;
 _LI_05	CP	18H
@@ -94,7 +94,7 @@ _LI_06	LD	DE,(LI_POS)
 	LD	(LI_POS),DE
 	LD	A,8
 	LD	DE,($STDOUT_DEF)
-	CALL	$PUT
+	CALL	ROM@PUT
 	JR	_LI_06		;repeat it.
 ;
 _LI_07	CP	20H
@@ -129,7 +129,7 @@ _LI_07B
 	LD	(HL),A
 	INC	HL
 	LD	(HL),0
-	CALL	$PUT
+	CALL	ROM@PUT
 	DJNZ	_LI_07B
 	LD	(LI_POS),HL
 	JP	_LI_LOOP
@@ -139,7 +139,7 @@ _LI_07B
 _LI_07Z
 	PUSH	AF
 	LD	DE,($STDOUT_DEF)
-	CALL	$PUT
+	CALL	ROM@PUT
 	POP	AF
 	LD	HL,(LI_POS)
 	LD	(HL),A
@@ -185,12 +185,12 @@ _LI_10	LD	A,(HL)		;fwd & bkwd
 	OR	A
 	JR	Z,_LI_11	;if end of string
 	LD	A,8
-	CALL	$PUT
+	CALL	ROM@PUT
 	INC	HL
 	JR	_LI_10
 _LI_11	LD	(LI_POS),HL
 	LD	A,CR
-	CALL	$PUT
+	CALL	ROM@PUT
 	XOR	A		;clear carry
 	RET
 ;
@@ -200,7 +200,7 @@ _LI_LONG			;word too long.
 	CALL	STRCPY
 	LD	A,CR
 	LD	DE,($STDOUT_DEF)
-	CALL	$PUT
+	CALL	ROM@PUT
 	OR	A		;clear carry
 	RET
 ;

@@ -8,6 +8,9 @@
 ;PHYSICAL: Adj, relative to the 256k ram chips
 ;
 ;
+
+*GET	DOSCALLS
+
 	ORG	5200H
 START	DI
 ;
@@ -65,7 +68,7 @@ LOOP	OUT	(C),D
 	LD	BC,13
 	LDIR
 ;
-	JP	402DH
+	JP	DOS_NOERROR
 ;
 MSG_1	DEFM	'Now booting 256k ram machine'
 MSG_2	DEFM	'Now running from 4700h'

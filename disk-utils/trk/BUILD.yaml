@@ -2,7 +2,9 @@ trk.cmd:
   assemble: trk.asm
   depends:
   - disk-utils/trk/trk.asm
+  - include/include/doscalls.asm
 trksl.cmd:
   assemble: trksl.asm
   depends:
   - disk-utils/trk/trksl.asm
+  - include/include/doscalls.asm

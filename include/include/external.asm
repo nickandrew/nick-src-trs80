@@ -26,16 +26,8 @@ DCB_2O	EQU	0FF28H		;8- Screen AND serial out (equivalent to DCB_2I)
 ;;$TA	EQU	0FF38H		;8- type-ahead.
 ;
 ;Standard devices
-$KBD	EQU	4015H		;Kbd device driver
-$VDU	EQU	401DH		;VDU device driver
-;
-;Aliased devices...
-$S	EQU	0FF10H
-;
-;Rom / Dos System calls.
-$GET	EQU	0013H		;get a byte
-$PUT	EQU	001BH		;write a byte
-$CTL	EQU	0023H		;device control
+DCB_KBD$	EQU	4015H		;Kbd device driver
+DCB_VDU$	EQU	401DH		;VDU device driver
 ;
 ;High Memory ZETA System calls and data
 LOST_CARRIER	EQU	0FF40H	;J- Lost Carrier (See special.asm)
@@ -198,10 +190,5 @@ TEMP_PAGE	EQU	0F8H	;Temp logical page addr
 TEMP_PAGEX	EQU	46	;temp logical page offset
 ;
 EXTERNALS	EQU	0FE00H	;Start of externals
-;
-;Macros...
-SIZE	MACRO	#$A
-	ORG	$+#$A
-	ENDM
 ;
 *LIST	ON
