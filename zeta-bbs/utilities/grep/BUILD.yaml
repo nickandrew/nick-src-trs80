@@ -1,0 +1,11 @@
+zeta_grep.cmd:
+  assemble: grep.asm
+  depends:
+  - zeta-bbs/utilities/grep/grep.asm
+  - include/include/ascii.asm
+  - include/include/ci_cmp.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - zeta-bbs/include/extract.asm
+  - zeta-bbs/include/mess_0.asm
+  - zeta-bbs/include/std_out.asm
