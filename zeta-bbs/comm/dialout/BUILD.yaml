@@ -6,8 +6,12 @@ dialout.cmd:
   - include/include/doscalls.asm
   - include/include/external.asm
   - zeta-bbs/comm/dialout/dialout.asm
+  - zeta-bbs/include/dtr_off.asm
+  - zeta-bbs/include/dtr_on.asm
   - zeta-bbs/include/fidonet.asm
-  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/mess_0.asm
   - zeta-bbs/include/rs232.asm
   - zeta-bbs/include/sec10.asm
   - zeta-bbs/include/userfile.asm
+  - zeta-bbs/include/x_date.asm
+  - zeta-bbs/include/x_today.asm

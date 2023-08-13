@@ -1,11 +1,18 @@
 deluser.cmd:
   assemble: deluser.asm
   depends:
-  - zeta-bbs/maintain/deluser/deluser.asm
   - include/include/ascii.asm
   - include/include/ci_cmp.asm
   - include/include/doscalls.asm
   - include/include/external.asm
-  - zeta-bbs/include/routines.asm
+  - zeta-bbs/include/ci_hash.asm
+  - zeta-bbs/include/common_search.asm
+  - zeta-bbs/include/cphlde.asm
+  - zeta-bbs/include/fputs.asm
+  - zeta-bbs/include/multiply.asm
+  - zeta-bbs/include/puts.asm
   - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/terminate_s.asm
+  - zeta-bbs/include/user_search.asm
   - zeta-bbs/include/userfile.asm
+  - zeta-bbs/maintain/deluser/deluser.asm

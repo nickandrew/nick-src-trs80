@@ -166,8 +166,8 @@ ERROR_OUT
 	LD	A,130
 	JP	TERMINATE
 ;
-*GET	ROUTINES
-*GET	CI_CMP
+*GET	EXTRACT
+*GET	MESS_0
 ;
 M_IN	DEFM	'cp: Can''t open input file',CR,0
 M_OUT	DEFM	'cp: Can''t open output file',CR,0

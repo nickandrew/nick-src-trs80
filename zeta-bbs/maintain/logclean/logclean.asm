@@ -129,8 +129,8 @@ ERROR	PUSH	AF
 	POP	AF
 	JP	TERMINATE
 ;
-*GET	ROUTINES
-*GET	CI_CMP
+*GET	FPUTS
+*GET	PUTS
 ;
 LOG_CLOSE	DEFB	3,0	;close the log file.
 LOG_OPEN	DEFB	4,0	;open the log file.

@@ -58,7 +58,6 @@ msgass.cmd:
   depends:
   - zeta-bbs/network/fidonet/msgass.asm
   - include/include/ascii.asm
-  - include/include/ci_cmp.asm
   - include/include/doscalls.asm
   - include/include/external.asm
   - zeta-bbs/include/fidonet.asm

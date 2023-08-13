@@ -600,7 +600,11 @@ STRCMP_01
 	JR	STRCMP_01
 ;
 ;Include common routines.
-*GET	ROUTINES
+*GET	DTR_OFF
+*GET	DTR_ON
+*GET	MESS_0
+*GET	X_DATE
+*GET	X_TODAY
 ;
 ; -----------------------------------------------
 ;
