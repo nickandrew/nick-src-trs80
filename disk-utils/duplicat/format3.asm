@@ -17,7 +17,8 @@ $FDC_CMD_WRITE_TRACK		EQU	0F4H	; Write track
 	ORG	5200H
 
 FORM3	DI
-	CALL	INSERT		; Print "INSERT DESTINATION DISK" and wait for a key to be pressed
+	LD	HL,M_INS	; "INSERT DESTINATION DISK"
+	CALL	MSGKEY		; Print a message (in register HL) then wait for a key to be pressed
 	CALL	RESTORE		; Seek to track 0 and wait for controller not busy
 	XOR	A
 	LD	(TRACK),A	; Initial track zero
@@ -29,7 +30,8 @@ FORV01	CALL	BUILD		; Prepare a buffer with the raw track data to be written to t
 	LD	(TRACK),A
 	CP	40		; Only formatting 40 tracks on this diskette
 	JR	NZ,FORV01
-	CALL	SYSDISK		; Print "INSERT SYSTEM DISK" and wait for a key to be pressed
+	LD	HL,M_SYS	; "INSERT SYSTEM DISK"
+	CALL	MSGKEY		; Print a message (in register HL) then wait for a key to be pressed
 	JP	DOS_NOERROR
 
 ; BUILD: Prepare a buffer with the raw track data to be written to the diskette.
@@ -52,7 +54,7 @@ FORV01	CALL	BUILD		; Prepare a buffer with the raw track data to be written to t
 ;    0x80e      Sector 7 data
 ;    0x933      Sector 3 data
 ;    0xa58      Sector 8 data
-;    0xb7d      0x00 x 6             This looks like the beginning of a secret sector 128, 16 bytes long
+;    0xb7d      0x00 x 6             The beginning of a secret sector 128, 16 bytes long
 ;    0xb83      0xfe                 ID Address Mark
 ;    0xb84      Track number
 ;    0xb85      0x00
@@ -197,9 +199,8 @@ STABLE	DEFB	4
 	DEFB	3
 	DEFB	8
 
-; INSERT: Print "INSERT DESTINATION DISK" and wait for a key to be pressed
-INSERT	LD	HL,M_INS
-INSV01	CALL	MESSAGE		; Print a message to the display
+; MSGKEY: Print a message (in register HL) then wait for a key to be pressed
+MSGKEY	CALL	MESSAGE		; Print a message to the display
 	LD	BC,4000H
 	CALL	ROM@PAUSE
 INSV02	LD	A,(38FFH)	; Wait for a key to be pressed
@@ -216,10 +217,6 @@ MESSAGE	LD	A,(HL)
 	CP	0DH
 	RET	Z
 	JR	MESSAGE
-
-; Print "INSERT SYSTEM DISK" and wait for a key to be pressed
-SYSDISK	LD	HL,M_SYS
-	JR	INSV01
 
 M_INS	DEFM	'INSERT DESTINATION DISK'
 	DEFB	0DH
@@ -248,6 +245,7 @@ DELAY0	PUSH	BC
 	POP	BC
 	RET
 
+; SPIN: Start the first disk drive spinning
 SPIN	LD	A,1
 	LD	(37E0H),A
 	RET
