@@ -1,0 +1,10 @@
+inspector.cmd:
+  link: inspector
+  depends:
+  - inspector.rel
+  - library/basicio/basicio.lib
+  - library/fd1771/fd1771.lib
+inspector.rel:
+  sdcc: inspector.c
+  depends:
+  - inspector.c
