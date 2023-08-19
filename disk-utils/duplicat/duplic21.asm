@@ -1,31 +1,56 @@
-;Duplic2/asm: Copies Adventure onto STD disk.
-;Version 2.1 - saves onto standard disk.
-; 27-Nov-84.
+; duplic21.asm: Copy Microsoft Adventure from a protected diskette
+; A protected diskette is 40 track SSSD with translated track/sector numbers
+; (0, 127, 125, 123, 121, ...)
+; Usage:
+;    DUPLIC21
+;      Reads a protected diskette, writes a standard diskette
+;    DUPLIC21 /P
+;      Reads a protected diskette, writes a protected diskette
 
 *GET	DOSCALLS
 
+; WD1771/FD1771 Floppy Disk Controller registers/commands
+$FDC_STATUS			EQU	37ECH	; FDC Status/Command register
+$FDC_COMMAND			EQU	37ECH	; FDC Status/Command register
+$FDC_TRACK			EQU	37EDH	; FDC Track register
+$FDC_SECTOR			EQU	37EEH	; FDC Sector register
+$FDC_DATA			EQU	37EFH	; FDC Data register
+$FDC_CMD_FORCE_INTERRUPT	EQU	0D0H	; Terminate whatever you're doing
+$FDC_CMD_RESTORE		EQU	005H	; Seek to track 0 (slow stepping rate)
+$FDC_CMD_STEP_IN		EQU	058H	; Step in (fast stepping rate)
+$FDC_CMD_WRITE_TRACK		EQU	0F4H	; Write track
+
+
 	ORG	8000H
-START	CALL	RESTOR
+START
+	LD	A,(HL)
+	CP	'/'
+	JR	NZ,START_01
+	INC	HL
+	LD	A,(HL)
+	CP	'P'
+	JR	NZ,START_01
+	LD	A,1
+	LD	(PROTECTED_DISK),A
+START_01
+	CALL	RESTOR
 	DI
-SAVER	CALL	INSSCE
+SAVER	LD	HL,SMES		; "Insert <SOURCE> DISK..."
+	CALL	WTINP		; Print message and wait for return key
 	CALL	RESET
 	LD	A,143
 	LD	(3C04H),A
 	CALL	LOAD50
 	LD	A,20H
 	LD	(3C04H),A
-	CALL	STOUT
-	CALL	INSDES
+	CALL	STOUT5
+	LD	HL,DMES		; "Insert <DESTINATION> DISK..."
+	CALL	WTINP		; Print message and wait for return key
 	CALL	RESET
 	CALL	SAVE50
 	JP	SAVER
-INSSCE	LD	HL,SMES
-	JP	WTINP
-SMES	DEFM	'INSERT <SOURCE> DISK AND HIT RETURN:'
-	DEFB	0DH
-DMES	DEFM	'INSERT <DESTINATION> DISK AND HIT RETURN:'
-	DEFB	0DH
-INSDES	LD	HL,DMES
+
+; Print a message (address in HL) and wait for return key, then spin up disk 0
 WTINP	LD	A,(HL)
 	CALL	ROM@PUT_VDU
 	CP	0DH
@@ -43,6 +68,7 @@ WTKBD	LD	A,(3840H)
 	LD	BC,4000H
 	CALL	ROM@PAUSE
 	RET
+
 RESTOR	LD	A,1
 	LD	(37E1H),A
 	LD	BC,4000H
@@ -55,13 +81,17 @@ LOP1	LD	A,(37ECH)
 	BIT	0,A
 	JR	NZ,LOP1
 	RET
-STOUT	LD	B,5
+
+; STOUT5: Step the disk head out 5 tracks
+STOUT5	LD	B,5
 STEP	PUSH	BC
-	CALL	STOUT2
+	CALL	STOUT
 	POP	BC
 	DJNZ	STEP
 	RET
-STOUT2	LD	A,1
+
+; STOUT: Step the disk head out 1 track
+STOUT	LD	A,1
 	LD	(37E1H),A
 	LD	B,6
 	DJNZ	$
@@ -76,15 +106,14 @@ LOP2	LD	A,(37ECH)
 	DEC	A
 	LD	(TRAK),A
 	RET
-SECT	DEFB	0
-TRAK	DEFB	0
-LDAREA	DEFW	8300H
+
 LOAD50	LD	B,5
 LOP3	PUSH	BC
 	CALL	LOAD10
 	POP	BC
 	DJNZ	LOP3
 	RET
+
 LOAD10	CALL	LOAD
 	LD	A,(SECT)
 	INC	A
@@ -98,6 +127,7 @@ LOAD10	CALL	LOAD
 	LD	(SECT),A
 	CALL	STEPIN
 	RET
+
 STEPIN	LD	A,1
 	LD	(37E1H),A
 	LD	BC,4000H
@@ -113,9 +143,11 @@ LOP4	LD	A,(37ECH)
 	INC	A
 	LD	(TRAK),A
 	RET
+
 RESET	LD	BC,8300H
 	LD	(LDAREA),BC
 	RET
+
 LOAD	LD	A,1
 	LD	(37E1H),A
 	LD	BC,1000H
@@ -126,19 +158,11 @@ LOAD	LD	A,1
 	LD	DE,37EFH
 	LD	BC,(LDAREA)
 	LD	A,(SECT)
-	CP	0
-	JR	Z,BYP1
-	ADD	A,A
-	CPL
-	ADD	A,82H
-BYP1	LD	(37EEH),A
+	CALL	TRANSLATE
+	LD	(37EEH),A
 	LD	A,(TRAK)
-	OR	A
-	JR	Z,BYP4
-	ADD	A,A
-	CPL
-	ADD	A,82H
-BYP4	LD	(37EDH),A
+	CALL	TRANSLATE
+	LD	(37EDH),A
 	PUSH	BC
 	LD	B,6
 	DJNZ	$
@@ -158,12 +182,14 @@ LOP5	BIT	1,(HL)
 	LD	A,20H
 	LD	(3C02H),A
 	RET
+
 SAVE50	LD	B,5
 LOP6	PUSH	BC
 	CALL	SAVE10
 	POP	BC
 	DJNZ	LOP6
 	RET
+
 SAVE10	CALL	SAVE
 	LD	A,(SECT)
 	INC	A
@@ -174,6 +200,7 @@ SAVE10	CALL	SAVE
 	LD	(SECT),A
 	CALL	STEPIN
 	RET
+
 SAVE	LD	A,1
 	LD	(37E1H),A
 	LD	BC,1000H
@@ -182,9 +209,11 @@ SAVE	LD	A,1
 	LD	DE,37EFH
 	LD	BC,(LDAREA)
 	LD	A,(SECT)
-BYP2	LD	(37EEH),A
+	CALL	COND_TRANSLATE
+	LD	(37EEH),A
 	LD	A,(TRAK)
-BYP3	LD	(37EDH),A
+	CALL	COND_TRANSLATE
+	LD	(37EDH),A
 	PUSH	BC
 	LD	B,6
 	DJNZ	$
@@ -202,4 +231,42 @@ LOP7	BIT	1,(HL)
 	JR	NZ,LOP7
 	LD	(LDAREA),BC
 	RET
+
+; TRANSLATE: Convert a track or sector number (in register A) into the
+; corresponding number, and return it in register A.
+;   A == 0 => 0
+;   A > 0  => (129 - 2 * A)
+TRANSLATE:
+	ADD	A,A
+	RET	Z
+	CPL
+	ADD	A,82H
+	RET
+
+; COND_TRANSLATE: Conditionally translate a track or sector number
+COND_TRANSLATE:
+	PUSH	BC
+	LD	B,A			; Save track/sector number
+	LD	A,(PROTECTED_DISK)
+	OR	A			; Test if protected dest
+	LD	A,B			; Restore track/sector number
+	POP	BC
+	RET	Z
+	CALL	TRANSLATE
+	RET
+
+SMES	DEFM	'INSERT <SOURCE> DISK AND HIT RETURN:'
+	DEFB	0DH
+DMES	DEFM	'INSERT <DESTINATION> DISK AND HIT RETURN:'
+	DEFB	0DH
+
+SECT	DEFB	0			; Untranslated sector number
+TRAK	DEFB	0			; Untranslated track number
+LDAREA	DEFW	8300H			; Initial and current buffer address
+
+; Set PROTECTED_DISK to 1 to write a copy-protected destination diskette
+; (which requires a diskette formatted with translated track and sector
+; numbers, using e.g. format2.asm)
+PROTECTED_DISK	DEFB	0
+
 	END	START
