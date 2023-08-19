@@ -1,0 +1,8 @@
+fd1771.lib:
+  library: fd1771.lib
+  depends:
+  - fd1771.rel
+fd1771.rel:
+  sdcc: fd1771.c
+  depends:
+  - fd1771.c
