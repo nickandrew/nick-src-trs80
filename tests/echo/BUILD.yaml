@@ -1,0 +1,9 @@
+echo.cmd:
+  link: echo
+  depends:
+  - echo.rel
+  - library/basicio/basicio.lib
+echo.rel:
+  sdcc: echo.c
+  depends:
+  - echo.c

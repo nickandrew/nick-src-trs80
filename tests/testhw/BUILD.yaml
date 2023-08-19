@@ -1,0 +1,15 @@
+testhw.cmd:
+  link: testhw
+  depends:
+  - testhw.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+testhw.rel:
+  sdcc: testhw.c
+  copy:
+  - library/basicio/hardware_id.h
+  - library/newdos80/dos_id.h
+  - library/newdos80/doscalls.h
+  - library/newdos80/newdos80.h
+  depends:
+  - testhw.c

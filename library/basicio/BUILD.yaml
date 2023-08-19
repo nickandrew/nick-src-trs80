@@ -1,0 +1,29 @@
+basicio.lib:
+  library: basicio.lib
+  depends:
+  - argparse.rel
+  - hardware_id.rel
+  - putchar.rel
+  - getchar.rel
+  - soft_time.rel
+argparse.rel:
+  sdcc: argparse.c
+  depends:
+  - argparse.c
+hardware_id.rel:
+  sdcc: hardware_id.c
+  depends:
+  - hardware_id.c
+  - hardware_id.h
+putchar.rel:
+  sdcc: putchar.c
+  depends:
+  - putchar.c
+getchar.rel:
+  sdcc: getchar.c
+  depends:
+  - getchar.c
+soft_time.rel:
+  sdcc: soft_time.c
+  depends:
+  - soft_time.c

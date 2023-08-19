@@ -1,0 +1,11 @@
+testargp.cmd:
+  link: testargp
+  depends:
+  - test_argparse.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+test_argparse.rel:
+  sdcc: test_argparse.c
+  depends:
+  - test_argparse.c

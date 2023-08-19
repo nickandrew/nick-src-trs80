@@ -1,0 +1,9 @@
+hworld.cmd:
+  link: hworld
+  depends:
+  - hworld.rel
+  - library/basicio/basicio.lib
+hworld.rel:
+  sdcc: hworld.c
+  depends:
+  - hworld.c

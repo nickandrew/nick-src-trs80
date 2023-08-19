@@ -1,7 +1,5 @@
 #include <stdio.h>
 
-#include "doscalls.h"
-
 int main(void) {
   puts("Hello, world!\n");
   printf("%d ", 18);
