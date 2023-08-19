@@ -1,0 +1,8 @@
+rom.lib:
+  library: rom.lib
+  depends:
+  - rom_kbline.rel
+rom_kbline.rel:
+  sdcc: rom_kbline.c
+  depends:
+  - rom_kbline.c

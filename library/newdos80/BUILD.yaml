@@ -1,0 +1,59 @@
+newdos80.lib:
+  library: newdos80.lib
+  depends:
+  - dos_command.rel
+  - dos_disp_error.rel
+  - dos_exit.rel
+  - dos_fcntl.rel
+  - dos_file.rel
+  - dos_get_id.rel
+  - dos_mess_do.rel
+  - dos_mess_pr.rel
+  - dos_stdio.rel
+  - dos_system.rel
+dos_command.rel:
+  sdcc: dos_command.c
+  depends:
+  - doscalls.h
+  - dos_command.c
+dos_disp_error.rel:
+  sdcc: dos_disp_error.c
+  depends:
+  - dos_disp_error.c
+dos_exit.rel:
+  sdcc: dos_exit.c
+  depends:
+  - dos_exit.c
+dos_fcntl.rel:
+  sdcc: dos_fcntl.c
+  depends:
+  - dos_fcntl.c
+dos_file.rel:
+  sdcc: dos_file.c
+  depends:
+  - doscalls.h
+  - dos_file.c
+dos_get_id.rel:
+  sdcc: dos_get_id.c
+  depends:
+  - dos_get_id.c
+  - dos_id.h
+dos_mess_do.rel:
+  sdcc: dos_mess_do.c
+  depends:
+  - doscalls.h
+  - dos_mess_do.c
+dos_mess_pr.rel:
+  sdcc: dos_mess_pr.c
+  depends:
+  - doscalls.h
+  - dos_mess_pr.c
+dos_stdio.rel:
+  sdcc: dos_stdio.c
+  depends:
+  - doscalls.h
+  - dos_stdio.c
+dos_system.rel:
+  sdcc: dos_system.c
+  depends:
+  - dos_system.c
