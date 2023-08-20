@@ -1,0 +1,25 @@
+extras.lib:
+  library: extras.lib
+  depends:
+  - memdump.rel
+  - hex_to_int.rel
+hex_to_int.rel:
+  sdcc: hex_to_int.c
+  depends:
+  - hex_to_int.c
+memdump.rel:
+  sdcc: memdump.c
+  copy:
+  - library/newdos80/doscalls.h
+  depends:
+  - memdump.c
+testh2i.cmd:
+  link: testh2i
+  depends:
+  - testh2i.rel
+  - library/basicio/basicio.lib
+  - extras.lib
+testh2i.rel:
+  sdcc: testh2i.c
+  depends:
+  - testh2i.c
