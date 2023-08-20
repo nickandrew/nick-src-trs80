@@ -22,8 +22,9 @@ def build_root(builder, d):
   # Build subdirectories first
   for root, dirs, files in os.walk(d, topdown=False):
     if 'BUILD.yaml' in files:
-      print(f'Building {root}/BUILD.yaml')
-      builder.build_sequence(root)
+      source_dir = os.path.normpath(root)
+      print(f'Building {source_dir}/BUILD.yaml')
+      builder.build_sequence(source_dir)
 
 def main():
   bs = BuildSystem(build_dir='tmp/build_dir')
