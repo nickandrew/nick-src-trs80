@@ -1,9 +1,16 @@
-cdirect.asm:
+cdirect.cmd:
+  link: cdirect
+  depends:
+  - cdirect.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+cdirect.rel:
   sdcc: cdirect.c
   depends:
-  - file-utils/direct/cdirect.c
+  - cdirect.c
 direct.cmd:
   assemble: direct.asm
   depends:
-  - file-utils/direct/direct.asm
+  - direct.asm
   - include/include/doscalls.asm
