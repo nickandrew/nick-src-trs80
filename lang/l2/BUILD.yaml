@@ -1,58 +1,89 @@
-compiler.asm:
+compiler.rel:
   sdcc: compiler.c
   depends:
-  - lang/l2/compiler.c
-  - lang/l2/compiler.h
-  - lang/l2/errors.h
-  - lang/l2/goals.h
-  - lang/l2/opcodes.h
-  - lang/l2/la.h
-  - lang/l2/lls.h
-errors.asm:
+  - compiler.c
+  - compiler.h
+  - errors.h
+  - goals.h
+  - opcodes.h
+  - la.h
+  - lls.h
+errors.rel:
   sdcc: errors.c
   depends:
-  - lang/l2/errors.c
-  - lang/l2/errors.h
-  - lang/l2/lls.h
-interp.asm:
+  - errors.c
+  - errors.h
+  - lls.h
+interp.rel:
   sdcc: interp.c
   depends:
-  - lang/l2/compiler.h
-  - lang/l2/interp.c
-  - lang/l2/interp.h
-  - lang/l2/la.h
-  - lang/l2/opcodes.h
-la.asm:
+  - compiler.h
+  - interp.c
+  - interp.h
+  - la.h
+  - opcodes.h
+la.rel:
   sdcc: la.c
   depends:
-  - lang/l2/errors.h
-  - lang/l2/la.c
-  - lang/l2/la.h
-  - lang/l2/lls.h
-latest.asm:
+  - errors.h
+  - la.c
+  - la.h
+  - lls.h
+latest.cmd:
+  link: latest
+  depends:
+  - errors.rel
+  - latest.rel
+  - lls.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+latest.rel:
   sdcc: latest.c
   depends:
-  - lang/l2/errors.h
-  - lang/l2/latest.c
-  - lang/l2/la.h
-  - lang/l2/lls.h
-lls.asm:
+  - errors.h
+  - latest.c
+  - la.h
+  - lls.h
+lls.rel:
   sdcc: lls.c
   depends:
-  - lang/l2/errors.h
-  - lang/l2/lls.c
-  - lang/l2/lls.h
-llstest.asm:
+  - errors.h
+  - lls.c
+  - lls.h
+llstest.cmd:
+  link: llstest
+  depends:
+  - errors.rel
+  - lls.rel
+  - llstest.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+llstest.rel:
   sdcc: llstest.c
   depends:
-  - lang/l2/llstest.c
-  - lang/l2/lls.h
-main.asm:
+  - llstest.c
+  - lls.h
+main.cmd:
+  link: main
+  depends:
+  - compiler.rel
+  - errors.rel
+  - interp.rel
+  - la.rel
+  - lls.rel
+  - main.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+  skip: fscanf() is required but not yet written
+main.rel:
   sdcc: main.c
   depends:
-  - lang/l2/compiler.h
-  - lang/l2/interp.h
-  - lang/l2/la.h
-  - lang/l2/lls.h
-  - lang/l2/main.c
-  - lang/l2/main.h
+  - compiler.h
+  - interp.h
+  - la.h
+  - lls.h
+  - main.c
+  - main.h
