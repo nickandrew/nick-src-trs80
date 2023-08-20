@@ -1,4 +1,18 @@
-border.asm:
+border.cmd:
+  link: border
+  depends:
+  - border.rel
+  - library/basicio/basicio.lib
+border.rel:
   sdcc: border.c
   depends:
-  - utilities/border/border.c
+  - border.c
+getchar.cmd:
+  link: getchar
+  depends:
+  - getchar.rel
+  - library/basicio/basicio.lib
+getchar.rel:
+  sdcc: getchar.c
+  depends:
+  - getchar.c
