@@ -121,7 +121,14 @@ class LinkSDCC(Buildable):
     extralibdir = ''
     crt0='--no-std-crt0 library/sdcc/crt0.rel'
 
-    depend_libs = [f'{self.build_dir}/{x}' for x in self.config['depends'] if '.lib' in x]
+    depend_libs = []
+    for x in self.config['depends']:
+      if '.lib' in x:
+        if '/' in x:
+          depend_libs.append(f'{self.build_dir}/{x}')
+        else:
+          depend_libs.append(f'{self.build_dir}/{self.source_dir}/{x}')
+
     print(f'depend_libs is {depend_libs}')
     libs = ' '.join(f'-l {x}' for x in depend_libs)
     depend_rels = [x for x in self.config['depends'] if '.rel' in x]
