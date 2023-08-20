@@ -3,7 +3,7 @@
 #include <extras.h>
 #include <stdio.h>
 
-#include "../sdcc/doscalls.h"
+#include "doscalls.h"
 
 // Don't put big arrays on the stack
 static char sbuf[80];

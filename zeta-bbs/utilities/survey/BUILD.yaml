@@ -1,2 +1,12 @@
 survey.cmd:
-  skip: Not ready to compile/link C programs
+  link: survey
+  depends:
+  - survey.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+  - library/zeta/zeta.lib
+survey.rel:
+  sdcc: survey.c
+  depends:
+  - survey.c

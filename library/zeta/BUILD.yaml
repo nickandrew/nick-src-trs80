@@ -1,0 +1,8 @@
+getuname.rel:
+  sdcc: getuname.c
+  depends:
+  - getuname.c
+zeta.lib:
+  library: zeta.lib
+  depends:
+  - getuname.rel

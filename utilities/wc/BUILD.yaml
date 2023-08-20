@@ -1,2 +1,11 @@
 wc.cmd:
-  skip: Not yet ready to compile/link
+  link: wc
+  depends:
+  - wc.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+wc.rel:
+  sdcc: wc.c
+  depends:
+  - wc.c

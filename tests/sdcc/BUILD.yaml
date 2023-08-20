@@ -1,0 +1,34 @@
+fileio.cmd:
+  link: fileio
+  depends:
+  - fileio.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+fileio.rel:
+  sdcc: fileio.c
+  depends:
+  - fileio.c
+testfget.cmd:
+  link: testfget
+  depends:
+  - testfget.rel
+  - library/basicio/basicio.lib
+  - library/extras/extras.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+testfget.rel:
+  sdcc: testfget.c
+  depends:
+  - testfget.c
+testtime.cmd:
+  link: testtime
+  depends:
+  - testtime.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+testtime.rel:
+  sdcc: testtime.c
+  depends:
+  - testtime.c
