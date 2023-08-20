@@ -1,4 +1,25 @@
-sbrk.asm:
+libc.lib:
+  library: libc.lib
+  depends:
+  - atoi.rel
+  - fileio.rel
+  - putchar.rel
+  - sbrk.rel
+atoi.rel:
+  sdcc: atoi.c
+  depends:
+  - atoi.c
+fileio.rel:
+  sdcc: fileio.c
+  copy:
+  - library/newdos80/doscalls.h
+  depends:
+  - fileio.c
+putchar.rel:
+  sdcc: putchar.c
+  depends:
+  - putchar.c
+sbrk.rel:
   sdcc: sbrk.c
   depends:
-  - library/libc/sbrk.c
+  - sbrk.c
