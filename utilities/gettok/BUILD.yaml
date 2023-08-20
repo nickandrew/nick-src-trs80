@@ -1,8 +1,22 @@
-gettok.asm:
+gettok.cmd:
+  link: gettok
+  depends:
+  - gettok.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+gettok.rel:
   sdcc: gettok.c
   depends:
-  - utilities/gettok/gettok.c
-toknum.asm:
+  - gettok.c
+toknum.cmd:
+  link: toknum
+  depends:
+  - toknum.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+toknum.rel:
   sdcc: toknum.c
   depends:
-  - utilities/gettok/toknum.c
+  - toknum.c
