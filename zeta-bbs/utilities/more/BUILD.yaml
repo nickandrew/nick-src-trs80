@@ -1,0 +1,12 @@
+more.cmd:
+  link: more
+  depends:
+  - more.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+  skip: Needs signal() which is currently unimplemented
+more.rel:
+  sdcc: more.c
+  depends:
+  - more.c
