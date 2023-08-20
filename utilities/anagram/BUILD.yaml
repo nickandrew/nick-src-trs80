@@ -1,4 +1,9 @@
-anagram.asm:
+anagram.cmd:
+  link: anagram
+  depends:
+  - anagram.rel
+  - library/basicio/basicio.lib
+anagram.rel:
   sdcc: anagram.c
   depends:
-  - utilities/anagram/anagram.c
+  - anagram.c
