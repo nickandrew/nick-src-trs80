@@ -1,0 +1,11 @@
+memdump.cmd:
+  link: memdump
+  depends:
+  - memdump.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/extras/extras.lib
+memdump.rel:
+  sdcc: memdump.c
+  depends:
+  - memdump.c
