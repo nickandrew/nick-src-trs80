@@ -389,7 +389,8 @@ class DirectoryBuilder(object):
 
     ok = buildable.build()
     if not ok:
+      print(f'{prefix}FAILURE building {filename} in {self.source_dir}')
       raise ValueError(f'Build failed: {filename} in {self.build_dir}/{self.source_dir}')
     self.is_built.add(filename)
-    print(f'{prefix}Build done: {filename} in {self.source_dir}')
+    print(f'{prefix}SUCCESS building {filename} in {self.source_dir}')
     return

@@ -4,8 +4,8 @@
 Starts as a stub to test WIP; ends as a full builder.
 """
 
+import argparse
 import os
-import sys
 
 from buildsys.control import BuildSystem, DirectoryBuilder
 
@@ -27,9 +27,14 @@ def build_root(builder, d):
       builder.build_sequence(source_dir)
 
 def main():
-  bs = BuildSystem(build_dir='tmp/build_dir')
+  parser = argparse.ArgumentParser(description="Recursively build binaries in specified directories.")
+  parser.add_argument('--build_dir', default='tmp/build_dir', help='Build all files under this directory')
+  parser.add_argument('directories', nargs='*', type=str, help='Directories to build')
+  args = parser.parse_args()
 
-  for directory in sys.argv[1:]:
+  bs = BuildSystem(build_dir=args.build_dir)
+
+  for directory in args.directories:
     build_root(bs, directory)
 
 if __name__ == '__main__':
