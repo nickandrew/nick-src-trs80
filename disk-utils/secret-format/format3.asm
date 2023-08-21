@@ -20,6 +20,9 @@ $DRIVE_SELECTOR			EQU	2	; 1 << drive_number
 	ORG	5200H
 
 FORM3	DI
+	LD	HL,M_INTRO
+	CALL	MESSAGE
+
 	LD	HL,M_INS	; "INSERT DESTINATION DISK"
 	CALL	MSGKEY		; Print a message (in register HL) then wait for a key to be pressed
 	CALL	RESTORE		; Seek to track 0 and wait for controller not busy
@@ -206,10 +209,12 @@ STABLE	DEFB	4
 MSGKEY	CALL	MESSAGE		; Print a message to the display
 	LD	BC,4000H
 	CALL	ROM@PAUSE
-INSV02	LD	A,(38FFH)	; Wait for a key to be pressed
-	OR	A
-	JR	Z,INSV02
-	RET
+	CALL	ROM@WAIT_KEY	; Wait for a key to be pressed
+	CP	1
+	RET	NZ		; Key pressed was not break
+	LD	HL,M_EXIT	; 'Aborting'
+	CALL	MESSAGE
+	JP	DOS_NOERROR
 
 ; MESSAGE: Print a message to the display, starting in register HL and ending after 0x0d
 MESSAGE	LD	A,(HL)
@@ -221,9 +226,16 @@ MESSAGE	LD	A,(HL)
 	RET	Z
 	JR	MESSAGE
 
-M_INS	DEFM	'INSERT DESTINATION DISK'
+M_INTRO	DEFM	'Secret Format. Formats a diskette with a secret sector 128'
 	DEFB	0DH
-M_SYS	DEFM	'INSERT SYSTEM DISK'
+
+M_EXIT	DEFM	'Break hit; aborting'
+	DEFB	0DH
+
+; Change this message if $DRIVE_SELECTOR is changed
+M_INS	DEFM	'Insert diskette to be formatted in drive 1 and press Enter'
+	DEFB	0DH
+M_SYS	DEFM	'Format done; press Enter'
 	DEFB	0DH
 
 ; RESTORE: Seek to track 0 and wait for controller not busy
