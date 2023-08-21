@@ -1,5 +1,6 @@
 ; format3.asm: Special format
 ; This program writes a 40-track single density diskette with an additional secret sector 128 on each track.
+; * Formats drive 1
 
 *GET	DOSCALLS
 
@@ -13,6 +14,8 @@ $FDC_CMD_FORCE_INTERRUPT	EQU	0D0H	; Terminate whatever you're doing
 $FDC_CMD_RESTORE		EQU	005H	; Seek to track 0 (slow stepping rate)
 $FDC_CMD_STEP_IN		EQU	058H	; Step in (fast stepping rate)
 $FDC_CMD_WRITE_TRACK		EQU	0F4H	; Write track
+
+$DRIVE_SELECTOR			EQU	2	; 1 << drive_number
 
 	ORG	5200H
 
@@ -245,8 +248,8 @@ DELAY0	PUSH	BC
 	POP	BC
 	RET
 
-; SPIN: Start the first disk drive spinning
-SPIN	LD	A,1
+; SPIN: Start disk drive 2 spinning
+SPIN	LD	A,$DRIVE_SELECTOR
 	LD	(37E0H),A
 	RET
 
