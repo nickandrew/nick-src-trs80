@@ -2,6 +2,7 @@ newdos80.lib:
   library: newdos80.lib
   depends:
   - dos_command.rel
+  - dos_delay25.rel
   - dos_disp_error.rel
   - dos_exit.rel
   - dos_fcntl.rel
@@ -16,6 +17,11 @@ dos_command.rel:
   depends:
   - doscalls.h
   - dos_command.c
+dos_delay25.rel:
+  sdcc: dos_delay25.c
+  depends:
+  - doscalls.h
+  - dos_delay25.c
 dos_disp_error.rel:
   sdcc: dos_disp_error.c
   depends:

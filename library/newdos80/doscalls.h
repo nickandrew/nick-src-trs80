@@ -33,6 +33,7 @@ struct dos_dcb {
   char device_code[2];
 };
 
+extern void dos_delay25(unsigned int count) __sdcccall(1);   // Delay count x 25 mS
 extern void dos_exit(void); // 0x402d No Error Exit
 extern void dos_disp_error(void); // 0x4030 Error Displayed Exit
 extern void dos_command(const char *s) __sdcccall(0); // 0x4405 Enter DOS and execute a command (don't return)
