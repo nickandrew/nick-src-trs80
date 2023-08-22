@@ -25,6 +25,7 @@ FORM3	DI
 
 	LD	HL,M_INS	; "INSERT DESTINATION DISK"
 	CALL	MSGKEY		; Print a message (in register HL) then wait for a key to be pressed
+	CALL	SET_SINGLE_DENSITY
 	CALL	RESTORE		; Seek to track 0 and wait for controller not busy
 	XOR	A
 	LD	(TRACK),A	; Initial track zero
@@ -152,7 +153,7 @@ SECTOR	LD	B,6
 	LD	A,0FBH
 	LD	(DE),A
 	INC	DE
-	LD	A,0E5H
+	LD	A,0E1H		; Write 0xe1 bytes into the sector, just to be different
 	LD	B,0
 	CALL	POKDE
 	LD	A,0F7H
@@ -235,6 +236,12 @@ MESSAGE	LD	A,(HL)
 	CP	0DH
 	RET	Z
 	JR	MESSAGE
+
+; SET_SINGLE_DENSITY: Sets the PERCOM doubler hardware to use FD1771
+SET_SINGLE_DENSITY
+	LD	HL,$FDC_COMMAND
+	LD	(HL),0FEH
+	RET
 
 ; RESTORE: Seek to track 0 and wait for controller not busy
 RESTORE	LD	HL,$FDC_COMMAND
