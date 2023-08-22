@@ -28,8 +28,29 @@ FORM3	DI
 	CALL	RESTORE		; Seek to track 0 and wait for controller not busy
 	XOR	A
 	LD	(TRACK),A	; Initial track zero
-FORV01	CALL	BUILD		; Prepare a buffer with the raw track data to be written to the diskette
+FORV01
+	LD	HL,BUFFER	; Clear 8k of the format buffer so garbage won't be written to disk
+	LD	DE,BUFFER+1
+	XOR	A
+	LD	(HL),A
+	LD	BC,8191
+	LDIR
+
+	LD	DE,BUFFER
+	CALL	BUILD		; Prepare a buffer with the raw track data to be written to the diskette
+
+	LD	DE,BUFFER	; Fill in buffer start address in message
+	LD	HL,M_BUFFER_1
+	CALL	HEX16
+
 	CALL	FORMAT		; Format one track with pre-prepared buffer
+
+	LD	HL,M_BUFFER_2	; Fill in buffer end address in message
+	CALL	HEX16
+	LD	HL,M_BUFFER_START
+	CALL	MESSAGE		; Display the buffer start and end addresses
+
+
 	CALL	STEPIN		; Step the disk head in 1 track
 	LD	A,(TRACK)
 	INC	A
@@ -43,38 +64,40 @@ FORV01	CALL	BUILD		; Prepare a buffer with the raw track data to be written to t
 ; BUILD: Prepare a buffer with the raw track data to be written to the diskette.
 ; Sector numbers are interleaved according to the translation table in SECTOR.
 ; Parameters:
+;    DE         Starting buffer address
 ;    TRACK      Track number
 ;    SECTOR     Sector number interleave table
 ; Variables:
-;    BUFFER     3255-byte buffer for raw track formatting data
 ;    SECTR      Sector number being worked on (before translation)
+; Returns:
+;    DE         First address beyond end of buffer
 ; Buffer contents: (see FD1771 or WD1771 datasheet for specs)
 ;    0x000      0xff x 11
 ;    0x00b      Sector 4 data
-;    0x130      Sector 9 data
-;    0x255      Sector 0 data
-;    0x37a      Sector 5 data
-;    0x49f      Sector 1 data
-;    0x5c4      Sector 6 data
-;    0x6e9      Sector 2 data
-;    0x80e      Sector 7 data
-;    0x933      Sector 3 data
-;    0xa58      Sector 8 data
-;    0xb7d      0x00 x 6             The beginning of a secret sector 128, 16 bytes long
-;    0xb83      0xfe                 ID Address Mark
-;    0xb84      Track number
-;    0xb85      0x00
-;    0xb86      0x80                 Sector number 128
-;    0xb87      0x01                 Sector length ... 16? (only if bit 'b' on READ command is 0)
-;    0xb88      0xf7                 Write 2-byte CRC
-;    0xb89      0xff x 11            Gap
-;    0xb94      0x00 x 6             Gap
-;    0xb9a      0xfb                 Data Address Mark
-;    0xb9b      0x00 x 16            Sector data
-;    0xbab      0xf7                 Write 2-byte CRC
-;    0xbac      0xff x 11
-;    0xbb7      0xff x 256
-;    0xcb7      size of BUFFER
+;    0x135      Sector 9 data
+;    0x25f      Sector 0 data
+;    0x389      Sector 5 data
+;    0x4b3      Sector 1 data
+;    0x5dd      Sector 6 data
+;    0x707      Sector 2 data
+;    0x831      Sector 7 data
+;    0x95b      Sector 3 data
+;    0xa85      Sector 8 data
+;    0xbaf      0x00 x 6             The beginning of a secret sector 128, 16 bytes long
+;    0xbb5      0xfe                 ID Address Mark
+;    0xbb6      Track number
+;    0xbb7      0x00
+;    0xbb8      0x80                 Sector number 128
+;    0xbb9      0x01                 Sector length ... 16? (only if bit 'b' on READ command is 0)
+;    0xbba      0xf7                 Write 2-byte CRC
+;    0xbbb      0xff x 11            Gap
+;    0xbc6      0x00 x 6             Gap
+;    0xbcc      0xfb                 Data Address Mark
+;    0xbcd      0x00 x 16            Sector data
+;    0xbdd      0xf7                 Write 2-byte CRC
+;    0xbde      0xff x 11
+;    0xbe9      0xff x 256
+;    0xce9      size of BUFFER
 ;
 ; Per-sector data:
 ;    0x000      0x00 x 6
@@ -86,13 +109,13 @@ FORV01	CALL	BUILD		; Prepare a buffer with the raw track data to be written to t
 ;    0x00b      0xf7 (Write 2-byte CRC)
 ;    0x00c      0xff x 11
 ;    0x017      0x00 x 6
-;    0x018      0xfb (Data Address Mark - Options are f8/f9/fa/fb in single density)
-;    0x019      0xe5 x 256 (This is the standard single-density bit sequence 11100101)
-;    0x119      0xf7 (Write 2-byte CRC)
-;    0x11a      0xff x 11
-;    0x125      size of per-sector data
+;    0x01d      0xfb (Data Address Mark - Options are f8/f9/fa/fb in single density)
+;    0x01e      0xe5 x 256 (This is the standard single-density bit sequence 11100101)
+;    0x11e      0xf7 (Write 2-byte CRC)
+;    0x11f      0xff x 11
+;    0x12a      size of per-sector data
 
-BUILD	LD	DE,BUFFER
+BUILD
 	LD	B,11
 	CALL	POKFF
 	XOR	A
@@ -272,6 +295,9 @@ FORMV01	LD	A,(HL)
 	INC	DE
 	JR	FORMV01
 
+; Get common code
+*GET	HEX
+
 M_INTRO	DEFM	'Secret Format. Formats a diskette with a secret sector 128'
 	DEFB	0DH
 
@@ -282,6 +308,12 @@ M_EXIT	DEFM	'Break hit; aborting'
 M_INS	DEFM	'Insert diskette to be formatted in drive 1 and press Enter'
 	DEFB	0DH
 M_SYS	DEFM	'Format done; press Enter'
+	DEFB	0DH
+
+M_BUFFER_START	DEFM	'Buffer addresses from '
+M_BUFFER_1	DEFB	'xxxx'
+		DEFM	' to '
+M_BUFFER_2	DEFB	'xxxx'
 	DEFB	0DH
 
 TRACK	DEFB	0
