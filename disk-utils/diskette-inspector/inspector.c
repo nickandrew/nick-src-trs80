@@ -154,12 +154,22 @@ int main(int argc, char *argv[]) {
 	}
 
 	printf("fd1771 status 2 is %02x\n", fd1771_get_status());
-	for (track_number = 0; track_number < MAX_TRACKS; track_number ++) {
+	for (track_number = 0; track_number < MAX_TRACKS; ) {
+		fd1771_select(1 << drive_number);
+		fd1771_delay(1000); // Delay 1 second for device to speed up
 		int rc = inspect_track(track_number);
 
 		if (rc) {
-			// Give up early due to error
-			break;
+			printf("Press Enter to try again, or Q to quit\n");
+			do {
+				ch = getchar();
+			} while (ch != '\r' && ch != 'q' && ch != 'Q');
+
+			if (ch == 'q' || ch == 'Q') {
+				break;
+			} else {
+				continue;
+			}
 		}
 
 		printf("Press Enter to scan next track, or Q to quit\n");
@@ -181,6 +191,8 @@ int main(int argc, char *argv[]) {
 			printf("Aborting after step_in.\n");
 			return 4;
 		}
+
+		track_number ++;
 	}
 
 	if (drive_number == 0) {
