@@ -137,17 +137,17 @@ char fd1771_restore(char flags) __naked __sdcccall(1)
 
 	and a,#0x0f     ; Retain only flags bits. It is now a restore command
 	ld b,a
-	ld a,(0x37ec)   ; Read the status register
-	bit 0,a
-	ld a,#255       ; Fake status for debugging
-	ret nz          ; Return early with status in A if controller is busy
-	ld a,b
-	ld (0x37ec),a
 00001$:
 	ld a,(0x37ec)   ; Read the status register
 	bit 0,a
+	jr nz,00001$    ; Wait until controller is not busy
+	ld a,b
+	ld (0x37ec),a
+00002$:
+	ld a,(0x37ec)   ; Read the status register
+	bit 0,a
 	ret z
-	jr 00001$       ; Loop until controller is non-busy
+	jr 00002$       ; Loop until controller is non-busy
 
 	__endasm;
 }
@@ -162,6 +162,19 @@ void fd1771_select(char selector) __naked __sdcccall(1)
 	__endasm;
 }
 
+// Set the (assumed) PERCOM doubler to double density
+void fd1771_set_double_density(void) __naked {
+	__asm
+
+	ld a,#0xff      ; Switching density enables a different chip
+	ld (0x37ec),a   ; so reset its state with a Force Interrupt
+	ld a,#0xd0      ; Issue a Force Interrupt (no intrq)
+	ld (0x37ec),a
+	ret
+
+	__endasm;
+}
+
 // Set current sector register
 void fd1771_set_sector(char sector) __naked __sdcccall(1)
 {
@@ -169,6 +182,19 @@ void fd1771_set_sector(char sector) __naked __sdcccall(1)
 
 	__asm
 	ld (0x37ee),a   ; Set the sector register
+	ret
+
+	__endasm;
+}
+
+// Set the (assumed) PERCOM doubler to single density
+void fd1771_set_single_density(void) __naked {
+	__asm
+
+	ld a,#0xfe        ; Switching density enables a different chip
+	ld (0x37ec),a     ; so reset its state with a Force Interrupt
+	ld a,#0xd0        ; Issue a Force Interrupt (no intrq)
+	ld (0x37ec),a
 	ret
 
 	__endasm;
