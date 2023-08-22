@@ -1,4 +1,5 @@
 // Diskette Inspector - Shows the detailed track/sector formatting for a diskette
+// Only single density is supported.
 //
 // Usage: inspect [:drive_number]
 // E.g. inspect :1
@@ -72,10 +73,9 @@ int inspect_track(int track_number) {
 	// Scan several times per track, to try to pick up all the sectors
 	for (int try=0; try < RETRIES; ++try) {
 		status = fd1771_get_status();
-		while (status & 0x80) {
-			printf("S1 %02x ", status);
-			fd1771_delay(6);
-			status = fd1771_get_status();
+		if (status & 0x80) {
+			printf("Not Ready %02x ", status);
+			return 1;
 		}
 
 		status = fd1771_read_address(&sector_data[try]);
@@ -143,9 +143,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	fd1771_select(1 << drive_number);
-	fd1771_delay(1000); // Delay 1 second for device to speed up
+	fd1771_set_single_density();
 
-	printf("fd1771 status 1 is %02x\n", fd1771_get_status());
 	status = fd1771_restore(0);   // Seek head to track zero
 	if (status & 0xd9) {
 		print_type1_error(status);
@@ -153,10 +152,8 @@ int main(int argc, char *argv[]) {
 		return 4;
 	}
 
-	printf("fd1771 status 2 is %02x\n", fd1771_get_status());
 	for (track_number = 0; track_number < MAX_TRACKS; ) {
 		fd1771_select(1 << drive_number);
-		fd1771_delay(1000); // Delay 1 second for device to speed up
 		int rc = inspect_track(track_number);
 
 		if (rc) {
@@ -182,7 +179,6 @@ int main(int argc, char *argv[]) {
 		}
 
 		fd1771_select(1 << drive_number);
-		fd1771_delay(1000); // Delay 1 second for device to speed up
 
 		status = fd1771_step_in(fd1771_load_head | fd1771_step_rate_3);
 		// Potential errors:
