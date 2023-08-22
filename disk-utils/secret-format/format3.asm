@@ -1,4 +1,4 @@
-; format3.asm: Special format
+; format3.asm: Secret format
 ; This program writes a 40-track single density diskette with an additional secret sector 128 on each track.
 ; * Formats drive 1
 
@@ -192,19 +192,6 @@ POK00	XOR	A
 POKFF	LD	A,0FFH
 	JR	POKDE
 
-TRACK	DEFB	0
-SECTR	DEFB	0
-STABLE	DEFB	4
-	DEFB	9
-	DEFB	0
-	DEFB	5
-	DEFB	1
-	DEFB	6
-	DEFB	2
-	DEFB	7
-	DEFB	3
-	DEFB	8
-
 ; MSGKEY: Print a message (in register HL) then wait for a key to be pressed
 MSGKEY	CALL	MESSAGE		; Print a message to the display
 	LD	BC,4000H
@@ -225,18 +212,6 @@ MESSAGE	LD	A,(HL)
 	CP	0DH
 	RET	Z
 	JR	MESSAGE
-
-M_INTRO	DEFM	'Secret Format. Formats a diskette with a secret sector 128'
-	DEFB	0DH
-
-M_EXIT	DEFM	'Break hit; aborting'
-	DEFB	0DH
-
-; Change this message if $DRIVE_SELECTOR is changed
-M_INS	DEFM	'Insert diskette to be formatted in drive 1 and press Enter'
-	DEFB	0DH
-M_SYS	DEFM	'Format done; press Enter'
-	DEFB	0DH
 
 ; RESTORE: Seek to track 0 and wait for controller not busy
 RESTORE	LD	HL,$FDC_COMMAND
@@ -296,6 +271,31 @@ FORMV01	LD	A,(HL)
 	LD	($FDC_DATA),A
 	INC	DE
 	JR	FORMV01
+
+M_INTRO	DEFM	'Secret Format. Formats a diskette with a secret sector 128'
+	DEFB	0DH
+
+M_EXIT	DEFM	'Break hit; aborting'
+	DEFB	0DH
+
+; Change this message if $DRIVE_SELECTOR is changed
+M_INS	DEFM	'Insert diskette to be formatted in drive 1 and press Enter'
+	DEFB	0DH
+M_SYS	DEFM	'Format done; press Enter'
+	DEFB	0DH
+
+TRACK	DEFB	0
+SECTR	DEFB	0
+STABLE	DEFB	4
+	DEFB	9
+	DEFB	0
+	DEFB	5
+	DEFB	1
+	DEFB	6
+	DEFB	2
+	DEFB	7
+	DEFB	3
+	DEFB	8
 
 BUFFER	DEFS	0CB7H		; Data buffer for Write Track
 
