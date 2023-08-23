@@ -1,6 +1,7 @@
 ; format3.asm: Secret format
 ; This program writes a 40-track single density diskette with an additional secret sector 128 on each track.
 ; * Formats drive 1
+; * It needs a DMK file for the format to "stick" across emulator runs
 
 *GET	DOSCALLS
 
@@ -19,38 +20,46 @@ $DRIVE_SELECTOR			EQU	2	; 1 << drive_number
 
 	ORG	5200H
 
-FORM3	DI
+START:
+	DI
 	LD	HL,M_INTRO
 	CALL	MESSAGE
 
-	LD	HL,M_INS	; "INSERT DESTINATION DISK"
+	LD	HL,M_INS	; "Insert diskette to be formatted ..."
 	CALL	MSGKEY		; Print a message (in register HL) then wait for a key to be pressed
 	CALL	SET_SINGLE_DENSITY
 	CALL	RESTORE		; Seek to track 0 and wait for controller not busy
 	XOR	A
 	LD	(TRACK),A	; Initial track zero
-FORV01
-	LD	HL,BUFFER	; Clear 8k of the format buffer so garbage won't be written to disk
-	LD	DE,BUFFER+1
-	XOR	A
-	LD	(HL),A
-	LD	BC,8191
-	LDIR
-
-	LD	DE,BUFFER
-	CALL	BUILD		; Prepare a buffer with the raw track data to be written to the diskette
 
 	LD	DE,BUFFER	; Fill in buffer start address in message
 	LD	HL,M_BUFFER_1
 	CALL	HEX16
 
-	CALL	FORMAT		; Format one track with pre-prepared buffer
+FORV01
+	LD	HL,BUFFER	; Clear 4k of the format buffer so garbage won't be written to disk
+	LD	DE,BUFFER+1	; Single density write track operations on DMK files write 3103 bytes
+	XOR	A		; The same for a JV3 file writes 3120 bytes (but don't use this)
+	LD	(HL),A
+	LD	BC,4095
+	LDIR
+
+	LD	A,(TRACK)
+	LD	HL,M_BUFFER_0
+	CALL	HEX8
+
+	LD	DE,BUFFER
+	CALL	BUILD		; Prepare a buffer with the raw track data to be written to the diskette
 
 	LD	HL,M_BUFFER_2	; Fill in buffer end address in message
 	CALL	HEX16
-	LD	HL,M_BUFFER_START
-	CALL	MESSAGE		; Display the buffer start and end addresses
 
+	CALL	FORMAT		; Format one track with pre-prepared buffer
+
+	LD	HL,M_BUFFER_3	; Fill in format write end address
+	CALL	HEX16
+	LD	HL,M_BUFFER_START
+	CALL	MESS_PR		; Log the buffer start and end addresses
 
 	CALL	STEPIN		; Step the disk head in 1 track
 	LD	A,(TRACK)
@@ -97,7 +106,7 @@ FORV01
 ;    0xbcd      0x00 x 16            Sector data
 ;    0xbdd      0xf7                 Write 2-byte CRC
 ;    0xbde      0xff x 11
-;    0xbe9      0xff x 256
+;    0xbe9      0xff x 256           Fill the remainder of the track
 ;    0xce9      size of BUFFER
 ;
 ; Per-sector data:
@@ -121,7 +130,8 @@ BUILD
 	CALL	POKFF
 	XOR	A
 	LD	(SECTR),A
-SECTOR	LD	B,6
+SECTOR:
+	LD	B,6
 	CALL	POK00
 	LD	A,0FEH
 	LD	(DE),A
@@ -317,10 +327,14 @@ M_INS	DEFM	'Insert diskette to be formatted in drive 1 and press Enter'
 M_SYS	DEFM	'Format done; press Enter'
 	DEFB	0DH
 
-M_BUFFER_START	DEFM	'Buffer addresses from '
+M_BUFFER_START	DEFM	'Track '
+M_BUFFER_0	DEFM	'xx'
+		DEFM	' buffer addresses from '
 M_BUFFER_1	DEFB	'xxxx'
 		DEFM	' to '
 M_BUFFER_2	DEFB	'xxxx'
+		DEFM	', wrote data to '
+M_BUFFER_3	DEFM	'xxxx'
 	DEFB	0DH
 
 TRACK	DEFB	0
@@ -336,6 +350,7 @@ STABLE	DEFB	4
 	DEFB	3
 	DEFB	8
 
-BUFFER	DEFS	0CB7H		; Data buffer for Write Track
+	ORG	8000H
+BUFFER	DEFS	4096		; Data buffer for Write Track
 
-	END	FORM3
+	END	START
