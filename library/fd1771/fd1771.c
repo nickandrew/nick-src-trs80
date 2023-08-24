@@ -56,28 +56,20 @@ char fd1771_get_track(void) __naked __sdcccall(1)
 // Read one or more sectors from the diskette.
 // Track and sector numbers need to be set in the corresponding registers in advance.
 // Return the first unused buffer address.
-unsigned int fd1771_read(char flags, char *buf) __naked __sdcccall(1)
+char *fd1771_read(char flags, char *buf) __naked __sdcccall(1)
 {
 	flags;  // Avoid unreferenced function argument warning
 	buf;  // Avoid unreferenced function argument warning
 
 	__asm
-	// flags: A, buf: HL
+	// flags: A, buf: DE
 	and a,#0x1f     ; Retain only flags bits.
 	or a,#0x80      ; It is now a Read command
-	ld b,a          ; Save command
-	ld a,(0x37ec)   ; Read the status register
-	bit 0,a
-	ld a,#255       ; Fake status for debugging
-	ret nz          ; Return early with status in A if controller is busy
-	ld d,h          ; Use DE as the write buffer, as it will be the return value
-	ld e,l
-	ld a,b          ; Read command
 	ld (0x37ec),a
 00001$:
 	ld a,(0x37ec)
 	bit 0,a
-	ret z           ; Controller is no longer busy; return status
+	ret z           ; Controller is no longer busy; return DE
 	bit 1,a
 	jr z,00001$     ; Loop until a byte is ready
 	ld a,(0x37ef)   ; Read data register

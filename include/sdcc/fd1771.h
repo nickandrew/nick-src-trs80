@@ -48,7 +48,7 @@ extern void fd1771_delay(unsigned int delay) __sdcccall(1);
 extern char fd1771_get_sector(void) __sdcccall(1);
 extern char fd1771_get_status(void) __sdcccall(1);
 extern char fd1771_get_track(void) __sdcccall(1);
-extern unsigned int fd1771_read(char flags, char *buf) __sdcccall(1);
+extern char *fd1771_read(char flags, char *buf) __sdcccall(1);
 extern char fd1771_read_address(struct fd1771_id_buf *buf) __sdcccall(1);
 extern char fd1771_restore(char flags) __sdcccall(1);
 extern char fd1771_seek(char flags, char track) __sdcccall(1);
