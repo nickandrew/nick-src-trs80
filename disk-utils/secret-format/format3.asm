@@ -248,7 +248,7 @@ MESSAGE	LD	A,(HL)
 	JR	MESSAGE
 
 ; SET_SINGLE_DENSITY: Sets the PERCOM doubler hardware to use FD1771
-SET_SINGLE_DENSITY
+SET_SINGLE_DENSITY:
 	LD	HL,$FDC_COMMAND
 	LD	(HL),0FEH
 	RET
@@ -318,8 +318,7 @@ FORMV01	LD	A,(HL)
 M_INTRO	DEFM	'Secret Format. Formats a diskette with a secret sector 128'
 	DEFB	0DH
 
-M_EXIT	DEFM	'Break hit; aborting'
-	DEFB	0DH
+M_EXIT	DEFM	'Break hit; aborting',0DH
 
 ; Change this message if $DRIVE_SELECTOR is changed
 M_INS	DEFM	'Insert diskette to be formatted in drive 1 and press Enter'
