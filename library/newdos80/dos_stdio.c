@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <rom.h>
+#include "dos_stdio.h"
 
 // Maximum number of concurrently open files. fds from 0 to 19.
 // fd 0 = stdin, 1 = stdout, 2 = stderr
@@ -27,12 +27,6 @@ static const int sector_size = 256;  // Fixed by DOS
 #define MODE_WRITE 4
 #define MODE_APPEND 8
 #define MODE_EXISTING 16
-
-struct open_file {
-  char flag;
-  char *buf;
-  union dos_fcb *fcbptr;
-};
 
 // These are initialized by _init_stdio()
 FILE *stdin = (FILE *) 0;
@@ -143,50 +137,6 @@ int fgetc(FILE *stream) {
     return EOF;
   }
   return rc;
-}
-
-// TODO: This needs to be checked for accuracy
-char *fgets(char *s, int size, FILE *stream) {
-  if (feof(stream)) {
-    return NULL;
-  }
-
-  // FIXME: Hack for reading from stdin.
-  struct open_file *ofp = (struct open_file *) stream;
-  if (ofp->fcbptr == (void *) 0x4015) {
-    int rc = rom_kbline(s, size - 1);
-    if (rc < 0) {
-      return NULL;
-    }
-    strcat(s, "\n");
-    return s;
-  }
-
-  char *buf = s;
-  int c;
-
-  while (size > 1) {
-    c = fgetc(stream);
-    if (c == EOF) {
-      if (buf == s) {
-        return NULL;
-      }
-      else {
-        *buf = '\0';
-        return s;
-      }
-    }
-
-    *buf++ = c;
-    if (c == '\n') {
-      *buf++ = '\0';
-      return s;
-    }
-    size--;
-  }
-
-  *buf = '\0';
-  return s;
 }
 
 // mode can be 'r', 'w', 'a', 'r+', 'w+', 'a+' and possible trailing 'b'

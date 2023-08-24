@@ -11,6 +11,7 @@ newdos80.lib:
   - dos_mess_do.rel
   - dos_mess_pr.rel
   - dos_stdio.rel
+  - dos_stdio_fgets.rel
   - dos_system.rel
 dos_command.rel:
   sdcc: dos_command.c
@@ -59,6 +60,13 @@ dos_stdio.rel:
   depends:
   - doscalls.h
   - dos_stdio.c
+  - dos_stdio.h
+dos_stdio_fgets.rel:
+  sdcc: dos_stdio_fgets.c
+  depends:
+  - doscalls.h
+  - dos_stdio.h
+  - dos_stdio_fgets.c
 dos_system.rel:
   sdcc: dos_system.c
   depends:
