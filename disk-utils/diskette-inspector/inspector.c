@@ -9,11 +9,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define RETRIES 50
+#define RETRIES 20
 #define MAX_TRACKS 80
 
+int	drive_number = 1;
 struct fd1771_id_buf sector_data[RETRIES];
+char sector_dam[RETRIES];
 int sector_seen[256];
+char data_buffer[256];
 
 void print_type1_error(int status) {
 	printf("Error %02x from fd1771:\n", status);
@@ -61,23 +64,39 @@ void usage(void) {
 	printf("e.g.   inspect :1\n");
 }
 
+void spin_up(void) {
+	fd1771_select(1 << drive_number);
+}
+
 // Scan repeatedly for sectors on the track at the current head position.
 int inspect_track(int track_number) {
 	char status;
+	int try;
 
 	printf("Inspecting track %d\n", track_number);
 
 	// Clear the table of seen sector numbers
 	for (int i = 0; i < 256; ++i) sector_seen[i] = 0;
+	for (int i = 0; i < RETRIES; ++i) sector_dam[i] = 0;
 
-	// Scan several times per track, to try to pick up all the sectors
-	for (int try=0; try < RETRIES; ++try) {
+	// Wait for an index hole before starting scan
+	while (1) {
 		status = fd1771_get_status();
 		if (status & 0x80) {
 			printf("Not Ready %02x ", status);
 			return 1;
 		}
 
+		if (status & 0x02) {
+			// Index hole
+			break;
+		}
+	}
+
+	// Scan several times per track, to try to pick up all the sectors
+
+	for (try = 0; try < RETRIES; ++try) {
+		spin_up();
 		status = fd1771_read_address(&sector_data[try]);
 		// Potential errors: Not Ready (S7), ID not found (S4), CRC Error (S3), Lost Data (S2)
 		if (status & 0x9d) {
@@ -88,6 +107,22 @@ int inspect_track(int track_number) {
 
 		char sector_addr = sector_data[try].sector_addr;
 		sector_seen[sector_addr] = 1;
+	}
+
+	for (int read_try = 0; read_try < try; ++read_try) {
+		char sector_addr = sector_data[read_try].sector_addr;
+		char track_addr = sector_data[read_try].track_addr;
+		spin_up();
+		fprintf(stderr, "Reading track %d sector %d\n", track_addr, sector_addr);
+		fd1771_set_track(sector_data[read_try].track_addr);
+		fd1771_set_sector(sector_addr);
+		status = fd1771_get_status();
+		char *last_addr = fd1771_read(0x08, data_buffer);
+		int bytes_read = last_addr - data_buffer;
+		// 00 = FB, 01 = FA, 02 = F9, 03 = F8
+		sector_dam[read_try] = 0xfb - ((status & 0x60) >> 5);
+		fprintf(stderr, "Track %d Sector %d read %d bytes Status %02x DAM %02x\n",
+			track_addr, sector_addr, bytes_read, status, sector_dam[read_try]);
 	}
 
 	// Report details about this track
@@ -106,18 +141,17 @@ int inspect_track(int track_number) {
 	}
 	printf("\n");
 
-	status = fd1771_get_status();
-	while (status & 0x80) {
-		printf("S2 %02x ", status);
-		fd1771_delay(6);
-		status = fd1771_get_status();
+	// Print all the DAMs read
+	printf("DAMs:");
+	for (int read_try = 0; read_try < try; ++read_try) {
+		printf(" %02x", sector_dam[read_try]);
 	}
+	printf("\n");
 
 	return 0;
 }
 
 int main(int argc, char *argv[]) {
-	int	drive_number = 1;
 	int track_number = 0;
 	int ch;
 	char status;
@@ -142,7 +176,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
-	fd1771_select(1 << drive_number);
+	spin_up();
 	fd1771_set_single_density();
 
 	status = fd1771_restore(0);   // Seek head to track zero
@@ -153,7 +187,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	for (track_number = 0; track_number < MAX_TRACKS; ) {
-		fd1771_select(1 << drive_number);
+		spin_up();
 		int rc = inspect_track(track_number);
 
 		if (rc) {
@@ -165,6 +199,7 @@ int main(int argc, char *argv[]) {
 			if (ch == 'q' || ch == 'Q') {
 				break;
 			} else {
+				spin_up();
 				continue;
 			}
 		}
@@ -178,7 +213,7 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 
-		fd1771_select(1 << drive_number);
+		spin_up();
 
 		status = fd1771_step_in(fd1771_load_head | fd1771_step_rate_3);
 		// Potential errors:

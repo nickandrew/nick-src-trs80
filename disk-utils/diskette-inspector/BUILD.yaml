@@ -4,6 +4,7 @@ inspector.cmd:
   - inspector.rel
   - library/basicio/basicio.lib
   - library/fd1771/fd1771.lib
+  - library/newdos80/newdos80.lib
 inspector.rel:
   sdcc: inspector.c
   depends:
