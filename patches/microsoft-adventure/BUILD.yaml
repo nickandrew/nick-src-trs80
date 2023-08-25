@@ -3,6 +3,11 @@ boot10.cmd:
   depends:
   - include/include/doscalls.asm
   - boot10.asm
+boot11.cmd:
+  assemble: boot11.asm
+  depends:
+  - include/include/doscalls.asm
+  - boot11.asm
 advboot.cmd:
   assemble: advboot.asm
   depends:
