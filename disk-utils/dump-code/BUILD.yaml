@@ -1,0 +1,11 @@
+dump-code.cmd:
+  link: dump-code
+  depends:
+  - dump-code.rel
+  - library/basicio/basicio.lib
+  - library/fd1771/fd1771.lib
+  - library/newdos80/newdos80.lib
+dump-code.rel:
+  sdcc: dump-code.c
+  depends:
+  - dump-code.c
