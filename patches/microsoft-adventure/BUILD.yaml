@@ -1,3 +1,8 @@
+boot10.cmd:
+  assemble: boot10.asm
+  depends:
+  - include/include/doscalls.asm
+  - boot10.asm
 advboot.cmd:
   assemble: advboot.asm
   depends:
