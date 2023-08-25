@@ -42,10 +42,9 @@ CUR_SEC	EQU	$
 CUR_TRK	EQU	$+1
 	JR	EXEC
 MESS_1	DEFB	1CH,1FH,CR
-	DEFM	'* *  MICROSOFT''S TRS-80 '
-	DEFM	'ADVENTURE  V1.2  * *',CR
-	DEFM	'* *           BY  * SOFTWIN *'
-	DEFM	'            * *',CR,CR,NULL
+	DEFM	"* *  MICROSOFT'S TRS-80 ADVENTURE  V1.2  * *",CR
+	DEFM	"* *           BY  * SOFTWIN *            * *",CR
+	DEFM	CR,NULL
 EXEC	LD	A,S_SECT
 	LD	(CUR_SEC),A
 	XOR	A
