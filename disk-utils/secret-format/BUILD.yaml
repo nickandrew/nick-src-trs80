@@ -1,0 +1,6 @@
+format3.cmd:
+  assemble: format3.asm
+  depends:
+  - format3.asm
+  - include/include/doscalls.asm
+  - include/include/hex.asm
