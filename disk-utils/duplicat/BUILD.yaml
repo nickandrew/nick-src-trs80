@@ -8,6 +8,8 @@ duplic21.cmd:
   depends:
   - disk-utils/duplicat/duplic21.asm
   - include/include/doscalls.asm
+  - include/include/fd1771.asm
+  - include/include/hex.asm
 duplicat.cmd:
   assemble: duplicat.asm
   depends:

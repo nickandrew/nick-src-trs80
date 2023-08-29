@@ -1,6 +1,6 @@
-;Microsoft Adventure modified boot sector source
-;code - using standard disk format.
-;Version 1.1 on 27-Nov-84.
+;Microsoft Adventure original Boot Sector source
+;code - using encoded track & sector numbers.
+;
 ;
 
 *GET	DOSCALLS
@@ -8,11 +8,6 @@
 NULL	EQU	00H
 CR	EQU	0DH
 ;
-;Set STANDARD to -1 for normal disk format
-;or               0 for encoded format.
-STANDARD	EQU	-1
-;
-NOT_STD	EQU	.NOT.STANDARD
 S_SECT	EQU	1
 S_TRK	EQU	0
 DRIVE0	EQU	1
@@ -42,7 +37,7 @@ CUR_SEC	EQU	$
 CUR_TRK	EQU	$+1
 	JR	EXEC
 MESS_1	DEFB	1CH,1FH,CR
-	DEFM	"* *  MICROSOFT'S TRS-80 ADVENTURE  V1.2  * *",CR
+	DEFM	"* *  MICROSOFT'S TRS-80 ADVENTURE  V1.0  * *",CR
 	DEFM	"* *           BY  * SOFTWIN *            * *",CR
 	DEFM	CR,NULL
 EXEC	LD	A,S_SECT
@@ -63,24 +58,16 @@ M_LOOP	LD	A,(HL)
 LOOP	LD	A,DRIVE
 	LD	(DISK),A
 	LD	A,(CUR_SEC)
-;
-	IF	NOT_STD
 	ADD	A,A
 	JR	Z,ZERO_1
 	CPL	
 	ADD	A,OFFSET
-	ENDIF
-;
 ZERO_1	LD	(DSK_SR),A
 	LD	A,(CUR_TRK)
-;
-	IF	NOT_STD
 	ADD	A,A
 	JR	Z,ZERO_2
 	CPL	
 	ADD	A,OFFSET
-	ENDIF
-;
 ZERO_2	LD	(DSK_TR),A
 	LD	A,RD_SECT
 	LD	(BC),A
@@ -122,22 +109,16 @@ NXT_SEC	LD	(CUR_SEC),A
 	CP	H
 	JP	Z,PROGRAM
 	JR	LOOP
-	PUSH	BC
-	POP	BC
-	PUSH	BC
-	POP	BC
-	RET	
-	LD	A,(64ADH)
-	LD	(DISK),A
-	LD	A,04H
-	CALL	63E9H
-	LD	A,SK_TK0
-	LD	(DSK_CR),A
-	CALL	63C5H
-	LD	A,(DSK_CR)
-	RRA	
-	JP	C,63DDH
-	XOR	A
-	LD	(64ABH),A
-	RET	
+
+; What follows under here is probably garbage to fill the sector
+	DEFB	21H,36H,40H,01H
+	DEFB	01H,38H,16H,00H
+	DEFB	0AH,5FH,0AEH,73H
+	DEFB	0A3H,20H,08H,14H
+	DEFB	2CH,0CBH,01H,0F2H
+	DEFB	0B2H,90H,0C9H,5FH
+	DEFB	0C5H,01H,0DCH,05H
+	DEFB	0CDH,60H,00H,0C1H
+	DEFB	0AH,0A3H,0C8H,0C3H
+
 	END	START

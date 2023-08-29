@@ -1,10 +1,20 @@
+boot10.cmd:
+  assemble: boot10.asm
+  depends:
+  - include/include/doscalls.asm
+  - boot10.asm
+boot11.cmd:
+  assemble: boot11.asm
+  depends:
+  - include/include/doscalls.asm
+  - boot11.asm
 advboot.cmd:
   assemble: advboot.asm
   depends:
   - include/include/doscalls.asm
-  - patches/microsoft-adventure/advboot.asm
+  - advboot.asm
 advboot2.cmd:
   assemble: advboot2.asm
   depends:
   - include/include/doscalls.asm
-  - patches/microsoft-adventure/advboot2.asm
+  - advboot2.asm

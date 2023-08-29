@@ -1,11 +1,11 @@
-inspector.cmd:
-  link: inspector
+dump-code.cmd:
+  link: dump-code
   depends:
-  - inspector.rel
+  - dump-code.rel
   - library/basicio/basicio.lib
   - library/fd1771/fd1771.lib
   - library/newdos80/newdos80.lib
-inspector.rel:
-  sdcc: inspector.c
+dump-code.rel:
+  sdcc: dump-code.c
   depends:
-  - inspector.c
+  - dump-code.c

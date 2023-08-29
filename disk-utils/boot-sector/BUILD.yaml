@@ -1,11 +1,11 @@
-inspector.cmd:
-  link: inspector
+boot-sector.cmd:
+  link: boot-sector
   depends:
-  - inspector.rel
+  - boot-sector.rel
   - library/basicio/basicio.lib
   - library/fd1771/fd1771.lib
   - library/newdos80/newdos80.lib
-inspector.rel:
-  sdcc: inspector.c
+boot-sector.rel:
+  sdcc: boot-sector.c
   depends:
-  - inspector.c
+  - boot-sector.c
