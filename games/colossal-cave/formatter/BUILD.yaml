@@ -1,0 +1,5 @@
+format2.cmd:
+  assemble: format2.asm
+  depends:
+  - format2.asm
+  - include/include/doscalls.asm
