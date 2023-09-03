@@ -19,6 +19,8 @@
 #define OF_FLAG_DCB   2
 // End Of File has been seen on this open file
 #define OF_FLAG_EOF   4
+// Error marker
+#define OF_FLAG_ERROR 8
 
 static const int sector_size = 256;  // Fixed by DOS
 
@@ -59,6 +61,12 @@ static int parse_mode(const char *mode) {
   return mode_bits;
 }
 
+
+void clearerr(FILE *fp) {
+  struct open_file *ofp = (struct open_file *) fp;
+
+  ofp->flag &= ~(OF_FLAG_EOF | OF_FLAG_ERROR);
+}
 
 int fileno(FILE *fp)
 {
@@ -101,6 +109,15 @@ int feof(FILE *stream) {
   struct open_file *ofp = (struct open_file *) stream;
 
   if (ofp->flag & OF_FLAG_EOF) {
+    return 1;
+  }
+  return 0;
+}
+
+int ferror(FILE *stream) {
+  struct open_file *ofp = (struct open_file *) stream;
+
+  if (ofp->flag & OF_FLAG_ERROR) {
     return 1;
   }
   return 0;
@@ -266,6 +283,7 @@ int fputc(int c, FILE *stream) {
   int rc = dos_write_byte(ofp->fcbptr, c);
   if (rc) {
     // errno = ?
+    ofp->flag |= OF_FLAG_ERROR;
     return -1;
   }
 
@@ -348,8 +366,11 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
       s = size;
       do {
         putc(*p++, stream);
-        // if (ferror(file)) return ndone;
       } while (--s);
+
+      if (ferror(stream)) {
+        return ndone;
+      }
       ++ndone;
     }
 
