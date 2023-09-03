@@ -358,7 +358,7 @@ long ftell(FILE *stream) {
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
   size_t s;
   size_t ndone = 0;
-  // Not sure why I had to do this to stop an error on the putc call
+  // Cast to (char *) because arithmetic on (void *) is not allowed
   const char *p = (const char *) ptr;
 
   if (size)
