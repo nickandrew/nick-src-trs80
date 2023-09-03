@@ -1,8 +1,9 @@
 // Dump Game - Reads the Colossal Cave code and data and writes to files.
 // Only single density is supported.
 //
-// Usage: dumpgame :drive_number codefile datafile
-// E.g. dumpgame :1 code10/bin:0 data10/bin:0
+// Usage: dumpgame [/P] :drive_number codefile datafile
+// E.g. dumpgame [/P] :1 code10/bin:0 data10/bin:0
+// Option /P reads a protected diskette
 
 #include <ctype.h>
 #include <fd1771.h>
@@ -16,6 +17,7 @@
 #define LAST_SECTOR 350
 
 int	drive_number = 1;
+int protected = 0;  // Read a protected diskette
 char sector_data[NUMBER_SECTORS * 256];
 char *code_filename;
 char *data_filename;
@@ -57,8 +59,8 @@ void print_read_error(int status) {
 }
 
 void usage(void) {
-	printf("Usage: dumpgame :drive_number codefile datafile\n");
-	printf("e.g.   dumpgame :1 code10/bin:0 data10/bin:0\n");
+	printf("Usage: dumpgame [/P] :drive_number codefile datafile\n");
+	printf("e.g.   dumpgame /P :1 code10/bin:0 data10/bin:0\n");
 }
 
 void spin_up(void) {
@@ -69,6 +71,14 @@ void spin_up(void) {
 char translate(char id) {
 	if (id == 0) return 0;
 	return 129 - 2 * id;
+}
+
+// Conditionally translate track and sector numbers
+char cond_translate(char id) {
+	if (protected) {
+		return translate(id);
+	}
+	return id;
 }
 
 int write_sectors(const void *data, int sector_count, FILE *ofp)
@@ -94,8 +104,8 @@ int read_sectors(char *buf, int sector_count)
 
 	for (int i = 0; i < sector_count; ++i) {
 		spin_up();
-		fd1771_set_track(translate(track_number));
-		fd1771_set_sector(translate(sector_number));
+		fd1771_set_track(cond_translate(track_number));
+		fd1771_set_sector(cond_translate(sector_number));
 
 		char *last_addr = fd1771_read(0x08, buf);
 		int bytes_read = last_addr - buf;
@@ -139,17 +149,31 @@ int main(int argc, char *argv[]) {
 	int ch;
 	int rc;
 	char status;
+	char **argp = &argv[1];
 
 	printf("Dump the Colossal Cave code and data to files\n");
 
-	if (argc != 4 || argv[1][0] != ':' || !isdigit(argv[1][1])) {
+	if (argc < 4) {
 		usage();
 		return 4;
 	}
 
-	drive_number = atoi(&argv[1][1]);
-	code_filename = argv[2];
-	data_filename = argv[3];
+	// Parse an optional /P argument
+	if (*argp && argp[0][0] == '/' && argp[0][1] == 'P') {
+		protected = 1;
+		argp++;
+	}
+
+	// Parse the required drive number
+	if (argp[0][0] != ':' || !isdigit(argp[0][1])) {
+		usage();
+		return 4;
+	}
+	drive_number = atoi(&argp[0][1]);
+
+	// Take final arguments
+	code_filename = argp[1];
+	data_filename = argp[2];
 
 	printf("Insert game diskette into drive %d; press ENTER or Q to quit\n", drive_number);
 
@@ -160,6 +184,10 @@ int main(int argc, char *argv[]) {
 	if (ch == 'q' || ch == 'Q') {
 		printf("Exiting.\n");
 		return 0;
+	}
+
+	if (protected) {
+		printf("Reading protected diskette.\n");
 	}
 
 	spin_up();
