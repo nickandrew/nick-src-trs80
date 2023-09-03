@@ -327,7 +327,7 @@ int fseek(FILE *stream, long offset, int whence) {
     return -1;
   }
 
-  ofp->flag &= !OF_FLAG_EOF;
+  ofp->flag &= ~OF_FLAG_EOF;
   return 0;
 }
 
@@ -363,7 +363,7 @@ int putc(int c, FILE *stream) {
 void rewind(FILE *stream) {
   struct open_file *ofp = (struct open_file *) stream;
   dos_file_rewind(ofp->fcbptr);
-  ofp->flag &= !OF_FLAG_EOF;
+  ofp->flag &= ~OF_FLAG_EOF;
 }
 
 static void output_char_file(char c, void *p)
