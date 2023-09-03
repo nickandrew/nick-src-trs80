@@ -1,11 +1,11 @@
-dump-code.cmd:
-  link: dump-code
+dump-game.cmd:
+  link: dump-game
   depends:
-  - dump-code.rel
+  - dump-game.rel
   - library/basicio/basicio.lib
   - library/fd1771/fd1771.lib
   - library/newdos80/newdos80.lib
-dump-code.rel:
-  sdcc: dump-code.c
+dump-game.rel:
+  sdcc: dump-game.c
   depends:
-  - dump-code.c
+  - dump-game.c
