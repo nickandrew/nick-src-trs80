@@ -1,5 +1,8 @@
 """Traces virtual machine opcode fetch and execute loop."""
 
+two_byte_opcodes = [0x96, 0x99, 0x9b];
+three_byte_opcodes = [0x97, 0x98, 0xa1];
+
 class Controller(object):
   """A Controller executes a debugging scenario - setting breakpoints, running code etc."""
 
@@ -93,7 +96,7 @@ class Controller(object):
     0x56: 'push wt1 431e',
     0x57: 'push wt1 4320',
     0x58: 'push wt1 4322',
-    0x59: 'push wt1 4324',
+    0x59: 'push v_items_in_inventory',
     0x5a: 'push wt1 4326',
     0x5b: 'push wt1 4328',
     0x5c: 'push wt1 432a',
@@ -105,7 +108,7 @@ class Controller(object):
     0x62: 'push wt1 4336',
     0x63: 'push wt1 4338',
     0x64: 'push wt1 433a',
-    0x65: 'push wt1 433c',
+    0x65: 'push v_location',
     0x66: 'push wt1 433e',
     0x67: 'push wt1 4340',
     0x68: 'push wt1 4342',
@@ -127,7 +130,7 @@ class Controller(object):
     0x78: 'push wt1 4362',
     0x79: 'push wt1 4364',
     0x7a: 'push wt1 4366',
-    0x7b: 'push wt1 4368',
+    0x7b: 'push v_turn_counter',
     0x7c: 'push wt1 436a',
     0x7d: 'push wt1 436c',
     0x7e: 'push wt1 436e',
@@ -137,6 +140,13 @@ class Controller(object):
     0x82: 'push wt1 4376',
     0x83: 'push wt1 4378',
     0x84: 'push wt1 437a',
+    0x96: 'load BYTE',
+    0x97: 'opcode 97 WORD',
+    0x98: 'conditional jump rel WORD',
+    0x99: 'cond jump rel BYTE',
+    0x9b: 'store BYTE',
+    0xa1: 'jump rel WORD',
+    0xa2: 'jump table',
     0xa6: 'Code follows',
     0xa7: 'Return',
     0xa8: 'gosub 7670',
@@ -164,7 +174,7 @@ class Controller(object):
     0xbe: 'gosub 77e5',
     0xbf: 'gosub 785d',
     0xc0: 'gosub 7980',
-    0xc1: 'gosub 7895',
+    0xc1: 'print a message',
     0xc2: 'gosub 5f11',
     0xc3: 'gosub 76b1',
     0xc4: 'gosub 79fd',
@@ -187,6 +197,13 @@ class Controller(object):
     bc = self.dbg.get_reg_bc()
     rest = ''
     if a in self.opcode_table:
-      rest = f' ({self.opcode_table[a]})'
+      op_str = self.opcode_table[a]
+      if 'BYTE' in op_str:
+        m_str = self.dbg.memory(bc + 1, 1)
+        op_str = op_str + f'[{m_str[0]}]'
+      if 'WORD' in op_str:
+        m_str = self.dbg.memory(bc + 1, 2)
+        op_str = op_str + f'[{m_str[0], m_str[1]}]'
+      rest = ' ' + op_str
 
     print(f'Fetch opcode {a:02x} from {bc:04x}{rest}')
