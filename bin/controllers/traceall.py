@@ -4,6 +4,9 @@ import os.path
 import re
 import time
 
+two_byte_opcodes = [0x96, 0x99, 0x9b];
+three_byte_opcodes = [0x97, 0x98, 0xa1];
+
 class Controller(object):
   """A Controller executes a debugging scenario - setting breakpoints, running code etc."""
 
@@ -115,5 +118,13 @@ class Controller(object):
   def fetch_opcode(self):
     self.dbg.get_registers()
     bc = self.dbg.get_reg_bc()
+    opcode = self.dbg.get_reg_a()
 
     self.memory_map[bc] = 2
+
+    if opcode in two_byte_opcodes:
+      self.memory_map[bc + 1] = 2
+
+    if opcode in three_byte_opcodes:
+      self.memory_map[bc + 1] = 2
+      self.memory_map[bc + 2] = 2
