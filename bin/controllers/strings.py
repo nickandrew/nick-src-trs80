@@ -13,8 +13,8 @@ class Controller(object):
     self.string = []
     self.last_read_sector_id = 0
 
-  def run(self):
-    """Run the debugging until the end."""
+  def init(self):
+    """Set up debugging."""
     self.dbg.add_breakpoint('78e7', self.set_random1)
     self.dbg.add_breakpoint('78ea', self.start_of_string)
     self.dbg.add_breakpoint('7909', self.set_random1)
@@ -23,7 +23,6 @@ class Controller(object):
     self.dbg.add_breakpoint('7951', self.decode_char)
     self.dbg.add_breakpoint('7ce3', self.set_next_sector)
     self.dbg.add_breakpoint('7d4b', self.read_sector)
-    self.dbg.run()
 
   def read_sector(self):
     self.dbg.get_registers()

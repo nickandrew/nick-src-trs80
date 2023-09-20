@@ -186,10 +186,9 @@ class Controller(object):
   def __init__(self, dbg):
     self.dbg = dbg
 
-  def run(self):
-    """Run the debugging until the end."""
+  def init(self):
+    """Set up debugging."""
     self.dbg.add_breakpoint('5a19', self.fetch_opcode)
-    self.dbg.run()
 
   def fetch_opcode(self):
     self.dbg.get_registers()

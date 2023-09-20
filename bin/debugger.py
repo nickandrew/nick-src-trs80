@@ -51,8 +51,9 @@ class Zbx(object):
     if break_location:
       # print(f'Breakpoint hit at {break_location}')
       if break_location in self.breakpoints:
-        func = self.breakpoints[break_location]
-        func()
+        # Run one or more breakpoint functions
+        for func in self.breakpoints[break_location]:
+          func()
       else:
         print(f'Breakpoint hit at unknown location {break_location}')
 
@@ -176,10 +177,17 @@ class Zbx(object):
     print('Turned tracing on')
 
   def add_breakpoint(self, location, func):
-    self.breakpoints[location] = func
+    if location not in self.breakpoints:
+      self.breakpoints[location] = []
+    self.breakpoints[location].append(func)
     self.read_prompt()
     self.cmd(f'break {location}')
     print(f'Added breakpoint at {location}')
+
+  def add_module(self, module):
+    """Add a new module. Let the module initialise breakpoints, etc."""
+    ctl = module.Controller(self)
+    ctl.init()
 
   def run(self):
     while True:

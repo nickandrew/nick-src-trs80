@@ -9,10 +9,9 @@ class Controller(object):
     self.dbg = dbg
     self.counter = 0
 
-  def run(self):
-    """Run the debugging until the end."""
+  def init(self):
+    """Set up debugging."""
     self.dbg.add_breakpoint('7ebc', self.input_line)
-    self.dbg.run()
 
   def input_line(self):
     """Dump memory between each command."""

@@ -6,11 +6,9 @@ class Controller(object):
   def __init__(self, dbg):
     self.dbg = dbg
 
-  def run(self):
-    """Run the debugging until the end."""
+  def init(self):
     self.dbg.add_breakpoint('5e23', self.read_forwd)
     self.dbg.add_breakpoint('5e2c', self.write_back)
-    self.dbg.run()
 
   def read_forwd(self):
     self.dbg.get_registers()

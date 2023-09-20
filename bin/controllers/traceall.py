@@ -24,11 +24,10 @@ class Controller(object):
     else:
       self.memory_map = bytearray(0x10000)
 
-  def run(self):
-    """Run the debugging until the end."""
+  def init(self):
+    """Set up debugging."""
     self.dbg.add_breakpoint('5a00', self.entrypoint)
     self.dbg.add_breakpoint('5a19', self.fetch_opcode)
-    self.dbg.run()
 
   def entrypoint(self):
     self.dbg.traceon(self.trace)

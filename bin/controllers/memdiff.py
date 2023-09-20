@@ -196,11 +196,10 @@ class Controller(object):
     self.first_address = 0x4300
     self.last_address = 0x437b
 
-  def run(self):
-    """Run the debugging until the end."""
+  def init(self):
+    """Set up debugging."""
     # self.dbg.add_breakpoint('5a19', self.fetch_opcode)
     self.dbg.add_breakpoint('7ebc', self.input_line)
-    self.dbg.run()
 
   def input_line(self):
     """Dump memory between each command."""
