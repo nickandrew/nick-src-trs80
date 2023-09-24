@@ -3,6 +3,12 @@
 import re
 import subprocess
 
+class DebuggerError(Exception):
+  """A Debugger specific exception."""
+
+class NoSuchModule(DebuggerError):
+  """A registered module was requested which is unknown."""
+
 class Zbx(object):
   """An instance of the zbx debugger, running in a subprocess."""
 
@@ -11,6 +17,7 @@ class Zbx(object):
     print(f'Command is {command}')
     self.sp = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=False, bufsize=0, close_fds=True)
     self.breakpoints = {}
+    self.modules = {}
     self.trace_func = None
 
   def cmd(self, cmd):
@@ -146,6 +153,12 @@ class Zbx(object):
   def get_reg_a(self):
     return self.reg_a
 
+  def get_reg_b(self):
+    return self.reg_b
+
+  def get_reg_c(self):
+    return self.reg_c
+
   def get_reg_bc(self):
     return self.reg_b * 256 + self.reg_c
 
@@ -167,6 +180,24 @@ class Zbx(object):
   def get_reg_sp(self):
     return self.reg_sp
 
+  def set_register(self, register: str, value: int):
+    """Set a register or register pair to an integer value.
+
+    Register can be one of:
+      a, af, b, bc, d, de, h, hl, sp, pc etc...
+    """
+
+    self.cmd(f'set ${register} = {value:04x}')
+    self.read_prompt()
+
+  def set_memory(self, address: int, values: list[int]):
+    """Set memory contents starting at 'address'."""
+
+    for b in values:
+      self.cmd(f'set {address:04x} = {b:02x}')
+      self.read_prompt()
+      address = address + 1
+
   def traceoff(self):
     self.trace_func = None
     self.cmd('traceoff')
@@ -184,10 +215,19 @@ class Zbx(object):
     self.cmd(f'break {location}')
     print(f'Added breakpoint at {location}')
 
-  def add_module(self, module):
+  def add_module(self, name, module):
     """Add a new module. Let the module initialise breakpoints, etc."""
     ctl = module.Controller(self)
+    self.modules[name] = ctl
     ctl.init()
+
+
+  def module(self, name):
+    """Return the instantiated Controller object for this registered module."""
+    if name in self.modules:
+      return self.modules[name]
+    raise NoSuchModule(f'No such registered module: {name}')
+
 
   def run(self):
     while True:
