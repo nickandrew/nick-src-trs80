@@ -18,7 +18,7 @@ After some trouble getting my hardware and software working I had
 single density working with the WD-1790, but double density just
 didn't work somehow. So I bit the bullet and bought a "commercial"
 Double Density adapter board made by Errol Rosser
-(see <a href="http://www.cia.com.au/rcsradio/sydtrug.htm">http://www.cia.com.au/rcsradio/sydtrug.htm</a>).
+(see [SYDTRUG home page](http://www.sydtrug.org/)).
 Errol's board required the original Single Density controller to
 plug into a socket on the board. It then switched between controllers,
 using the Double Density controller only for Double Density work.

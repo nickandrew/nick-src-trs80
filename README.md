@@ -16,14 +16,7 @@ I started going through the results disk by disk in order to piece
 together different versions of my source code and arrange them in
 directories. Now all this code is online for your enjoyment.
 
-## Directories
-
-* [Uni Assignments](assignment/) Programs I wrote for Uni
-* [Modern bin directory](bin/) The Build system and other tools, mostly in python
-* [CMD file utilities](cmd-utils/)
-* [Communications](comm/)
-
-## How to use this code
+## How to use this repository
 
 Compile/assemble the source code using the Build System
 (documented below) and run the programs on a TRS-80 emulator. I use
@@ -35,7 +28,7 @@ You'll need [zmac](http://48k.ca/zmac.html) to cross-assemble and
 
 ## Highlights
 
-### The Build System
+### The Build System (2021-2023)
 
 I want to make sure all the code works - which means, as it's largely
 assembler, that at least it compiles/assembles without errors. Testing
@@ -64,7 +57,7 @@ errors are noticed and fixed.
 
 For more details, see [The Build System](BUILD.md)
 
-### Assembler grammar and parser
+### Assembler grammar and parser (written 2023)
 
 Back in the 1980s I assembled ASM code initially with `EDTASM` and upgraded
 after some time to `EDAS` (which I modified for Newdos/80 and renamed
@@ -87,7 +80,33 @@ language parser using the Lark system in python, and implemented:
 * symbol renamer (bin/rename-symbol.py)
 * Remove multiple symbol definitions (bin/remove-multi-defs.py)
 
-### Modern libraries
+### Colossal Cave
+
+Reverse engineering and copy-deprotection of the Microsoft Adventure,
+also known as Colossal Cave.
+
+See [games/colossal-cave](games/colossal-cave/)
+
+### Zeta BBS
+
+The BBS software I wrote starting in 1984, which set me on the
+path to starting one of Australia's first Internet Service Providers.
+
+The evolution was, from memory:
+
+1. Zeta RTRS (Stood for "Remote TRS-80")
+1. Zeta BBS (including Fidonet node 713/602)
+1. Zeta Remote Unix or Zeta Dialup Internet (after the addition of a Sun 3/50
+   server and the shutdown of the venerable RUNX)
+1. Kralizec and Godzilla (added a Linux server, godzilla)
+1. Kralizec Internet (going commercial; adding more servers)
+1. Zeta Internet (after I realised nobody could pronounce or understand Kralizec)
+
+I sold Zeta Internet to Pacific Internet in early 2000, where it was migrated over
+time into the Pacific Internet systems. What was left of Zeta was sold by Pacific
+Internet to Telstra some years after I had ceased involvement.
+
+### Modern libraries (written 2023)
 
 #### basicio
 

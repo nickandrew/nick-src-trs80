@@ -7,7 +7,7 @@ several different versions of each file, and I have tried to combine
 them to produce a "latest and greatest" of each.
 
 These files are listed as dependencies where needed in the
-[Build System](../BUILD.yaml) and work is still in progress
+[Build System](../BUILD.md) and work is still in progress
 to make consistent definitions and eliminate duplicate code.
 
 The source files are:

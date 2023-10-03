@@ -4,7 +4,7 @@ This directory contains several C source files and their assembler
 counterparts which are useful as library functions. The assembler
 sources will be required to assemble many of my programs.
 
-Note: the [Build System](../BUILD.yaml) supersedes the above
+Note: the [Build System](../BUILD.md) supersedes the above
 comment; any directory containing a `BUILD.yaml` file can build
 the programs in that directory, and if there's no `BUILD.yaml` file
 then it's Work In Progress.
