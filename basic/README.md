@@ -1,33 +1,20 @@
-<html>
-<head>
-<title>Nick Andrew - TRS80 - BASIC Programs</title>
-<!-- $Id$ -->
-</head>
-<body>
+# BASIC Programs
 
-<center><h1>BASIC Programs</h1></center>
-
-<p>
 I started writing in Z80 assembler only one month after receiving
 my Dick Smith System-80 computer. However, I still recall writing
 quite a lot of BASIC programs. Some of them are here (others I think
 are still on cassette tape and it will take another project to
 digitise the tapes into WAV files and feed them into an emulator
 to recover their contents).
-</p>
 
-<p>
 BASIC is a ghastly language with no consistency of syntax and
 a variety of ad-hoc extensions (Disk BASIC for example). In most
 cases I can only guess at what these programs were written to do.
-</p>
 
-<p>
 Also due to the lack of documentation (and also comments) on these
 programs it's possible that I have included code which I didn't
 actually write. If that is the case then I apologise and hope
 nobody will mind, after all these years.
-</p>
 
 <dl>
  <dt>appoint</dt>
@@ -86,12 +73,3 @@ nobody will mind, after all these years.
  unexpected characters. It looks like this one will need some cleaning
  up. Don't give up your Micro$oft Word installations just yet.</dd>
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-basic-1.0.tar.gz">trs80-basic-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

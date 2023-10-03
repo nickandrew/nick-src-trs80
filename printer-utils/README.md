@@ -1,16 +1,7 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - Printer Utils</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 Printer Utilities
 
-<center><h1>TRS-80 Printer Utilities</h1></center>
-
-<p>
-This package contains mostly spoolers and filters. I don't
+This directory contains mostly spoolers and filters. I don't
 recall why a print spooler was required.
-</p>
 
 <dl>
  <dt>driver</dt>
@@ -39,12 +30,3 @@ recall why a print spooler was required.
  and the other being a driver.</dd>
 
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-printer-utils-1.0.tar.gz">trs80-printer-utils-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

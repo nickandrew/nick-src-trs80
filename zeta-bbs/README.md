@@ -1,38 +1,24 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - Zeta BBS</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 - Zeta BBS
 
-<center><h1>TRS-80 - Zeta BBS</h1></center>
-
-<p>
 My Zeta BBS evolved through many iterations. I started writing code
 (in BASIC!) in December 1984. After a while I rewrote everything in
 Assembler (and even later, in C). The official birthdate of Zeta BBS
 was 1st February, 1985.
-</p>
 
-<p>
 Zeta started from the most humble beginnings. I had bought a 300 bps
 modem around September 1984, so I could dial into BBSs and the
 University modems just like my friend Mark McDougall, who was in
 the same course and year as me. But the modem wasn't the beginning -
 Zeta's germination started with something even smaller - a single
 red LED.
-</p>
 
-<p>
 The LED was attached to a circuit called "visual ring detect". The
 circuit came from one of the hobbyist magazines. The idea was to
 connect the circuit to a telephone line and the LED would flash
 when the telephone rang. Of course this was illegal because the
 device was not TELECOM-approved, so the magazine published the
 circuit but labelled it for private telephone use only.
-</p>
 
-<p>
 Anyway my reasoning was as follows: If a telephone ring signal
 (a nasty jumble of 50 volt AC pulses) could be reduced to light
 in a single LED, then the LED could be replaced by an opto-coupler
@@ -43,32 +29,24 @@ was ringing, the computer could then flip a relay which would
 connect the (approved) modem to the telephone circuit. The modem
 being in ANSWER mode would start to talk to the other party's
 modem and there would be a connected data circuit!
-</p>
 
-<p>
 This was in the days before auto-answer modems existed, before
 Hayes brought out the famous AT command set (the source of so
-much modem trouble over the years). At least <b>I</b> did not
+much modem trouble over the years). At least _I_ did not
 have access to any fancy gear, I only had a very crappy
 <i>Dick Smith Dataphone</i> modem and a ring-detect circuit...
-</p>
 
-<p>
 So I wired up the computer as described above. I managed to blow
 up a few opto-couplers and also the computer's cassette relay
 as I've always been hopeless at analogue electronics, but eventually
 I got something which sorta worked.
-</p>
 
-<p>
 I setup the gear on my parents' telephone, which was also a
 business line, between the hours of 11pm and 7am daily. Many
 people called outside those times and my mother got quite used
 to hearing the persistent whine of a 300 baud modem at the other
 end. Zeta BBS was born!
-</p>
 
-<p>
 And to cut a long story short, Zeta was a free service for a
 while as I experimented and wrote more software for it. I
 hooked it up to Fidonet, joining the first group of Fidonet
@@ -76,21 +54,16 @@ users in Australia (net was run by a chap called Brian Gatenby)
 and I wrote a gateway between Fidonet and ACSNet which ran
 between my computer and a minicomputer at NSWIT and Larry Lewis'
 Prophet BBS. It was called ACSGate.
-</p>
 
-<p>
-Here are a bunch of packages which contain a fairly complete
+Here are a bunch of directories which contain a fairly complete
 picture of the source code for the Zeta BBS. Nothing has been
 tested.
-</p>
 
-<center><h2>Zeta BBS - Catalogs</h2></center>
+## Zeta BBS - Catalogs
 
-<p>
-This package contains some programs to maintain the online files catalog.
+This directory contains some programs to maintain the online files catalog.
 The BBS was floppy based (3 x 80 track double sided, double density) and
 so sometimes files were "available" but not "online".
-</p>
 
 <dl>
  <dt>fixwhere</dt>
@@ -110,12 +83,10 @@ so sometimes files were "available" but not "online".
 
 </dl>
 
-<center><h2>Zeta BBS - Communications</h2></center>
+## Zeta BBS - Communications
 
-<p>
 I tried to gather low level communications routines and some
 protocols into this package.
-</p>
 
 <dl>
  <dt>acsnet</dt>
@@ -146,12 +117,10 @@ protocols into this package.
 
 </dl>
 
-<center><h2>Zeta BBS - File Transfer</h2></center>
+## Zeta BBS - File Transfer
 
-<p>
-This package contains some file transfer programs which I used
+This directory contains some file transfer programs which I used
 within and maybe outside the Zeta BBS environment.
-</p>
 
 <dl>
  <dt>capture</dt>
@@ -164,24 +133,20 @@ within and maybe outside the Zeta BBS environment.
 
 </dl>
 
-<center><h2>Zeta BBS - Games</h2></center>
+## Zeta BBS - Games
 
-<p>
 At one time I had the original Adventure running on Zeta. I believe that
 it required a reboot to get back to the BBS though. Later I got Zork
 running ... by disassembling the infocom executor, massaging it into
 a source code format, and then reassembling the source code to live
 within the Zeta BBS environment.
-</p>
 
-<p>
 This package contains my work on the Zork 1 executor. It's modified
 Infocom code, but I don't think Infocom are around to care any more.
 Anyway, there are free Infocom executors around, so it's not as if
 you <b>need</b> this code. I'm just showing it here for research
 purposes, as the work that I did on it. Please note that the Zork 1
 datafile is <b>not</b> included in this package.
-</p>
 
 <dl>
  <dt>zork</dt>
@@ -189,12 +154,10 @@ datafile is <b>not</b> included in this package.
  lamp flicker and go out after 30 moves (only cripples non-members).</dd>
 </dl>
 
-<center><h2>Zeta BBS - High Memory</h2></center>
+## Zeta BBS - High Memory
 
-<p>
-This package contains some files which manipulate my 256 Kbyte RAM
+This directory contains some files which manipulate my 256 Kbyte RAM
 modification and/or stay resident in high memory.
-</p>
 
 <dl>
  <dt>errlog</dt>
@@ -209,13 +172,11 @@ modification and/or stay resident in high memory.
  and global variables in high memory area, for example).</dd>
 </dl>
 
-<center><h2>Zeta BBS - Include</h2></center>
+## Zeta BBS - Include
 
-<p>
-This package contains the standard assembly include files which
+This directory contains the standard assembly include files which
 were required to compile almost anything for the Zeta BBS
 environment.
-</p>
 
 <dl>
  <dt>bb7func.asm</dt>
@@ -260,12 +221,10 @@ environment.
  <dd>uopen(), uclose() and others. Possibly was not used.</dd>
 </dl>
 
-<center><h2>Zeta BBS - Internal</h2></center>
+## Zeta BBS - Internal
 
-<p>
-This package contains some "internal" programs - things which the
+This directory contains some "internal" programs - things which the
 system ran without the user's knowledge.
-</p>
 
 <dl>
  <dt>cron</dt>
@@ -296,12 +255,10 @@ system ran without the user's knowledge.
  lovely system.</dd>
 </dl>
 
-<center><h2>Zeta BBS - Mail System</h2></center>
+## Zeta BBS - Mail System
 
-<p>
-This package contains everything related to the Zeta BBS
+This directory contains everything related to the Zeta BBS
 private message system (including email).
-</p>
 
 <dl>
  <dt>mail-command</dt>
@@ -314,10 +271,7 @@ private message system (including email).
  <dd>This program deletes mail messages older than a certain date.</dd>
 </dl>
 
-<center><h2>Zeta BBS - Maintenance</h2></center>
-
-<p>
-</p>
+## Zeta BBS - Maintenance
 
 <dl>
  <dt>adduser</dt>
@@ -339,13 +293,11 @@ private message system (including email).
  <dd>Delete inactive non-members.</dd>
 </dl>
 
-<center><h2>Zeta BBS - Networking</h2></center>
+## Zeta BBS - Networking
 
-<p>
-This package contains a bunch of programs which contributed to
+This directory contains a bunch of programs which contributed to
 the Zeta BBS exchanging messages with the Fidonet and ACSNet
 networks.
-</p>
 
 <dl>
  <dt>ankhmail</dt>
@@ -374,9 +326,8 @@ networks.
  what that means now.</dd>
 </dl>
 
-<center><h2>Zeta BBS - Treeboard</h2></center>
+## Zeta BBS - Treeboard
 
-<p>
 The Treeboard was the jewel in the crown of Zeta BBS. It was a public
 message board, as all BBSs needed, but with a difference. It used a
 tree hierarchy of topics and users could create their own topics. Like
@@ -384,9 +335,7 @@ the "room" idea of the Citadel BBS, which came well before Zeta, but
 a little more nerdy as a person who didn't like, say, sports, could
 skip sports at the top level and that would avoid all sporting-type
 discussions.
-</p>
 
-<p>
 The topics were organised as a tree. In the first incarnation I
 used a single 8-bit byte for each topic code, organised bitwise
 as AAABBBCC, where AAA represents the major category of the
@@ -400,16 +349,13 @@ information in the topic code byte itself was inefficient and so
 I made that a simple integer (extending the range of the system
 to 255 total categories) and made some other arrangement to
 store the category structure.
-</p>
 
-<p>
 Treeboard, or BB as it was called on the system, also had quite an
 advanced user input routine. One could use line commands (pressing
 enter after each line) or one could press the key while the menu
 was being output, and cancel the menu and jump straight to the
 requested function. One could also string commands together
 in line-input mode, by separating them with semicolons.
-</p>
 
 <dl>
  <dt>bb</dt>
@@ -440,15 +386,13 @@ in line-input mode, by separating them with semicolons.
  circular buffer.</dd>
 </dl>
 
-<center><h2>Zeta BBS - Utilities</h2></center>
+## Zeta BBS - Utilities
 
-<p>
-This package contains commands which end-users were expected to use.
+This directory contains commands which end-users were expected to use.
 As a budding Unix-phile I was keen on seeing things happen through
 the command line (or the shell I started to write) and so I resisted
 providing a menu-driven system for a long, long time. Even when I
 put my SunOS box online, users were mostly in the bash shell.
-</p>
 
 <dl>
  <dt>ask</dt>
@@ -561,24 +505,3 @@ put my SunOS box online, users were mostly in the bash shell.
  <dt>wisdom</dt>
  <dd>Analogous to "cwiz", again a program by Ross McKay.</dd>
 </dl>
-
-
-<center><h1>Download</h1></center>
-
-<ul>
- <li><a href="trs80-zeta-bbs-catalogs-1.0.tar.gz">trs80-zeta-bbs-catalogs-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-comm-1.0.tar.gz">trs80-zeta-bbs-comm-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-file-transfer-1.0.tar.gz">trs80-zeta-bbs-file-transfer-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-games-1.0.tar.gz">trs80-zeta-bbs-games-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-high-memory-1.0.tar.gz">trs80-zeta-bbs-high-memory-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-include-1.0.tar.gz">trs80-zeta-bbs-include-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-internal-1.0.tar.gz">trs80-zeta-bbs-internal-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-mail-system-1.0.tar.gz">trs80-zeta-bbs-mail-system-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-maintain-1.0.tar.gz">trs80-zeta-bbs-maintain-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-network-1.0.tar.gz">trs80-zeta-bbs-network-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-treeboard-1.0.tar.gz">trs80-zeta-bbs-treeboard-1.0.tar.gz</a>
- <li><a href="trs80-zeta-bbs-utilities-1.0.tar.gz">trs80-zeta-bbs-utilities-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

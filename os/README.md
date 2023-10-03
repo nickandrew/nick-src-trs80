@@ -1,17 +1,8 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - Operating Systems</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 Operating Systems
 
-<center><h1>TRS-80 Operating Systems</h1></center>
-
-<p>
-This package contains all my attempts at writing a better
+This directory contains all my attempts at writing a better
 operating system for the TRS-80, as well as some programs
 which have a distinctive OS flavour.
-</p>
 
 <dl>
  <dt>filsys</dt>
@@ -82,12 +73,3 @@ which have a distinctive OS flavour.
  </dd>
 
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-os-1.0.tar.gz">trs80-os-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

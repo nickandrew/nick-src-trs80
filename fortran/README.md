@@ -1,17 +1,7 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - FORTRAN</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 FORTRAN
 
-<center><h1>TRS-80 FORTRAN</h1></center>
-
-<p>
-This package contains some FORTRAN programs I wrote, which compiled using
+This directory contains some FORTRAN programs I wrote, which compiled using
 the Tandy FORTRAN compiler.
-</p>
-
 
 
 <dl>
@@ -30,12 +20,3 @@ the Tandy FORTRAN compiler.
  <dt>library</dt>
  <dd>This is just a collection of a few useful subroutines.</dd>
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-fortran-1.0.tar.gz">trs80-fortran-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

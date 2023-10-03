@@ -1,22 +1,16 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - Library</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 C Library
 
-<center><h1>TRS-80 C Library</h1></center>
-
-<p>
-This package contains several C source files and their assembler
+This directory contains several C source files and their assembler
 counterparts which are useful as library functions. The assembler
 sources will be required to assemble many of my programs.
-</p>
 
-<p>
+Note: the [Build System](../BUILD.yaml) supersedes the above
+comment; any directory containing a `BUILD.yaml` file can build
+the programs in that directory, and if there's no `BUILD.yaml` file
+then it's Work In Progress.
+
 Some of the sources in here were not written by me, but are required
 to run a lot of my software.
-</p>
 
 <dl>
  <dt>atoi.c</dt>
@@ -66,12 +60,3 @@ to run a lot of my software.
  <dd>These are some wildcard checking routines I wrote. It looks
  like it only recognises '*' as a metacharacter, so no it isn't
  a general regex library.</dd>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-library-1.0.tar.gz">trs80-library-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

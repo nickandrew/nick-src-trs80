@@ -1,23 +1,12 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - Patches</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 Patches to other peoples' code
 
-<center><h1>TRS-80 Patches to other peoples' code</h1></center>
-
-<p>
 I patched quite a lot of programs for the TRS-80. Some of it was
 for fun, like when I patched CMDFILE to have a graphic startup
 message, some of it was more practical (e.g. to make EDAS work under
 Newdos-80).
-</p>
 
-<p>
 Here are all the patches which have survived as source code.
 I haven't bothered to go through binaries looking for differences.
-</p>
 
 <dl>
  <dt>asylum</dt>
@@ -187,12 +176,3 @@ I haven't bothered to go through binaries looking for differences.
  </dd>
 
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-patches-1.0.tar.gz">trs80-patches-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

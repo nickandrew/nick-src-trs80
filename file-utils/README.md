@@ -1,16 +1,6 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - File Utilities</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 File Utilities
 
-<center><h1>TRS-80 File Utilities</h1></center>
-
-<p>
-This package contains some mostly trivial programs for text files.
-</p>
-
+This directory contains some mostly trivial programs for text files.
 
 
 <dl>
@@ -71,12 +61,3 @@ This package contains some mostly trivial programs for text files.
  <dd>This program converts a text file to the Unix line ending
  convention.</dd>
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-file-utils-1.0.tar.gz">trs80-file-utils-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

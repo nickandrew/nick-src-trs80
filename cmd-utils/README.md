@@ -1,17 +1,7 @@
-<html>
-<head>
-<title>Nick Andrew - TRS80 - CMD file utilities</title>
-<!-- $Id$ -->
-</head>
-<body>
+# CMD file utilities
 
-<center><h1>CMD file utilities</h1></center>
-
-<p>
-This package contains programs which work with TRS-80 executable
-files (i.e. <b>/CMD</b>).
-</p>
-
+This directory contains programs which work with TRS-80 executable
+files (i.e. `/CMD`).
 
 <dl>
  <dt>compact</dt>
@@ -73,12 +63,3 @@ files (i.e. <b>/CMD</b>).
  </p>
  </dd>
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-cmd-utils-1.0.tar.gz">trs80-cmd-utils-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

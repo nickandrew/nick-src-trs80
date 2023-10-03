@@ -1,24 +1,12 @@
-<html>
-<head>
-<title>Nick Andrew - TRS80 - Communications</title>
-<!-- $Id$ -->
-</head>
-<body>
+# Communications
 
-<center><h1>Communications</h1></center>
-
-<p>
 This package contains programs which do some sort of RS-232 communications.
-</p>
 
-<p>
 My System-80 used a custom-built RS-232 adapter which was not compatible
 with the standard TRS-80 one. The RS-232 adapter came from Deakin
 University and was specific to the System-80 (i.e. it plugged into the
 System-80's unique 50-pin expansion bus using a standard 25x2 way plug).
-</p>
 
-<p>
 The RS-232 adapter had only the one 50-pin connector, which meant that
 it could not be used with a disk system (neither expansion box provided
 a connector to daisy-chain other equipment). The RS-232 adapter was
@@ -27,16 +15,13 @@ the RS-232 adapter and soldered it inside the System-80 Expansion
 Unit. I don't recall how many iterations the adapter went through,
 but at the end I think I had it mostly plugging in via the 20-way
 connector which the Expansion Unit provided for that purpose.
-</p>
 
-<p>
 The RS-232 adapter was incompatible in another way too. It used a
 different UART chip than the standard TRS-80 one, which needed to
 be driven quite differently. My one was more powerful ... but this
 is of little consequence when every comms-using piece of software
 needed to be modified to work with my gear. Anyway, I didn't use
 other peoples' comms software mostly.
-</p>
 
 <dl>
  <dt>dumprom</dt>
@@ -132,12 +117,3 @@ other peoples' comms software mostly.
  </p>
  </dd>
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-comm-1.0.tar.gz">trs80-comm-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

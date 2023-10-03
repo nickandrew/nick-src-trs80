@@ -1,16 +1,7 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - Languages</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 Languages
 
-<center><h1>TRS-80 Languages</h1></center>
-
-<p>
-This package contains a variety of programs related to
+This directory contains a variety of programs related to
 software development or computer languages.
-</p>
 
 <dl>
  <dt>alcor</dt>
@@ -270,12 +261,3 @@ software development or computer languages.
  numbers larger than 65535, and it would be necessary to
  strip them before loading them into an editor.</dd>
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-lang-1.0.tar.gz">trs80-lang-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

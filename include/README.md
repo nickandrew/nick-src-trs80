@@ -1,23 +1,16 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - Include files</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 Include (ASM) files
 
-<center><h1>TRS-80 Include (ASM) files</h1></center>
-
-<p>
 This directory contains various ASM files which I used in many
 source packages, to define common constants or provide useful
 functions. In some cases I had
 several different versions of each file, and I have tried to combine
 them to produce a "latest and greatest" of each.
-</p>
 
-<p>
+These files are listed as dependencies where needed in the
+[Build System](../BUILD.yaml) and work is still in progress
+to make consistent definitions and eliminate duplicate code.
+
 The source files are:
-</p>
 
 <dl>
  <dt>ascii.asm</dt>
@@ -91,12 +84,3 @@ The source files are:
  <dt>unlink.asm</dt>
  <dd>unlink(), callable from C.</dd>
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-include-1.0.tar.gz">trs80-include-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

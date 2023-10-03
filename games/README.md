@@ -1,20 +1,18 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - Games</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 Games
 
-<center><h1>TRS-80 Games</h1></center>
-
-<p>
 Text-based adventures and graphical shoot-the-aliens type games
 were the dominant games available for the TRS-80. I tried writing
 one of each, with partial success, and two other game-type programs
 based on personal interests.
-</p>
 
+I also spent time in the 1980s playing the
+[Microsoft Adventure](https://en.wikipedia.org/wiki/Colossal_Cave_Adventure)
+also known as Colossal Cave. I spent 3 days cracking its copy
+protection so I could make backups of my (legally bought) copy.
 
+In 2023 I also spent a considerable amount of time reverse
+engineering the game and the result of that work is in the
+[colossal-cave](colossal-cave/) subdirectory.
 
 <dl>
  <dt>game1</dt>
@@ -37,12 +35,3 @@ based on personal interests.
  puzzles. I guess I wrote it cause those puzzles are fun to solve
  in my head without recourse to paper or pencil.</dd>
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-games-1.0.tar.gz">trs80-games-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>

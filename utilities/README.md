@@ -1,16 +1,7 @@
-<html>
-<head>
-<title>Nick Andrew - TRS-80 - Utilities</title>
-<!-- $Id$ -->
-</head>
-<body>
+# TRS-80 Utilities
 
-<center><h1>TRS-80 Utilities</h1></center>
-
-<p>
-This package contains many miscellaneous utilities which I wrote,
+This directory contains many miscellaneous utilities which I wrote,
 or which I ported to the TRS-80.
-</p>
 
 <dl>
  <dt>amortz</dt>
@@ -204,12 +195,3 @@ or which I ported to the TRS-80.
  words and characters in its input.</dd>
 
 </dl>
-
-<h2>Download</h2>
-
-<ul>
- <li><a href="trs80-utilities-1.0.tar.gz">trs80-utilities-1.0.tar.gz</a>
-</ul>
-
-</body>
-</html>
