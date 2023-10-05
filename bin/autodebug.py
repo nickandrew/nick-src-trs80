@@ -20,7 +20,7 @@ def main():
 
   for module_name in args.m.split(sep=','):
     module = importlib.import_module('controllers.' + module_name)
-    dbg.add_module(module)
+    dbg.add_module(module_name, module)
 
   dbg.run()
 
