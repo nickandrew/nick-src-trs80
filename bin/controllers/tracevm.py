@@ -20,6 +20,15 @@ class Controller(object):
     m_str = self.dbg.memory(bc + 1, 2)
     memory = [a, int(m_str[0], 16), int(m_str[1], 16)]
 
-    rest = colossal_cave.vm.Opcodes.disassemble(bc, memory)
+    disassembly = colossal_cave.vm.Opcodes.disassemble(bc, memory)
+    length = colossal_cave.vm.Opcodes.opcode_length(a)
 
-    print(f'Fetch opcode {a:02x} from {bc:04x} {rest}')
+    rest = ''
+    if length == 2:
+      rest = f'{m_str[0]}   '
+    elif length == 3:
+      rest = f'{m_str[0]} {m_str[1]}'
+    else:
+      rest = '     '
+
+    print(f'{bc:04x}    {a:02x} {rest} {disassembly}')

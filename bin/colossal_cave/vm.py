@@ -1,10 +1,167 @@
-"""Colossal Cave Virtual Machine."""
+"""Colossal Cave Abstract Virtual Machine."""
+
+class Instruction(object):
+  """A single instruction in memory."""
+
+  def __init__(self, opcode:int, address:int, operand:int = None):
+    self.opcode = opcode
+    self.address = address
+    self.operand = operand
+
+    # Default attributes
+    self.length = 1
+    self.is_gosub = False
+    self.is_jump = False
+    self.is_cond_jump = False
+    self.next_address = None
+
+  def FromMemory(address:int, memory:list[bytes]) -> 'Instruction':
+    """Instantiate an instruction from a slice of memory.
+
+    Args:
+      memory   3-byte slice of memory contents
+
+    3 bytes is enough for an opcode and an 8 or 16 bit
+    operand.
+
+    Returns:
+
+      An Instruction.
+    """
+
+    opcode = memory[0]
+
+    operand = None
+    is_gosub = False
+    is_cond_jump = False
+    is_jump = False
+
+    length = 1
+    if opcode in Opcodes.two_byte_opcodes:
+      operand = memory[1]
+      length = 2
+    elif opcode in Opcodes.three_byte_opcodes:
+      operand = memory[1] + 256 * memory[2]
+      length = 3
+
+    # Figure out implicit operand (gosubs)
+    if opcode in Opcodes.gosub_opcodes:
+      (dest, s) = Opcodes.gosub_opcodes[opcode]
+      operand = dest
+      is_gosub = True
+
+    elif opcode in Opcodes.byte_relative_opcodes:
+      # Sign-extend the operand then compute relative address
+      if operand >= 0x80:
+        operand = 256 - operand
+      operand = (address + 1 + operand) & 0xffff
+
+    elif opcode in Opcodes.word_relative_opcodes:
+      # The operand is a relative address; compute it here
+      operand = (address + 1 + operand) & 0xffff
+
+    if opcode in Opcodes.jump_opcodes:
+      is_jump = True
+    elif opcode in Opcodes.cond_jump_opcodes:
+      is_cond_jump = True
+
+    instruction = Instruction(opcode=opcode, address=address, operand=operand)
+    instruction.length = length
+    instruction.is_gosub = is_gosub
+    instruction.is_cond_jump = is_cond_jump
+    instruction.is_jump = is_jump
+    instruction.next_address = address + length
+
+    return instruction
+
+  def disassemble(self):
+    """Return a string representation of an Instruction."""
+
+    # 0xa8 to 0xc7 are gosubs
+    if self.opcode in Opcodes.gosub_opcodes:
+      (dest, s) = Opcodes.gosub_opcodes[self.opcode]
+      # Substitute symbolic reference (rather than hex address) if known
+      if s:
+        return f'gosub {s}'
+      return f'gosub {dest:04x}'
+
+    if self.opcode in Opcodes.opcode_table:
+      op_str = Opcodes.opcode_table[self.opcode]
+      operand = self.operand
+      if 'RELBYTE' in op_str:
+        op_str = op_str.replace('RELBYTE', '') + f'[{operand:04x}]'
+      elif 'RELWORD' in op_str:
+        op_str = op_str.replace('RELWORD', '') + f'[{operand:04x}]'
+      elif 'BYTE' in op_str:
+        op_str = op_str.replace('BYTE', '') + f'[{operand:02x}]'
+      elif 'WORD' in op_str:
+        op_str = op_str.replace('WORD', '') + f'[{operand:04x}]'
+
+      return op_str
+
+    return f'unknown opcode 0x{self.opcode:02x}'
+
+  def str1(self):
+    return self.op_str
+
+  def str2(self):
+    """A more verbose disassembly."""
+    return f'{self.address:04x}  {self.op_str}'
 
 class Opcodes(object):
-  """This class deals with the VM Opcodes."""
+  """This class deals with the VM Opcodes.
 
-  two_byte_opcodes = [0x96, 0x99, 0x9b];
-  three_byte_opcodes = [0x97, 0x98, 0xa1];
+  Things I know about some opcodes ...
+
+  0x98 ... conditional jump if hl != 0 to following 2 bytes
+  0x99 ... conditional relative jump if hl == 0
+  0x9b ... store next byte in various places then call an opcode subroutine at 51cf
+  0x9c ... call opsub 5c26 then either return or opgoto contents of 5eb7
+  0xa1 ... opgoto next 2 bytes
+  0xa2 ... looks like following bytes are a jump table
+  """
+
+  two_byte_opcodes = [0x96, 0x99, 0x9b]
+  three_byte_opcodes = [0x97, 0x98, 0xa1]
+  byte_relative_opcodes = [0x99]
+  word_relative_opcodes = [0x98, 0xa1]
+  jump_opcodes = [0xa1]
+  cond_jump_opcodes = [0x98, 0x99]
+
+  gosub_opcodes = {
+    0xa8: (0x7670, None),
+    0xa9: (0x7673, None),
+    0xaa: (0x7676, None),
+    0xab: (0x5f1f, None),
+    0xac: (0x5f5b, None),
+    0xad: (0x7877, None),
+    0xae: (0x77ec, None),
+    0xaf: (0x5f67, None),
+    0xb0: (0x782b, None),
+    0xb1: (0x77a7, None),
+    0xb2: (0x5f63, None),
+    0xb3: (0x798a, None),
+    0xb4: (0x5f15, None),
+    0xb5: (0x77aa, None),
+    0xb6: (0x5f3b, None),
+    0xb7: (0x5f2b, None),
+    0xb8: (0x5f46, None),
+    0xb9: (0x7695, None),
+    0xba: (0x76a3, None),
+    0xbb: (0x77bc, None),
+    0xbc: (0x5f77, None),
+    0xbd: (0x7953, None),
+    0xbe: (0x77e5, None),
+    0xbf: (0x785d, None),
+    0xc0: (0x7980, None),
+    0xc1: (0x7895, 'print a message'),
+    0xc2: (0x5f11, None),
+    0xc3: (0x76b1, None),
+    0xc4: (0x79fd, None),
+    0xc5: (0x7a64, None),
+    0xc6: (0x7a68, None),
+    0xc7: (0x7a69, None),
+  }
 
   # At present I don't know what the memory addresses refer to, so
   # the disassembly shows their hex value. When I understand the
@@ -149,66 +306,21 @@ class Opcodes(object):
     0x98: 'conditional jump rel RELWORD',
     0x99: 'cond jump rel RELBYTE',
     0x9b: 'store BYTE',
+    0x9c: 'opsub 5c26 cond return',
     0xa1: 'jump rel RELWORD',
     0xa2: 'jump table',
     0xa6: 'Code follows',
     0xa7: 'Return',
-    0xa8: 'gosub 7670',
-    0xa9: 'gosub 7673',
-    0xaa: 'gosub 7676',
-    0xab: 'gosub 5f1f',
-    0xac: 'gosub 5f5b',
-    0xad: 'gosub 7877',
-    0xae: 'gosub 77ec',
-    0xaf: 'gosub 5f67',
-    0xb0: 'gosub 782b',
-    0xb1: 'gosub 77a7',
-    0xb2: 'gosub 5f63',
-    0xb3: 'gosub 798a',
-    0xb4: 'gosub 5f15',
-    0xb5: 'gosub 77aa',
-    0xb6: 'gosub 5f3b',
-    0xb7: 'gosub 5f2b',
-    0xb8: 'gosub 5f46',
-    0xb9: 'gosub 7695',
-    0xba: 'gosub 76a3',
-    0xbb: 'gosub 77bc',
-    0xbc: 'gosub 5f77',
-    0xbd: 'gosub 7953',
-    0xbe: 'gosub 77e5',
-    0xbf: 'gosub 785d',
-    0xc0: 'gosub 7980',
-    0xc1: 'print a message',
-    0xc2: 'gosub 5f11',
-    0xc3: 'gosub 76b1',
-    0xc4: 'gosub 79fd',
-    0xc5: 'gosub 7a64',
-    0xc6: 'gosub 7a68',
-    0xc7: 'gosub 7a69',
+    # 0xa8 to 0xc7 are gosubs, listed above
   }
 
   def disassemble(address, memory):
-    opcode = memory[0]
+    instruction = Instruction.FromMemory(address=address, memory=memory)
+    return instruction.disassemble()
 
-    if opcode in Opcodes.opcode_table:
-      op_str = Opcodes.opcode_table[opcode]
-      if 'RELBYTE' in op_str:
-        # The base address for a relative jump is the operand's address + 1
-        operand = memory[1]
-        dest = (address + 1 + operand) & 0xffff
-        op_str = op_str.replace('RELBYTE', '') + f'[{dest:04x}]'
-      elif 'RELWORD' in op_str:
-        # The base address for a relative jump is the operand's address + 1
-        operand = memory[1] + 256 * memory[2]
-        dest = (address + 1 + operand) & 0xffff
-        op_str = op_str.replace('RELWORD', '') + f'[{dest:04x}]'
-      elif 'BYTE' in op_str:
-        operand = memory[1]
-        op_str = op_str.replace('BYTE', '') + f'[{operand:02x}]'
-      elif 'WORD' in op_str:
-        operand = memory[1] + 256 * memory[2]
-        op_str = op_str.replace('WORD', '') + f'[{operand:04x}]'
-
-      return op_str
-
-    return f'unknown opcode 0x{opcode:02x}'
+  def opcode_length(opcode):
+    if opcode in Opcodes.two_byte_opcodes:
+      return 2
+    elif opcode in Opcodes.three_byte_opcodes:
+      return 3
+    return 1
