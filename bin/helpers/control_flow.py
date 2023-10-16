@@ -60,8 +60,7 @@ class FlowOfControl(object):
       self.always_report()
       self.report_time = now
 
-
-  def update(self, address: int) -> None:
+  def translate(self, address: int) -> int:
     reported = address
     orig_reported = address
     if self.start_address2 > 0 and reported >= self.start_address2:
@@ -69,6 +68,11 @@ class FlowOfControl(object):
 
     if reported >= self.start_address:
       reported = reported + self.offset
+
+    return reported
+
+  def update(self, address: int) -> None:
+    reported = self.translate(address)
 
     if not self.address:
       self.address = reported
