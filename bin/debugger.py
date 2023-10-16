@@ -228,8 +228,23 @@ class Zbx(object):
       return self.modules[name]
     raise NoSuchModule(f'No such registered module: {name}')
 
+  def interrupt(self):
+    """Call the interrupt method of any instantiated modules.
+
+    This is called after KeyboardInterrupt is caught, to enable any modules
+    with state to dump their state or print their report.
+    """
+
+    for name in self.modules:
+      m = self.modules[name]
+      if hasattr(m, 'interrupt'):
+        m.interrupt()
 
   def run(self):
-    while True:
-      self.run_until_prompt()
-      self.cmd('cont')
+    try:
+      while True:
+        self.run_until_prompt()
+        self.cmd('cont')
+    except KeyboardInterrupt as e:
+      print('Processing interrupt!')
+      self.interrupt()
