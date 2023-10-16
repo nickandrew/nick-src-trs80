@@ -4,8 +4,7 @@ import os.path
 import re
 import time
 
-two_byte_opcodes = [0x96, 0x99, 0x9b];
-three_byte_opcodes = [0x97, 0x98, 0xa1];
+import colossal_cave.vm
 
 class Controller(object):
   """A Controller executes a debugging scenario - setting breakpoints, running code etc."""
@@ -121,9 +120,9 @@ class Controller(object):
 
     self.memory_map[bc] = 2
 
-    if opcode in two_byte_opcodes:
+    length = colossal_cave.vm.Opcodes.opcode_length(opcode)
+    if length == 2:
       self.memory_map[bc + 1] = 2
-
-    if opcode in three_byte_opcodes:
+    elif length == 3:
       self.memory_map[bc + 1] = 2
       self.memory_map[bc + 2] = 2
