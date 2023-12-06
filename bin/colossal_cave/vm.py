@@ -10,39 +10,61 @@ class Instruction(object):
 
     # Default attributes
     self.length = 1
+    self.operand_count = 0
+    self.memory_word = None
+
     self.is_gosub = False
     self.is_jump = False
     self.is_cond_jump = False
     self.next_address = None
 
-  def FromMemory(address:int, memory:list[bytes]) -> 'Instruction':
+  def FromMemory(address:int, memory:'Memory') -> 'Instruction':
     """Instantiate an instruction from a slice of memory.
 
     Args:
-      memory   3-byte slice of memory contents
-
-    3 bytes is enough for an opcode and an 8 or 16 bit
-    operand.
+      memory   An instance of debugger.Memory or similar
 
     Returns:
 
       An Instruction.
     """
 
-    opcode = memory[0]
+    opcode_memory = memory.memory_bytes(address, 3)
+    opcode = opcode_memory[0]
 
     operand = None
     is_gosub = False
     is_cond_jump = False
     is_jump = False
 
+    if opcode in Opcodes.opcode_table:
+      opcode_desc = Opcodes.opcode_table[opcode]
+    else:
+      opcode_desc = {
+        's': 'not in opcode_table',
+        'length': 1,
+      }
+
     length = 1
-    if opcode in Opcodes.two_byte_opcodes:
-      operand = memory[1]
-      length = 2
-    elif opcode in Opcodes.three_byte_opcodes:
-      operand = memory[1] + 256 * memory[2]
-      length = 3
+    if 'length' in opcode_desc:
+      length = opcode_desc['length']
+
+    if length == 2:
+      operand = opcode_memory[1]
+    elif length == 3:
+      operand = opcode_memory[1] + 256 * opcode_memory[2]
+
+    # operand_count is the number of on-stack operands
+    if 'operand_count' in opcode_desc:
+      operand_count = opcode_desc['operand_count']
+    else:
+      operand_count = 0
+
+    # 'w' is the address of a word (probably to be pushed)
+    if 'w' in opcode_desc:
+      word_address = opcode_desc['w']
+    else:
+      word_address = None
 
     # Figure out implicit operand (gosubs)
     if opcode in Opcodes.gosub_opcodes:
@@ -70,7 +92,11 @@ class Instruction(object):
     instruction.is_gosub = is_gosub
     instruction.is_cond_jump = is_cond_jump
     instruction.is_jump = is_jump
+    instruction.operand_count = operand_count
+    instruction.word_address = word_address
     instruction.next_address = address + length
+    # Copy all 1-3 bytes in the instruction
+    instruction.memory = memory.memory_bytes(address, length)
 
     return instruction
 
@@ -86,7 +112,9 @@ class Instruction(object):
       return f'gosub {dest:04x}'
 
     if self.opcode in Opcodes.opcode_table:
-      op_str = Opcodes.opcode_table[self.opcode]
+      op_desc = Opcodes.opcode_table[self.opcode]
+      op_str = op_desc['s']
+      op_str = Opcodes.opcode_table[self.opcode]['s']
       operand = self.operand
       if 'RELBYTE' in op_str:
         op_str = op_str.replace('RELBYTE', '') + f'[{operand:04x}]'
@@ -140,7 +168,7 @@ class Opcodes(object):
     0xb0: (0x782b, None),
     0xb1: (0x77a7, None),
     0xb2: (0x5f63, None),
-    0xb3: (0x798a, None),
+    0xb3: (0x798a, 'wait_input_line'),
     0xb4: (0x5f15, None),
     0xb5: (0x77aa, None),
     0xb6: (0x5f3b, None),
@@ -152,7 +180,7 @@ class Opcodes(object):
     0xbc: (0x5f77, None),
     0xbd: (0x7953, None),
     0xbe: (0x77e5, None),
-    0xbf: (0x785d, None),
+    0xbf: (0x785d, 'random_n'),
     0xc0: (0x7980, None),
     0xc1: (0x7895, 'print a message'),
     0xc2: (0x5f11, None),
@@ -168,201 +196,201 @@ class Opcodes(object):
   # purpose of an address, I'll replace the hex value with a symbolic
   # name.
   opcode_table = {
-    0x00: 'push2 wt3 43ba',
-    0x01: 'push2 wt3 43bc',
-    0x02: 'push2 wt3 43be',
-    0x03: 'push2 wt3 43c0',
-    0x04: 'push2 wt3 43c2',
-    0x05: 'push2 wt3 43c4',
-    0x06: 'push2 wt3 43c6',
-    0x07: 'push2 wt3 43c8',
-    0x08: 'push2 wt3 43ca',
-    0x09: 'push2 wt3 43cc',
-    0x0a: 'push2 wt3 43ce',
-    0x0b: 'push2 wt3 43d0',
-    0x0c: 'push2 wt3 43d2',
-    0x0d: 'push2 wt3 43d4',
-    0x0e: 'push2 wt3 43d6',
-    0x0f: 'push2 wt3 43d8',
-    0x10: 'push2 wt3 43da',
-    0x11: 'push2 wt3 43dc',
-    0x12: 'push2 wt3 43de',
-    0x13: 'push2 wt3 43e0',
-    0x14: 'push2 wt3 43e2',
-    0x15: 'push2 wt3 43e4',
-    0x16: 'push2 wt3 43e6',
-    0x17: 'push2 wt3 43e8',
-    0x18: 'push2 wt3 43ea',
-    0x19: 'push2 wt3 43ec',
-    0x1a: 'push2 wt3 43ee',
-    0x1b: 'push2 wt3 43f0',
-    0x1c: 'push2 wt3 43f2',
-    0x1d: 'push2 wt3 43f4',
-    0x1e: 'push2 wt3 43f6',
-    0x1f: 'push2 wt3 43f8',
-    0x20: 'push2 wt3 43fa',
-    0x21: 'push2 wt3 43fc',
-    0x22: 'push2 wt3 43fe',
-    0x23: 'push2 wt3 4400',
-    0x24: 'push2 wt3 4402',
-    0x25: 'push2 wt3 4404',
-    0x26: 'push2 wt3 4406',
-    0x27: 'push2 wt3 4408',
-    0x28: 'push2 wt3 440a',
-    0x29: 'push2 wt3 440c',
-    0x2a: 'push2 wt3 440e',
-    0x2b: 'push2 wt3 4410',
-    0x2c: 'push2 wt3 4412',
-    0x2d: 'push2 wt3 4414',
-    0x2e: 'push2 wt3 4416',
-    0x2f: 'push2 wt3 4418',
-    0x30: 'push2 wt3 441a',
-    0x31: 'push2 wt3 441c',
-    0x32: 'push2 wt3 441e',
-    0x33: 'push2 wt3 4420',
-    0x34: 'push2 wt3 4422',
-    0x35: 'push2 wt3 4424',
-    0x36: 'push2 wt3 4426',
-    0x37: 'push2 wt3 4428',
-    0x38: 'push2 wt3 442a',
-    0x39: 'push2 wt3 442c',
-    0x3a: 'push2 wt3 442e',
-    0x3b: 'push2 wt3 4430',
-    0x3c: 'push2 wt3 4432',
-    0x3d: 'push2 wt3 4434',
-    0x3e: 'push2 wt3 4436',
-    0x3f: 'push2 wt3 4438',
-    0x40: 'push2 wt3 443a',
-    0x41: 'push2 wt3 443c',
-    0x42: 'push2 wt3 443e',
-    0x43: 'push2 wt3 4440',
-    0x44: 'push2 wt3 4442',
-    0x45: 'push2 wt3 4444',
-    0x46: 'push2 wt3 4446',
-    0x47: 'push wt1 4300',
-    0x48: 'push wt1 4302',
-    0x49: 'push wt1 4304',
-    0x4a: 'push wt1 4306',
-    0x4b: 'push wt1 4308',
-    0x4c: 'push wt1 430a',
-    0x4d: 'push wt1 430c',
-    0x4e: 'push wt1 430e',
-    0x4f: 'push wt1 4310',
-    0x50: 'push wt1 4312',
-    0x51: 'push wt1 4314',
-    0x52: 'push wt1 4316',
-    0x53: 'push wt1 4318',
-    0x54: 'push wt1 431a',
-    0x55: 'push wt1 431c',
-    0x56: 'push wt1 431e',
-    0x57: 'push wt1 4320',
-    0x58: 'push wt1 4322',
-    0x59: 'push v_items_in_inventory',
-    0x5a: 'push wt1 4326',
-    0x5b: 'push wt1 4328',
-    0x5c: 'push wt1 432a',
-    0x5d: 'push wt1 432c',
-    0x5e: 'push wt1 432e',
-    0x5f: 'push wt1 4330',
-    0x60: 'push wt1 4332',
-    0x61: 'push wt1 4334',
-    0x62: 'push wt1 4336',
-    0x63: 'push wt1 4338',
-    0x64: 'push wt1 433a',
-    0x65: 'push v_location',
-    0x66: 'push wt1 433e',
-    0x67: 'push wt1 4340',
-    0x68: 'push wt1 4342',
-    0x69: 'push wt1 4344',
-    0x6a: 'push wt1 4346',
-    0x6b: 'push wt1 4348',
-    0x6c: 'push wt1 434a',
-    0x6d: 'push wt1 434c',
-    0x6e: 'push wt1 434e',
-    0x6f: 'push wt1 4350',
-    0x70: 'push wt1 4352',
-    0x71: 'push wt1 4354',
-    0x72: 'push wt1 4356',
-    0x73: 'push wt1 4358',
-    0x74: 'push wt1 435a',
-    0x75: 'push wt1 435c',
-    0x76: 'push wt1 435e',
-    0x77: 'push wt1 4360',
-    0x78: 'push wt1 4362',
-    0x79: 'push wt1 4364',
-    0x7a: 'push wt1 4366',
-    0x7b: 'push v_turn_counter',
-    0x7c: 'push wt1 436a',
-    0x7d: 'push wt1 436c',
-    0x7e: 'push wt1 436e',
-    0x7f: 'push wt1 4370',
-    0x80: 'push wt1 4372',
-    0x81: 'push wt1 4374',
-    0x82: 'push wt1 4376',
-    0x83: 'push wt1 4378',
-    0x84: 'push wt1 437a',
-    0x85: 'cmp le',
-    0x86: 'cmp lt',
-    0x87: 'cmp ge',
-    0x88: 'cmp gt',
-    0x89: 'cmp eq',
-    0x8a: 'cmp ne',
-    0x8b: 'or',
-    0x8c: 'and',
-    0x8d: 'add',
-    0x8e: 'sub',
-    0x8f: 'mul',
-    0x90: 'div',
-    0x91: 'mod',
-    0x92: 'abs',
-    0x93: '1<<L',
-    0x94: 'negate',
-    0x95: 'complement',
-    0x96: 'push byte BYTE',
-    0x97: 'push word WORD',
-    0x98: 'cond jump NZ far RELWORD',
-    0x99: 'cond jump Z near RELBYTE',
-    0x9b: 'store BYTE setjmp 5eb7 gosub 5c1f',
-    0x9c: 'gosub 5c26 cond return or longjmp 5eb7',
-    0xa1: 'jump RELWORD',
-    0xa2: 'jump table',
-    0xa4: '!= 0',
-    0xa5: '== 0',
-    0xa6: 'Code follows',
-    0xa7: 'Return',
+    0x00: {'s': 'push2 wt3 43ba', 'w': 0x43ba},
+    0x01: {'s': 'push2 wt3 43bc', 'w': 0x43bc},
+    0x02: {'s': 'push2 wt3 43be', 'w': 0x43be},
+    0x03: {'s': 'push2 wt3 43c0', 'w': 0x43c0},
+    0x04: {'s': 'push2 wt3 43c2', 'w': 0x43c2},
+    0x05: {'s': 'push2 wt3 43c4', 'w': 0x43c4},
+    0x06: {'s': 'push2 wt3 43c6', 'w': 0x43c6},
+    0x07: {'s': 'push2 wt3 43c8', 'w': 0x43c8},
+    0x08: {'s': 'push2 wt3 43ca', 'w': 0x43ca},
+    0x09: {'s': 'push2 wt3 43cc', 'w': 0x43cc},
+    0x0a: {'s': 'push2 wt3 43ce', 'w': 0x43ce},
+    0x0b: {'s': 'push2 wt3 43d0', 'w': 0x43d0},
+    0x0c: {'s': 'push2 wt3 43d2', 'w': 0x43d2},
+    0x0d: {'s': 'push2 wt3 43d4', 'w': 0x43d4},
+    0x0e: {'s': 'push2 wt3 43d6', 'w': 0x43d6},
+    0x0f: {'s': 'push2 wt3 43d8', 'w': 0x43d8},
+    0x10: {'s': 'push2 wt3 43da', 'w': 0x43da},
+    0x11: {'s': 'push2 wt3 43dc', 'w': 0x43dc},
+    0x12: {'s': 'push2 wt3 43de', 'w': 0x43de},
+    0x13: {'s': 'push2 wt3 43e0', 'w': 0x43e0},
+    0x14: {'s': 'push2 wt3 43e2', 'w': 0x43e2},
+    0x15: {'s': 'push2 wt3 43e4', 'w': 0x43e4},
+    0x16: {'s': 'push2 wt3 43e6', 'w': 0x43e6},
+    0x17: {'s': 'push2 wt3 43e8', 'w': 0x43e8},
+    0x18: {'s': 'push2 wt3 43ea', 'w': 0x43ea},
+    0x19: {'s': 'push2 wt3 43ec', 'w': 0x43ec},
+    0x1a: {'s': 'push2 wt3 43ee', 'w': 0x43ee},
+    0x1b: {'s': 'push2 wt3 43f0', 'w': 0x43f0},
+    0x1c: {'s': 'push2 wt3 43f2', 'w': 0x43f2},
+    0x1d: {'s': 'push2 wt3 43f4', 'w': 0x43f4},
+    0x1e: {'s': 'push2 wt3 43f6', 'w': 0x43f6},
+    0x1f: {'s': 'push2 wt3 43f8', 'w': 0x43f8},
+    0x20: {'s': 'push2 wt3 43fa', 'w': 0x43fa},
+    0x21: {'s': 'push2 wt3 43fc', 'w': 0x43fc},
+    0x22: {'s': 'push2 wt3 43fe', 'w': 0x43fe},
+    0x23: {'s': 'push2 wt3 4400', 'w': 0x4400},
+    0x24: {'s': 'push2 wt3 4402', 'w': 0x4402},
+    0x25: {'s': 'push2 wt3 4404', 'w': 0x4404},
+    0x26: {'s': 'push2 wt3 4406', 'w': 0x4406},
+    0x27: {'s': 'push2 wt3 4408', 'w': 0x4408},
+    0x28: {'s': 'push2 wt3 440a', 'w': 0x440a},
+    0x29: {'s': 'push2 wt3 440c', 'w': 0x440c},
+    0x2a: {'s': 'push2 wt3 440e', 'w': 0x440e},
+    0x2b: {'s': 'push2 wt3 4410', 'w': 0x4410},
+    0x2c: {'s': 'push2 wt3 4412', 'w': 0x4412},
+    0x2d: {'s': 'push2 wt3 4414', 'w': 0x4414},
+    0x2e: {'s': 'push2 wt3 4416', 'w': 0x4416},
+    0x2f: {'s': 'push2 wt3 4418', 'w': 0x4418},
+    0x30: {'s': 'push2 wt3 441a', 'w': 0x441a},
+    0x31: {'s': 'push2 wt3 441c', 'w': 0x441c},
+    0x32: {'s': 'push2 wt3 441e', 'w': 0x441e},
+    0x33: {'s': 'push2 wt3 4420', 'w': 0x4420},
+    0x34: {'s': 'push2 wt3 4422', 'w': 0x4422},
+    0x35: {'s': 'push2 wt3 4424', 'w': 0x4424},
+    0x36: {'s': 'push2 wt3 4426', 'w': 0x4426},
+    0x37: {'s': 'push2 wt3 4428', 'w': 0x4428},
+    0x38: {'s': 'push2 wt3 442a', 'w': 0x442a},
+    0x39: {'s': 'push2 wt3 442c', 'w': 0x442c},
+    0x3a: {'s': 'push2 wt3 442e', 'w': 0x442e},
+    0x3b: {'s': 'push2 wt3 4430', 'w': 0x4430},
+    0x3c: {'s': 'push2 wt3 4432', 'w': 0x4432},
+    0x3d: {'s': 'push2 wt3 4434', 'w': 0x4434},
+    0x3e: {'s': 'push2 wt3 4436', 'w': 0x4436},
+    0x3f: {'s': 'push2 wt3 4438', 'w': 0x4438},
+    0x40: {'s': 'push2 wt3 443a', 'w': 0x443a},
+    0x41: {'s': 'push2 wt3 443c', 'w': 0x443c},
+    0x42: {'s': 'push2 wt3 443e', 'w': 0x443e},
+    0x43: {'s': 'push2 wt3 4440', 'w': 0x4440},
+    0x44: {'s': 'push2 wt3 4442', 'w': 0x4442},
+    0x45: {'s': 'push2 wt3 4444', 'w': 0x4444},
+    0x46: {'s': 'push2 wt3 4446', 'w': 0x4446},
+    0x47: {'s': 'push wt1 4300', 'w': 0x4300},
+    0x48: {'s': 'push wt1 4302', 'w': 0x4302},
+    0x49: {'s': 'push wt1 4304', 'w': 0x4304},
+    0x4a: {'s': 'push wt1 4306', 'w': 0x4306},
+    0x4b: {'s': 'push wt1 4308', 'w': 0x4308},
+    0x4c: {'s': 'push wt1 430a', 'w': 0x430a},
+    0x4d: {'s': 'push wt1 430c', 'w': 0x430c},
+    0x4e: {'s': 'push wt1 430e', 'w': 0x430e},
+    0x4f: {'s': 'push wt1 4310', 'w': 0x4310},
+    0x50: {'s': 'push wt1 4312', 'w': 0x4312},
+    0x51: {'s': 'push wt1 4314', 'w': 0x4314},
+    0x52: {'s': 'push wt1 4316', 'w': 0x4316},
+    0x53: {'s': 'push wt1 4318', 'w': 0x4318},
+    0x54: {'s': 'push wt1 431a', 'w': 0x431a},
+    0x55: {'s': 'push wt1 431c', 'w': 0x431c},
+    0x56: {'s': 'push wt1 431e', 'w': 0x431e},
+    0x57: {'s': 'push wt1 4320', 'w': 0x4320},
+    0x58: {'s': 'push wt1 4322', 'w': 0x4322},
+    0x59: {'s': 'push v_items_in_inventory', 'w': 0x4344},
+    0x5a: {'s': 'push wt1 4326', 'w': 0x4326},
+    0x5b: {'s': 'push wt1 4328', 'w': 0x4328},
+    0x5c: {'s': 'push wt1 432a', 'w': 0x432a},
+    0x5d: {'s': 'push wt1 432c', 'w': 0x432c},
+    0x5e: {'s': 'push wt1 432e', 'w': 0x432e},
+    0x5f: {'s': 'push wt1 4330', 'w': 0x4330},
+    0x60: {'s': 'push wt1 4332', 'w': 0x4332},
+    0x61: {'s': 'push wt1 4334', 'w': 0x4334},
+    0x62: {'s': 'push wt1 4336', 'w': 0x4336},
+    0x63: {'s': 'push wt1 4338', 'w': 0x4338},
+    0x64: {'s': 'push wt1 433a', 'w': 0x433a},
+    0x65: {'s': 'push v_location', 'w': 0x433c},
+    0x66: {'s': 'push wt1 433e', 'w': 0x433e},
+    0x67: {'s': 'push wt1 4340', 'w': 0x4340},
+    0x68: {'s': 'push wt1 4342', 'w': 0x4342},
+    0x69: {'s': 'push wt1 4344', 'w': 0x4344},
+    0x6a: {'s': 'push wt1 4346', 'w': 0x4346},
+    0x6b: {'s': 'push wt1 4348', 'w': 0x4348},
+    0x6c: {'s': 'push wt1 434a', 'w': 0x434a},
+    0x6d: {'s': 'push wt1 434c', 'w': 0x434c},
+    0x6e: {'s': 'push wt1 434e', 'w': 0x434e},
+    0x6f: {'s': 'push wt1 4350', 'w': 0x4350},
+    0x70: {'s': 'push wt1 4352', 'w': 0x4352},
+    0x71: {'s': 'push wt1 4354', 'w': 0x4354},
+    0x72: {'s': 'push wt1 4356', 'w': 0x4356},
+    0x73: {'s': 'push wt1 4358', 'w': 0x4358},
+    0x74: {'s': 'push wt1 435a', 'w': 0x435a},
+    0x75: {'s': 'push wt1 435c', 'w': 0x435c},
+    0x76: {'s': 'push wt1 435e', 'w': 0x435e},
+    0x77: {'s': 'push wt1 4360', 'w': 0x4360},
+    0x78: {'s': 'push wt1 4362', 'w': 0x4362},
+    0x79: {'s': 'push wt1 4364', 'w': 0x4364},
+    0x7a: {'s': 'push wt1 4366', 'w': 0x4366},
+    0x7b: {'s': 'push v_turn_counter', 'w': 0x4368},
+    0x7c: {'s': 'push wt1 436a', 'w': 0x436a},
+    0x7d: {'s': 'push wt1 436c', 'w': 0x436c},
+    0x7e: {'s': 'push wt1 436e', 'w': 0x436e},
+    0x7f: {'s': 'push wt1 4370', 'w': 0x4370},
+    0x80: {'s': 'push wt1 4372', 'w': 0x4372},
+    0x81: {'s': 'push wt1 4374', 'w': 0x4374},
+    0x82: {'s': 'push wt1 4376', 'w': 0x4376},
+    0x83: {'s': 'push wt1 4378', 'w': 0x4378},
+    0x84: {'s': 'push wt1 437a', 'w': 0x437a},
+    0x85: {'s': 'cmp le', 'operand_count': 2},
+    0x86: {'s': 'cmp lt', 'operand_count': 2},
+    0x87: {'s': 'cmp ge', 'operand_count': 2},
+    0x88: {'s': 'cmp gt', 'operand_count': 2},
+    0x89: {'s': 'cmp eq', 'operand_count': 2},
+    0x8a: {'s': 'cmp ne', 'operand_count': 2},
+    0x8b: {'s': 'or', 'operand_count': 2},
+    0x8c: {'s': 'and', 'operand_count': 2},
+    0x8d: {'s': 'add', 'operand_count': 2},
+    0x8e: {'s': 'sub', 'operand_count': 2},
+    0x8f: {'s': 'mul', 'operand_count': 2},
+    0x90: {'s': 'div', 'operand_count': 2},
+    0x91: {'s': 'mod', 'operand_count': 2},
+    0x92: {'s': 'abs', 'operand_count': 1},
+    0x93: {'s': '1<<L', 'operand_count': 1},
+    0x94: {'s': 'negate', 'operand_count': 1},
+    0x95: {'s': 'complement', 'operand_count': 1},
+    0x96: {'s': 'push byte BYTE', 'length': 2},
+    0x97: {'s': 'push word WORD', 'length': 3},
+    0x98: {'s': 'cond jump NZ far RELWORD', 'length': 3, 'word_relative': True, 'is_cond_jump': True},
+    0x99: {'s': 'cond jump Z near RELBYTE', 'length': 2, 'byte_relative': True, 'is_cond_jump': True},
+    0x9b: {'s': 'store BYTE setjmp 5eb7 gosub 5c1f', 'length': 2},
+    0x9c: {'s': 'gosub 5c26 cond return or longjmp 5eb7', },
+    0xa1: {'s': 'jump RELWORD', 'length': 3, 'word_relative': True, 'is_jump': True},
+    0xa2: {'s': 'jump table', },
+    0xa4: {'s': '!= 0', 'operand_count': 1},
+    0xa5: {'s': '== 0', 'operand_count': 1},
+    0xa6: {'s': 'Code follows', },
+    0xa7: {'s': 'Return', },
     # 0xa8 to 0xc7 are gosubs, listed above
-    0xc8: 'lookup_opcode_c8_map',
-    0xc9: 'lookup_opcode_c9_map',
-    0xca: 'lookup_opcode_ca_map',
-    0xcb: 'lookup_opcode_cb_map',
-    0xcc: 'lookup_opcode_cc_map',
-    0xcd: 'lookup_opcode_cd_map',
-    0xce: 'lookup_opcode_ce_map',
-    0xcf: 'lookup_opcode_cf_map',
-    0xd0: 'lookup_opcode_d0_map',
-    0xd1: 'lookup_opcode_d1_map',
-    0xd2: 'lookup_opcode_d2_map',
-    0xd3: 'lookup_opcode_d3_map',
-    0xd4: 'lookup_opcode_d4_map',
-    0xd5: 'lookup_opcode_d5_map',
-    0xd6: 'lookup_opcode_d6_map',
-    0xd7: 'lookup_opcode_d7_map',
-    0xd8: 'lookup_opcode_d8_map',
-    0xd9: 'lookup_score_message_sector_map',
-    0xda: 'lookup_opcode_da_map',
-    0xdb: 'lookup_opcode_db_map',
-    0xdc: 'lookup_opcode_dc_map',
-    0xdd: 'lookup_opcode_dd_map',
-    0xde: 'lookup_opcode_de_map',
-    0xdf: 'lookup_opcode_df_map',
-    0xe0: 'lookup_long_desc_sector_map',
-    0xe1: 'lookup_opcode_e1_map',
-    0xe2: 'lookup_object_desc_sector_map',
-    0xe3: 'lookup_special_msg_sector_map',
-    0xe4: 'lookup_brief_desc_sector_map',
-    0xe5: 'lookup_opcode_e5_map',
-    0xe6: 'lookup_opcode_e6_map',
-    0xe7: 'lookup_opcode_e7_map',
+    0xc8: {'s': 'lookup_opcode_c8_map', },
+    0xc9: {'s': 'lookup_opcode_c9_map', },
+    0xca: {'s': 'lookup_opcode_ca_map', },
+    0xcb: {'s': 'lookup_opcode_cb_map', },
+    0xcc: {'s': 'lookup_opcode_cc_map', },
+    0xcd: {'s': 'lookup_opcode_cd_map', },
+    0xce: {'s': 'lookup_opcode_ce_map', },
+    0xcf: {'s': 'lookup_opcode_cf_map', },
+    0xd0: {'s': 'lookup_opcode_d0_map', },
+    0xd1: {'s': 'lookup_opcode_d1_map', },
+    0xd2: {'s': 'lookup_opcode_d2_map', },
+    0xd3: {'s': 'lookup_opcode_d3_map', },
+    0xd4: {'s': 'lookup_opcode_d4_map', },
+    0xd5: {'s': 'lookup_opcode_d5_map', },
+    0xd6: {'s': 'lookup_opcode_d6_map', },
+    0xd7: {'s': 'lookup_opcode_d7_map', },
+    0xd8: {'s': 'lookup_opcode_d8_map', },
+    0xd9: {'s': 'lookup_score_message_sector_map', },
+    0xda: {'s': 'lookup_opcode_da_map', },
+    0xdb: {'s': 'lookup_opcode_db_map', },
+    0xdc: {'s': 'lookup_opcode_dc_map', },
+    0xdd: {'s': 'lookup_opcode_dd_map', },
+    0xde: {'s': 'lookup_opcode_de_map', },
+    0xdf: {'s': 'lookup_opcode_df_map', },
+    0xe0: {'s': 'lookup_long_desc_sector_map', },
+    0xe1: {'s': 'lookup_opcode_e1_map', },
+    0xe2: {'s': 'lookup_object_desc_sector_map', },
+    0xe3: {'s': 'lookup_special_msg_sector_map', },
+    0xe4: {'s': 'lookup_brief_desc_sector_map', },
+    0xe5: {'s': 'lookup_opcode_e5_map', },
+    0xe6: {'s': 'lookup_opcode_e6_map', },
+    0xe7: {'s': 'lookup_opcode_e7_map', },
   }
 
   def disassemble(address, memory):
@@ -375,3 +403,85 @@ class Opcodes(object):
     elif opcode in Opcodes.three_byte_opcodes:
       return 3
     return 1
+
+class Debug(object):
+  """A Debugger controlller for the bytecode virtual machine."""
+
+  def __init__(self, dbg):
+    self._have_registers = False
+    self.breakpoints = {}
+    self.memory = dbg.all_memory()
+    self.traces = {}
+    self.dbg = dbg
+    self._pc = None
+    self._sp = None
+
+    self.dbg.add_breakpoint('5a19', self.break_fetch_exec_loop)
+
+  def break_fetch_exec_loop(self):
+    """Breakpoint function is called each time an opcode is fetched."""
+    self._have_registers = False
+    self.dbg.get_registers()
+    pc = self.dbg.get_reg_bc()
+    self._pc = pc
+    self._sp = self.dbg.get_reg_de()
+    # print(f'fetch at {pc:04x} sp {self._sp:04x}')
+
+    if pc in self.breakpoints:
+      # Run one or more breakpoint functions
+      for func in list(self.breakpoints[pc]):
+        func()
+
+    for func in list(self.traces):
+      if not func():
+        del self.traces[func]
+
+
+  def add_breakpoint(self, addr, func):
+    """Set a breakpoint at 'addr'.
+
+    When fetching the bytecode at 'addr', call 'func'.
+    """
+    if addr not in self.breakpoints:
+      self.breakpoints[addr] = []
+    self.breakpoints[addr].append(func)
+
+  def add_trace(self, func):
+    """Trace every instruction.
+
+    Calls func(opcode) after all breakpoint functions have been called.
+
+    The trace is deleted when the function returns False.
+    """
+    self.traces[func] = func
+
+  @property
+  def pc(self):
+    return self._pc
+
+  @property
+  def sp(self):
+    return self._sp
+
+  def instruction(self) -> 'Instruction':
+    """Return the currently about to be executed instruction as an Instruction.
+    """
+
+    return Instruction.FromMemory(self._pc, self.memory)
+
+  def stack(self, offset):
+    """Return the 2 16-bit values in the stack at relative 'offset'.
+
+    Since each stack item occupies 4 bytes, offset is multiplied by 4
+    to find the memory addresses to read:
+
+    start_ptr = sp + 4 * offset
+
+    e.g. (pointer, value) = x.stack(1)
+    """
+    start_addr = self.sp + 4 * offset
+    mem = self.dbg.memory(start_addr, 4)
+    value = self.dbg.hex2int(mem[1] + mem[0])
+    pointer = self.dbg.hex2int(mem[3] + mem[2])
+
+    return (value, pointer)
