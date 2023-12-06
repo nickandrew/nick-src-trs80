@@ -9,19 +9,39 @@ class DebuggerError(Exception):
 class NoSuchModule(DebuggerError):
   """A registered module was requested which is unknown."""
 
+class Memory(object):
+  """The entire memory space of a debugging instance."""
+
+  def __init__(self, dbg):
+    self.dbg = dbg
+
+  def memory_bytes(self, start_address, size):
+    return self.dbg.memory_bytes(start_address, size)
+
+  def word(self, address):
+    b = self.dbg.memory_bytes(address, 2)
+    return b[0] + b[1] * 0x100
+
 class Zbx(object):
   """An instance of the zbx debugger, running in a subprocess."""
 
   def __init__(self, command):
     self.command = command
-    print(f'Command is {command}')
     self.sp = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=False, bufsize=0, close_fds=True)
     self.breakpoints = {}
     self.modules = {}
     self.trace_func = None
 
+  def all_memory(self):
+    """Return an instance of Memory for this debugging instance."""
+    return Memory(self)
+
   def cmd(self, cmd):
     self.sp.stdin.write(bytes(cmd + '\n', 'utf-8'))
+
+  def hex2int(self, s):
+    """Convert a 2-digit or 4-digit hex string to an integer."""
+    return int(s, 16)
 
   def output(self):
     """Generator function returning the subprocess's STDOUT, one line at a time."""
@@ -79,7 +99,6 @@ class Zbx(object):
 
     T-state counter: 0    Delay setting: 0 (fixed)
     """
-
 
     self.cmd('dump')
     self.reg_b = None
@@ -150,6 +169,16 @@ class Zbx(object):
 
     return r
 
+  def memory_bytes(self, start_address, size):
+    """Retrieve memory contents starting at 'start_address'.
+
+    Returns 'size' bytes.
+    """
+
+    mem = self.memory(start_address, size)
+    b = bytes([int(x, 16) for x in mem])
+    return b
+
   def get_reg_a(self):
     return self.reg_a
 
@@ -213,7 +242,6 @@ class Zbx(object):
     self.breakpoints[location].append(func)
     self.read_prompt()
     self.cmd(f'break {location}')
-    print(f'Added breakpoint at {location}')
 
   def add_module(self, name, module):
     """Add a new module. Let the module initialise breakpoints, etc."""
