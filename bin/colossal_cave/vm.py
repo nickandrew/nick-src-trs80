@@ -1,22 +1,67 @@
-"""Colossal Cave Abstract Virtual Machine."""
+"""Colossal Cave Abstract Virtual Machine.
+
+The Colossal Cave game implements a 16-bit Abstract Virtual Machine
+which is intermixed among the z80 code. VM instructions are a single
+byte long (see the Opcode class). The VM is primarily stack-based:
+each 4-byte stack item consists of a 16-bit value and a 16-bit pointer.
+
+The use of pushing pointers onto the stack is believed to support
+call-by-reference.
+
+The VM fetch-execute cycle is initiated by loading z80 register BC
+with the address of the opcode to fetch, and DE with the top of stack,
+then calling 0x5a18.
+"""
+
+class OpcodeError(Exception):
+  """An opcode-related error, e.g. Unknown opcode."""
 
 class Instruction(object):
-  """A single instruction in memory."""
+  """A single instruction in memory.
 
-  def __init__(self, opcode:int, address:int, operand:int = None):
-    self.opcode = opcode
+  An Instruction is formed from the 1-3 bytes of memory which start with
+  the opcode, at some known memory address.
+
+  The Instruction is the Opcode, plus:
+    * address
+    * memory (at that address)
+    * operand
+    * next_address
+  """
+
+  def __init__(self, address:int, memory:bytes):
+    """Return a new Instruction.
+
+    Arguments:
+      * address: The memory address of the instruction
+      * memory: 3 bytes of memory at 'address'
+    """
+
     self.address = address
-    self.operand = operand
+    self.memory = memory
+    self.opcode = Opcode(memory[0])
+    self.operand = None  # The implicit or explicit operand
 
-    # Default attributes
-    self.length = 1
-    self.operand_count = 0
-    self.memory_word = None
+    length = self.opcode.length
+    opcode = self.opcode
 
-    self.is_gosub = False
-    self.is_jump = False
-    self.is_cond_jump = False
-    self.next_address = None
+    if length == 2:
+      self.operand = memory[1]
+    elif length == 3:
+      self.operand = memory[1] + 256 * memory[2]
+
+    if opcode.byte_relative:
+      # Sign-extend the operand then compute relative address
+      if self.operand >= 0x80:
+        self.operand = 256 - self.operand
+      self.operand = (self.address + 1 + self.operand) & 0xffff
+    elif opcode.word_relative:
+      # The operand is a relative address; compute it here
+      self.operand = (self.address + 1 + self.operand) & 0xffff
+
+  @property
+  def next_address(self):
+    return self.address + self.opcode.length
 
   def FromMemory(address:int, memory:'Memory') -> 'Instruction':
     """Instantiate an instruction from a slice of memory.
@@ -29,167 +74,82 @@ class Instruction(object):
       An Instruction.
     """
 
-    opcode_memory = memory.memory_bytes(address, 3)
-    opcode = opcode_memory[0]
-
-    operand = None
-    is_gosub = False
-    is_cond_jump = False
-    is_jump = False
-
-    if opcode in Opcodes.opcode_table:
-      opcode_desc = Opcodes.opcode_table[opcode]
-    else:
-      opcode_desc = {
-        's': 'not in opcode_table',
-        'length': 1,
-      }
-
-    length = 1
-    if 'length' in opcode_desc:
-      length = opcode_desc['length']
-
-    if length == 2:
-      operand = opcode_memory[1]
-    elif length == 3:
-      operand = opcode_memory[1] + 256 * opcode_memory[2]
-
-    # operand_count is the number of on-stack operands
-    if 'operand_count' in opcode_desc:
-      operand_count = opcode_desc['operand_count']
-    else:
-      operand_count = 0
-
-    # 'w' is the address of a word (probably to be pushed)
-    if 'w' in opcode_desc:
-      word_address = opcode_desc['w']
-    else:
-      word_address = None
-
-    # Figure out implicit operand (gosubs)
-    if opcode in Opcodes.gosub_opcodes:
-      (dest, s) = Opcodes.gosub_opcodes[opcode]
-      operand = dest
-      is_gosub = True
-
-    elif opcode in Opcodes.byte_relative_opcodes:
-      # Sign-extend the operand then compute relative address
-      if operand >= 0x80:
-        operand = 256 - operand
-      operand = (address + 1 + operand) & 0xffff
-
-    elif opcode in Opcodes.word_relative_opcodes:
-      # The operand is a relative address; compute it here
-      operand = (address + 1 + operand) & 0xffff
-
-    if opcode in Opcodes.jump_opcodes:
-      is_jump = True
-    elif opcode in Opcodes.cond_jump_opcodes:
-      is_cond_jump = True
-
-    instruction = Instruction(opcode=opcode, address=address, operand=operand)
-    instruction.length = length
-    instruction.is_gosub = is_gosub
-    instruction.is_cond_jump = is_cond_jump
-    instruction.is_jump = is_jump
-    instruction.operand_count = operand_count
-    instruction.word_address = word_address
-    instruction.next_address = address + length
-    # Copy all 1-3 bytes in the instruction
-    instruction.memory = memory.memory_bytes(address, length)
+    instruction = Instruction(address=address, memory=memory.memory_bytes(address, 3))
 
     return instruction
 
   def disassemble(self):
     """Return a string representation of an Instruction."""
 
-    # 0xa8 to 0xc7 are gosubs
-    if self.opcode in Opcodes.gosub_opcodes:
-      (dest, s) = Opcodes.gosub_opcodes[self.opcode]
-      # Substitute symbolic reference (rather than hex address) if known
-      if s:
-        return f'gosub {s}'
-      return f'gosub {dest:04x}'
+    op_str = self.opcode.string
+    operand = self.operand
+    if 'BYTE' in op_str:
+      op_str = op_str.replace('BYTE', '') + f'[{operand:02x}]'
+    elif 'WORD' in op_str:
+      op_str = op_str.replace('WORD', '') + f'[{operand:04x}]'
 
-    if self.opcode in Opcodes.opcode_table:
-      op_desc = Opcodes.opcode_table[self.opcode]
-      op_str = op_desc['s']
-      op_str = Opcodes.opcode_table[self.opcode]['s']
-      operand = self.operand
-      if 'RELBYTE' in op_str:
-        op_str = op_str.replace('RELBYTE', '') + f'[{operand:04x}]'
-      elif 'RELWORD' in op_str:
-        op_str = op_str.replace('RELWORD', '') + f'[{operand:04x}]'
-      elif 'BYTE' in op_str:
-        op_str = op_str.replace('BYTE', '') + f'[{operand:02x}]'
-      elif 'WORD' in op_str:
-        op_str = op_str.replace('WORD', '') + f'[{operand:04x}]'
+    return op_str
 
-      return op_str
+  def str1(self) -> str:
+    """A disassembly of just the opcode and its operand (if any).
 
-    return f'unknown opcode 0x{self.opcode:02x}'
+    Returns a string.
+    """
 
-  def str1(self):
-    return self.op_str
+    op_str = self.opcode.string
+    return op_str
 
-  def str2(self):
-    """A more verbose disassembly."""
-    return f'{self.address:04x}  {self.op_str}'
+  def str2(self) -> str:
+    """Return a disassembly of the instruction in the form:
 
-class Opcodes(object):
-  """This class deals with the VM Opcodes.
+    address    disassembly
+    """
 
-  Things I know about some opcodes ...
+    op_str = self.opcode.string
+    return f'{self.address:04x}  {op_str}'
 
-  0x98 ... conditional jump if hl != 0 to following 2 bytes
-  0x99 ... conditional relative jump if hl == 0
-  0x9b ... store next byte in various places then call an opcode subroutine at 51cf
-  0x9c ... call opsub 5c26 then either return or opgoto contents of 5eb7
-  0xa1 ... opgoto next 2 bytes
-  0xa2 ... looks like following bytes are a jump table
+class Opcode(object):
+  """This class represents a Virtual Machine opcode.
+
+  An opcode is an 8-bit integer, each with a unique operation. What is
+  known about each opcode is represented in opcode_table below.
+
+  Known opcodes fall into these general categories:
+
+  ## Push a global variable onto the stack
+
+  There are push opcodes for the global variables in Word Table 3
+  and Word Table 1. The meaning of almost all global variables
+  is unknown.
+
+  ## Push a literal onto the stack
+
+  Either a byte or a word value.
+
+  ## 16-bit unary and binary math and logical operators
+
+  Unary operators: negate (2's complement), complement (1's complement)
+
+  Binary operators: or, and, add, sub, mul, div, mod, abs, 1<<L (shift
+  right), <=, <, >=, >, ==, !=
+
+  ## Control flow
+
+  Conditional jumps (Z or NZ) and unconditional jumps.
+
+  There are also some complex and unknown control flows.
+
+  ## Lookup a map of some sort
+
+  Some of the maps are known:
+
+  * d9: Maps the score to the diskette sector containing the message
+  * e0: Maps long descriptions to the sector containing the message
+  * e2: Ditto for object descriptions
+  * e3: Ditto for special messages
+  * e4: Ditto for brief descriptions
+
   """
-
-  two_byte_opcodes = [0x96, 0x99, 0x9b]
-  three_byte_opcodes = [0x97, 0x98, 0xa1]
-  byte_relative_opcodes = [0x99]
-  word_relative_opcodes = [0x98, 0xa1]
-  jump_opcodes = [0xa1]
-  cond_jump_opcodes = [0x98, 0x99]
-
-  gosub_opcodes = {
-    0xa8: (0x7670, None),
-    0xa9: (0x7673, None),
-    0xaa: (0x7676, None),
-    0xab: (0x5f1f, None),
-    0xac: (0x5f5b, None),
-    0xad: (0x7877, None),
-    0xae: (0x77ec, None),
-    0xaf: (0x5f67, None),
-    0xb0: (0x782b, None),
-    0xb1: (0x77a7, None),
-    0xb2: (0x5f63, None),
-    0xb3: (0x798a, 'wait_input_line'),
-    0xb4: (0x5f15, None),
-    0xb5: (0x77aa, None),
-    0xb6: (0x5f3b, None),
-    0xb7: (0x5f2b, None),
-    0xb8: (0x5f46, None),
-    0xb9: (0x7695, None),
-    0xba: (0x76a3, None),
-    0xbb: (0x77bc, None),
-    0xbc: (0x5f77, None),
-    0xbd: (0x7953, None),
-    0xbe: (0x77e5, None),
-    0xbf: (0x785d, 'random_n'),
-    0xc0: (0x7980, None),
-    0xc1: (0x7895, 'print a message'),
-    0xc2: (0x5f11, None),
-    0xc3: (0x76b1, None),
-    0xc4: (0x79fd, None),
-    0xc5: (0x7a64, None),
-    0xc6: (0x7a68, None),
-    0xc7: (0x7a69, None),
-  }
 
   # At present I don't know what the memory addresses refer to, so
   # the disassembly shows their hex value. When I understand the
@@ -329,85 +289,224 @@ class Opcodes(object):
     0x82: {'s': 'push wt1 4376', 'w': 0x4376},
     0x83: {'s': 'push wt1 4378', 'w': 0x4378},
     0x84: {'s': 'push wt1 437a', 'w': 0x437a},
-    0x85: {'s': 'cmp le', 'operand_count': 2},
-    0x86: {'s': 'cmp lt', 'operand_count': 2},
-    0x87: {'s': 'cmp ge', 'operand_count': 2},
-    0x88: {'s': 'cmp gt', 'operand_count': 2},
-    0x89: {'s': 'cmp eq', 'operand_count': 2},
-    0x8a: {'s': 'cmp ne', 'operand_count': 2},
-    0x8b: {'s': 'or', 'operand_count': 2},
-    0x8c: {'s': 'and', 'operand_count': 2},
-    0x8d: {'s': 'add', 'operand_count': 2},
-    0x8e: {'s': 'sub', 'operand_count': 2},
-    0x8f: {'s': 'mul', 'operand_count': 2},
-    0x90: {'s': 'div', 'operand_count': 2},
-    0x91: {'s': 'mod', 'operand_count': 2},
-    0x92: {'s': 'abs', 'operand_count': 1},
-    0x93: {'s': '1<<L', 'operand_count': 1},
-    0x94: {'s': 'negate', 'operand_count': 1},
-    0x95: {'s': 'complement', 'operand_count': 1},
+    0x85: {'s': 'cmp le', 'stack_count': 2},
+    0x86: {'s': 'cmp lt', 'stack_count': 2},
+    0x87: {'s': 'cmp ge', 'stack_count': 2},
+    0x88: {'s': 'cmp gt', 'stack_count': 2},
+    0x89: {'s': 'cmp eq', 'stack_count': 2},
+    0x8a: {'s': 'cmp ne', 'stack_count': 2},
+    0x8b: {'s': 'or', 'stack_count': 2},
+    0x8c: {'s': 'and', 'stack_count': 2},
+    0x8d: {'s': 'add', 'stack_count': 2},
+    0x8e: {'s': 'sub', 'stack_count': 2},
+    0x8f: {'s': 'mul', 'stack_count': 2},
+    0x90: {'s': 'div', 'stack_count': 2},
+    0x91: {'s': 'mod', 'stack_count': 2},
+    0x92: {'s': 'abs', 'stack_count': 1},
+    0x93: {'s': '1<<L', 'stack_count': 1},
+    0x94: {'s': 'negate', 'stack_count': 1},
+    0x95: {'s': 'complement', 'stack_count': 1},
     0x96: {'s': 'push byte BYTE', 'length': 2},
     0x97: {'s': 'push word WORD', 'length': 3},
-    0x98: {'s': 'cond jump NZ far RELWORD', 'length': 3, 'word_relative': True, 'is_cond_jump': True},
-    0x99: {'s': 'cond jump Z near RELBYTE', 'length': 2, 'byte_relative': True, 'is_cond_jump': True},
+    # Conditions:
+    #   NZ: hl != 0
+    #   Z:  hl == 0
+    0x98: {'s': 'cond jump NZ far WORD', 'length': 3, 'word_relative': True, 'is_cond_jump': True},
+    0x99: {'s': 'cond jump Z near WORD', 'length': 2, 'byte_relative': True, 'is_cond_jump': True},
+    0x9a: {'s': 'unknown opcode 0x9a'},
+    # Store next byte in various places then gosub 5c1f, to return to 5eb7
     0x9b: {'s': 'store BYTE setjmp 5eb7 gosub 5c1f', 'length': 2},
-    0x9c: {'s': 'gosub 5c26 cond return or longjmp 5eb7', },
-    0xa1: {'s': 'jump RELWORD', 'length': 3, 'word_relative': True, 'is_jump': True},
-    0xa2: {'s': 'jump table', },
-    0xa4: {'s': '!= 0', 'operand_count': 1},
-    0xa5: {'s': '== 0', 'operand_count': 1},
-    0xa6: {'s': 'Code follows', },
-    0xa7: {'s': 'Return', },
-    # 0xa8 to 0xc7 are gosubs, listed above
-    0xc8: {'s': 'lookup_opcode_c8_map', },
-    0xc9: {'s': 'lookup_opcode_c9_map', },
-    0xca: {'s': 'lookup_opcode_ca_map', },
-    0xcb: {'s': 'lookup_opcode_cb_map', },
-    0xcc: {'s': 'lookup_opcode_cc_map', },
-    0xcd: {'s': 'lookup_opcode_cd_map', },
-    0xce: {'s': 'lookup_opcode_ce_map', },
-    0xcf: {'s': 'lookup_opcode_cf_map', },
-    0xd0: {'s': 'lookup_opcode_d0_map', },
-    0xd1: {'s': 'lookup_opcode_d1_map', },
-    0xd2: {'s': 'lookup_opcode_d2_map', },
-    0xd3: {'s': 'lookup_opcode_d3_map', },
-    0xd4: {'s': 'lookup_opcode_d4_map', },
-    0xd5: {'s': 'lookup_opcode_d5_map', },
-    0xd6: {'s': 'lookup_opcode_d6_map', },
-    0xd7: {'s': 'lookup_opcode_d7_map', },
-    0xd8: {'s': 'lookup_opcode_d8_map', },
-    0xd9: {'s': 'lookup_score_message_sector_map', },
-    0xda: {'s': 'lookup_opcode_da_map', },
-    0xdb: {'s': 'lookup_opcode_db_map', },
-    0xdc: {'s': 'lookup_opcode_dc_map', },
-    0xdd: {'s': 'lookup_opcode_dd_map', },
-    0xde: {'s': 'lookup_opcode_de_map', },
-    0xdf: {'s': 'lookup_opcode_df_map', },
-    0xe0: {'s': 'lookup_long_desc_sector_map', },
-    0xe1: {'s': 'lookup_opcode_e1_map', },
-    0xe2: {'s': 'lookup_object_desc_sector_map', },
-    0xe3: {'s': 'lookup_special_msg_sector_map', },
-    0xe4: {'s': 'lookup_brief_desc_sector_map', },
-    0xe5: {'s': 'lookup_opcode_e5_map', },
-    0xe6: {'s': 'lookup_opcode_e6_map', },
-    0xe7: {'s': 'lookup_opcode_e7_map', },
+    # Gosub 5c26 then either return of goto contents of address 5eb7
+    0x9c: {'s': 'gosub 5c26 cond return or longjmp 5eb7'},
+    0x9d: {'s': 'unknown opcode 0x9d'},
+    0x9e: {'s': 'unknown opcode 0x9e'},
+    0x9f: {'s': 'unknown opcode 0x9f'},
+    0xa0: {'s': 'unknown opcode 0xa0'},
+    # Jump to relative address in next 2 bytes
+    0xa1: {'s': 'jump WORD', 'length': 3, 'word_relative': True, 'is_jump': True},
+    # Looks like the following bytes are a jump table
+    0xa2: {'s': 'jump table'},
+    0xa4: {'s': '!= 0', 'stack_count': 1},
+    0xa5: {'s': '== 0', 'stack_count': 1},
+    0xa6: {'s': 'Code follows'},
+    0xa7: {'s': 'Return'},
+
+    # 0xa8 to 0xc7 are gosubs
+    0xa8: {'s': 'gosub 7670', 'gosub_addr': 0x7670},
+    0xa9: {'s': 'gosub 7673', 'gosub_addr': 0x7673},
+    0xaa: {'s': 'gosub 7676', 'gosub_addr': 0x7676},
+    0xab: {'s': 'gosub 5f1f', 'gosub_addr': 0x5f1f},
+    0xac: {'s': 'gosub 5f5b', 'gosub_addr': 0x5f5b},
+    0xad: {'s': 'gosub 7877', 'gosub_addr': 0x7877},
+    0xae: {'s': 'gosub 77ec', 'gosub_addr': 0x77ec},
+    0xaf: {'s': 'gosub 5f67', 'gosub_addr': 0x5f67},
+    0xb0: {'s': 'gosub 782b', 'gosub_addr': 0x782b},
+    0xb1: {'s': 'gosub 77a7', 'gosub_addr': 0x77a7},
+    0xb2: {'s': 'gosub 5f63', 'gosub_addr': 0x5f63},
+    0xb3: {'s': 'gosub wait_input_line', 'gosub_addr': 0x798a},
+    0xb4: {'s': 'gosub 5f15', 'gosub_addr': 0x5f15},
+    0xb5: {'s': 'gosub 77aa', 'gosub_addr': 0x77aa},
+    0xb6: {'s': 'gosub 5f3b', 'gosub_addr': 0x5f3b},
+    0xb7: {'s': 'gosub 5f2b', 'gosub_addr': 0x5f2b},
+    0xb8: {'s': 'gosub 5f46', 'gosub_addr': 0x5f46},
+    0xb9: {'s': 'gosub 7695', 'gosub_addr': 0x7695},
+    0xba: {'s': 'gosub 76a3', 'gosub_addr': 0x76a3},
+    0xbb: {'s': 'gosub 77bc', 'gosub_addr': 0x77bc},
+    0xbc: {'s': 'gosub 5f77', 'gosub_addr': 0x5f77},
+    0xbd: {'s': 'gosub 7953', 'gosub_addr': 0x7953},
+    0xbe: {'s': 'gosub 77e5', 'gosub_addr': 0x77e5},
+    0xbf: {'s': 'gosub random_n', 'gosub_addr': 0x785d},
+    0xc0: {'s': 'gosub 7980', 'gosub_addr': 0x7980},
+    0xc1: {'s': 'gosub print_a_message', 'gosub_addr': 0x7895},
+    0xc2: {'s': 'gosub 5f11', 'gosub_addr': 0x5f11},
+    0xc3: {'s': 'gosub 76b1', 'gosub_addr': 0x76b1},
+    0xc4: {'s': 'gosub 79fd', 'gosub_addr': 0x79fd},
+    0xc5: {'s': 'gosub 7a64', 'gosub_addr': 0x7a64},
+    0xc6: {'s': 'gosub 7a68', 'gosub_addr': 0x7a68},
+    0xc7: {'s': 'gosub 7a69', 'gosub_addr': 0x7a69},
+
+    0xc8: {'s': 'lookup_opcode_c8_map'},
+    0xc9: {'s': 'lookup_opcode_c9_map'},
+    0xca: {'s': 'lookup_opcode_ca_map'},
+    0xcb: {'s': 'lookup_opcode_cb_map'},
+    0xcc: {'s': 'lookup_opcode_cc_map'},
+    0xcd: {'s': 'lookup_opcode_cd_map'},
+    0xce: {'s': 'lookup_opcode_ce_map'},
+    0xcf: {'s': 'lookup_opcode_cf_map'},
+    0xd0: {'s': 'lookup_opcode_d0_map'},
+    0xd1: {'s': 'lookup_opcode_d1_map'},
+    0xd2: {'s': 'lookup_opcode_d2_map'},
+    0xd3: {'s': 'lookup_opcode_d3_map'},
+    0xd4: {'s': 'lookup_opcode_d4_map'},
+    0xd5: {'s': 'lookup_opcode_d5_map'},
+    0xd6: {'s': 'lookup_opcode_d6_map'},
+    0xd7: {'s': 'lookup_opcode_d7_map'},
+    0xd8: {'s': 'lookup_opcode_d8_map'},
+    0xd9: {'s': 'lookup_score_message_sector_map'},
+    0xda: {'s': 'lookup_opcode_da_map'},
+    0xdb: {'s': 'lookup_opcode_db_map'},
+    0xdc: {'s': 'lookup_opcode_dc_map'},
+    0xdd: {'s': 'lookup_opcode_dd_map'},
+    0xde: {'s': 'lookup_opcode_de_map'},
+    0xdf: {'s': 'lookup_opcode_df_map'},
+    0xe0: {'s': 'lookup_long_desc_sector_map'},
+    0xe1: {'s': 'lookup_opcode_e1_map'},
+    0xe2: {'s': 'lookup_object_desc_sector_map'},
+    0xe3: {'s': 'lookup_special_msg_sector_map'},
+    0xe4: {'s': 'lookup_brief_desc_sector_map'},
+    0xe5: {'s': 'lookup_opcode_e5_map'},
+    0xe6: {'s': 'lookup_opcode_e6_map'},
+    0xe7: {'s': 'lookup_opcode_e7_map'},
+    0xe8: {'s': 'unknown opcode 0xe8'},
+    0xe9: {'s': 'unknown opcode 0xe9'},
+    0xea: {'s': 'unknown opcode 0xea'},
+    0xeb: {'s': 'unknown opcode 0xeb'},
+    0xec: {'s': 'unknown opcode 0xec'},
   }
 
-  def disassemble(address, memory):
+  def __init__(self, opcode:int):
+    """Return a new Opcode.
+
+    Arguments:
+      * opcode: The 8-bit value of the opcode.
+
+    Raises:
+      OpcodeError: If the opcode number is unknown.
+    """
+
+    if opcode not in Opcode.opcode_table:
+      raise OpcodeError(f'Unknown opcode {opcode:02x}')
+
+    desc = Opcode.opcode_table[opcode]
+    self.opcode = opcode
+    self.desc = desc
+
+    if 'length' in desc:
+      self._length = desc['length']
+    else:
+      self._length = 1
+
+    # stack_count is the number of on-stack operands (if known)
+    if 'stack_count' in desc:
+      self.stack_count = desc['stack_count']
+    else:
+      self.stack_count = 0
+
+    # 'w' is the address of a word (probably to be pushed)
+    if 'w' in desc:
+      self.word_address = desc['w']
+    else:
+      self.word_address = None
+
+    # Set defaults for all these attributes
+    self.gosub_addr = None
+    self.is_cond_jump = False
+    self.is_gosub = False
+    self.is_jump = False
+    self.byte_relative = False
+    self.word_relative = False
+
+    if 'gosub_addr' in desc:
+      # Figure out implicit operand (gosubs)
+      self.gosub_addr = desc['gosub_addr']
+      self.is_gosub = True
+    elif 'byte_relative' in desc:
+      self.byte_relative = desc['byte_relative']
+    elif 'word_relative' in desc:
+      self.word_relative = desc['word_relative']
+
+    if 'is_jump' in desc:
+      self.is_jump = desc['is_jump']
+    elif 'is_cond_jump' in desc:
+      self.is_cond_jump = desc['is_cond_jump']
+
+  def disassemble(address:int, memory:bytes):
+    """Construct an Instruction, and disassemble it.
+
+    Arguments:
+      * address: The address of the memory area
+      * memory: 3 bytes of memory starting at 'address'
+
+    Returns:
+      The disassembly of the instruction.
+    """
+
     instruction = Instruction.FromMemory(address=address, memory=memory)
     return instruction.disassemble()
 
-  def opcode_length(opcode):
-    if opcode in Opcodes.two_byte_opcodes:
-      return 2
-    elif opcode in Opcodes.three_byte_opcodes:
-      return 3
-    return 1
+  def opcode_length(opcode:int):
+    """Return the length of the opcode number."""
+    return Opcode(opcode).length
+
+  @property
+  def length(self):
+    """The length of this opcode, in bytes."""
+
+    return self._length
+
+  @property
+  def string(self):
+    """The string representation of this opcode.
+
+    This does not include any substitutions for operands, e.g.
+
+    >>> print(Opcode(0x96).string)
+    'push byte BYTE'
+    """
+
+    return self.desc['s']
 
 class Debug(object):
-  """A Debugger controlller for the bytecode virtual machine."""
+  """A Debugger controller for the bytecode virtual machine."""
 
   def __init__(self, dbg):
+    """Return a new instance of Debug.
+
+    Arguments:
+
+      * dbg:   An instance of Debugger.
+    """
+
     self._have_registers = False
     self.breakpoints = {}
     self.memory = dbg.all_memory()
@@ -416,16 +515,22 @@ class Debug(object):
     self._pc = None
     self._sp = None
 
-    self.dbg.add_breakpoint('5a19', self.break_fetch_exec_loop)
+    self.dbg.add_breakpoint('5a19', self._fetch_exec_loop)
 
-  def break_fetch_exec_loop(self):
-    """Breakpoint function is called each time an opcode is fetched."""
+  def _fetch_exec_loop(self):
+    """This is called each time an opcode is fetched, before execution.
+
+    It runs all configured breakpoint functions for that program counter,
+    then it runs all configured trace functions. Any trace function which
+    does not return True is removed from the list of trace functions.
+
+    In future, breakpoint functions will have to return True.
+    """
     self._have_registers = False
     self.dbg.get_registers()
     pc = self.dbg.get_reg_bc()
     self._pc = pc
     self._sp = self.dbg.get_reg_de()
-    # print(f'fetch at {pc:04x} sp {self._sp:04x}')
 
     if pc in self.breakpoints:
       # Run one or more breakpoint functions
@@ -437,10 +542,10 @@ class Debug(object):
         del self.traces[func]
 
 
-  def add_breakpoint(self, addr, func):
+  def add_breakpoint(self, addr:int, func):
     """Set a breakpoint at 'addr'.
 
-    When fetching the bytecode at 'addr', call 'func'.
+    When fetching the bytecode at 'addr', call func().
     """
     if addr not in self.breakpoints:
       self.breakpoints[addr] = []
@@ -449,27 +554,28 @@ class Debug(object):
   def add_trace(self, func):
     """Trace every instruction.
 
-    Calls func(opcode) after all breakpoint functions have been called.
+    Calls func() after all breakpoint functions have been called.
 
-    The trace is deleted when the function returns False.
+    The trace is deleted unless the function returns True.
     """
     self.traces[func] = func
 
   @property
-  def pc(self):
+  def pc(self) -> int:
+    """The current VM program counter (integer)."""
     return self._pc
 
   @property
-  def sp(self):
+  def sp(self) -> int:
+    """The current VM stack pointer (integer)."""
     return self._sp
 
   def instruction(self) -> 'Instruction':
-    """Return the currently about to be executed instruction as an Instruction.
-    """
+    """Return the currently about to be executed instruction as an Instruction."""
 
-    return Instruction.FromMemory(self._pc, self.memory)
+    return Instruction(address=self.pc, memory=self.memory.memory_bytes(self.pc, 3))
 
-  def stack(self, offset):
+  def stack(self, offset:int) -> (int,int):
     """Return the 2 16-bit values in the stack at relative 'offset'.
 
     Since each stack item occupies 4 bytes, offset is multiplied by 4
@@ -480,8 +586,7 @@ class Debug(object):
     e.g. (pointer, value) = x.stack(1)
     """
     start_addr = self.sp + 4 * offset
-    mem = self.dbg.memory(start_addr, 4)
-    value = self.dbg.hex2int(mem[1] + mem[0])
-    pointer = self.dbg.hex2int(mem[3] + mem[2])
+    value = self.memory.word(start_addr)
+    pointer = self.memory.word(start_addr + 2)
 
     return (value, pointer)
