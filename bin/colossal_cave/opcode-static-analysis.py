@@ -11,6 +11,36 @@ import argparse
 
 import vm
 
+class MemoryError(Exception):
+  """An address out of memory range was requested."""
+
+class Memory(object):
+  """A sequence of bytes starting at some address."""
+
+  def __init__(self, *, address, memory):
+    self.start_address = address
+    self.size = len(memory)
+    self.last_address = address + self.size
+    self.memory = memory
+
+  def memory_bytes(self, start_address, size):
+    s = start_address - self.start_address
+    if s < 0:
+      raise MemoryError(f'Memory start_address {start_address:04x} less than {self.start_address:04x}')
+    last_address = start_address + size
+    if last_address > self.last_address:
+      raise MemoryError(f'Memory last address {last_address:04x} greater than {self.last_address:04x}')
+
+    return self.memory[s:s + size]
+
+  def byte(self, address):
+    b = self.memory_bytes(address, 1)
+    return b[0]
+
+  def word(self, address):
+    b = self.memory_bytes(address, 2)
+    return b[0] + b[1] * 0x100
+
 
 class CodeSpec(object):
   # The bin file loads starting at this address
@@ -54,14 +84,10 @@ class Digraph(object):
       self.generate_graph(stream=ofp)
 
 
-class MemoryError(Exception):
-  """An address out of memory range was requested."""
-
 
 class Analysis(object):
-  def __init__(self, memory: list[bytes]):
-    self.memory = memory
-    self.memory_offset = CodeSpec.load_offset
+  def __init__(self, memory: bytes):
+    self.memory = Memory(address=CodeSpec.load_offset, memory=memory)
 
     self.digraph1 = Digraph()    # Mainline code
     self.digraph2 = Digraph()    # All subroutines
@@ -75,16 +101,11 @@ class Analysis(object):
 
   def get_memory(self, addr):
     """Returns one byte of code memory at 'addr'."""
-    if addr < self.memory_offset:
-      raise MemoryError(f'Address {addr:04x} is less than start {self.memory_offset:04x}')
-    return self.memory[addr - self.memory_offset]
+    return self.memory.byte(addr)
 
   def get_memory_slice(self, addr, length):
     """Returns a slice of code memory at 'addr'."""
-    if addr < self.memory_offset:
-      raise MemoryError(f'Address {addr:04x} is less than start {self.memory_offset:04x}')
-    start = addr - self.memory_offset
-    return self.memory[start:start + length]
+    return self.memory.memory_bytes(addr, length)
 
 
   def start_analysis(self, addr: int, digraph) -> None:
@@ -94,26 +115,37 @@ class Analysis(object):
     """
 
     while addr not in self.seen:
-      mem = self.get_memory_slice(addr, 3)
-      instruction = vm.Instruction.FromMemory(addr, mem)
+      instruction = vm.Instruction(address=addr, memory=self.memory.memory_bytes(addr, 3))
       opcode = instruction.opcode
-      length = instruction.length
+      length = instruction.opcode.length
       self.seen[addr] = True
       s = instruction.disassemble()
       # Add it to whichever digraph this function is working in
       digraph.add_node(f'x{addr:04x}', s)
 
-      if opcode == 0xa6:
+      if opcode.is_code_follows:
         # Code follows, that's where we stop
         return
 
-      if opcode == 0xa7:
+      if opcode.is_return:
         # This is a return, we stop here
         return
 
-      if instruction.is_gosub:
+      if opcode.is_jump_table:
+        # A jump table follows. We stop here, but add the calculated table
+        # addresses to our TODO list.
+        size = instruction.operand
+        print(f'Jump table at {addr:04x} ... ', end=None)
+        for index in range(size):
+          jump_addr = (addr + 2 + index * 2 + self.memory.word(addr + 2 + index * 2)) & 0xffff
+          print(f'{jump_addr:04x} ', end=None)
+          self.todo.append((jump_addr, digraph))
+        print('')
+        return
+
+      if opcode.gosub_addr:
         # Analyse the subroutine
-        gosub_addr = instruction.operand
+        gosub_addr = opcode.gosub_addr
         # Optimise to only add it to the todo list once
         if gosub_addr not in self.seen:
           if gosub_addr not in CodeSpec.entrypoints:
@@ -123,14 +155,14 @@ class Analysis(object):
             self.digraph2.add_edge(description, gosub_addr)
           self.todo.append((gosub_addr, self.digraph2))
 
-      if instruction.is_jump:
+      if opcode.is_jump:
         jump_addr = instruction.operand
         # jumps stay within the current digraph
         digraph.add_edge(f'x{addr:04x}', jump_addr)
         self.todo.append((jump_addr, digraph))
         return
 
-      if instruction.is_cond_jump:
+      if opcode.is_cond_jump:
         # Add a 2nd edge for the conditional jump
         jump_addr = instruction.operand
         digraph.add_edge(f'x{addr:04x}', jump_addr)
@@ -138,7 +170,7 @@ class Analysis(object):
         # Conditional jumps fall through to the next address
 
       # Step to the next instruction in the sequence
-      next_addr = addr + length
+      next_addr = instruction.next_address
       digraph.add_edge(f'x{addr:04x}', next_addr)
       addr = next_addr
 
