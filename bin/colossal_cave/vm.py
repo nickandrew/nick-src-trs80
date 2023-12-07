@@ -39,7 +39,11 @@ class Instruction(object):
 
     self.address = address
     self.memory = memory
-    self.opcode = Opcode(memory[0])
+    try:
+      self.opcode = Opcode(memory[0])
+    except OpcodeError as e:
+      raise OpcodeError(f'Address {address:04x} {e}')
+
     self.operand = None  # The implicit or explicit operand
 
     length = self.opcode.length
@@ -324,12 +328,15 @@ class Opcode(object):
     0xa0: {'s': 'unknown opcode 0xa0'},
     # Jump to relative address in next 2 bytes
     0xa1: {'s': 'jump WORD', 'length': 3, 'word_relative': True, 'is_jump': True},
-    # Looks like the following bytes are a jump table
-    0xa2: {'s': 'jump table'},
+    # Jump table [n]: This is a variable-length opcode.
+    # pc = 0xa2
+    # pc + 1 = number of table entries
+    # Following words are code entrypoints relative to the address of each word
+    0xa2: {'s': 'jump table size=BYTE', 'length': 2, 'is_jump_table': True},
     0xa4: {'s': '!= 0', 'stack_count': 1},
     0xa5: {'s': '== 0', 'stack_count': 1},
-    0xa6: {'s': 'Code follows'},
-    0xa7: {'s': 'Return'},
+    0xa6: {'s': 'Code follows', 'is_code_follows': True},
+    0xa7: {'s': 'Return', 'is_return': True},
 
     # 0xa8 to 0xc7 are gosubs
     0xa8: {'s': 'gosub 7670', 'gosub_addr': 0x7670},
@@ -477,6 +484,34 @@ class Opcode(object):
   def opcode_length(opcode:int):
     """Return the length of the opcode number."""
     return Opcode(opcode).length
+
+  @property
+  def is_code_follows(self) -> bool:
+    """Returns True if this opcode is a code_follows instruction."""
+    if 'is_code_follows' in self.desc:
+      return self.desc['is_code_follows']
+
+    return False
+
+  @property
+  def is_jump_table(self) -> bool:
+    """Returns True if a jump table follows this opcode in memory.
+
+    This is a terminating instruction (like a jump). A disassembler must
+    parse the following bytes to find all possible jump addresses.
+    """
+    if 'is_jump_table' in self.desc:
+      return self.desc['is_jump_table']
+
+    return False
+
+  @property
+  def is_return(self) -> bool:
+    """Returns True if this opcode is a return instruction."""
+    if 'is_return' in self.desc:
+      return self.desc['is_return']
+
+    return False
 
   @property
   def length(self):
