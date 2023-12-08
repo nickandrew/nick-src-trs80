@@ -49,6 +49,11 @@ class CodeSpec(object):
   # All known entrypoints to bytecode
   entrypoints = {
     0x5f9b: 'program_start_1',
+    0x5fba: 'Common 5fba',
+    0x62e3: 'Common 62e3',
+    0x63bb: 'Common 63bb',
+    0x63bd: 'Common 63bd',
+    0x6990: 'Common 6990',
     0x730a: 'program_start_2',
   }
 
@@ -75,7 +80,7 @@ class Digraph(object):
 
     for left, right in self.edges:
       if right:
-        print(f'  "{left}" -> x{right:04x};', file=stream)
+        print(f'  "{left}" -> "{right}";', file=stream)
 
     print('}', file=stream)
 
@@ -121,7 +126,8 @@ class Analysis(object):
       self.seen[addr] = True
       s = instruction.disassemble()
       # Add it to whichever digraph this function is working in
-      digraph.add_node(f'x{addr:04x}', s)
+      node_name = f'x{addr:04x}'
+      digraph.add_node(node_name, s)
 
       if opcode.is_code_follows:
         # Code follows, that's where we stop
@@ -135,11 +141,30 @@ class Analysis(object):
         # A jump table follows. We stop here, but add the calculated table
         # addresses to our TODO list.
         size = instruction.operand
-        print(f'Jump table at {addr:04x} ... ', end=None)
+        print(f'Jump table at {addr:04x} ... ', end='')
         for index in range(size):
           jump_addr = (addr + 2 + index * 2 + self.memory.word(addr + 2 + index * 2)) & 0xffff
-          print(f'{jump_addr:04x} ', end=None)
+          print(f'{jump_addr:04x} ', end='')
+
+          # Add this to list of entrypoints
+          if jump_addr not in CodeSpec.entrypoints:
+            start_node_id = f'x{jump_addr:04x} start'
+            CodeSpec.entrypoints[jump_addr] = start_node_id
+            digraph.add_node(start_node_id, start_node_id)
+            digraph.add_edge(start_node_id, f'x{jump_addr:04x}')
+
+          # Add a node for the destination
+          unique_node_id = f'jump_table_x{addr:04x}_to_x{jump_addr:04x}'
+          digraph.add_node(unique_node_id, f'to x{jump_addr:04x}')
+          digraph.add_edge(node_name, unique_node_id)
+
+          # Add a node from the table index to the implementation
+          unique_node_id_2 = f'x{addr:04x} jump table index {index}'
+          digraph.add_node(unique_node_id_2, unique_node_id_2)
+          digraph.add_edge(unique_node_id_2, f'x{jump_addr:04x} start')
+
           self.todo.append((jump_addr, digraph))
+
         print('')
         return
 
@@ -152,26 +177,39 @@ class Analysis(object):
             description = instruction.disassemble() + ' start'
             CodeSpec.entrypoints[gosub_addr] = description
             # Subroutines always go to digraph2
-            self.digraph2.add_edge(description, gosub_addr)
+            self.digraph2.add_edge(description, f'x{gosub_addr:04x}')
           self.todo.append((gosub_addr, self.digraph2))
 
       if opcode.is_jump:
         jump_addr = instruction.operand
+        if jump_addr in CodeSpec.entrypoints:
+          # Make a leaf node "to {jump_addr}", so the entrypoint will be separate
+          unique_node_id = f'x{addr:04x}_to_x{jump_addr:04x}'
+          digraph.add_node(unique_node_id, f'to x{jump_addr:04x}')
+          digraph.add_edge(node_name, unique_node_id)
+        else:
+          digraph.add_edge(node_name, f'x{jump_addr:04x}')
         # jumps stay within the current digraph
-        digraph.add_edge(f'x{addr:04x}', jump_addr)
         self.todo.append((jump_addr, digraph))
+        # And are terminal
         return
 
       if opcode.is_cond_jump:
         # Add a 2nd edge for the conditional jump
         jump_addr = instruction.operand
-        digraph.add_edge(f'x{addr:04x}', jump_addr)
+        if jump_addr in CodeSpec.entrypoints:
+          # Make a leaf node "to {jump_addr}", so the entrypoint will be separate
+          unique_node_id = f'x{addr:04x}_to_x{jump_addr:04x}'
+          digraph.add_node(unique_node_id, f'to x{jump_addr:04x}')
+          digraph.add_edge(node_name, unique_node_id)
+        else:
+          digraph.add_edge(node_name, f'x{jump_addr:04x}')
         self.todo.append((jump_addr, digraph))
         # Conditional jumps fall through to the next address
 
       # Step to the next instruction in the sequence
       next_addr = instruction.next_address
-      digraph.add_edge(f'x{addr:04x}', next_addr)
+      digraph.add_edge(node_name, f'x{next_addr:04x}')
       addr = next_addr
 
 
@@ -185,26 +223,12 @@ class Analysis(object):
       (entrypoint, digraph) = self.todo.pop(0)
       self.start_analysis(entrypoint, digraph)
 
-
-  def generate_graph(self):
-    print('digraph {')
-    for name in self.nodes:
-      s = self.nodes[name]
-      print(f'  "{name}" [label="{s}"];')
-
-    for left, right in self.edges:
-      if right:
-        print(f'  "{left}" -> x{right:04x};')
-
-    print('}')
-
   def analyse(self):
-
     # Set up all the known entrypoints
     for addr in CodeSpec.entrypoints.keys():
       description = CodeSpec.entrypoints[addr]
       self.digraph1.add_node(description, description)
-      self.digraph1.add_edge(description, addr)
+      self.digraph1.add_edge(description, f'x{addr:04x}')
       self.todo.append((addr, self.digraph1))
 
     self.analyse_all()
