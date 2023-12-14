@@ -88,9 +88,11 @@ class Instruction(object):
     op_str = self.opcode.string
     operand = self.operand
     if 'BYTE' in op_str:
-      op_str = op_str.replace('BYTE', '') + f'[{operand:02x}]'
+      op_str = op_str.replace('BYTE', f'[{operand:02x}]')
+    elif 'ADDR' in op_str:
+      op_str = op_str.replace('ADDR', f'[{operand:04x}]')
     elif 'WORD' in op_str:
-      op_str = op_str.replace('WORD', '') + f'[{operand:04x}]'
+      op_str = op_str.replace('WORD', f'[{operand:04x}]')
 
     return op_str
 
@@ -315,19 +317,32 @@ class Opcode(object):
     # Conditions:
     #   NZ: hl != 0
     #   Z:  hl == 0
-    0x98: {'s': 'cond jump NZ far WORD', 'length': 3, 'word_relative': True, 'is_cond_jump': True},
-    0x99: {'s': 'cond jump Z near WORD', 'length': 2, 'byte_relative': True, 'is_cond_jump': True},
+    0x98: {'s': 'cond jump True far ADDR', 'length': 3, 'word_relative': True, 'is_cond_jump': True},
+    0x99: {'s': 'cond jump False near ADDR', 'length': 2, 'byte_relative': True, 'is_cond_jump': True},
     0x9a: {'s': 'unknown opcode 0x9a'},
-    # Store next byte in various places then gosub 5c1f, to return to 5eb7
-    0x9b: {'s': 'store BYTE setjmp 5eb7 gosub 5c1f', 'length': 2},
-    # Gosub 5c26 then either return of goto contents of address 5eb7
-    0x9c: {'s': 'gosub 5c26 cond return or longjmp 5eb7'},
-    0x9d: {'s': 'unknown opcode 0x9d'},
-    0x9e: {'s': 'unknown opcode 0x9e'},
-    0x9f: {'s': 'unknown opcode 0x9f'},
+    # 0x9b:
+    #   Pop 2 arguments off stack
+    #   Store next literal byte in various places
+    #   Save next PC in 0x5eb7
+    #   Gosub 0x5c1f
+    #   Continue
+    0x9b: {'s': 'store BYTE setjmp 5eb7 gosub 5c1f', 'length': 2, 'stack_count': 2},
+    # Gosub 5c26 then either continue or goto contents of address 5eb7
+    # longjmp if byte at 0x5b5e != register c
+    0x9c: {'s': 'gosub 5c26 then cond longjmp 5eb7'},
+    # 0x9d:
+    #   Pop 1 argument off stack
+    #   Pop another argument off stack, into BC
+    0x9d: {'s': 'unknown opcode 0x9d', 'stack_count': 2},
+    0x9e: {'s': 'unknown opcode 0x9e', 'stack_count': 1},
+    0x9f: {'s': 'unknown opcode 0x9f', 'stack_count': 1},
+    # 0xa0:
+    #   Pop 1 argument off stack
+    #   Execute opcode 0x71 (push wt1 4354)
+    #   Then (z80) jump to 0x5b63
     0xa0: {'s': 'unknown opcode 0xa0'},
     # Jump to relative address in next 2 bytes
-    0xa1: {'s': 'jump WORD', 'length': 3, 'word_relative': True, 'is_jump': True},
+    0xa1: {'s': 'jump ADDR', 'length': 3, 'word_relative': True, 'is_jump': True},
     # Jump table [n]: This is a variable-length opcode.
     # pc = 0xa2
     # pc + 1 = number of table entries
@@ -363,12 +378,12 @@ class Opcode(object):
     0xbd: {'s': 'gosub 7953', 'gosub_addr': 0x7953},
     0xbe: {'s': 'gosub 77e5', 'gosub_addr': 0x77e5},
     0xbf: {'s': 'gosub random_n', 'gosub_addr': 0x785d},
-    0xc0: {'s': 'gosub 7980', 'gosub_addr': 0x7980},
+    0xc0: {'s': 'gosub print_a_general_message', 'gosub_addr': 0x7980},
     0xc1: {'s': 'gosub print_a_message', 'gosub_addr': 0x7895},
     0xc2: {'s': 'gosub 5f11', 'gosub_addr': 0x5f11},
     0xc3: {'s': 'gosub 76b1', 'gosub_addr': 0x76b1},
-    0xc4: {'s': 'gosub 79fd', 'gosub_addr': 0x79fd},
-    0xc5: {'s': 'gosub 7a64', 'gosub_addr': 0x7a64},
+    0xc4: {'s': 'gosub ask_a_yes_or_no_question', 'gosub_addr': 0x79fd},
+    0xc5: {'s': 'gosub print_introduction_message', 'gosub_addr': 0x7a64},
     0xc6: {'s': 'gosub 7a68', 'gosub_addr': 0x7a68},
     0xc7: {'s': 'gosub 7a69', 'gosub_addr': 0x7a69},
 
