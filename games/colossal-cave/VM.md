@@ -62,11 +62,12 @@ These opcodes call one of 32 bytecode subroutines.
 | a8     | 7670 | opcode_a8_sub | gosub 7670 |
 | a9     | 7673 | opcode_a9_sub |            |
 | aa     | 7676 | opcode_aa_sub |            |
+| ab     | 5f1f |               |            |
 | b9     | 7695 | opcode_b9_sub |            |
 | ba     | 76a3 | opcode_ba_sub |            |
 | bd     |      |               | Print an object description |
 | be     |      |               |            |
-| bf     |      |               |            |
+| bf     | 785d | opcode_bf_sub | Return a random number (0..n-1) |
 | c0     |      |               |            |
 | c1     |      |               | Print a message |
 | c4     |      |               | Ask a yes or no question |
@@ -122,5 +123,8 @@ Memory addresses used for location tracking:
 4348
 434a
 
-4362 - Input characters?
-436c - 4376: Last object interacted with
+4362 - Yes/No question Input chars 0-1
+4364 - Yes/No question Input chars 2-3
+4366 - Input chars 4-5, etc
+436c - First word chars 0-1
+436e - First word chars 2-3
