@@ -9,3 +9,14 @@ dump-game.rel:
   sdcc: dump-game.c
   depends:
   - dump-game.c
+make-game.cmd:
+  link: make-game
+  depends:
+  - make-game.rel
+  - library/basicio/basicio.lib
+  - library/fd1771/fd1771.lib
+  - library/newdos80/newdos80.lib
+make-game.rel:
+  sdcc: make-game.c
+  depends:
+  - make-game.c
