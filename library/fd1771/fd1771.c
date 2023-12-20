@@ -80,6 +80,34 @@ char *fd1771_read(char flags, char *buf) __naked __sdcccall(1)
 	__endasm;
 }
 
+// Write one sector to the diskette.
+// Track and sector numbers need to be set in the corresponding registers in advance.
+// Return the first unwritten buffer address.
+// Typical value for flags is 0x10
+char *fd1771_write(char flags, const char *buf) __naked __sdcccall(1)
+{
+	flags;  // Avoid unreferenced function argument warning
+	buf;  // Avoid unreferenced function argument warning
+
+	__asm
+	// flags: A, buf: DE
+	and a,#0x1f     ; Retain only flags bits.
+	or a,#0xa0      ; It is now a Write command
+	ld (0x37ec),a
+00001$:
+	ld a,(0x37ec)
+	bit 0,a
+	ret z           ; Controller is no longer busy; return DE
+	bit 1,a
+	jr z,00001$     ; Loop until a byte is ready
+	ld a,(de)       ; Read next byte from buffer
+	ld (0x37ef),a   ; Write data register
+	inc de
+	jr 00001$
+
+	__endasm;
+}
+
 char fd1771_read_address(struct fd1771_id_buf *buf) __naked __sdcccall(1)
 {
 	buf;  // Avoid unreferenced function argument warning

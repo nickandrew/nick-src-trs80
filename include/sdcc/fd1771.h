@@ -60,5 +60,6 @@ extern void fd1771_set_track(char track) __sdcccall(1);
 extern char fd1771_step(char flags) __sdcccall(1);
 extern char fd1771_step_in(char flags) __sdcccall(1);
 extern char fd1771_step_out(char flags) __sdcccall(1);
+extern char *fd1771_write(char flags, const char *buf) __sdcccall(1);
 
 #endif
