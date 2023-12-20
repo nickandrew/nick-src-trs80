@@ -1,9 +1,12 @@
-// Make Game - Reads Colossal Cave .bin files and writes a game diskette.
+// copygame - Copies Colossal Cave from diskette to file or vice-versa.
 // Only single density is supported - format diskette 35 track SSSD.
-// Encoded sector numbers are not supported.
 //
-// Usage: makegame :drive_number bootfile codefile datafile
-// E.g. makegame :1 boot10np/bin:0 code10/bin:0 data10/bin:0
+// Usage:
+//    copygame export [/P] :drive_number filename/bin:0       ; Copy diskette to file
+//    copygame import [/J] [/P] :drive_number filename/bin:0  ; Copy file to diskette
+// Options:
+//    /J   - Write JV1 diskette (0xf8 Data Address Mark on directory sectors)
+//    /P   - Read/Write protected diskette (translated track/sector numbers)
 
 #include <ctype.h>
 #include <fd1771.h>
@@ -11,26 +14,45 @@
 #include <stdlib.h>
 
 // Cache size
-#define NUMBER_SECTORS 62
+#define CACHE_SECTORS 50
 
-// Boot = 1 sector; Code = 62; Data = 287 (total 350)
-#define CODE_SECTORS 62
-#define DATA_SECTORS 287
+// Colossal Cave uses 35 tracks, 10 sectors/track
+#define NUMBER_SECTORS 350
 
 int	drive_number = 1;
 int protected = 0;  // Read/Write a protected diskette
 int jv1 = 0;        // JV1 emulated diskette; write track 17 with DAM 0xf8
-char sector_data[NUMBER_SECTORS * 256];
-char *boot_filename;
-char *code_filename;
-char *data_filename;
+char sector_cache[CACHE_SECTORS * 256];
+
+enum {
+	no_action,
+	export_action,
+	import_action,
+} action;
 
 // Next (untranslated) track and sector number to write to the diskette
 char track_number = 0;
 char sector_number = 0;
 
+int _stricmp(const char *s1, const char *s2) {
+	char c;
+
+	while (*s1 && *s2) {
+		c = tolower(*s1) - tolower(*s2);
+		if (c) {
+			return c;
+		}
+
+		++s1;
+		++s2;
+	}
+
+	c = *s1 - *s2;
+	return c;
+}
+
 void print_type1_error(int status) {
-	printf("Error %02x from fd1771:\n", status);
+	printf("\nError %02x from fd1771:\n", status);
 	if (status & 0x80) {
 		printf("  Not Ready\n");
 	}
@@ -46,7 +68,7 @@ void print_type1_error(int status) {
 }
 
 void print_fd1771_error(int status) {
-	printf("Error %02x from fd1771:\n", status);
+	printf("\nError %02x from fd1771:\n", status);
 	if (status & 0x80) {
 		printf("  Not Ready\n");
 	}
@@ -62,8 +84,12 @@ void print_fd1771_error(int status) {
 }
 
 void usage(void) {
-	printf("Usage: makegame [/J] [/P] :drive_number bootfile codefile datafile\n");
-	printf("e.g.   makegame /J :1 boot10np/bin:0 code10/bin:0 data10/bin:0\n");
+	printf("Usage:\n");
+	printf("   copygame export (/P) :drive_number filename/bin:0\n");
+	printf("   copygame import (/J) (/P) :drive_number filename/bin:0\n");
+	printf("Options:\n");
+	printf("   /J   - Write JV1 diskette (0xf8 DAM on directory sectors)\n");
+	printf("   /P   - Read/Write protected diskette\n");
 }
 
 void spin_up(void) {
@@ -86,7 +112,7 @@ char cond_translate(char id) {
 
 int read_file(void *data, int sector_count, FILE *ifp)
 {
-	fprintf(stderr, "Reading %d sectors\n", sector_count, data);
+	fprintf(stderr, "\nReading %d sectors\n", sector_count, data);
 
 	size_t nmemb = fread(data, 256, sector_count, ifp);
 	if (nmemb != sector_count) {
@@ -99,7 +125,7 @@ int read_file(void *data, int sector_count, FILE *ifp)
 
 int write_file(const void *data, int sector_count, FILE *ofp)
 {
-	fprintf(stderr, "Writing %d sectors\n", sector_count, data);
+	fprintf(stderr, "\nWriting %d sectors\n", sector_count, data);
 
 	size_t nmemb = fwrite(data, 256, sector_count, ofp);
 	if (nmemb != sector_count) {
@@ -108,6 +134,52 @@ int write_file(const void *data, int sector_count, FILE *ofp)
 	}
 
 	return 0;
+}
+
+// test_diskette: Ensure a diskette is in the drive and test if it contains
+// translated sectors.
+int test_diskette(char *buf) {
+
+	fd1771_set_single_density();
+	spin_up;
+	// track_number == 0 at this point
+	fd1771_set_track(translate(0));
+	fd1771_set_sector(translate(1));
+
+	char *last_addr = fd1771_read(0x08, buf);
+	int bytes_read = last_addr - buf;
+
+	char status = fd1771_get_status();
+	if (status & 0x8c) {
+		print_fd1771_error(status);
+		return 4;
+	}
+
+	if (!(status & 0x10)) {
+		// Found translated sector number
+		printf("Found translated sector number, protected = 1\n");
+		protected = 1;
+		return 0;
+	}
+
+	// Try again, untranslated
+	fd1771_set_sector(1);
+	last_addr = fd1771_read(0x08, buf);
+
+	status = fd1771_get_status();
+	if (status & 0x8c) {
+		print_fd1771_error(status);
+		return 4;
+	}
+
+	if (!(status & 0x10)) {
+		// Found normal sector number
+		printf("Found normal sector number, protected = 0\n");
+		return 0;
+	}
+
+	printf("Looks like the diskette is not formatted?\n");
+	return 6;
 }
 
 // read_diskette: Read the next `sector_count` sectors from the game diskette
@@ -125,7 +197,7 @@ int read_diskette(char *buf, int sector_count)
 
 		char *last_addr = fd1771_read(0x08, buf);
 		int bytes_read = last_addr - buf;
-		fprintf(stderr, "Loop %02d Track %02d Sector %d Bytes read: %d at %p\n", i, track_number, sector_number, bytes_read, buf);
+		fprintf(stderr, "\rLoop %02d Track %02d Sector %d Bytes read: %d at %p", i, track_number, sector_number, bytes_read, buf);
 
 		status = fd1771_get_status();
 		if (status & 0x9c) {
@@ -135,7 +207,7 @@ int read_diskette(char *buf, int sector_count)
 		}
 
 		if (bytes_read != 256) {
-			printf("Bad byte count, aborting\n");
+			printf("\nBad byte count, aborting\n");
 			return 4;
 		}
 
@@ -161,9 +233,8 @@ int read_diskette(char *buf, int sector_count)
 	return 0;
 }
 
-// write_diskette: Read the next `sector_count` sectors from the game diskette
-// Store in buf
-int write_diskette(char *buf, int sector_count)
+// write_diskette: Write the next `sector_count` sectors to the game diskette
+int write_diskette(const char *buf, int sector_count)
 {
 	char status;
 
@@ -182,7 +253,7 @@ int write_diskette(char *buf, int sector_count)
 
 		char *last_addr = fd1771_write(write_flags, buf);
 		int bytes_written = last_addr - buf;
-		fprintf(stderr, "Loop %02d Track %02d Sector %d Bytes written: %d at %p\n", i, track_number, sector_number, bytes_written, buf);
+		fprintf(stderr, "\rLoop %02d Track %02d Sector %d Bytes written: %d at %p", i, track_number, sector_number, bytes_written, buf);
 
 		status = fd1771_get_status();
 		if (status & 0x9c) {
@@ -192,7 +263,7 @@ int write_diskette(char *buf, int sector_count)
 		}
 
 		if (bytes_written != 256) {
-			printf("Bad byte count, aborting\n");
+			printf("\rBad byte count, aborting\n");
 			return 4;
 		}
 
@@ -218,27 +289,61 @@ int write_diskette(char *buf, int sector_count)
 	return 0;
 }
 
-int copy_from_file(char *filename, int n_sectors) {
+int copy_from_diskette(const char *filename) {
+	FILE *ofp = fopen(filename, "w");
+	if (ofp == NULL) {
+		printf("Unable to open %s for write - aborting\n", filename);
+		return 2;
+	}
+
+	int sectors_todo = NUMBER_SECTORS;
+	int rc;
+
+	while (sectors_todo > 0) {
+		int sectors_tocopy = (sectors_todo > CACHE_SECTORS) ? CACHE_SECTORS : sectors_todo;
+
+		rc = read_diskette(sector_cache, sectors_tocopy);
+		if (rc != 0) {
+			printf("Read error on diskette\n");
+			fclose(ofp);
+			return 5;
+		}
+
+		rc = write_file(sector_cache, sectors_tocopy, ofp);
+		if (rc != 0) {
+			printf("Write error on %s\n", filename);
+			fclose(ofp);
+			return 2;
+		}
+
+		sectors_todo -= sectors_tocopy;
+	}
+
+	fclose(ofp);
+	return 0;
+}
+
+int copy_from_file(const char *filename) {
 	FILE *ifp = fopen(filename, "r");
 	if (ifp == NULL) {
 		printf("Unable to open %s for read - aborting\n", filename);
 		return 2;
 	}
 
-	int sectors_todo = n_sectors;
+	int sectors_todo = NUMBER_SECTORS;
 	int rc;
 
 	while (sectors_todo > 0) {
-		int sectors_tocopy = (sectors_todo > NUMBER_SECTORS) ? NUMBER_SECTORS : sectors_todo;
+		int sectors_tocopy = (sectors_todo > CACHE_SECTORS) ? CACHE_SECTORS : sectors_todo;
 
-		rc = read_file(sector_data, sectors_tocopy, ifp);
+		rc = read_file(sector_cache, sectors_tocopy, ifp);
 		if (rc != 0) {
 			printf("Read error on %s\n", filename);
 			fclose(ifp);
 			return 5;
 		}
 
-		rc = write_diskette(sector_data, sectors_tocopy);
+		rc = write_diskette(sector_cache, sectors_tocopy);
 		if (rc != 0) {
 			printf("Write error on diskette\n");
 			fclose(ifp);
@@ -249,20 +354,28 @@ int copy_from_file(char *filename, int n_sectors) {
 	}
 
 	fclose(ifp);
-	printf("Read %s, %ld bytes.\n", filename, (long)(n_sectors * 256));
-
 	return 0;
 }
 
 int main(int argc, char *argv[]) {
 	int ch;
 	int rc;
-	char status;
-	char **argp = &argv[1];
+	char *action_arg = argv[1];
+	char **argp = &argv[2];
+	char *filename;
 
-	printf("Write the Colossal Cave boot, code and data to diskette\n");
+	printf("Copy Colossal Cave from diskette to file or vice-versa.\n");
 
-	if (argc < 5) {
+	if (argc < 4) {
+		usage();
+		return 4;
+	}
+
+	if (!_stricmp(action_arg, "export")) {
+		action = export_action;
+	} else if (!_stricmp(action_arg, "import")) {
+		action = import_action;
+	} else {
 		usage();
 		return 4;
 	}
@@ -285,12 +398,11 @@ int main(int argc, char *argv[]) {
 		usage();
 		return 4;
 	}
+
 	drive_number = atoi(&argp[0][1]);
 
-	// Take final arguments
-	boot_filename = argp[1];
-	code_filename = argp[2];
-	data_filename = argp[3];
+	// Take final argument
+	filename = argp[1];
 
 	printf("Insert game diskette into drive %d; press ENTER or Q to quit\n", drive_number);
 
@@ -305,28 +417,31 @@ int main(int argc, char *argv[]) {
 
 	spin_up();
 
-	status = fd1771_restore(0);   // Seek head to track zero
+	char status = fd1771_restore(0);   // Seek head to track zero
 	if (status & 0x98) {
 		print_type1_error(status);
 		printf("Aborting.\n");
 		return 4;
 	}
 
-	// Start writing at sector 0
-	sector_number = 0;
+	rc = test_diskette(sector_cache);
 
-	rc = copy_from_file(boot_filename, 1);
 	if (rc) {
+		printf("Aborting.\n");
 		return rc;
 	}
 
-	rc = copy_from_file(code_filename, CODE_SECTORS);
-	if (rc) {
-		return rc;
+	if (action == export_action) {
+		rc = copy_from_diskette(filename);
+	} else if (action == import_action) {
+		rc = copy_from_file(filename);
+	} else {
+		printf("Unknown action - aborting\n");
+		return 8;
 	}
 
-	rc = copy_from_file(data_filename, DATA_SECTORS);
 	if (rc) {
+		printf("Aborting.\n");
 		return rc;
 	}
 
