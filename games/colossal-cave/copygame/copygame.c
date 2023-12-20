@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define VERSION "1.0"
+
 // Cache size
 #define CACHE_SECTORS 50
 
@@ -366,7 +368,7 @@ int main(int argc, char *argv[]) {
 	char **argp = &argv[2];
 	char *filename;
 
-	printf("Copy Colossal Cave from diskette to file or vice-versa.\n");
+	printf("Copy Colossal Cave to/from diskette, version %s\n", VERSION);
 
 	if (argc < 4) {
 		usage();
