@@ -5,6 +5,7 @@ libc.lib:
   - fileio.rel
   - putchar.rel
   - sbrk.rel
+  - stricmp.rel
 atoi.rel:
   sdcc: atoi.c
   depends:
@@ -23,3 +24,7 @@ sbrk.rel:
   sdcc: sbrk.c
   depends:
   - sbrk.c
+stricmp.rel:
+  sdcc: stricmp.c
+  depends:
+  - stricmp.c
