@@ -18,8 +18,8 @@ import argparse
 import diskette
 
 def main():
-  parser = argparse.ArgumentParser(description="Decode Colossal Cave data file")
-  parser.add_argument('--infile', required=True, help="Input diskette.bin")
+  parser = argparse.ArgumentParser(description="Extract components from Colossal Cave diskette image")
+  parser.add_argument('--infile', required=True, help="Input diskette .bin")
   parser.add_argument('--suffix', required=True, help="Output filename suffix")
   args = parser.parse_args()
 
