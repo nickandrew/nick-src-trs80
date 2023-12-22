@@ -2,68 +2,46 @@
 """Decode all the encrypted strings in a Colossal Cave data file."""
 
 import argparse
+import yaml
 
-def permute1(hl):
-  """Execute the permutation inner loop."""
-  bit_0 = hl & 1
-  bit_4 = hl & 0x10
-  hl = int(hl / 2)
-  xor = (bit_0 == 0) != (bit_4 == 0)
-
-  if xor:
-    hl = hl | (1 << 14)
-
-  return hl
-
-def permute(hl):
-  """Permute value in HL; return new value."""
-  for _ in range(15):
-    hl = permute1(hl)
-  return hl
-
-def decode_buf(buf):
-  """Decode all strings in the buffer.
-
-  We assume some things about the size and start location of strings.
-  """
-
-  i = 0x2f00
-
-  while i < 0xe900:
-    n = buf[i]
-
-    # Runs of zeroes are ignored
-    if n == 0:
-      i = i + 1
-      continue
-
-    # Must be start of a string
-    # Figure out the seed
-    sector_number = int(i / 256) - 45
-    seed = (n * 256) + (sector_number & 255)
-    print(f'String start at {i:04x}, IV {seed:04x}')
-    s = ''
-
-    i = i + 1
-    n = buf[i]
-    while n != 0:
-      seed = permute(seed)
-      ch = 0x7f & (n ^ (seed & 0xff))
-      # print(f'  i {i:04x} n {n:02x} seed {seed:04x} result {ch:02x}')
-      s = s + chr(ch)
-      i = i + 1
-      n = buf[i]
-
-    print(f'Result: {s}')
+import data
 
 def main():
   parser = argparse.ArgumentParser(description="Decode Colossal Cave data file")
+  parser.add_argument('--yaml', action='store_true', help="Output in YAML format")
   parser.add_argument('--infile', required=True, help="Source data.bin")
   args = parser.parse_args()
 
   with open(args.infile, "rb") as infile:
     buf = infile.read()
-    decode_buf(buf)
+
+  all_data = data.Data(buf)
+
+  if args.yaml:
+
+    long_descriptions = all_data.long_descriptions()
+    short_descriptions = all_data.short_descriptions()
+    object_descriptions = all_data.object_descriptions()
+    rtext = all_data.rtext()
+    score_summaries = all_data.score_summaries()
+
+    d = {}
+    defs = {
+      'long_descriptions': long_descriptions,
+      'short_descriptions': short_descriptions,
+      'object_descriptions': object_descriptions,
+      'rtext': rtext,
+      'score_summaries': score_summaries,
+    }
+
+    for k, v in defs.items():
+      d[k] = [x.to_dict() for x in v]
+
+    print(yaml.dump(d), end='')
+    return
+
+  else:
+    print(f'Need arg --yaml')
 
 
 if __name__ == '__main__':
