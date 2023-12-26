@@ -70,82 +70,114 @@ def decode_buf(offset:int, buf:bytes):
 
   return ret
 
+class SectorData(object):
+  """The definition of a consecutive set of data sectors."""
+  def __init__(self, start:int, size:int, cls:str=None, offset:int=None):
+    self._start = start
+    self._size = size
+    self._cls = cls
+    self._offset = offset
+
+  @property
+  def start(self):
+    return self._start
+
+  @property
+  def size(self):
+    return self._size
+
 class Data(object):
   """Game data."""
 
-  def __init__(self, buf:bytes=None):
+  default_layout = {
+    'save_game_2':         SectorData(start=0x0000, size=23 * 256),
+    'save_game_1':         SectorData(start=0x1700, size=23 * 256),
+    'gap_1':               SectorData(start=0x2300, size=256),
+    'long_descriptions':   SectorData(start=0x2f00, size=71 * 256, cls='encoded', offset=0x02),
+    'short_descriptions':  SectorData(start=0x7600, size=10 * 256, cls='encoded', offset=0x49),
+    'object_descriptions': SectorData(start=0x8000, size=21 * 256, cls='encoded', offset=0x53),
+    'rtext':               SectorData(start=0x9500, size=80 * 256, cls='encoded', offset=0x68),
+    'score_summaries':     SectorData(start=0xe500, size=4 * 256, cls='encoded', offset=0xb8),
+    'gap_2':               SectorData(start=0xe900, size=44 * 256),
+    'backup_code':         SectorData(start=0x11500, size=9 * 256),
+    'gap_3':               SectorData(start=0x11e00, size=256),
+  }
+
+  def __init__(self, buf:bytes=None, layout:dict=default_layout):
     """Return a new instance of Data.
 
     Arguments:
       buf     [Optional] bytes read from a data file.
+      layout  [Optional] dict specifying data area layout.
 
     If buf is not supplied, an empty object is returned.
 
-    If buf is supplied, it is split into its logical components.
-
-      Starting points are at 2f00, 7600, 8000 and e500.
-      2f00: messages 01..8d (long location descriptions)
-      7600: messages 01..8d (short location descriptions, with gaps)
-      8000: messages 01..1f (and variants (21, 41, 61 etc)), messages 00, 20 etc at end
-      9500: messages 01..db (rtext)
-      e500: messages 01..09 (score summaries)
+    If buf is supplied, it is split into its logical components
+    according to the specified layout.
     """
 
-    self._save_game_data_2 = None
-    self._save_game_data_1 = None
-    self._gap_1 = None
-    self._long_descriptions = None
-    self._short_descriptions = None
-    self._object_descriptions = None
-    self._rtext = None
-    self._score_summaries = None
-    self._gap_2 = None
-    self._backup_code = None
+    self._layout = layout
+    self.chunks = {}
 
     if buf is not None:
-      self._save_game_data_2 = buf[0x0000:0x1700]
-      self._save_game_data_1 = buf[0x1700:0x2e00]
-      # There's a data gap of zeroes between 0x2e00 and 0x2f00
-      self._gap_1 = buf[0x2e00:0x2f00]
-      self._long_descriptions = buf[0x2f00:0x7600]
-      self._short_descriptions = buf[0x7600:0x8000]
-      self._object_descriptions = buf[0x8000:0x9500]
-      self._rtext = buf[0x9500:0xe500]
-      self._score_summaries = buf[0xe500:0xe900]
-      self._gap_2 = buf[0xe900:0x11500]
-      self._backup_code = buf[0x11500:0x11e00]
+      for chunk_name in layout:
+        start = layout[chunk_name].start
+        end = layout[chunk_name].start + layout[chunk_name].size
+        self.chunks[chunk_name] = buf[start:end]
+
+  def chunk(self, chunk_name):
+    """Return the raw contents of the named data chunk."""
+    return self.chunks[chunk_name]
+
+  def set_chunk(self, chunk_name, buf) -> None:
+    """Set the raw contents of the named data chunk."""
+    if chunk_name not in self._layout:
+      raise ValueError(f'Chunk name {chunk_name} is not in data layout')
+    self.chunks[chunk_name] = buf
+
+  def image(self):
+    """Return the concatenated image of all chunks."""
+    buf = bytes()
+    for chunk_name in sorted(self._layout.keys(), key=lambda x: self._layout[x].start):
+      if chunk_name in self.chunks:
+        buf = buf + self.chunks[chunk_name]
+      else:
+        size = self._layout[chunk_name].size
+        buf = buf + bytes(size)
+
+    return buf
 
   def long_descriptions(self):
     """Return a list of the decoded long descriptions.
 
     See help(decode_buf) for the list format.
     """
-    return decode_buf(0x02, self._long_descriptions)
+    return decode_buf(0x02, self.chunks['long_descriptions'])
 
   def short_descriptions(self):
     """Return a list of the decoded short descriptions.
 
     See help(decode_buf) for the list format.
     """
-    return decode_buf(0x49, self._short_descriptions)
+    return decode_buf(0x49, self.chunks['short_descriptions'])
 
   def object_descriptions(self):
     """Return a list of the decoded object descriptions.
 
     See help(decode_buf) for the list format.
     """
-    return decode_buf(0x53, self._object_descriptions)
+    return decode_buf(0x53, self.chunks['object_descriptions'])
 
   def rtext(self):
     """Return a list of the decoded random text.
 
     See help(decode_buf) for the list format.
     """
-    return decode_buf(0x68, self._rtext)
+    return decode_buf(0x68, self.chunks['rtext'])
 
   def score_summaries(self):
     """Return a list of the decoded score_summaries.
 
     See help(decode_buf) for the list format.
     """
-    return decode_buf(0xb8, self._score_summaries)
+    return decode_buf(0xb8, self.chunks['score_summaries'])
