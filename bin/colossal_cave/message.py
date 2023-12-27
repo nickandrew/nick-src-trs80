@@ -29,7 +29,7 @@ class Message(object):
   Each Message has an associated message_id.
   """
 
-  def __init__(self, message_id:int, text:list[str]):
+  def __init__(self, message_id:int, text:list[str], lookup_id:int=None):
     """Return a new instance of Message.
 
     Arguments:
@@ -37,8 +37,14 @@ class Message(object):
       text          List of decoded text strings
     """
 
+    self._lookup_id = lookup_id
     self._message_id = message_id
     self._text = text
+
+  @property
+  def lookup_id(self):
+    """Return the message_id."""
+    return self._lookup_id
 
   @property
   def message_id(self):
@@ -56,7 +62,15 @@ class Message(object):
 
   def to_dict(self):
     """Return this object as an untyped dict."""
-    return {
+    d = {
       'message_id': self._message_id,
       'text': self._text,
     }
+
+    if self._lookup_id is not None:
+      d['lookup_id'] = self._lookup_id
+
+    return d
+
+  def set_lookup_id(self, lookup_id):
+    self._lookup_id = lookup_id

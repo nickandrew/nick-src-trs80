@@ -30,6 +30,42 @@ class Table(object):
   def messages(self):
     return self._messages
 
+  def _update_lookup(self, message_id:int, sector_number:int) -> int:
+    """Try to update the lookup table for this given message.
+
+    Returns:
+      The index into the lookup table, if one was set, else None.
+    """
+
+    lookup_id = None
+
+    if self._object_index:
+      # True id is 1..64, but the first message in the set is (id % 0x20)
+      # so skip anything >= 0x20
+      if message_id < 0x20:
+        # Find the first unused slot to find True ID.
+        # This assumes there is only 1 line in the first message in the set.
+        lookup_id = message_id
+
+        # No ID zero exists, so start looking at 32.
+        if lookup_id == 0:
+          lookup_id = lookup_id + 0x20
+
+        while self._lookup[lookup_id] != 0:
+          lookup_id = lookup_id + 0x20
+
+        self._lookup[lookup_id] = sector_number
+    else:
+      # Normal kind of lookup table where each message ID has a slot
+      # in the lookup table.
+      lookup_id = message_id
+
+      # Only the first line in a message sets the lookup table address
+      if self._lookup[lookup_id] == 0:
+        self._lookup[lookup_id] = sector_number
+
+    return lookup_id
+
   def decrypt(self, buf:bytes, offset:int) -> None:
     """Decrypt a buffer into this Table.
 
@@ -38,6 +74,7 @@ class Table(object):
     """
 
     self._messages = []
+    self._lookup = bytearray(self._lookup_size)
 
     ret = []
     last_message = None
@@ -81,6 +118,12 @@ class Table(object):
       else:
         last_message.append(s)
 
+      # Try to figure out an appropriate lookup table address
+      lookup_id = self._update_lookup(message_id, sector_number)
+      if lookup_id is not None:
+        # Set it in the Message too
+        last_message.set_lookup_id(lookup_id)
+
     self._messages = ret
 
   def generate_data(self, start_address:int) -> bytes:
@@ -99,30 +142,7 @@ class Table(object):
         b.append(_id)
         seed = (_id * 256) + ((address >> 8) & 0xff)
 
-        if self._object_index:
-          # True id is 1..64, but the first message in the set is (id % 0x20)
-          # so skip anything >= 0x20
-          if _id < 0x20:
-            # Find the first unused slot to find True ID.
-            # This assumes there is only 1 line in the first message in the set.
-            lookup_id = _id
-
-            # No ID zero exists, so start looking at 32.
-            if lookup_id == 0:
-              lookup_id = lookup_id + 0x20
-
-            while self._lookup[lookup_id] != 0:
-              lookup_id = lookup_id + 0x20
-
-            self._lookup[lookup_id] = (address >> 8) & 0xff
-        else:
-          # Normal kind of lookup table where each message ID has a slot
-          # in the lookup table.
-          lookup_id = _id
-
-          # Only the first line in a message sets the lookup table address
-          if self._lookup[lookup_id] == 0:
-            self._lookup[lookup_id] = (address >> 8) & 0xff
+        self._update_lookup(_id, (address >> 8) & 0xff)
 
         text_bytes = bytearray()
         for plaintext in text_line:
