@@ -18,11 +18,12 @@ def _hex(value:int) -> str:
 class Table(object):
   """A generic message table."""
 
-  def __init__(self, messages:list[message.Message]=None, lookup_size=0, size=0):
+  def __init__(self, messages:list[message.Message]=None, lookup_size=0, size=0, object_index=False):
     self._data = None
     self._messages = messages
     self._lookup = None
     self._lookup_size = lookup_size
+    self._object_index = object_index
     self._size = size
 
   def generate_data(self, start_address:int) -> bytes:
@@ -41,19 +42,38 @@ class Table(object):
         b.append(_id)
         seed = (_id * 256) + ((address >> 8) & 0xff)
 
-        # Add an entry to the lookup table for the first message in a set
-        # FIXME this won't work for object descriptions, which aren't
-        # monotonic increasing.
-        if _id < self._lookup_size and self._lookup[_id] == 0:
-          self._lookup[_id] = (address >> 8) & 0xff
+        if self._object_index:
+          # True id is 1..64, but the first message in the set is (id % 0x20)
+          # so skip anything >= 0x20
+          if _id < 0x20:
+            # Find the first unused slot to find True ID.
+            # This assumes there is only 1 line in the first message in the set.
+            lookup_id = _id
+
+            # No ID zero exists, so start looking at 32.
+            if lookup_id == 0:
+              lookup_id = lookup_id + 0x20
+
+            while self._lookup[lookup_id] != 0:
+              lookup_id = lookup_id + 0x20
+
+            self._lookup[lookup_id] = (address >> 8) & 0xff
+        else:
+          # Normal kind of lookup table where each message ID has a slot
+          # in the lookup table.
+          lookup_id = _id
+
+          # Only the first line in a message sets the lookup table address
+          if self._lookup[lookup_id] == 0:
+            self._lookup[lookup_id] = (address >> 8) & 0xff
 
         text_bytes = bytearray()
         for plaintext in text_line:
           seed = message.permute(seed)
           enc = ord(plaintext) ^ (seed & 0xff)
           text_bytes.append(enc | 0x80)
-        # A zero byte at the end of each text line
 
+        # A zero byte at the end of each text line
         text_bytes.append(0)
         b.extend(text_bytes)
 
@@ -69,6 +89,7 @@ class Table(object):
         remainder = 0
     else:
       remainder = self._size - len(b)
+
     if remainder > 0:
       b.extend(bytes(remainder))
 
@@ -98,16 +119,36 @@ class Table(object):
     return s
 
 def LongDescription(messages:list[message.Message]=None):
+  """Long Descriptions. 71 sectors of messages.
+
+  IDs 1-141.
+  """
   return Table(messages, lookup_size=144, size=71 * 256)
 
 def ShortDescription(messages:list[message.Message]=None):
+  """Short Descriptions. 10 sectors of messages.
+
+  IDs 1-141.
+  """
   return Table(messages, lookup_size=144, size=10 * 256)
 
 def ObjectDescription(messages:list[message.Message]=None):
-  return Table(messages, lookup_size=68, size=21 * 256)
+  """Object Descriptions. 21 sectors of messages.
+
+  IDs 1-64, interleaved with variants (1, 33, 2, 34, 66, 0, etc).
+  """
+  return Table(messages, lookup_size=68, size=21 * 256, object_index=True)
 
 def RText(messages:list[message.Message]=None):
+  """Random Text. 80 sectors of messages.
+
+  IDs 1-219.
+  """
   return Table(messages, lookup_size=222, size=80 * 256)
 
 def ScoreSummaries(messages:list[message.Message]=None):
+  """Score Summaries. 4 sectors of messages.
+
+  IDs 1-9.
+  """
   return Table(messages, lookup_size=14, size=4 * 256)
