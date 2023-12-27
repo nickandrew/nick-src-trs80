@@ -16,6 +16,7 @@ The game data file consists of:
 """
 
 import message
+import table
 
 def decode_buf(offset:int, buf:bytes):
   """Decode all strings in the buffer.
@@ -77,6 +78,10 @@ class SectorData(object):
     self._size = size
     self._cls = cls
     self._offset = offset
+
+  @property
+  def offset(self):
+    return self._offset
 
   @property
   def start(self):
@@ -149,35 +154,48 @@ class Data(object):
 
   def long_descriptions(self):
     """Return a list of the decoded long descriptions.
-
-    See help(decode_buf) for the list format.
     """
-    return decode_buf(0x02, self.chunks['long_descriptions'])
+    offset = self._layout['long_descriptions'].offset
+    t = table.LongDescription()
+    t.decrypt(self.chunks['long_descriptions'], offset)
+    return t.messages
 
   def short_descriptions(self):
     """Return a list of the decoded short descriptions.
 
     See help(decode_buf) for the list format.
     """
-    return decode_buf(0x49, self.chunks['short_descriptions'])
+    offset = self._layout['short_descriptions'].offset
+    t = table.ShortDescription()
+    t.decrypt(self.chunks['short_descriptions'], offset)
+    return t.messages
 
   def object_descriptions(self):
     """Return a list of the decoded object descriptions.
 
     See help(decode_buf) for the list format.
     """
-    return decode_buf(0x53, self.chunks['object_descriptions'])
+    offset = self._layout['object_descriptions'].offset
+    t = table.ObjectDescription()
+    t.decrypt(self.chunks['object_descriptions'], offset)
+    return t.messages
 
   def rtext(self):
     """Return a list of the decoded random text.
 
     See help(decode_buf) for the list format.
     """
-    return decode_buf(0x68, self.chunks['rtext'])
+    offset = self._layout['rtext'].offset
+    t = table.RText()
+    t.decrypt(self.chunks['rtext'], offset)
+    return t.messages
 
   def score_summaries(self):
     """Return a list of the decoded score_summaries.
 
     See help(decode_buf) for the list format.
     """
-    return decode_buf(0xb8, self.chunks['score_summaries'])
+    offset = self._layout['score_summaries'].offset
+    t = table.ScoreSummaries()
+    t.decrypt(self.chunks['score_summaries'], offset)
+    return t.messages

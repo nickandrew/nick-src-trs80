@@ -26,6 +26,63 @@ class Table(object):
     self._object_index = object_index
     self._size = size
 
+  @property
+  def messages(self):
+    return self._messages
+
+  def decrypt(self, buf:bytes, offset:int) -> None:
+    """Decrypt a buffer into this Table.
+
+    Store the decrypted messages in self.messages. Calculate a nearly-correct
+    lookup table from the message IDs.
+    """
+
+    self._messages = []
+
+    ret = []
+    last_message = None
+    last_message_id = None
+
+    i = 0x1
+    max_i = len(buf)
+
+    if buf[0] != 0x00:
+      raise ValueError('Supplied message buffer must start with 0x00')
+
+    while i < max_i:
+
+      # Runs of 3 or more zeroes signify the end of the set
+      if buf[i - 1] == 0 and buf[i] == 0 and buf[i + 1] == 0:
+        break
+
+      # Figure out the seed
+      message_id = buf[i]
+      sector_number = int(i / 256) + offset
+      seed = (message_id * 256) + (sector_number & 255)
+      s = ''
+
+      i = i + 1
+      n = buf[i]
+
+      while n != 0:
+        seed = message.permute(seed)
+        ch = 0x7f & (n ^ (seed & 0xff))
+        s = s + chr(ch)
+        i = i + 1
+        n = buf[i]
+
+      i = i + 1
+
+      if last_message_id is None or message_id != last_message_id:
+        # Append message to return list
+        last_message = message.Message(message_id, [s])
+        last_message_id = message_id
+        ret.append(last_message)
+      else:
+        last_message.append(s)
+
+    self._messages = ret
+
   def generate_data(self, start_address:int) -> bytes:
     b = bytearray()
     address = start_address
