@@ -131,18 +131,26 @@ class Table(object):
     address = start_address
     self._lookup = bytearray(self._lookup_size)
 
-    # Every binary block of messages starts with a zero byte
-    b.append(0)
-
     for msg in self._messages:
       _id = msg.message_id
+      first_line = True
 
       for text_line in msg.text:
         address = start_address + len(b)
+        # Sector number of the start of the message
+        sector_number = (address >> 8) & 0xff
+
+        # Every message starts with a zero byte, then the message ID
+        b.append(0)
+        # The seed comes from the address *here* not the zero byte
+        address = address + 1
         b.append(_id)
+
         seed = (_id * 256) + ((address >> 8) & 0xff)
 
-        self._update_lookup(_id, (address >> 8) & 0xff)
+        if first_line and msg.lookup_id is not None:
+          self._lookup[msg.lookup_id] = sector_number
+          first_line = False
 
         text_bytes = bytearray()
         for plaintext in text_line:
@@ -150,8 +158,6 @@ class Table(object):
           enc = ord(plaintext) ^ (seed & 0xff)
           text_bytes.append(enc | 0x80)
 
-        # A zero byte at the end of each text line
-        text_bytes.append(0)
         b.extend(text_bytes)
 
     # Add 3 zeroes to represent end of table

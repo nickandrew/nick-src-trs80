@@ -19,7 +19,11 @@ def convert_to_message_array(array:list) -> list:
 
   message_array = []
   for d2 in array:
-    m = message.Message(message_id=d2['message_id'], text=d2['text'])
+    lookup_id = None
+    if 'lookup_id' in d2:
+      lookup_id = d2['lookup_id']
+
+    m = message.Message(message_id=d2['message_id'], text=d2['text'], lookup_id=lookup_id)
     message_array.append(m)
 
   return message_array
