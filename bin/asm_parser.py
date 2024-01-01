@@ -9,7 +9,7 @@ grammar = """
     start: line+
     line: TABS? comment LF
         | label colon? TABS? comment? LF
-        | label colon? TABS "DEFL" TABS expression TABS? comment? LF
+        | label colon? TABS pseudo_op_defl TABS expression TABS? comment? LF
         | label TABS equ TABS expression TABS? comment? LF
         | get_line LF
         | "*LIST" TABS (on | off) LF
@@ -69,12 +69,12 @@ grammar = """
         | op_and TABS op15
         | op_bit TABS bit_args
         | call_instruction
-        | "CCF"
+        | op_ccf
         | op_cp TABS op15
         | op_cpir
         | op_cpl
         | op_daa
-        | "DC" TABS expression "," expression
+        | pseudo_op_dc TABS expression "," expression
         | dec_instruction
         | pseudo_op_db TABS defb_args ("," defb_args)*
         | pseudo_op_defb TABS defb_args ("," defb_args)*
@@ -85,9 +85,9 @@ grammar = """
         | pseudo_op_defs TABS expression
         | pseudo_op_ds TABS expression
         | op_di
-        | "DJNZ" TABS expression
+        | op_djnz TABS expression
         | op_ei
-        | "ENDM"                     // TODO
+        | pseudo_op_endm                     // TODO
         | op_exx
         | op_ex TABS ex_args
         | op_halt
@@ -99,15 +99,15 @@ grammar = """
         | op_ld TABS ld_args
         | op_lddr
         | op_ldir
-        | "MACRO" (TABS /.+/)?       // TODO
+        | pseudo_op_macro (TABS /.+/)?       // TODO
         | op_neg
         | op_nop
-        | "OR" TABS op15
+        | op_or TABS op15
         | op_out TABS out_args
         | pop_instruction
         | push_instruction
-        | "RES" TABS expression "," op10
-        | "RET" (TABS flag)?
+        | op_res TABS expression "," op10
+        | op_ret (TABS flag)?
         | op_rst TABS expression
         | op_set TABS expression "," op10
         | op_sbc TABS sbc_args
@@ -133,7 +133,7 @@ grammar = """
         | reg_ix "," reg_ix
         | reg_iy "," reg_iy
 
-    org: "ORG" TABS expression
+    org: pseudo_op_org TABS expression
 
     // ADC A,(A|B|C|D|E|H|L|IXH|IXL|IYH|IYL)
     // ADC A,int8
@@ -153,7 +153,7 @@ grammar = """
 
     bit_args: expression "," op10
 
-    call_instruction: "CALL" TABS (flag ",")? expression
+    call_instruction: op_call TABS (flag ",")? expression
 
     // CP arguments are identical to AND
     // SUB, AND, OR have identical arguments
@@ -239,7 +239,9 @@ grammar = """
 
     // Pseudo-Opcodes
     pseudo_op_db:     "DB"
+    pseudo_op_dc:     "DC"
     pseudo_op_defb:   "DEFB"
+    pseudo_op_defl:   "DEFL"
     pseudo_op_defm:   "DEFM"
     pseudo_op_defs:   "DEFS"
     pseudo_op_defw:   "DEFW"
@@ -249,10 +251,13 @@ grammar = """
     pseudo_op_else:   "ELSE"
     pseudo_op_end:    "END"
     pseudo_op_endif:  "ENDIF"
-    pseudo_op_ifdef:  "IFDEF"
+    pseudo_op_endm:   "ENDM"
     pseudo_op_if:     "IF"
+    pseudo_op_ifdef:  "IFDEF"
     pseudo_op_ifndef: "IFNDEF"
     pseudo_op_ifref:  "IFREF"
+    pseudo_op_macro:  "MACRO"
+    pseudo_op_org:    "ORG"
     pseudo_op_page:   "PAGE"
     pseudo_op_subttl: "SUBTTL"
     pseudo_op_title:  "TITLE"
@@ -262,36 +267,44 @@ grammar = """
     op_add:  "ADD"
     op_and:  "AND"
     op_bit:  "BIT"
+    op_call: "CALL"
+    op_ccf:  "CCF"
     op_cp:   "CP"
     op_cpir: "CPIR"
     op_cpl:  "CPL"
     op_daa:  "DAA"
     op_dec:  "DEC"
     op_di:   "DI"
+    op_djnz: "DJNZ"
     op_ei:   "EI"
     op_ex:   "EX"
     op_exx:  "EXX"
     op_halt: "HALT"
     op_im:   "IM"
-    op_inc:  "INC"
     op_in:   "IN"
+    op_inc:  "INC"
     op_jp:   "JP"
     op_jr:   "JR"
+    op_ld:   "LD"
     op_lddr: "LDDR"
     op_ldir: "LDIR"
-    op_ld:   "LD"
     op_neg:  "NEG"
     op_nop:  "NOP"
+    op_or:   "OR"
     op_out:  "OUT"
-    op_rla:  "RLA"
-    op_rlca: "RLCA"
-    op_rlc:  "RLC"
-    op_rld:  "RLD"
+    op_pop:  "POP"
+    op_push: "PUSH"
+    op_res:  "RES"
+    op_ret:  "RET"
     op_rl:   "RL"
-    op_rra:  "RRA"
-    op_rrca: "RRCA"
-    op_rrc:  "RRC"
+    op_rla:  "RLA"
+    op_rlc:  "RLC"
+    op_rlca: "RLCA"
+    op_rld:  "RLD"
     op_rr:   "RR"
+    op_rra:  "RRA"
+    op_rrc:  "RRC"
+    op_rrca: "RRCA"
     op_rst:  "RST"
     op_sbc:  "SBC"
     op_scf:  "SCF"
@@ -332,8 +345,8 @@ grammar = """
         | "(" expression ")" "," (reg_a | reg_bc | reg_hl | reg_de | reg_ix | reg_iy | reg_sp)
         | ind_index "," expression
 
-    pop_instruction: "POP" TABS (reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy)
-    push_instruction: "PUSH" TABS (reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy)
+    pop_instruction: op_pop TABS (reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy)
+    push_instruction: op_push TABS (reg_af | reg_bc | reg_de | reg_hl | reg_ix | reg_iy)
 
     // TODO Needs work
     sbc_args: reg_a "," op15
@@ -361,7 +374,6 @@ grammar = """
     com: "COM"
     err: "ERR"
     sq_string: /'((?:''|[^'])*)'/
-    defw: "DEFW"
     star_get: "*GET"
     star_mod: "*MOD"
 
