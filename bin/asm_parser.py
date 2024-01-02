@@ -196,138 +196,255 @@ grammar = """
         | expression
 
     colon: ":"
-    equ: "EQU"
-    on: "ON"
-    off: "OFF"
+    equ:    "EQU" | equ_lc
+    equ_lc:   "equ"
+    on:     "ON" | on_lc
+    on_lc:    "on"
+    off:    "OFF" | off_lc
+    off_lc:   "off"
 
-    reg_a:   "A"
-    reg_b:   "B"
-    reg_c:   "C"
-    reg_d:   "D"
-    reg_e:   "E"
-    reg_h:   "H"
-    reg_l:   "L"
-    reg_af:  "AF"
-    reg_afp: "AF'"
-    reg_bc:  "BC"
-    reg_de:  "DE"
-    reg_hl:  "HL"
-    reg_sp:  "SP"
-    reg_ix:  "IX"
-    reg_iy:  "IY"
-    reg_ixh: "IXH"
-    reg_ixl: "IXL"
-    reg_iyh: "IYH"
-    reg_iyl: "IYL"
+    reg_a:      "A" | reg_a_lc
+    reg_a_lc:     "a"
+    reg_b:      "B" | reg_b_lc
+    reg_b_lc:     "b"
+    reg_c:      "C" | reg_c_lc
+    reg_c_lc:     "c"
+    reg_d:      "D" | reg_d_lc
+    reg_d_lc:     "d"
+    reg_e:      "E" | reg_e_lc
+    reg_e_lc:     "e"
+    reg_h:      "H" | reg_h_lc
+    reg_h_lc:     "h"
+    reg_l:      "L" | reg_l_lc
+    reg_l_lc:     "l"
+    reg_af:     "AF" | reg_af_lc
+    reg_af_lc:    "af"
+    reg_afp:    "AF'" | reg_afp_lc
+    reg_afp_lc:   "af'"
+    reg_bc:     "BC" | reg_bc_lc
+    reg_bc_lc:    "bc"
+    reg_de:     "DE" | reg_de_lc
+    reg_de_lc:    "de"
+    reg_hl:     "HL" | reg_hl_lc
+    reg_hl_lc:    "hl"
+    reg_sp:     "SP" | reg_sp_lc
+    reg_sp_lc:    "sp"
+    reg_ix:     "IX" | reg_ix_lc
+    reg_ix_lc:    "ix"
+    reg_iy:     "IY" | reg_iy_lc
+    reg_iy_lc:    "iy"
+    reg_ixh:    "IXH" | reg_ixh_lc
+    reg_ixh_lc:   "ixh"
+    reg_ixl:    "IXL" | reg_ixl_lc
+    reg_ixl_lc:   "ixl"
+    reg_iyh:    "IYH" | reg_iyh_lc
+    reg_iyh_lc:   "iyh"
+    reg_iyl:    "IYL" | reg_iyl_lc
+    reg_iyl_lc:   "iyl"
 
-    ind_bc: "(BC)"
-    ind_de: "(DE)"
-    ind_hl: "(HL)"
-    ind_ix: "(IX)"
-    ind_iy: "(IY)"
-    ind_sp: "(SP)"
+    ind_bc:     "(BC)" | ind_bc_lc
+    ind_bc_lc:    "(bc)"
+    ind_de:     "(DE)" | ind_de_lc
+    ind_de_lc:    "(de)"
+    ind_hl:     "(HL)" | ind_hl_lc
+    ind_hl_lc:    "(hl)"
+    ind_ix:     "(IX)" | ind_ix_lc
+    ind_ix_lc:    "(ix)"
+    ind_iy:     "(IY)" | ind_iy_lc
+    ind_iy_lc:    "(iy)"
+    ind_sp:     "(SP)" | ind_sp_lc
+    ind_sp_lc:    "(sp)"
+
     ind_index: "(" (reg_ix | reg_iy) ((eop_uplus | eop_uminus) expression)? ")"
 
-    flag_z:  "Z"
-    flag_nz: "NZ"
-    flag_c:  "C"
-    flag_nc: "NC"
-    flag_m:  "M"
-    flag_p:  "P"
-    flag_pe: "PE"
-    flag_po: "PO"
+    flag_z:     "Z" | flag_z_lc
+    flag_z_lc:    "z"
+    flag_nz:    "NZ" | flag_nz_lc
+    flag_nz_lc:   "nz"
+    flag_c:     "C" | flag_c_lc
+    flag_c_lc:    "c"
+    flag_nc:    "NC" | flag_nc_lc
+    flag_nc_lc:   "nc"
+    flag_m:     "M" | flag_m_lc
+    flag_m_lc:    "m"
+    flag_p:     "P" | flag_p_lc
+    flag_p_lc:    "p"
+    flag_pe:    "PE" | flag_pe_lc
+    flag_pe_lc:   "pe"
+    flag_po:    "PO" | flag_po_lc
+    flag_po_lc:   "po"
 
     // Pseudo-Opcodes
-    pseudo_op_db:     "DB"
-    pseudo_op_dc:     "DC"
-    pseudo_op_defb:   "DEFB"
-    pseudo_op_defl:   "DEFL"
-    pseudo_op_defm:   "DEFM"
-    pseudo_op_defs:   "DEFS"
-    pseudo_op_defw:   "DEFW"
-    pseudo_op_dm:     "DM"
-    pseudo_op_ds:     "DS"
-    pseudo_op_dw:     "DW"
-    pseudo_op_else:   "ELSE"
-    pseudo_op_end:    "END"
-    pseudo_op_endif:  "ENDIF"
-    pseudo_op_endm:   "ENDM"
-    pseudo_op_if:     "IF"
-    pseudo_op_ifdef:  "IFDEF"
-    pseudo_op_ifndef: "IFNDEF"
-    pseudo_op_ifref:  "IFREF"
-    pseudo_op_macro:  "MACRO"
-    pseudo_op_org:    "ORG"
-    pseudo_op_page:   "PAGE"
-    pseudo_op_subttl: "SUBTTL"
-    pseudo_op_title:  "TITLE"
+    pseudo_op_db:        "DB" | pseudo_op_db_lc
+    pseudo_op_db_lc:       "db"
+    pseudo_op_dc:        "DC" | pseudo_op_dc_lc
+    pseudo_op_dc_lc:       "dc"
+    pseudo_op_defb:      "DEFB" | pseudo_op_defb_lc
+    pseudo_op_defb_lc:     "defb"
+    pseudo_op_defl:      "DEFL" | pseudo_op_defl_lc
+    pseudo_op_defl_lc:     "defl"
+    pseudo_op_defm:      "DEFM" | pseudo_op_defm_lc
+    pseudo_op_defm_lc:     "defm"
+    pseudo_op_defs:      "DEFS" | pseudo_op_defs_lc
+    pseudo_op_defs_lc:     "defs"
+    pseudo_op_defw:      "DEFW" | pseudo_op_defw_lc
+    pseudo_op_defw_lc:     "defw"
+    pseudo_op_dm:        "DM" | pseudo_op_dm_lc
+    pseudo_op_dm_lc:       "dm"
+    pseudo_op_ds:        "DS" | pseudo_op_ds_lc
+    pseudo_op_ds_lc:       "ds"
+    pseudo_op_dw:        "DW" | pseudo_op_dw_lc
+    pseudo_op_dw_lc:       "dw"
+    pseudo_op_else:      "ELSE" | pseudo_op_else_lc
+    pseudo_op_else_lc:     "else"
+    pseudo_op_end:       "END" | pseudo_op_end_lc
+    pseudo_op_end_lc:      "end"
+    pseudo_op_endif:     "ENDIF" | pseudo_op_endif_lc
+    pseudo_op_endif_lc:    "endif"
+    pseudo_op_endm:      "ENDM" | pseudo_op_endm_lc
+    pseudo_op_endm_lc:     "endm"
+    pseudo_op_if:        "IF" | pseudo_op_if_lc
+    pseudo_op_if_lc:       "if"
+    pseudo_op_ifdef:     "IFDEF" | pseudo_op_ifdef_lc
+    pseudo_op_ifdef_lc:    "ifdef"
+    pseudo_op_ifndef:    "IFNDEF" | pseudo_op_ifndef_lc
+    pseudo_op_ifndef_lc:   "ifndef"
+    pseudo_op_ifref:     "IFREF" | pseudo_op_ifref_lc
+    pseudo_op_ifref_lc:    "ifref"
+    pseudo_op_macro:     "MACRO" | pseudo_op_macro_lc
+    pseudo_op_macro_lc:    "macro"
+    pseudo_op_org:       "ORG" | pseudo_op_org_lc
+    pseudo_op_org_lc:      "org"
+    pseudo_op_page:      "PAGE" | pseudo_op_page_lc
+    pseudo_op_page_lc:     "page"
+    pseudo_op_subttl:    "SUBTTL" | pseudo_op_subttl_lc
+    pseudo_op_subttl_lc:   "subttl"
+    pseudo_op_title:     "TITLE" | pseudo_op_title_lc
+    pseudo_op_title_lc:    "title"
 
     // Opcodes
-    op_adc:  "ADC"
-    op_add:  "ADD"
-    op_and:  "AND"
-    op_bit:  "BIT"
-    op_call: "CALL"
-    op_ccf:  "CCF"
-    op_cp:   "CP"
-    op_cpir: "CPIR"
-    op_cpl:  "CPL"
-    op_daa:  "DAA"
-    op_dec:  "DEC"
-    op_di:   "DI"
-    op_djnz: "DJNZ"
-    op_ei:   "EI"
-    op_ex:   "EX"
-    op_exx:  "EXX"
-    op_halt: "HALT"
-    op_im:   "IM"
-    op_in:   "IN"
-    op_inc:  "INC"
-    op_jp:   "JP"
-    op_jr:   "JR"
-    op_ld:   "LD"
-    op_lddr: "LDDR"
-    op_ldir: "LDIR"
-    op_neg:  "NEG"
-    op_nop:  "NOP"
-    op_or:   "OR"
-    op_out:  "OUT"
-    op_pop:  "POP"
-    op_push: "PUSH"
-    op_res:  "RES"
-    op_ret:  "RET"
-    op_rl:   "RL"
-    op_rla:  "RLA"
-    op_rlc:  "RLC"
-    op_rlca: "RLCA"
-    op_rld:  "RLD"
-    op_rr:   "RR"
-    op_rra:  "RRA"
-    op_rrc:  "RRC"
-    op_rrca: "RRCA"
-    op_rst:  "RST"
-    op_sbc:  "SBC"
-    op_scf:  "SCF"
-    op_set:  "SET"
-    op_sla:  "SLA"
-    op_sra:  "SRA"
-    op_srl:  "SRL"
-    op_sub:  "SUB"
-    op_xor:  "XOR"
+    op_adc:     "ADC" | op_adc_lc
+    op_adc_lc:    "adc"
+    op_add:     "ADD" | op_add_lc
+    op_add_lc:    "add"
+    op_and:     "AND" | op_and_lc
+    op_and_lc:    "and"
+    op_bit:     "BIT" | op_bit_lc
+    op_bit_lc:    "bit"
+    op_call:    "CALL" | op_call_lc
+    op_call_lc:   "call"
+    op_ccf:     "CCF" | op_ccf_lc
+    op_ccf_lc:    "ccf"
+    op_cp:      "CP" | op_cp_lc
+    op_cp_lc:     "cp"
+    op_cpir:    "CPIR" | op_cpir_lc
+    op_cpir_lc:   "cpir"
+    op_cpl:     "CPL" | op_cpl_lc
+    op_cpl_lc:    "cpl"
+    op_daa:     "DAA" | op_daa_lc
+    op_daa_lc:    "daa"
+    op_dec:     "DEC" | op_dec_lc
+    op_dec_lc:    "dec"
+    op_di:      "DI" | op_di_lc
+    op_di_lc:     "di"
+    op_djnz:    "DJNZ" | op_djnz_lc
+    op_djnz_lc:   "djnz"
+    op_ei:      "EI" | op_ei_lc
+    op_ei_lc:     "ei"
+    op_ex:      "EX" | op_ex_lc
+    op_ex_lc:     "ex"
+    op_exx:     "EXX" | op_exx_lc
+    op_exx_lc:    "exx"
+    op_halt:    "HALT" | op_halt_lc
+    op_halt_lc:   "halt"
+    op_im:      "IM" | op_im_lc
+    op_im_lc:     "im"
+    op_in:      "IN" | op_in_lc
+    op_in_lc:     "in"
+    op_inc:     "INC" | op_inc_lc
+    op_inc_lc:    "inc"
+    op_jp:      "JP" | op_jp_lc
+    op_jp_lc:     "jp"
+    op_jr:      "JR" | op_jr_lc
+    op_jr_lc:     "jr"
+    op_ld:      "LD" | op_ld_lc
+    op_ld_lc:     "ld"
+    op_lddr:    "LDDR" | op_lddr_lc
+    op_lddr_lc:   "lddr"
+    op_ldir:    "LDIR" | op_ldir_lc
+    op_ldir_lc:   "ldir"
+    op_neg:     "NEG" | op_neg_lc
+    op_neg_lc:    "neg"
+    op_nop:     "NOP" | op_nop_lc
+    op_nop_lc:    "nop"
+    op_or:      "OR" | op_or_lc
+    op_or_lc:     "or"
+    op_out:     "OUT" | op_out_lc
+    op_out_lc:    "out"
+    op_pop:     "POP" | op_pop_lc
+    op_pop_lc:    "pop"
+    op_push:    "PUSH" | op_push_lc
+    op_push_lc:   "push"
+    op_res:     "RES" | op_res_lc
+    op_res_lc:    "res"
+    op_ret:     "RET" | op_ret_lc
+    op_ret_lc:    "ret"
+    op_rl:      "RL" | op_rl_lc
+    op_rl_lc:     "rl"
+    op_rla:     "RLA" | op_rla_lc
+    op_rla_lc:    "rla"
+    op_rlc:     "RLC" | op_rlc_lc
+    op_rlc_lc:    "rlc"
+    op_rlca:    "RLCA" | op_rlca_lc
+    op_rlca_lc:   "rlca"
+    op_rld:     "RLD" | op_rld_lc
+    op_rld_lc:    "rld"
+    op_rr:      "RR" | op_rr_lc
+    op_rr_lc:     "rr"
+    op_rra:     "RRA" | op_rra_lc
+    op_rra_lc:    "rra"
+    op_rrc:     "RRC" | op_rrc_lc
+    op_rrc_lc:    "rrc"
+    op_rrca:    "RRCA" | op_rrca_lc
+    op_rrca_lc:   "rrca"
+    op_rst:     "RST" | op_rst_lc
+    op_rst_lc:    "rst"
+    op_sbc:     "SBC" | op_sbc_lc
+    op_sbc_lc:    "sbc"
+    op_scf:     "SCF" | op_scf_lc
+    op_scf_lc:    "scf"
+    op_set:     "SET" | op_set_lc
+    op_set_lc:    "set"
+    op_sla:     "SLA" | op_sla_lc
+    op_sla_lc:    "sla"
+    op_sra:     "SRA" | op_sra_lc
+    op_sra_lc:    "sra"
+    op_srl:     "SRL" | op_srl_lc
+    op_srl_lc:    "srl"
+    op_sub:     "SUB" | op_sub_lc
+    op_sub_lc:    "sub"
+    op_xor:     "XOR" | op_xor_lc
+    op_xor_lc:    "xor"
 
     // Expression operations
-    eop_and:    ".AND."
-    eop_divide: "/"
-    eop_eq:     ".EQ."
-    eop_gt:     ".GT."
-    eop_minus:  "-"
-    eop_not:    ".NOT."
-    eop_plus:   "+"
-    eop_shleft: ".SHL."
-    eop_times:  "*"
-    eop_uminus: "-"
-    eop_uplus:  "+"
-    eop_xor:    ".XOR."
+    eop_and:       ".AND." | eop_and_lc
+    eop_and_lc:      ".and."
+    eop_divide:     "/"
+    eop_eq:        ".EQ." | eop_eq_lc
+    eop_eq_lc:       ".eq."
+    eop_gt:        ".GT." | eop_gt_lc
+    eop_gt_lc:       ".gt."
+    eop_minus:     "-"
+    eop_not:       ".NOT." | eop_not_lc
+    eop_not_lc:      ".not."
+    eop_plus:      "+"
+    eop_shleft:    ".SHL." | eop_shleft_lc
+    eop_shleft_lc:   ".shl."
+    eop_times:     "*"
+    eop_uminus:    "-"
+    eop_uplus:     "+"
+    eop_xor:       ".XOR." | eop_xor_lc
+    eop_xor_lc:      ".xor."
 
     jp_args: (ind_hl | ind_ix | ind_iy)
         | (flag ",")? expression
@@ -358,24 +475,29 @@ grammar = """
 
     contents_of: "(" long_register ")"
     comment: COMMENT
-    label:    /[A-Z_$@][A-Z0-9_$@?]{0,14}/     // A label cannot start with a number
-    symbol:   /[A-Z_$@][A-Z0-9_$@?]{0,14}/     // A symbol cannot start with a number
+    label:    /[A-Z_$@][A-Z0-9_$@?]{0,45}/i     // A label cannot start with a number
+    symbol:   /[A-Z_$@][A-Z0-9_$@?]{0,45}/i     // A symbol cannot start with a number
 
-    filename:   /[A-Z0-9_$]+(\/[A-Z0-9_$]{1,3})?/
-    hexnumber: /[0-9A-F]{1,5}H/
-    binary_number: /[01]{8}B/
-    octal_number: /[0-7]{1,7}O/
+    filename:   /[A-Z0-9_$]+(\/[A-Z0-9_$]{1,3})?/i
+    hexnumber: /[0-9A-F]{1,5}H/i
+    binary_number: /[01]{8}B/i
+    octal_number: /[0-7]{1,7}O/i
     number:  /-?[0-9]+/
 
     macro_arg:  /#[A-Z0-9_$]+/
 
     flag: flag_z | flag_nz | flag_c | flag_nc | flag_m | flag_p | flag_pe | flag_po
 
-    com: "COM"
-    err: "ERR"
+    com:         "COM" | com_lc
+    com_lc:        "com"
+    err:         "ERR" | err_lc
+    err_lc:        "err"
+    star_get:    "*GET" | star_get_lc
+    star_get_lc:   "*get"
+    star_mod:    "*MOD" | star_mod_lc
+    star_mod_lc:   "*mod"
+
     sq_string: /'((?:''|[^'])*)'/
-    star_get: "*GET"
-    star_mod: "*MOD"
 
     // Terminals
 
