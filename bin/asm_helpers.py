@@ -91,7 +91,7 @@ class AddIncludeEarly(Transformer):
 
 
 class RenameSymbol(Transformer):
-    def __init__(self, symbol_map: Dict):
+    def __init__(self, symbol_map:dict):
         self.symbol_map= symbol_map
         self.modified = False
 
