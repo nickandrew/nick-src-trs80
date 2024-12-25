@@ -103,7 +103,7 @@ These opcodes call one of 32 bytecode subroutines.
 | e0     |      |               | Use long_description_sector_map |
 | e1     |      |               |            |
 | e2     |      |               | Use object_description_sector_map |
-| e3     |      |               | Use special_message_sector_map |
+| e3     |      |               | Use rtext_sector_map |
 | e4     |      |               | Use brief_description_sector_map |
 | e5     |      |               |            |
 | e6     |      |               |            |

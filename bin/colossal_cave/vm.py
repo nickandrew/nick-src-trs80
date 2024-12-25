@@ -152,7 +152,7 @@ class Opcode(object):
   * d9: Maps the score to the diskette sector containing the message
   * e0: Maps long descriptions to the sector containing the message
   * e2: Ditto for object descriptions
-  * e3: Ditto for special messages
+  * e3: Ditto for rtext (random text)
   * e4: Ditto for brief descriptions
 
   """
@@ -378,7 +378,7 @@ class Opcode(object):
     0xbd: {'s': 'gosub 7953', 'gosub_addr': 0x7953},
     0xbe: {'s': 'gosub 77e5', 'gosub_addr': 0x77e5},
     0xbf: {'s': 'gosub random_n', 'gosub_addr': 0x785d},
-    0xc0: {'s': 'gosub print_a_general_message', 'gosub_addr': 0x7980},
+    0xc0: {'s': 'gosub print_rtext', 'gosub_addr': 0x7980},
     0xc1: {'s': 'gosub print_a_message', 'gosub_addr': 0x7895},
     0xc2: {'s': 'gosub 5f11', 'gosub_addr': 0x5f11},
     0xc3: {'s': 'gosub 76b1', 'gosub_addr': 0x76b1},
@@ -414,7 +414,7 @@ class Opcode(object):
     0xe0: {'s': 'lookup_long_desc_sector_map'},
     0xe1: {'s': 'lookup_opcode_e1_map'},
     0xe2: {'s': 'lookup_object_desc_sector_map'},
-    0xe3: {'s': 'lookup_special_msg_sector_map'},
+    0xe3: {'s': 'lookup_rtext_sector_map'},
     0xe4: {'s': 'lookup_brief_desc_sector_map'},
     0xe5: {'s': 'lookup_opcode_e5_map'},
     0xe6: {'s': 'lookup_opcode_e6_map'},
