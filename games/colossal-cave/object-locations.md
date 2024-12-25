@@ -64,7 +64,7 @@ There's a second set of object descriptions immediately following:
 00  * Chasm (20: wooden bridge; 40: wrecked bridge)
 01  * Troll (21: troll insists on a treasure; 41: troll blocks the way; 61: chased away)
 02  * Phony Troll (22: nowhere to be seen)
-03  * Bear uses rtext 141 (means "random text" and refers to special messages 8d; variants 23, 43, 63, 83)
+03  * Bear uses rtext 141 (refers to message 8d; variants 23, 43, 63, 83)
 04  * Message in second maze (24)
 05  * Volcano and/or Geyser
 06  * Vending Machine
