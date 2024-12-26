@@ -1,11 +1,11 @@
-dump-game.cmd:
-  link: dump-game
+copygame.cmd:
+  link: copygame
   depends:
-  - dump-game.rel
+  - copygame.rel
   - library/basicio/basicio.lib
   - library/fd1771/fd1771.lib
   - library/newdos80/newdos80.lib
-dump-game.rel:
-  sdcc: dump-game.c
+copygame.rel:
+  sdcc: copygame.c
   depends:
-  - dump-game.c
+  - copygame.c
