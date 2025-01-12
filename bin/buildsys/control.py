@@ -149,7 +149,7 @@ class LinkSDCC(Buildable):
       print(f'Path {dest_path} does not exist - failing')
       return False
 
-    cmd = f"sed -e 's/:00000001FF/:00520001AD/' < {build_dir}/{filename}.ihx | hex2cmd > {build_dir}/{filename}.cmd"
+    cmd = f"sed -e 's/:00000001FF/:00520001AD/' < {build_dir}/{filename}.ihx | bin/hex2cmd.py --output {build_dir}/{filename}.cmd"
     rc = os.system(cmd)
     if rc != 0:
       print(f'system({cmd}) failed, code {rc}')
