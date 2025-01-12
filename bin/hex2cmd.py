@@ -4,6 +4,45 @@
 The .cmd file is written in ascending address order, filled 256-byte blocks
 whenever possible, with the exception of any overlapping areas. Overlapping
 areas are written first to the output file.
+
+# CMD file format:
+
+CMD files are a sequence of records. Each record starts with a record_type
+byte, and it is followed by a size byte.
+
+## Load Block record: 01 ss ll hh <data>
+
+Load the following <data> bytes into memory starting at address 0xhhll.
+ss is the size of the data plus 2, mod 256 (therefore a size of 8 means
+2 address bytes and 6 data bytes; a size of 0 means 2 address bytes and
+254 data bytes; a size of 2 means 2 address bytes and 256 data bytes).
+
+Newdos/80 SYS0/SYS returns an error 0x24 (Tried to load read-only memory)
+if the record tries to write into non-existent memory.
+
+## Execution Address record: 02 xx ll hh
+
+Start executing this file at address 0xhhll. The size byte xx is ignored
+and its value is typically 00 or 02. This must be the last record of the
+file.
+
+## Ignored records: xx ss <data>
+
+Record types from 03 to 1f inclusive are ignored when loading a CMD file.
+The size byte ss is the length of the following data to be skipped.
+
+Newdos/80 SYS0/SYS actually implements this by trying to load the data
+into memory between 0x0300 and 0x1fff, where the high order byte of the
+load address comes from the record type. These addresses are assumed to
+be ROM, and the error 0x24 is suppressed.
+
+Conventionally, record type 0x05 is considered to be a "filename" record.
+
+Likewise, record type 0x1f is considered to be a comment.
+
+## Any other record type
+
+Other record types cause DOSERR_LOAD_FILE_FORMAT_ERROR on load.
 """
 
 from dataclasses import dataclass
