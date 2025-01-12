@@ -4,45 +4,6 @@
 The .cmd file is written in ascending address order, filled 256-byte blocks
 whenever possible, with the exception of any overlapping areas. Overlapping
 areas are written first to the output file.
-
-# CMD file format:
-
-CMD files are a sequence of records. Each record starts with a record_type
-byte, and it is followed by a size byte.
-
-## Load Block record: 01 ss ll hh <data>
-
-Load the following <data> bytes into memory starting at address 0xhhll.
-ss is the size of the data plus 2, mod 256 (therefore a size of 8 means
-2 address bytes and 6 data bytes; a size of 0 means 2 address bytes and
-254 data bytes; a size of 2 means 2 address bytes and 256 data bytes).
-
-Newdos/80 SYS0/SYS returns an error 0x24 (Tried to load read-only memory)
-if the record tries to write into non-existent memory.
-
-## Execution Address record: 02 xx ll hh
-
-Start executing this file at address 0xhhll. The size byte xx is ignored
-and its value is typically 00 or 02. This must be the last record of the
-file.
-
-## Ignored records: xx ss <data>
-
-Record types from 03 to 1f inclusive are ignored when loading a CMD file.
-The size byte ss is the length of the following data to be skipped.
-
-Newdos/80 SYS0/SYS actually implements this by trying to load the data
-into memory between 0x0300 and 0x1fff, where the high order byte of the
-load address comes from the record type. These addresses are assumed to
-be ROM, and the error 0x24 is suppressed.
-
-Conventionally, record type 0x05 is considered to be a "filename" record.
-
-Likewise, record type 0x1f is considered to be a comment.
-
-## Any other record type
-
-Other record types cause DOSERR_LOAD_FILE_FORMAT_ERROR on load.
 """
 
 from dataclasses import dataclass
@@ -50,6 +11,8 @@ from dataclasses import dataclass
 import argparse
 import re
 import sys
+
+import cmdfile
 
 class HexError(Exception):
     """An Intel Hex line failed validation."""
@@ -178,57 +141,6 @@ class Buffers(object):
             self.buffers[k].emit(cmd)
         self.buffers = {}
 
-class CMDFile(object):
-    """A .cmd file."""
-
-    def __init__(self):
-        self.records = []
-        self._start_address = 0x0000
-
-    def add_filename(self, s:str):
-        l = len(s)
-        if l > 255:
-            raise ValueError(f'Filename in .cmd file cannot be length {l}')
-
-        record = bytes([0x05, len(s)]) + bytes(s, 'utf8')
-        self.records.append(record)
-
-    def add_data(self, address:int, data:bytes):
-        """Add one or more load blocks to the .cmd file.
-
-        All load blocks until the last will be 256 bytes; the last may be
-        256 bytes depending on the size of the data.
-        """
-        l = len(data)
-        if l == 0:
-            raise ValueError(f'Cannot add empty data block to CMDFile')
-        offset = 0
-
-        while l > 0:
-            sz = min(l, 0x100)
-            address_low = address % 0x100
-            address_high = (address >> 8)
-            record = bytes([0x01, (sz + 2) % 0x100, address_low, address_high]) + data[offset:offset+sz]
-            self.records.append(record)
-            offset += sz
-            address += sz
-            l -= sz
-
-
-    def start_address(self, address:int):
-        self._start_address = address
-
-    def to_bytes(self):
-        buf = bytearray()
-        for r in self.records:
-            buf.extend(r)
-        start_low = self._start_address % 0x100
-        start_high = (self._start_address >> 8)
-        start_record = bytes([0x02, 0x02, start_low, start_high])
-        buf.extend(start_record)
-
-        return buf
-
 def read_file(source, filename=None, start_address=None):
     """Reads an Intel Hex file and constructs a corresponding .cmd file.
 
@@ -237,7 +149,7 @@ def read_file(source, filename=None, start_address=None):
     """
 
     bufs = Buffers()
-    cmd = CMDFile()
+    cmd = cmdfile.CMDFile()
 
     if filename is not None:
         cmd.add_filename(filename)
@@ -274,10 +186,10 @@ def main():
     if args.entry:
         start_address = int(args.entry, 16)
 
-    cmdfile = read_file(sys.stdin, filename=args.filename, start_address=start_address)
+    cmd_file = read_file(sys.stdin, filename=args.filename, start_address=start_address)
 
     with open(args.output, 'wb') as ofp:
-        ofp.write(cmdfile.to_bytes())
+        ofp.write(cmd_file.to_bytes())
 
 if __name__ == '__main__':
     main()
