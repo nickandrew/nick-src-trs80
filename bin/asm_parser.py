@@ -479,7 +479,7 @@ grammar = """
     label:    /[A-Z_$@][A-Z0-9_$@?]{0,45}/i     // A label cannot start with a number
     symbol:   /[A-Z_$@][A-Z0-9_$@?]{0,45}/i     // A symbol cannot start with a number
 
-    filename:   /[A-Z0-9_$]+(\/[A-Z0-9_$]{1,3})?/i
+    filename:   /[A-Z0-9_$]+(\\/[A-Z0-9_$]{1,3})?/i
     hexnumber: /[0-9A-F]{1,5}H/i
     chexnumber: /0x[0-9A-F]+/i
     binary_number: /[01]{8}B/i
