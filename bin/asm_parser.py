@@ -54,6 +54,7 @@ grammar = """
         | primary_expr
 
     !primary_expr: hexnumber
+        | chexnumber
         | binary_number
         | octal_number
         | number
@@ -480,6 +481,7 @@ grammar = """
 
     filename:   /[A-Z0-9_$]+(\/[A-Z0-9_$]{1,3})?/i
     hexnumber: /[0-9A-F]{1,5}H/i
+    chexnumber: /0x[0-9A-F]+/i
     binary_number: /[01]{8}B/i
     octal_number: /[0-7]{1,7}O/i
     number:  /-?[0-9]+/
