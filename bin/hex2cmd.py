@@ -19,7 +19,7 @@ class HexError(Exception):
 class HexLine:
     length: int
     addr: int
-    code: int
+    record_type: int
     data: bytes
     checksum: int
 
@@ -34,7 +34,7 @@ def parse_hex_line(line: str):
     if not re.match(r':[A-F0-9]+$', line):
         raise HexError(f'This is not an Intel hex line: {line}')
 
-    # line length: 1 + 2 x (length + addr + addr + code) + 2 * length + 2
+    # line length: 1 + 2 x (length + addr + addr + record_type) + 2 * length + 2
     l = len(line)
     if l < 11:
         raise HexError(f'Line too short: {line}')
@@ -44,7 +44,7 @@ def parse_hex_line(line: str):
 
     length = int(line[1:3], 16)
     addr = int(line[3:7], 16)
-    code = int(line[7:9], 16)
+    record_type = int(line[7:9], 16)
 
     test_checksum = sum(b for b in line_bytes)
 
@@ -54,7 +54,7 @@ def parse_hex_line(line: str):
     return HexLine(
         length=length,
         addr=addr,
-        code=code,
+        record_type=record_type,
         data=line_bytes[4:4+length],
         checksum=line_bytes[-1],
     )
@@ -164,21 +164,17 @@ class CMDFile(object):
         if l == 0:
             raise ValueError(f'Cannot add empty data block to CMDFile')
         offset = 0
-        while l >= 256:
-            address_low = address % 0x100
-            address_high = (address >> 8)
-            print(f'address is {address} and address_low is {address_low} and address_high is {address_high}')
-            record = bytes([0x01, 0x02, address_low, address_high]) + data[offset:offset+256]
-            self.records.append(record)
-            offset += 256
-            address += 256
-            l -= 256
 
-        if l > 0:
+        while l > 0:
+            sz = min(l, 0x100)
             address_low = address % 0x100
             address_high = (address >> 8)
-            record = bytes([0x01, (l + 2) % 0x100, address_low, address_high]) + data[offset:offset+l]
+            record = bytes([0x01, (sz + 2) % 0x100, address_low, address_high]) + data[offset:offset+sz]
             self.records.append(record)
+            offset += sz
+            address += sz
+            l -= sz
+
 
     def start_address(self, address:int):
         self._start_address = address
@@ -189,7 +185,7 @@ class CMDFile(object):
             buf.extend(r)
         start_low = self._start_address % 0x100
         start_high = (self._start_address >> 8)
-        start_record = bytes([0x02, 0x00, start_low, start_high])
+        start_record = bytes([0x02, 0x02, start_low, start_high])
         buf.extend(start_record)
 
         return buf
@@ -214,12 +210,14 @@ def read_file(source, filename=None, start_address=None):
         line = line.rstrip()
         hl = parse_hex_line(line)
 
-        if hl.code == 0 and hl.length > 0:
+        if hl.record_type == 0x00:
             if hl.length > 0:
                 bufs.add_data(hl.addr, hl.data, cmd)
             else:
                 # A zero-length record signifies start address
                 cmd.start_address(hl.addr)
+        elif hl.record_type == 0x01 and hl.addr > 0:
+            cmd.start_address(hl.addr)
 
     # Clear the buffers, finally
     bufs.emit(cmd)
