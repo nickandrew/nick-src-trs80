@@ -106,7 +106,7 @@ class CMDFile(object):
         self.records = []
         self._start_address = 0x0000
 
-    def add_filename(self, s:str):
+    def add_filename(self, s: str):
         l = len(s)
         if l > 255:
             raise ValueError(f'Filename in .cmd file cannot be length {l}')
@@ -136,8 +136,10 @@ class CMDFile(object):
             l -= sz
 
 
-    def start_address(self, address:int):
-        self._start_address = address
+    def start_address(self, address: int=None):
+        if address is not None:
+            self._start_address = address
+        return self._start_address
 
     def to_bytes(self):
         buf = bytearray()
@@ -149,3 +151,34 @@ class CMDFile(object):
         buf.extend(start_record)
 
         return buf
+
+    def data_from(self, address: int) -> bytes:
+        """Return an array of 1 or more bytes starting at 'address' from the CMD file.
+
+        Data is returned only from the first matching record.
+
+        The array contains only data until the end of the record.
+        """
+
+        for r in self.records:
+            # Calculate the data size (2 is 256, 1 is 255, 0 is 254, 255 is 253, ...)
+            size = r.size - 2
+            if size < 0:
+                size = size + 256
+
+            if r.address <= address and (r.address + size > address):
+                offset = address - r.address
+                return r.data[offset:]
+
+        return None
+
+def read_file(filename: str):
+    """Read a file, and return a CMDFile."""
+    c = CMDFile()
+    for r in records(filename):
+        if r.record_type == 0x02:
+            c.start_address(r.address)
+        else:
+            c.records.append(r)
+
+    return c
