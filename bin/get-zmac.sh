@@ -8,6 +8,6 @@ mkdir -p ~/bin
 mkdir -p ~/GIT
 cd ~/GIT
 
-git clone -b nick http://github.com/nickandrew/zmac.git
+git clone -b nick https://github.com/nickandrew/zmac.git
 cd zmac/src
 make && cp zmac ~/bin/zmac
