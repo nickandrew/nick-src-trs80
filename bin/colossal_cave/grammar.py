@@ -58,7 +58,7 @@ def encode(verb:str):
 
   munge_b = '0001' + bin_0[3] + bin_0[4] + bin_0[5] + bin_0[6]
   munge_c = bin_1[3] + bin_1[4] + bin_1[5] + bin_1[6] + bin_1[7] + bin_0[7] + bin_2[7] + bin_2[6]
-  munge_d = bin_2[3] + bin_1[4] + bin_1[5] + bin_3[3] + bin_3[4] + bin_3[5] + bin_3[6] + bin_3[7]
+  munge_d = bin_2[3] + bin_2[4] + bin_2[5] + bin_3[3] + bin_3[4] + bin_3[5] + bin_3[6] + bin_3[7]
 
   final_b = int(munge_b, 2)
   final_c = int(munge_c, 2)
