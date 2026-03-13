@@ -166,8 +166,10 @@ def read_file(source, filename=None, start_address=None):
                 bufs.add_data(hl.addr, hl.data, cmd)
             else:
                 # A zero-length record signifies start address
+                print(f'Zero-length record; setting start address to {hl.addr:04x}')
                 cmd.start_address(hl.addr)
         elif hl.record_type == 0x01 and hl.addr > 0:
+            print(f'Setting start address to {hl.addr:04x}')
             cmd.start_address(hl.addr)
 
     # Clear the buffers, finally
