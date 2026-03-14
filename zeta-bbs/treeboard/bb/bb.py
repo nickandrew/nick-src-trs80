@@ -4,14 +4,14 @@
 A Treeboard message base consists of 3 files: TXT, HDR, TOP.
 
 The HDR file contains one 16-byte header for each message:
-    flag bits (kiled: 0, private: 1, important: 2, rude: 3, netmsg: 4, netsent: 5)
-    number of lines (appears merely advisory)
-    RBA of start of message (messages are stored in 256-byte chunks, so rba % 256 is always zero)
-    creation date
-    sender userid (16 bits)
-    receiver userid (16 bits)
-    topic (8 bits)
-    creation time (mostly s/m/h but sometimes, perhaps incorrectly, h/m/s)
+    1 byte: flag bits (kiled: 0, private: 1, important: 2, rude: 3, netmsg: 4, netsent: 5)
+    1 byte: number of lines (appears merely advisory)
+    3 byte: RBA of start of message (messages are stored in 256-byte chunks, so rba % 256 is always zero)
+    3 byte: creation date
+    2 byte: sender userid
+    2 byte: receiver userid
+    1 byte: topic id
+    3 byte: creation time (mostly s/m/h but sometimes, perhaps incorrectly, h/m/s)
 
 The TXT file contains chunks of length 256:
     First chunk looks like a bitmap of used chunks
@@ -39,6 +39,7 @@ from dataclasses import dataclass
 import argparse
 import datetime
 import os.path
+import re
 
 
 @dataclass
@@ -122,17 +123,34 @@ class BB(object):
         if not os.path.exists(dir):
             raise DirectoryNotFoundError(f'No such directory {dir}')
 
-        text_path = f'{dir}/msgtxt.zms'
-        header_path = f'{dir}/msghdr.zms'
-        topic_path = f'{dir}/msgtop.zms'
+        self.text_path = f'{dir}/msgtxt.zms'
+        self.header_path = f'{dir}/msghdr.zms'
+        self.topic_path = f'{dir}/msgtop.zms'
 
-        with open(text_path, 'rb') as ifp:
+        with open(self.text_path, 'rb') as ifp:
             self.data_text = ifp.read()
-        with open(header_path, 'rb') as ifp:
-            self.data_header = ifp.read()
-            self.n_messages = int(len(self.data_header) / BB.header_len)
-        with open(topic_path, 'rb') as ifp:
+        with open(self.header_path, 'rb') as ifp:
+            self.data_header = bytearray(ifp.read())
+            self.n_messages = int(len(self.data_header) / BB.header_len) - 1
+        with open(self.topic_path, 'rb') as ifp:
             self.data_topic = ifp.read()
+
+    def clear_start(self, n: int):
+        if n > self.n_messages:
+            raise ValueError(f'Message numbers go to {self.n_messages}')
+        offset = BB.header_len * n
+        if not self.data_header[offset] & Header.flag_killed:
+            raise ValueError(f'Message {n} is not killed')
+        # TODO: Should be in Header class
+        self.data_header[offset + 2] = 0
+        self.data_header[offset + 3] = 0
+        self.data_header[offset + 4] = 0
+
+    def kill_message(self, n: int):
+        if n > self.n_messages:
+            raise ValueError(f'Message numbers go to {self.n_messages}')
+        offset = BB.header_len * n
+        self.data_header[offset] |= Header.flag_killed
 
     def header(self, n: int):
         if n > self.n_messages:
@@ -166,7 +184,11 @@ class BB(object):
         """A generator to yield all messages."""
         n = 1
         while n <= self.n_messages:
-            yield self.message(n)
+            try:
+                yield self.message(n)
+            except Exception as e:
+                print(f'Unable to yield message {n}: {e}')
+                raise
             n += 1
 
     def message(self, n: int):
@@ -228,6 +250,15 @@ class BB(object):
                 continue
             print(hdr)
 
+    def rewrite(self):
+        """Rewrite after modifications.
+
+        At present only header_path can change.
+        """
+        with open(self.header_path, 'wb') as ofp:
+            ofp.write(self.data_header)
+
+
 def print_message(msg: Message):
     if msg.header.is_deleted():
         print(f'Msg Id:  {msg.id} is deleted')
@@ -258,12 +289,32 @@ def print_message(msg: Message):
     print('')
     print(msg.body)
 
+def fsck(bb):
+    """Check and fix what can be fixed."""
+
+    for msg in bb.messages():
+        if msg.header.is_deleted():
+            if msg.header.start != 0:
+                print(f'Clearing start sector, deleted message {msg.id}')
+                bb.clear_start(msg.id)
+            continue
+        m=re.match(r'([0-9 ]\d) (...) (19)?(\d\d)  ?\d\d:\d\d:\d\d$', msg.date)
+        if not m:
+            print(f'Message {msg.id} date format error: {msg.date}')
+            bb.kill_message(msg.id)
+
+    bb.rewrite()
+
+
 def main():
     parser = argparse.ArgumentParser(description='Export or decode Zeta Treeboard files.')
     parser.add_argument('--dir', required=True, help='Data directory')
     parser.add_argument('ids', type=int, nargs='*', help='Message IDs to print')
     parser.add_argument('--read_all', action='store_true', help='Read all messages')
     parser.add_argument('--check_bitmap', action='store_true', help='Check used sector bitmap')
+    parser.add_argument('--fsck', action='store_true', help='Check and fix what can be fixed')
+    parser.add_argument('--kill_message', type=int, help='Flag a message as killed')
+    parser.add_argument('--clear_start', type=int, help='Zero starting sector of killed message')
     args = parser.parse_args()
 
     bb = BB(dir=args.dir)
@@ -272,6 +323,10 @@ def main():
         for message in bb.messages():
             print('---')
             print_message(message)
+
+    if args.fsck:
+        fsck(bb)
+        return
 
     if args.check_bitmap:
         sectors_used = {}
@@ -286,10 +341,27 @@ def main():
 
             for sector_id in sectors:
                 if sector_id not in sectors_used:
-                    sectors_used[sector_id] = message_id
+                    sectors_used[sector_id] = [message_id]
                 else:
-                    print(f'Sector {sector_id} is used by messages {sectors_used[sector_id]} and {message_id}')
+                    sectors_used[sector_id].append(message_id)
 
+        # Report at the end
+        for sector_id in sectors_used:
+            msgs = sectors_used[sector_id]
+            if len(msgs) > 1:
+                print(f'Sector {sector_id} is used by messages {msgs}')
+
+        return
+
+    if args.kill_message:
+        bb.kill_message(args.kill_message)
+        bb.clear_start(args.kill_message)
+        bb.rewrite()
+        return
+
+    if args.clear_start:
+        bb.clear_start(args.clear_start)
+        bb.rewrite()
         return
 
     if args.ids:
