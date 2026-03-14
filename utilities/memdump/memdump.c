@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv)
 {
-  char *start;
+  unsigned int start;
   unsigned int len;
 
   if (argc < 3) {
@@ -23,6 +23,6 @@ int main(int argc, char **argv)
     return 2;
   }
 
-  memdump(start, len, (unsigned long) start);
+  memdump((const char *) start, len, (unsigned long) start);
   return 0;
 }
