@@ -26,6 +26,8 @@ and other Linux distros.
 You'll need [zmac](http://48k.ca/zmac.html) to cross-assemble and
 [sdcc](https://sdcc.sourceforge.net/) to cross-compile.
 
+See INSTALL.md for detailed installation instructions.
+
 ## Highlights
 
 ### The Build System (2021-2023)
