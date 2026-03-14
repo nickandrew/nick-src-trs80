@@ -47,7 +47,7 @@ class Header:
     id: int
     flags: int
     lines: int
-    rba: int
+    start: int  # starting sector number
     date: datetime.date
     sender: int
     receiver: int
@@ -65,7 +65,7 @@ class Header:
         self.id = id
         self.flags = int(buf[0])
         self.lines = int(buf[1])
-        self.rba = buf[2] + buf[3] * 0x100 + buf[4] * 0x10000
+        self.start = buf[3] + buf[4] * 0x100
         self.date = datetime.date(day=buf[5], month=buf[6], year=1900 + buf[7])
         self.sender = buf[8] + buf[9] * 0x100
         self.receiver = buf[10] + buf[11] * 0x100
@@ -140,14 +140,27 @@ class BB(object):
         buf = self.data_header[n * BB.header_len:(n + 1) * BB.header_len]
         return Header(n, buf)
 
+    def sector_iter(self, n: int):
+        """Generates all the sector numbers for a given message."""
+        hdr = self.header(n)
+        if hdr.is_deleted():
+            return
+
+        start = hdr.start
+
+        while start != 0:
+            yield start
+            buf = self.data_text[start*256:start*256+2]
+            start = buf[0] + buf[1] * 0x100
+
     def text_iter(self, start: int):
         while start != 0:
-            buf = self.data_text[start:start+256]
+            buf = self.data_text[start*256:(start+1)*256]
             next_start = buf[0] + buf[1] * 0x100
-            # print(f'Getting text at {start//256}: (next is {next_start})')
+            # print(f'Getting text at {start}: (next is {next_start})')
             for b in buf[2:]:
                 yield b
-            start = int(next_start * 0x100)
+            start = next_start
 
     def messages(self):
         """A generator to yield all messages."""
@@ -164,7 +177,7 @@ class BB(object):
             # A deleted message only has a Header
             return Message(id=n, header=hdr)
 
-        start = hdr.rba
+        start = hdr.start
         sender = ''
         receiver = ''
         subject = ''
@@ -250,6 +263,7 @@ def main():
     parser.add_argument('--dir', required=True, help='Data directory')
     parser.add_argument('ids', type=int, nargs='*', help='Message IDs to print')
     parser.add_argument('--read_all', action='store_true', help='Read all messages')
+    parser.add_argument('--check_bitmap', action='store_true', help='Check used sector bitmap')
     args = parser.parse_args()
 
     bb = BB(dir=args.dir)
@@ -258,6 +272,25 @@ def main():
         for message in bb.messages():
             print('---')
             print_message(message)
+
+    if args.check_bitmap:
+        sectors_used = {}
+        for message_id in range(1, bb.n_messages):
+            sectors = list(bb.sector_iter(message_id))
+
+            if not sectors:
+                # Message deleted
+                continue
+
+            print(f'{message_id:5} -> {sectors}')
+
+            for sector_id in sectors:
+                if sector_id not in sectors_used:
+                    sectors_used[sector_id] = message_id
+                else:
+                    print(f'Sector {sector_id} is used by messages {sectors_used[sector_id]} and {message_id}')
+
+        return
 
     if args.ids:
         for i in args.ids:
