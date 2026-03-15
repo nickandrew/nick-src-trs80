@@ -150,11 +150,11 @@ PROG_END	EQU	0FFD6H	;W- addr of prog end
 ABORT		EQU	0FFD8H	;W- Abort program
 DISCON		EQU	0FFDAH	;W- Disconnection.
 ;
-TERMINATE	EQU	0FFDCH	;C- terminate prog (swapper.asm)
+TERMINATE	EQU	0FFDCH	;J- terminate prog (swapper.asm)
 CALL_PROG	EQU	0FFDFH	;C- call a program (swapper.asm)
 OVERLAY		EQU	0FFE2H	;C- jump to program (swapper.asm)
-TERM_ABORT	EQU	0FFE5H	;C- abort signal (swapper.asm)
-TERM_DISCON	EQU	0FFE8H	;C- discon signal (swapper.asm)
+TERM_ABORT	EQU	0FFE5H	;J- abort signal (swapper.asm)
+TERM_DISCON	EQU	0FFE8H	;J- discon signal (swapper.asm)
 ;
 LASTCC		EQU	0FFEBH	;B- Last return code
 $STDOUT		EQU	0FFECH	;W- Standard output ptr

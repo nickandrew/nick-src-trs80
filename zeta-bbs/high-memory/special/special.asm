@@ -15,6 +15,11 @@
 ;   $ALLOC_PAGE    ALLOC_PAGE     Allocate a new 1kb physical page
 ;   $FREE_PAGE     FREE_PAGE      Free a specified 1kb page
 ;   $SWAP_PAGE     SWAP_PAGE      Map physical page A into logical page B
+;   _TERMINATE     TERMINATE      Terminates running program
+;   _CALL_PROG     CALL_PROG      Calls a new program from the first
+;   _OVERLAY       OVERLAY        Unknown
+;   _TERM_ABORT    TERM_ABORT     Abort running program
+;   _TERM_DISCON   TERM_DISCON    Caller disconnected, abort program
 ;
 ; Tables copied:
 ;   $MEM_OWNER     MEM_OWNER      256 bytes of page owners
@@ -46,22 +51,24 @@ NOT_FF	LD	DE,EN_CODE-ST_CODE	; Length of the code to be relocated
 	OR	A
 	SBC	HL,DE
 	EX	DE,HL
+
+; Patch in relocated addresses
+
+	LD	HL,(RELOC1+1)
+	ADD	HL,DE
+	LD	(RELOC1+1),HL
 ;
-;;	LD	HL,(RELOC1+1)
-;;	ADD	HL,DE
-;;	LD	(RELOC1+1),HL
+	LD	HL,(RELOC2+1)
+	ADD	HL,DE
+	LD	(RELOC2+1),HL
 ;
-;;	LD	HL,(RELOC2+1)
-;;	ADD	HL,DE
-;;	LD	(RELOC2+1),HL
+	LD	HL,(RELOC3+1)
+	ADD	HL,DE
+	LD	(RELOC3+1),HL
 ;
-;;	LD	HL,(RELOC3+1)
-;;	ADD	HL,DE
-;;	LD	(RELOC3+1),HL
-;
-;;	LD	HL,(RELOC4+1)
-;;	ADD	HL,DE
-;;	LD	(RELOC4+1),HL
+	LD	HL,(RELOC4+1)
+	ADD	HL,DE
+	LD	(RELOC4+1),HL
 ;
 	LD	BC,EN_CODE-ST_CODE	; Length of the code to be relocated
 	LD	DE,(ORIGIN)		; Start of destination addresses
@@ -128,6 +135,32 @@ NOT_FF	LD	DE,EN_CODE-ST_CODE	; Length of the code to be relocated
 	LD	HL,LOGOUT
 	ADD	HL,DE
 	LD	(USR_LOGOUT+1),HL
+
+	LD	(TERMINATE),A
+	LD	HL,_TERMINATE
+	ADD	HL,DE
+	LD	(TERMINATE+1),HL
+
+	LD	(CALL_PROG),A
+	LD	HL,_CALL_PROG
+	ADD	HL,DE
+	LD	(CALL_PROG+1),HL
+
+	LD	(OVERLAY),A
+	LD	HL,_OVERLAY
+	ADD	HL,DE
+	LD	(OVERLAY+1),HL
+
+	LD	(TERM_ABORT),A
+	LD	HL,_TERM_ABORT
+	ADD	HL,DE
+	LD	(TERM_ABORT+1),HL
+
+	LD	(TERM_DISCON),A
+	LD	HL,_TERM_DISCON
+	ADD	HL,DE
+	LD	(TERM_DISCON+1),HL
+
 ;
 	LD	HL,$MEM_OWNER
 	ADD	HL,DE
@@ -363,9 +396,46 @@ $SWAP_PAGE
 	LD	(HL),A
 	EI
 	RET
-;
-;;DCB1	DEFS	32
-;;BUFF1	DEFS	256
+
+;_TERMINATE jump to terminate program
+; Return to DOS. swapper.cmd replaces this with its own code.
+_TERMINATE
+	JP	DOS_NOERROR
+
+;_CALL_PROG call a program
+_CALL_PROG
+RELOC1
+	LD	HL,SP_MESS1
+	CALL	MESS_DO
+	RET
+
+SP_MESS1	DEFM	'call_prog() is not implemented',0dh,03h
+
+;_OVERLAY
+_OVERLAY
+RELOC2
+	LD	HL,SP_MESS2
+	CALL	MESS_DO
+	RET
+
+SP_MESS2	DEFM	'overlay() is not implemented',0dh,03h
+
+_TERM_ABORT
+RELOC3
+	LD	HL,SP_MESS3
+	CALL	MESS_DO
+	JP	DOS_NOERROR
+
+SP_MESS3	DEFM	'abort exit',0dh,03h
+
+_TERM_DISCON
+RELOC4
+	LD	HL,SP_MESS4
+	CALL	MESS_DO
+	JP	DOS_NOERROR
+
+SP_MESS4	DEFM	'disconnect exit',0dh,03h
+
 ;
 ;mem_owner: 256 bytes saying which "program number"
 ;owns which page of memory.
