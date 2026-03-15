@@ -1,5 +1,14 @@
 ;setup: prepare for use as a remote system.
 ;
+;   * Speeds up the CPU
+;   * Clears memory
+;   * Sets HIMEM
+;   * Starts clock interrupts at 0x44a0
+;   * If 'T' argument given, sets SYS_TEST bit in SYS_STAT (also bit 4, unknown)
+;   * If 'Sn' argument given, runs "DS n" to sort disk directory
+;   * Initialises word at CALLER with ST_LOGGED_IN from STATS/ZMS
+;   * Initialises word at PKTS_RCVD with ST_PKTS_RCVD from STATS/ZMS
+;
 *GET	DOSCALLS
 *GET	EXTERNAL
 *GET	ASCII
@@ -23,9 +32,9 @@ START	LD	SP,START
 ;
 	LD	DE,44A0H	;Start clock interrupts
 	PUSH	DE
-	CALL	4413H
+	CALL	DOS_DEQUEUE
 	POP	DE
-	CALL	4410H
+	CALL	DOS_ENQUEUE
 ;
 ;load any required data into memory.
 ;from parameters given.
@@ -105,7 +114,7 @@ SORT_DISK
 	DEFM	'0',CR
 ;
 ;
-ST_FCB	DEFM	'STATS.ZMS',CR
+ST_FCB	DEFM	'STATS/ZMS',CR
 	DC	32-10,0
 *GET	STATS
 ;

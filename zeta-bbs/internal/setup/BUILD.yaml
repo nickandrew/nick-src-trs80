@@ -1,0 +1,8 @@
+setup.cmd:
+  assemble: setup.asm
+  depends:
+  - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - zeta-bbs/include/stats.asm
+  - zeta-bbs/internal/setup/setup.asm
