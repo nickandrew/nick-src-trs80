@@ -1,0 +1,8 @@
+devices.cmd:
+  assemble: devices.asm
+  depends:
+  - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - zeta-bbs/high-memory/devices/devices.asm
+  - zeta-bbs/include/rs232.asm
