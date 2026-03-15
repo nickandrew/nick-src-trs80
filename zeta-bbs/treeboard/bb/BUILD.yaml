@@ -1,3 +1,39 @@
+bb.cmd:
+  assemble: bb.asm
+  depends:
+  - bb.asm
+  - include/include/ascii.asm
+  - include/include/ci_cmp.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - zeta-bbs/include/$month_name.asm
+  - zeta-bbs/include/$two_digit.asm
+  - zeta-bbs/include/ci_hash.asm
+  - zeta-bbs/include/common_search.asm
+  - zeta-bbs/include/dmy_ascii.asm
+  - zeta-bbs/include/getdate.asm
+  - zeta-bbs/include/gettime.asm
+  - zeta-bbs/include/hms_ascii.asm
+  - zeta-bbs/include/linein.asm
+  - zeta-bbs/include/mess_0.asm
+  - zeta-bbs/include/mess_nocr.asm
+  - zeta-bbs/include/morepipe.asm
+  - zeta-bbs/include/multiply.asm
+  - zeta-bbs/include/print_numb.asm
+  - zeta-bbs/include/print_numb_dev.asm
+  - zeta-bbs/include/strcmp_ci.asm
+  - zeta-bbs/include/strcpy.asm
+  - zeta-bbs/include/strlen.asm
+  - zeta-bbs/include/userfile.asm
+  - zeta-bbs/include/user_search.asm
+  - zeta-bbs/treeboard/bb/bb1.asm
+  - zeta-bbs/treeboard/bb/bb2.asm
+  - zeta-bbs/treeboard/bb/bb3.asm
+  - zeta-bbs/treeboard/bb/bb4.asm
+  - zeta-bbs/treeboard/bb/bb5.asm
+  - zeta-bbs/treeboard/bb/bb6.asm
+  - zeta-bbs/treeboard/bb/bb7.asm
+  - zeta-bbs/treeboard/bb/bbdata.asm
 bb7old.asm:
   sdcc: bb7old.c
   depends:

@@ -1,4 +1,6 @@
 ; @(#) bb.asm: News and echomail system
+;1.10:
+;	Assemble under modern Linux with zmac
 ;1.9:
 ;	Flatten out the tree to become a list of topics!
 ;1.8c:
@@ -18,7 +20,7 @@ MAX_MSGS	EQU	1024
 	DEFW	CLEAN_DISCON
 ;End of program load info.
 ;
-	COM	'<BB 1.9  30-Jul-89>'
+	COM	'<BB 1.10  2026-03-15>'
 ;
 	ORG	BASE+100H
 ;
@@ -30,10 +32,26 @@ MAX_MSGS	EQU	1024
 *GET	BB6		;Resend command
 *GET	BB7		;Text file routines
 ;
+*GET	$MONTH_NAME
+*GET	$TWO_DIGIT
+*GET	CI_CMP
+*GET	CI_HASH
+*GET	COMMON_SEARCH
+*GET	DMY_ASCII
+*GET	GETDATE
+*GET	GETTIME
+*GET	HMS_ASCII
 *GET	LINEIN
+*GET	MESS_0
+*GET	MESS_NOCR
 *GET	MOREPIPE	;Pipe output through - more - filter
-*GET	TIMES
-*GET	ROUTINES
+*GET	MULTIPLY
+*GET	PRINT_NUMB
+*GET	PRINT_NUMB_DEV
+*GET	STRCMP_CI
+*GET	STRCPY
+*GET	STRLEN
+*GET	USER_SEARCH
 ;
 *GET	BBDATA
 ;
