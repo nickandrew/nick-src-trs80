@@ -296,25 +296,36 @@ SETUP
 ; ------------------------------
 ;
 FILE_SETUP
-	LD	HL,_BLOCK
 	LD	DE,TXT_FCB
+	LD	HL,TXT_FILENAME
+	CALL	DOS_EXTRACT
+	CALL	NZ,NO_OPEN
+	LD	HL,_BLOCK
 	LD	B,0
 	CALL	DOS_OPEN_EX
-	JP	NZ,NO_OPEN
-	LD	HL,HDR_B
+	CALL	NZ,NO_OPEN
+
 	LD	DE,HDR_FCB
+	LD	HL,HDR_FILENAME
+	CALL	DOS_EXTRACT
+	CALL	NZ,NO_OPEN
+	LD	HL,HDR_B
 	LD	B,HDR_LEN
 	CALL	DOS_OPEN_EX
-	JP	NZ,NO_OPEN
-	LD	HL,TOP_B
+	CALL	NZ,NO_OPEN
+
 	LD	DE,TOP_FCB
+	LD	HL,TOP_FILENAME
+	CALL	DOS_EXTRACT
+	CALL	NZ,NO_OPEN
+	LD	HL,TOP_B
 	LD	B,0
 	CALL	DOS_OPEN_EX
-	JP	NZ,NO_OPEN
+	CALL	NZ,NO_OPEN
 ;
-	LD	C,0F8H
-	LD	B,40H
-	LD	HL,TXT_FCB+1
+	LD	C,0F8H		; Reset bits 0,1,2 (set FULL protection)
+	LD	B,40H		; Set bit 6 (do not truncate file on write)
+	LD	HL,TXT_FCB+1	; of each FCB byte 2
 	LD	A,(HL)
 	AND	C
 	OR	B
@@ -382,13 +393,26 @@ NO_CLOSE
 	POP	AF
 	RET
 ;
+; Open failed
 NO_OPEN
+	EX	(SP),HL		; HL now contains return address
+	PUSH	AF
+	PUSH	HL
+	POP	DE
+	LD	HL,BB1_MESS2
+	CALL	HEX16		; DE is value to convert to hex; HL is address to write
+	LD	HL,BB1_MESS1
+	CALL	MESS_DO
+	POP	AF
 	PUSH	AF
 	OR	80H
 	CALL	DOS_ERROR
 	POP	AF
 	JP	TERMINATE
-;
+
+BB1_MESS1	DEFM	'File open error at '
+BB1_MESS2	DEFM	'XXXXH: ',03h
+
 ERROR
 	PUSH	AF
 	OR	80H

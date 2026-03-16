@@ -6,6 +6,7 @@ bb.cmd:
   - include/include/ci_cmp.asm
   - include/include/doscalls.asm
   - include/include/external.asm
+  - include/include/hex.asm
   - zeta-bbs/include/$month_name.asm
   - zeta-bbs/include/$two_digit.asm
   - zeta-bbs/include/ci_hash.asm
