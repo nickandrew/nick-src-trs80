@@ -1,0 +1,15 @@
+userlist.cmd:
+  assemble: userlist.asm
+  depends:
+  - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - include/include/external.asm
+  - zeta-bbs/include/$month_name.asm
+  - zeta-bbs/include/$two_digit.asm
+  - zeta-bbs/include/dmy_ascii.asm
+  - zeta-bbs/include/mess_0.asm
+  - zeta-bbs/include/sprint_numb.asm
+  - zeta-bbs/include/std_out.asm
+  - zeta-bbs/include/strcat.asm
+  - zeta-bbs/include/strlen.asm
+  - zeta-bbs/utilities/userlist/userlist.asm
