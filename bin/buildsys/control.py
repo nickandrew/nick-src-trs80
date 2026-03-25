@@ -323,27 +323,33 @@ class DirectoryBuilder(object):
       return
 
     pathname = self.built_path(filename)
-    if os.path.exists(pathname):
-      print(f'{prefix}Already exists: {pathname}')
-      return
-    print(f'{prefix}Does not exist: {pathname}')
+    source_pathname = self.source_path(filename)
+    if not os.path.exists(pathname):
+      print(f'{prefix}Does not exist: {pathname}')
+    elif os.path.exists(source_pathname):
+      source_mtime = os.stat(source_pathname).st_mtime
+      built_mtime = os.stat(pathname).st_mtime
+      if built_mtime < source_mtime:
+        print(f'{prefix} {source_pathname} is more recent than {pathname}, copying again')
+      else:
+        print(f'{prefix}Already exists: {pathname}')
+        return
 
     # FIXME: Assumes that self.source_dir is relative
     built_dir = self.build_dir + '/' + self.source_dir
 
-    pathname = self.source_path(filename)
-    if os.path.exists(pathname):
-      print(f'{prefix}Already exists: {pathname}')
-      if not os.path.exists(built_dir):
-        print(f'{prefix}Making directory: {built_dir}')
-        os.makedirs(built_dir)
-      elif not os.path.isdir(built_dir):
-        raise ValueError(f'{built_dir} exists, but it is not a directory')
+    if not os.path.exists(built_dir):
+      print(f'{prefix}Making directory: {built_dir}')
+      os.makedirs(built_dir)
+    elif not os.path.isdir(built_dir):
+      raise ValueError(f'{built_dir} exists, but it is not a directory')
 
+    if os.path.exists(source_pathname):
       # Copy the file into the built_dir
-      shutil.copyfile(pathname, built_dir + '/' + filename)
+      shutil.copyfile(source_pathname, built_dir + '/' + filename)
       print(f'{prefix}  Copied {pathname} into {built_dir}')
       return
+
     print(f'{prefix}Does not exist: {pathname}')
 
     # Build it from the config
