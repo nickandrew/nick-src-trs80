@@ -156,6 +156,10 @@ int fgetc(FILE *stream) {
   return rc;
 }
 
+int getc(FILE *stream) {
+  return fgetc(stream);
+}
+
 // mode can be 'r', 'w', 'a', 'r+', 'w+', 'a+' and possible trailing 'b'
 FILE *fopen(const char *pathname, const char *mode)
 {
