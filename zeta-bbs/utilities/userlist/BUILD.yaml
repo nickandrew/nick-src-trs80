@@ -3,7 +3,7 @@ userlist.cmd:
   depends:
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   - zeta-bbs/include/$month_name.asm
   - zeta-bbs/include/$two_digit.asm
   - zeta-bbs/include/dmy_ascii.asm

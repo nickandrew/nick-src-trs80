@@ -64,7 +64,7 @@ msgass.cmd:
   - zeta-bbs/network/fidonet/msgass.asm
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   - zeta-bbs/include/fidonet.asm
   - zeta-bbs/include/msghdr.asm
   - zeta-bbs/include/msgtop.asm

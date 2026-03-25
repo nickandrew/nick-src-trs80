@@ -4,7 +4,7 @@ cat.cmd:
   - zeta-bbs/utilities/cat/cat.asm
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   - zeta-bbs/include/extract.asm
   - zeta-bbs/include/mess_0.asm
   - zeta-bbs/include/rs232.asm

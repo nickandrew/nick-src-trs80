@@ -5,13 +5,13 @@ bb.cmd:
   - include/include/ascii.asm
   - include/include/ci_cmp.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
   - include/include/hex.asm
   - zeta-bbs/include/$month_name.asm
   - zeta-bbs/include/$two_digit.asm
   - zeta-bbs/include/ci_hash.asm
   - zeta-bbs/include/common_search.asm
   - zeta-bbs/include/dmy_ascii.asm
+  - zeta-bbs/include/external.asm
   - zeta-bbs/include/getdate.asm
   - zeta-bbs/include/gettime.asm
   - zeta-bbs/include/hms_ascii.asm

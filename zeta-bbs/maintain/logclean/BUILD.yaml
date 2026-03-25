@@ -4,7 +4,7 @@ logclean.cmd:
   - zeta-bbs/maintain/logclean/logclean.asm
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   - zeta-bbs/include/fputs.asm
   - zeta-bbs/include/puts.asm
   - zeta-bbs/include/rs232.asm

@@ -3,7 +3,7 @@ swapper.cmd:
   depends:
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
   - include/include/prognumb.asm
+  - zeta-bbs/include/external.asm
   - zeta-bbs/include/extract.asm
   - zeta-bbs/internal/swapper/swapper.asm

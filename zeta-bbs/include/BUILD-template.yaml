@@ -3,7 +3,7 @@ program-template.cmd:
   depends:
   - zeta-bbs/include/program-template.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   - include/include/ascii.asm
   - include/include/debugf.asm
   - cinit.asm

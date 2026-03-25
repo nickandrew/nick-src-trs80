@@ -3,13 +3,13 @@ special.cmd:
   depends:
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
-  - zeta-bbs/include/rs232.asm
   - zeta-bbs/high-memory/special/special.asm
+  - zeta-bbs/include/external.asm
+  - zeta-bbs/include/rs232.asm
 special2.cmd:
   assemble: special2.asm
   depends:
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
   - zeta-bbs/high-memory/special/special2.asm
+  - zeta-bbs/include/external.asm

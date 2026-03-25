@@ -5,7 +5,7 @@ zeta_grep.cmd:
   - include/include/ascii.asm
   - include/include/ci_cmp.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   - zeta-bbs/include/extract.asm
   - zeta-bbs/include/mess_0.asm
   - zeta-bbs/include/std_out.asm

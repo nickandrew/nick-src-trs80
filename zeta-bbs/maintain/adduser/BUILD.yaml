@@ -4,10 +4,10 @@ adduser.cmd:
   - include/include/ascii.asm
   - include/include/ci_cmp.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
   - zeta-bbs/include/ci_hash.asm
   - zeta-bbs/include/common_search.asm
   - zeta-bbs/include/cphlde.asm
+  - zeta-bbs/include/external.asm
   - zeta-bbs/include/mess_0.asm
   - zeta-bbs/include/multiply.asm
   - zeta-bbs/include/rs232.asm

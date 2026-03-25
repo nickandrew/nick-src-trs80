@@ -2,8 +2,8 @@ real.cmd:
   assemble: real.asm
   depends:
   - hardware/realtime-clock/real.asm
-  - include/include/external.asm
   - include/include/doscalls.asm
+  - zeta-bbs/include/external.asm
 rtclock.cmd:
   assemble: rtclock.asm
   depends:

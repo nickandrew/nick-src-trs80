@@ -3,7 +3,6 @@ za.cmd:
   depends:
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
   - zeta-bbs/games/zork/za.asm
   - zeta-bbs/games/zork/zorka.asm
   - zeta-bbs/games/zork/zorkb.asm
@@ -12,3 +11,4 @@ za.cmd:
   - zeta-bbs/games/zork/zorkdos.asm
   - zeta-bbs/games/zork/zorkfix.asm
   - zeta-bbs/games/zork/zorksec1.asm
+  - zeta-bbs/include/external.asm

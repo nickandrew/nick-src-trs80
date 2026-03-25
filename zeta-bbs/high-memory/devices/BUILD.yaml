@@ -3,6 +3,6 @@ devices.cmd:
   depends:
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
   - zeta-bbs/high-memory/devices/devices.asm
+  - zeta-bbs/include/external.asm
   - zeta-bbs/include/rs232.asm

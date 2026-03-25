@@ -4,9 +4,9 @@ restore-256k.cmd:
   - hardware/restore/restore-256k.asm
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
   - include/include/mess_0_vdu.asm
   - include/include/prognumb.asm
+  - zeta-bbs/include/external.asm
 restore.cmd:
   assemble: restore.asm
   depends:

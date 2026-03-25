@@ -3,7 +3,7 @@ usrclean.cmd:
   depends:
   - include/include/ascii.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   - zeta-bbs/include/fputs.asm
   - zeta-bbs/include/multiply.asm
   - zeta-bbs/include/rs232.asm

@@ -5,7 +5,7 @@ catfs.cmd:
   - os/filsys/filsys.asm
   - os/filsys/fs.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   skip: filsys code is incomplete, several important functions are unimplemented
 cpfs.cmd:
   assemble: cp.asm
@@ -13,8 +13,8 @@ cpfs.cmd:
   - os/filsys/cp.asm
   - os/filsys/filsys.asm
   - os/filsys/fs.asm
-  - include/include/external.asm
   - include/include/doscalls.asm
+  - zeta-bbs/include/external.asm
   skip: filsys code is incomplete, several important functions are unimplemented
 filemake.cmd:
   assemble: filemake.asm
@@ -23,7 +23,7 @@ filemake.cmd:
   - os/filsys/filsys.asm
   - os/filsys/fs.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   skip: filsys code is incomplete, several important functions are unimplemented
 lsfs.cmd:
   assemble: ls.asm
@@ -32,7 +32,7 @@ lsfs.cmd:
   - os/filsys/filsys.asm
   - os/filsys/fs.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   skip: filsys code is incomplete, several important functions are unimplemented
 mkdir.cmd:
   assemble: mkdir.asm
@@ -41,5 +41,5 @@ mkdir.cmd:
   - os/filsys/filsys.asm
   - os/filsys/fs.asm
   - include/include/doscalls.asm
-  - include/include/external.asm
+  - zeta-bbs/include/external.asm
   skip: filsys code is incomplete, several important functions are unimplemented
