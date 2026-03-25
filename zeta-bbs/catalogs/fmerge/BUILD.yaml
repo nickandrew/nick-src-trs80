@@ -1,8 +1,21 @@
-fmerge.asm:
+fmerge.cmd:
+  link: fmerge
+  depends:
+  - fmerge.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+fmerge.rel:
   sdcc: fmerge.c
   depends:
   - zeta-bbs/catalogs/fmerge/fmerge.c
-fmerge2.asm:
+fmerge2.cmd:
+  link: fmerge2
+  depends:
+  - fmerge2.rel
+  - library/basicio/basicio.lib
+  - library/newdos80/newdos80.lib
+  - library/rom/rom.lib
+fmerge2.rel:
   sdcc: fmerge2.c
   depends:
   - zeta-bbs/catalogs/fmerge/fmerge2.c

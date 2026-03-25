@@ -1,0 +1,10 @@
+fixwhere.cmd:
+  assemble: fixwhere.asm
+  depends:
+  - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - zeta-bbs/catalogs/fixwhere/fixwhere.asm
+  - zeta-bbs/include/external.asm
+  - zeta-bbs/include/strcpy.asm
+  - zeta-bbs/include/x_date.asm
+  - zeta-bbs/include/x_today.asm
