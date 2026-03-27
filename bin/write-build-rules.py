@@ -57,6 +57,7 @@ def write_build_rule(filename, tree):
 
     depends = rule['depends']
     need_files = set()
+    need_files.add(base_filename)
 
     # Get all the symbols referred to in this file
     symbols = symtab.filename_referred(filename)
@@ -73,7 +74,19 @@ def write_build_rule(filename, tree):
         depends.append(f)
 
     # Write the rule
-    yaml.safe_dump({cmd_filename: rule}, stream=sys.stdout)
+
+    build_path = base_dirname + '/BUILD.yaml'
+    build_rules = {}
+    if os.path.exists(build_path):
+        with open(build_path, 'r') as ifp:
+            build_rules = yaml.safe_load(ifp)
+    build_rules[cmd_filename] = rule
+
+    with open(build_path, 'w') as ofp:
+        yaml.safe_dump(build_rules, stream=ofp)
+
+    print(f'--- BUILD.yaml for {filename}')
+    yaml.safe_dump(build_rules, stream=sys.stdout)
 
 
 def process_files(filenames):
