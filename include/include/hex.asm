@@ -29,7 +29,7 @@ HEX8:
 ; HEX4(A,HL): Write the ASCII representation of low order 4 bits of A to the 1-byte buffer at HL
 ; Return: HL = HL + 1
 HEX4:
-	AND	A,0FH
+	AND	0FH
 	CP	10
 	JR	C,00001$
 	ADD	A,7
