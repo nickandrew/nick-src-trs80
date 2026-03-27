@@ -1,7 +1,7 @@
 ;
 ;SPRINT_NUMB. Print a number in HL to a string at DE.
 ;
-SPRINT_NUMB
+SPRINT_NUMB::
 	LD	($SPRNU_DEV),DE
 	XOR	A
 	LD	($SBLANK),A

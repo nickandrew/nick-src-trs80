@@ -1,5 +1,5 @@
 ;
-$MONTH_NAME
+$MONTH_NAME::
 	LD	A,(DE)
 	INC	DE
 	DEC	A

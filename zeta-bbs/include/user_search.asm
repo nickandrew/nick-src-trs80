@@ -1,7 +1,7 @@
 ;
 ;USER_SEARCH: Search the USERFILE for a particular name.
 ; On input: HL contains the username, terminated by CR, ETX or NUL
-USER_SEARCH
+USER_SEARCH::
 	LD	A,0
 	LD	(US_ZERO),A
 	LD	(US_NSTR),HL

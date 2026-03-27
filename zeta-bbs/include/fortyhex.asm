@@ -3,7 +3,7 @@
 ;the string with a null rather than CR.
 ;Last modified on 20-Jan-87 for no-echo.
 ;
-FORTYHEX:
+FORTYHEX::
 	LD	A,B
 	LD	(_40H_LEN),A
 	LD	(_40H_BUF),HL

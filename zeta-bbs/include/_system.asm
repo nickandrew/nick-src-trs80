@@ -5,7 +5,7 @@
 	ERR	'Can only use system() with Zeta'
 	ENDIF
 ;
-_SYSTEM
+_SYSTEM::
 	LD	HL,2
 	ADD	HL,SP
 	LD	E,(HL)

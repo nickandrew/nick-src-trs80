@@ -1,6 +1,6 @@
 ;
 ;strcmp_ci - Case Independant STRCMP
-STRCMP_CI:
+STRCMP_CI::
 	CALL	CI_CMP
 	RET	NZ
 	LD	A,(HL)

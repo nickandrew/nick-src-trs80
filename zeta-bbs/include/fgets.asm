@@ -1,6 +1,6 @@
 ;
 ;Fgets: get a string of length in 'B' (max 256)
-FGETS
+FGETS::
 _FG1	CALL	ROM@GET
 	RET	NZ
 	LD	(HL),A

@@ -3,7 +3,7 @@
 ;
 ;
 ;set_stdout: Setup a new standard output
-SET_STDOUT
+SET_STDOUT::
 	LD	A,(DE)
 	BIT	7,A
 	JR	NZ,SS_01
@@ -26,7 +26,7 @@ SS_01
 	RET
 ;
 ;save_stdout: Save current STDOUT into buffer.
-SAVE_STDOUT
+SAVE_STDOUT::
 	LD	DE,($STDOUT)
 	LD	HL,STDOUTBUFF
 	LD	(HL),E
@@ -48,7 +48,7 @@ SS_02
 	RET
 ;
 ;rest_stdout: Restore original (saved) STDOUT.
-REST_STDOUT
+REST_STDOUT::
 	LD	DE,($STDOUT)
 	LD	A,(DE)
 	BIT	7,A		;if file then...
@@ -70,7 +70,7 @@ REST_STDOUT
 	RET
 ;
 ;set_stdin: Setup a new standard input
-SET_STDIN
+SET_STDIN::
 	LD	A,(DE)
 	BIT	7,A
 	JR	NZ,SS_03
@@ -93,7 +93,7 @@ SS_03
 	RET
 ;
 ;save_stdin: Save current STDIN into buffer.
-SAVE_STDIN
+SAVE_STDIN::
 	LD	DE,($STDIN)
 	LD	HL,STDINBUFF
 	LD	(HL),E
@@ -115,7 +115,7 @@ SS_04
 	RET
 ;
 ;rest_stdin: Restore original (saved) STDin.
-REST_STDIN
+REST_STDIN::
 	LD	DE,($STDIN)
 	LD	A,(DE)
 	BIT	7,A		;if file then...

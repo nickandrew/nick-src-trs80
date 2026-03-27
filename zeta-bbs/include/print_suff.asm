@@ -1,7 +1,7 @@
 ;
 ;PRINT_SUFF. Print suffix related to TENS & ONES values.
 ;
-PRINT_SUFF
+PRINT_SUFF::
 	LD	A,(TENS)
 	CP	'1'
 	LD	A,0

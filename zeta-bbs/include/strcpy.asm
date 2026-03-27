@@ -1,6 +1,6 @@
 ;
 ;Strcpy: Copy string at HL to DE up to null.
-STRCPY:
+STRCPY::
 	LD	A,(HL)
 	LD	(DE),A
 	OR	A

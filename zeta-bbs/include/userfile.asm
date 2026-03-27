@@ -3,7 +3,8 @@
 ;
 UF_LRL		EQU	56	;Userfile LRL
 ;
-US_UBUFF			;User data buffer
+;User data buffer
+US_UBUFF::
 UF_STATUS	DEFB	0	;Status byte.
 UF_NAME		DEFS	24	;Users name
 UF_PASSWD	DEFS	13	;Password.

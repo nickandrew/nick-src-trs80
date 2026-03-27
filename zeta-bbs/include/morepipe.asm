@@ -22,7 +22,7 @@ MO_ENDSTR	DEFW	0		;Last char of string
 M_MORE1		DEFM	'- More -',0
 M_MORE2		DEFM	CR,'        ',CR,0
 ;
-MOREPIPE
+MOREPIPE::
 	LD	HL,0
 	ADD	HL,SP
 	LD	(OLDSTACK),HL

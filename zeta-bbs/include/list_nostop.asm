@@ -1,6 +1,6 @@
 ;
 ;list_nostop: list a file without allowing aborting.
-LIST_NOSTOP:
+LIST_NOSTOP::
 	LD	DE,_LN_FCB
 	CALL	DOS_EXTRACT
 	LD	HL,_LN_BUFF

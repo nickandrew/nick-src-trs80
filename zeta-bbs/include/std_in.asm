@@ -1,6 +1,6 @@
 ;
 ;std_in: Input byte from $STDIN
-STD_IN
+STD_IN::
 	LD	DE,DCB_2O
 	CALL	ROM@GET		; Was ROM@PUT
 	RET

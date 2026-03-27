@@ -1,5 +1,5 @@
 ;
-GETTIME
+GETTIME::
 	PUSH	DE
 	LD	A,(4043H)
 	LD	(DE),A

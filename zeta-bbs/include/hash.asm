@@ -1,6 +1,6 @@
 ;
 ;HASH: Calculate 8-bit hash of a string
-HASH
+HASH::
 	LD	C,0
 HASH_1	LD	A,(HL)
 	OR	A

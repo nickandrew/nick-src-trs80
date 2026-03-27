@@ -1,6 +1,8 @@
 ;
+*GET	DOSCALLS
+
 ;fputs: Put a string to a device or file.
-FPUTS
+FPUTS::
 	LD	A,(HL)
 	OR	A
 	RET	Z

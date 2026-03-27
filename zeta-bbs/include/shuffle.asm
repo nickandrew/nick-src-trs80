@@ -1,6 +1,6 @@
 ;
 ;Shuffle: Display a 64 byte window on the screen.
-SHUFFLE:
+SHUFFLE::
 	PUSH	AF
 	PUSH	BC
 	PUSH	DE

@@ -1,6 +1,6 @@
 ;
 ;mess_0: Print a message until NULL terminator.
-MESS_0
+MESS_0::
 	LD	A,(HL)
 	OR	A
 	RET	Z

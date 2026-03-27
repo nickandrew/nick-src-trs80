@@ -1,6 +1,6 @@
 ;
 ;terminate_s: Put 00H byte on the end of a string.
-TERMINATE_S
+TERMINATE_S::
 	LD	A,(HL)
 	OR	A
 	RET	Z

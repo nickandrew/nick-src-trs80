@@ -1,5 +1,5 @@
 ;
-GETDATE
+GETDATE::
 	PUSH	DE
 	LD	A,(4045H)
 	LD	(DE),A

@@ -1,6 +1,6 @@
 ;
 ;Extract: Extract a filespec... Doesn't use SYS1.
-EXTRACT:
+EXTRACT::
 	PUSH	DE
 	LD	B,24
 _EXT_01	LD	A,(HL)

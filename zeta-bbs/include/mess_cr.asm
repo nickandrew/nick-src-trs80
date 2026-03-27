@@ -1,6 +1,6 @@
 ;
 ;MESS_CR: Print a CR terminated msg on device.
-MESS_CR
+MESS_CR::
 	LD	A,(HL)
 	CP	ETX
 	RET	Z

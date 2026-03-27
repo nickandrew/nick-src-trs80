@@ -1,6 +1,6 @@
 ;
 ;mess_nocr: print a message UNTIL a CR is seen.
-MESS_NOCR:
+MESS_NOCR::
 	LD	A,(HL)
 	OR	A
 	RET	Z

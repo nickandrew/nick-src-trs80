@@ -1,6 +1,6 @@
 ;
 ;sec10: Delay A x 0.1 seconds
-SEC10:
+SEC10::
 	PUSH	BC
 S1_1	PUSH	AF
 	LD	A,(TICKER)

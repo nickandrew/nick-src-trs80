@@ -1,6 +1,6 @@
 ;
 ;Multiply: Multiply HL by A, result in HLC like Newdos
-MULTIPLY
+MULTIPLY::
 	PUSH	DE
 	EX	DE,HL
 	LD	C,80H

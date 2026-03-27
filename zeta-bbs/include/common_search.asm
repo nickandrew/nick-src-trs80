@@ -1,7 +1,7 @@
 ;
 ;COMMON_SEARCH: Search the USERFILE for a particular name.
 ; This module is common between USER_SEARCH and ZERO_SEARCH.
-COMMON_SEARCH
+COMMON_SEARCH::
 	LD	HL,0
 	LD	(US_POSN),HL
 ;

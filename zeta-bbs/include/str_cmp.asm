@@ -1,6 +1,6 @@
 ;
 ;str_cmp: compare two strings for equality.
-STR_CMP
+STR_CMP::
 	LD	A,(DE)
 	CP	(HL)
 	RET	NZ

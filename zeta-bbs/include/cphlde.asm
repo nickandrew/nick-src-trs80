@@ -1,6 +1,6 @@
 ;
 ;CPHLDE: Compare HL to DE.
-CPHLDE
+CPHLDE::
 	LD	A,H
 	CP	D
 	RET	NZ

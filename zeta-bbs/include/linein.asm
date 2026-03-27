@@ -5,7 +5,8 @@
 ;Output  : in buffer LI_BUF, null terminated.
 ;Other   : LI_PRE	1=pre-input in buffer.
 ;
-LINEIN	LD	A,(LI_PRE)
+LINEIN::
+	LD	A,(LI_PRE)
 	OR	A
 	JR	Z,_LI_01
 	XOR	A

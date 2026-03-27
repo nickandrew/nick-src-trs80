@@ -1,6 +1,6 @@
 ;
 ; dtr_on: Turn on DTR
-DTR_ON
+DTR_ON::
 	LD	A,82H		;Re-init USART
 	OUT	(WRSTAT),A
 	LD	A,40H

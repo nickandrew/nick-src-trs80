@@ -1,6 +1,6 @@
 ;
 ;List: List a file to DCB_2O, allow abort with ^C
-LIST_FILE
+LIST_FILE::
 	LD	DE,_L_DCB
 	CALL	EXTRACT
 	LD	HL,_L_BUFF

@@ -1,6 +1,6 @@
 ;
 ;get_number: Convert a string ptd to by HL to a number HL
-GET_NUMBER
+GET_NUMBER::
 	LD	DE,0
 $GN_01	LD	A,(HL)
 	CALL	IF_NUM

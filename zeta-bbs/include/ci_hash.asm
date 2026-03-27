@@ -1,6 +1,6 @@
 ;
 ;CI_HASH: Case independant hash.
-CI_HASH
+CI_HASH::
 	LD	C,0
 CIH_1	LD	A,(HL)
 	OR	A

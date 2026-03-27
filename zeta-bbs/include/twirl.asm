@@ -1,6 +1,6 @@
 ;
 ;twirl: Reselect & spin the last selected drive.
-TWIRL
+TWIRL::
 	LD	A,(4308H)
 	CALL	445BH
 	RET

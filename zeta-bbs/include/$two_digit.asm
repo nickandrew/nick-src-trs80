@@ -1,5 +1,5 @@
 ;
-$TWO_DIGIT
+$TWO_DIGIT::
 	LD	(HL),'0'-1
 	LD	A,(DE)
 $TD_01

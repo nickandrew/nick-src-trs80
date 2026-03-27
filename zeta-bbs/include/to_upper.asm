@@ -1,6 +1,6 @@
 ;
 ;TO_UPPER: String to upper case conversion
-TO_UPPER:
+TO_UPPER::
 	LD	A,(HL)
 	OR	A
 	RET	Z

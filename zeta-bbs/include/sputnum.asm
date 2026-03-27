@@ -1,7 +1,7 @@
 ;
 ;
 ;SPUTNUM: Put a decimal integer into a string.
-SPUTNUM:
+SPUTNUM::
 	LD	(_SPPOS),DE
 	XOR	A
 	LD	(_SPBLANK),A

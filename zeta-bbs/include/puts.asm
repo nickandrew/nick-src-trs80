@@ -1,8 +1,12 @@
 ;
+*GET	EXTERNAL
+
 ;puts: Put a string to $stdout_def.
-PUTS
+PUTS::
 	PUSH	DE
 	LD	DE,DCB_2O
 	CALL	FPUTS
 	POP	DE
 	RET
+
+	extern	FPUTS

@@ -2,7 +2,7 @@
 ;BBOPEN: Allow user-oriented file access..
 	COM	'<BBOPEN 1.0b 29-Dec-85>'
 ;
-BB_OPEN
+BB_OPEN::
 	CALL	SAVE_REG
 	CALL	FIX_NAME
 	CALL	CHK_INOWN

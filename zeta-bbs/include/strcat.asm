@@ -1,6 +1,6 @@
 ;
 ;strcat: Concatenate HL string on end of DE string.
-STRCAT
+STRCAT::
 	LD	A,(DE)
 	OR	A
 	JR	Z,_STRCAT_1

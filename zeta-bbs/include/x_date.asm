@@ -1,6 +1,6 @@
 ;
 ;X_date: convert mm/dd/yy to dd-mmm-yy.
-X_DATE
+X_DATE::
 	PUSH	HL
 	LD	DE,7
 	ADD	HL,DE
