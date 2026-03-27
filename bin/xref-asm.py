@@ -5,6 +5,7 @@
 import argparse
 import asm_parser
 import sys
+import yaml
 
 from lark.visitors import Visitor
 
@@ -30,10 +31,10 @@ class Labelizer(Visitor):
     def label(self, tree):
         # tree.data == 'label'
         # Tree(Token('RULE', 'label'), [Token('__ANON_16', 'MESS$DI')])
-        self.defines.add(tree.children[0])
+        self.defines.add(str(tree.children[0]))
 
     def symbol(self, tree):
-        self.refers.add(tree.children[0])
+        self.refers.add(str(tree.children[0]))
 
 
 def report_symtab():
@@ -43,6 +44,7 @@ def report_symtab():
         print(f'{label} Defined: {defines}')
         references = ' '.join(sorted(x['ref'].keys()))
         print(f'{label} Referred: {references}')
+
 
 def xref_add(filename, tree):
     """Add labels and symbol references from filename to our data."""
@@ -71,17 +73,21 @@ def xref_files(filenames):
                 continue
         xref_add(filename, tree)
 
-    report_symtab()
-
-def parse_args():
-    p = argparse.ArgumentParser(description='Parse ASM source files')
-    p.add_argument('filenames', nargs='*', help='Filename to parse')
-    return p.parse_args()
 
 def main():
-    args = parse_args()
+    parser = argparse.ArgumentParser(description='Parse ASM source files')
+    parser.add_argument('--yaml', help='Write xref to this YAML filename')
+    parser.add_argument('filenames', nargs='*', help='Filename to parse')
+    args = parser.parse_args()
+
     if args.filenames:
         xref_files(args.filenames)
+
+    if args.yaml:
+        with open(args.yaml, 'w') as ofp:
+            yaml.dump(symtab, stream=ofp)
+    else:
+        report_symtab()
 
 if __name__ == '__main__':
     main()
