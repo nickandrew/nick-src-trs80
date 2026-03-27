@@ -85,7 +85,7 @@ def write_build_rule(filename, tree):
     with open(build_path, 'w') as ofp:
         yaml.safe_dump(build_rules, stream=ofp)
 
-    print(f'--- BUILD.yaml for {filename}')
+    print(f'--- {build_path}')
     yaml.safe_dump(build_rules, stream=sys.stdout)
 
 

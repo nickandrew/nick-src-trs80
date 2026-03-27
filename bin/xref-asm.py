@@ -31,10 +31,14 @@ class Labelizer(Visitor):
     def label(self, tree):
         # tree.data == 'label'
         # Tree(Token('RULE', 'label'), [Token('__ANON_16', 'MESS$DI')])
-        self.defines.add(str(tree.children[0]))
+        lbl = str(tree.children[0])
+        self.defines.add(lbl)
 
     def symbol(self, tree):
-        self.refers.add(str(tree.children[0]))
+        sym = str(tree.children[0])
+        # '$' by itself refers to the currently-being-assembled address in memory
+        if sym != '$':
+            self.refers.add(sym)
 
 
 def report_symtab():
