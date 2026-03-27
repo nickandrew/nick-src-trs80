@@ -1,0 +1,8 @@
+free.cmd:
+  assemble: free.asm
+  depends:
+  - free.asm
+  - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - zeta-bbs/include/external.asm
+  - zeta-bbs/include/mess_0.asm
