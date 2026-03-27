@@ -3,9 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-main(argc, argv)
-int argc;
-char **argv;
+int main(int argc, char **argv)
 {
     FILE *fi, *fo;
     char c;
@@ -38,5 +36,5 @@ char **argv;
 
     fclose(fi);
     fclose(fo);
-    exit(0);
+    return 0;
 }

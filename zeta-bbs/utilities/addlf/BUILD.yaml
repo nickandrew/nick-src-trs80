@@ -1,15 +1,31 @@
 addlf.cmd:
   assemble: addlf.asm
   depends:
-  - zeta-bbs/utilities/addlf/addlf.asm
+  - addlf.asm
   - include/include/ascii.asm
   - include/include/doscalls.asm
   - zeta-bbs/include/external.asm
   - zeta-bbs/include/extract.asm
   - zeta-bbs/include/mess_0.asm
-  - zeta-bbs/include/rs232.asm
-  - zeta-bbs/include/userfile.asm
-addlfc.asm:
-  sdcc: addlfc.c
+addlf1.cmd:
+  depends:
+  - addlf1.rel
+  - library/basicio/basicio.lib
+  - library/libc/libc.lib
+  - library/newdos80/newdos80.lib
+  link: addlf1
+addlf1.rel:
+  depends:
+  - zeta-bbs/utilities/addlf/addlf1.c
+  sdcc: addlf1.c
+addlfc.cmd:
+  depends:
+  - addlfc.rel
+  - library/basicio/basicio.lib
+  - library/libc/libc.lib
+  - library/newdos80/newdos80.lib
+  link: addlfc
+addlfc.rel:
   depends:
   - zeta-bbs/utilities/addlf/addlfc.c
+  sdcc: addlfc.c
