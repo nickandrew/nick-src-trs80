@@ -7,7 +7,6 @@
 ;
 US	EQU	1FH
 RS	EQU	1EH
-CR	EQU	0DH
 BUFF_LEN	EQU	36	;36 sectors per track.
 ;
 	ORG	PROG_START
@@ -1049,9 +1048,9 @@ LONG_CMP
 LCP_1	POP	DE
 	POP	HL
 	RET
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 ;********************************************************
 ;Data ....
 ;

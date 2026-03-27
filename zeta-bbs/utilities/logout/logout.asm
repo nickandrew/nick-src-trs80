@@ -205,9 +205,9 @@ RET_NZ
 	RET	NZ
 	CP	1
 	RET
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_NOLOGOUT
 	DEFM	CR
 	DEFM	'** Logout Aborted **',CR

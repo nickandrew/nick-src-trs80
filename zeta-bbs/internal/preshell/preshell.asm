@@ -44,9 +44,9 @@ SHELL_1
 	CALL	CALL_PROG
 	RET	Z
 	JP	TERMINATE
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 CMD_NOTE	DEFM	'note -r',CR,0
 CMD_SHELL	DEFM	'shell',CR,0
 CMD_MENU	DEFM	'menu -',CR,0

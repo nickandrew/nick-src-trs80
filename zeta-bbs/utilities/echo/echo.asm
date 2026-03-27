@@ -136,9 +136,9 @@ CMP_1
 	LD	A,(HL)
 	CP	'/'
 	RET
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 WORD_ST	DEFW	0
 M_USAGE	DEFM	'Usage: ECHO [text|/NAK/|\char] ...',CR,0
 ;

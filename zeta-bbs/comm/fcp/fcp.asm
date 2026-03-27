@@ -1208,13 +1208,12 @@ ADD_SUM	PUSH	HL
 	POP	DE
 	POP	HL
 	RET
-;
-; Include globals
-*GET	ROUTINES
+
+; <includes>
 *GET	SEC10
 *GET	SPUTNUM
 *GET	STATS
-;
+
 D_FLAG	DEFB	0	;1=Dial-out.
 FAILED	DEFB	0	;1 = Connection failed somewhere
 SENTPKT	DEFB	0	;1 = Outgoing packet was sent

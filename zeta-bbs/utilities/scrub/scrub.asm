@@ -140,9 +140,9 @@ MESS_WORD
 	CALL	ROM@PUT
 	INC	HL
 	JR	MESS_WORD
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_SCRUB	DEFM	'scrub: ',0
 M_NOFILE	DEFM	'scrub: Cannot open ',0
 M_USAGE	DEFM	'scrub: remove bit 7 from files (ie: wordstar)',CR

@@ -28,14 +28,13 @@ MAX_MSGS	EQU	400
 *GET	MAIL5		;Subroutines
 *GET	MAIL6		;Resend command
 *GET	MAIL7		;Text file routines
-;
+
+; <includes>
 *GET	LINEIN
 *GET	MOREPIPE	;Pipe output through - more - filter
 *GET	TIMES
-*GET	ROUTINES
-;
 *GET	MAILDATA
-;
+
 ZZZZZZZY	EQU	$		;End of required data
 	DEFS	5120	;Text buffer.
 ZZZZZZZZ	EQU	$		;End of 4k buffer.

@@ -334,9 +334,9 @@ INT_ERROR
 	CALL	MESS_0
 	LD	A,130
 	JP	TERMINATE
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_INTERR
 	DEFM	'stty: Internal error!',CR,0
 MY_NAME

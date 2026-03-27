@@ -27,7 +27,7 @@ P_MSG	LD	A,(HL)
 STRING	DEFM	'{'
 DATE	DEFM	'dd-mmm-yy  '
 TIME	DEFM	'HH:MM:SS} : ',0
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 	END	START

@@ -19,14 +19,13 @@ CREDITS		EQU	0	;Print credit info
 ;
 	COM	'<Logon 3.5g 16-May-89>'
 	ORG	BASE+100H
-;
+
+; <includes>
 *GET	LOGON1
 *GET	LOGON2
-;
 *GET	FORTYHEX
 *GET	MOREPIPE
-*GET	ROUTINES
-;
+
 ;List of prohibited words or parts of words
 BADN_1	DEFM	'SYSOP',0
 BADN_2	DEFM	'ZETA',0

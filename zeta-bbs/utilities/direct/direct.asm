@@ -661,9 +661,9 @@ SYSOP_ONLY
 	LD	HL,M_NOTSYSOP
 	CALL	MESS
 	JP	MAIN
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_TOTEMP
 	DEFM	'Extracting desired file to real filename "TEMPFILE".',CR,0
 TEMPFILE

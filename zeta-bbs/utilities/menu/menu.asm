@@ -92,9 +92,9 @@ ME_3	INC	HL
 	CALL	CALL_PROG
 ;
 	JP	START
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 DFLAG	DEFB	0
 C_BUFF	DC	3,0
 ;

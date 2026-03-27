@@ -437,10 +437,10 @@ ERROR	PUSH	AF
 	CALL	DOS_ERROR
 	POP	AF
 	JP	TERMINATE
-;
-*GET	ROUTINES
+
+; <includes>
 *GET	FILENAME
-;
+
 M_USAGE	DEFM	'Sort:  Sort-Merge a file',CR
 	DEFM	'Usage: SORT infile',CR
 	DEFM	'Eg:    SORT filelist.zms',CR,0

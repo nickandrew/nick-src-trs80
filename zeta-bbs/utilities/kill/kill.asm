@@ -48,9 +48,9 @@ NOKILL	LD	HL,M_NOKILL
 	CALL	FPUTS
 	LD	A,129
 	JP	TERMINATE
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_NONEX	DEFM	'Kill: File not in directory',CR,0
 M_NOKILL
 	DEFM	'Kill: Insufficient access to kill',CR,0

@@ -311,11 +311,11 @@ ERROR	PUSH	AF
 ;
 ;
 ;
-;
+
+; <includes>
 *GET	MSGHDR
 *GET	MSGTOP
-;
-*GET	ROUTINES
+
 ;
 M_FROM	DEFM	'From: ',0
 M_TO	DEFM	'To:   ',0

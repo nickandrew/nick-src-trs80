@@ -211,9 +211,10 @@ AFY	POP	DE
 	LD	(HL),A
 	INC	HL
 	RET	
-;
-*GET	ROUTINES
-;
+
+; <includes>
+*GET	MESS_0
+
 GRANS	DEFW	0
 ;
 AFZ	DEFW	86A0H	;=100,000

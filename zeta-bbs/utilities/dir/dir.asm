@@ -539,9 +539,9 @@ AFY	POP	DE
 	LD	(HL),A
 	INC	HL
 	RET	
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 AFZ	DEFW	86A0H	;=100,000
 	DEFB	1
 AGA	DEFW	-10000

@@ -271,10 +271,9 @@ TS_3	INC	HL
 	XOR	A
 	CP	1
 	RET
-;
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_PROTOCOL
 	DEFM	'Xmodem or Ascii? [X,a] : ',0
 ;

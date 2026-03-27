@@ -25,11 +25,11 @@ START	LD	SP,START
 	BIT	IS_SYSOP,A
 	LD	A,0
 	JP	Z,TERMINATE
-;
+
+; <includes>
 *GET	PKTASS1
 *GET	BB7
 ;
-*GET	ROUTINES
 *GET	CI_CMP
 ;
 ;Data section...........................................

@@ -448,10 +448,10 @@ RET_NZ
 	XOR	A
 	CP	1
 	RET
-;
+
+; <includes>
 *GET	BB7
-*GET	ROUTINES
-;
+
 ;-------------------------------
 M_OPERR		DEFM	'Error opening message files',CR,0
 M_R1ERR		DEFM	'Error reading initial information',CR,0

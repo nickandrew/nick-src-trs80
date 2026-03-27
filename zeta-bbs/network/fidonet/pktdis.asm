@@ -15,13 +15,12 @@
 ;End of program load info.
 ;
 	ORG	BASE+100H
-;
+
+; <includes>
 *GET	PKTDIS1
 *GET	BB7		;Text file routines
-;
 *GET	TIMES		;Time output routines
-*GET	ROUTINES	;General routines
-;
+
 DEFAULT_TOPIC	EQU	10000100B	;gen>mail>netmail
 ;
 ;Byte values for 2nd field of conf_table:

@@ -49,9 +49,9 @@ MESS_NCR
 	CALL	ROM@PUT
 	INC	HL
 	JR	MESS_NCR
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_UNUM
 	DEFM	'   User number: ',0
 M_UNAME

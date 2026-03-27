@@ -404,12 +404,10 @@ RET_NZ	OR	A
 	RET	NZ
 	CP	1
 	RET
-;
-;=
-;
+
+; <includes>
 *GET	ACSNET1
-*GET	ROUTINES
-;
+
 M_FAIL1	DEFM	'Could not receive echonews',CR,0
 M_FAIL2	DEFM	'Failed to receive pre-echonews packet',CR,0
 M_OOSYNC

@@ -455,9 +455,9 @@ DONE
 	CALL	DO_CLOSE
 	JP	NZ,ERROR
 	RET
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_OPENOK
 	DEFM	'Files opened OK',CR,0
 M_CNT_OPEN

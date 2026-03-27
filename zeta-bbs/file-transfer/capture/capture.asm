@@ -254,9 +254,9 @@ XL_04	LD	A,CR
 	CALL	FPUTS
 	CALL	DOS_CLOSE
 	RET
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_USAGE	DEFM	'Upload: Upload a file in Ascii format',CR
 	DEFM	'Usage:  UPLOAD filename',CR
 	DEFM	'Eg:     UPLOAD myfile.txt',CR,0

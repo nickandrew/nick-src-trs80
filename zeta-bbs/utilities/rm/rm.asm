@@ -168,9 +168,9 @@ MESS_WORD
 	CALL	ROM@PUT
 	INC	HL
 	JR	MESS_WORD
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_KILL	DEFM	'rm: ',0
 M_NONEX	DEFM	'Cannot find ',0
 M_NOKILL

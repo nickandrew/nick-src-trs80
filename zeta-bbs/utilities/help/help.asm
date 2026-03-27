@@ -589,10 +589,10 @@ READBYTE
 RB_EOF	LD	A,'0'
 	OR	A		;Set NZ flag
 	RET
-;
+
+; <includes>
 *GET	MOREPIPE	;Pagination routine
-*GET	ROUTINES	;Other routines
-;
+
 ;data follows.
 ;
 SAVED_NAME	DEFW	0

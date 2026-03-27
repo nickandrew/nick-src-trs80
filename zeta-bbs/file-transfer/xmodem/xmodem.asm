@@ -48,13 +48,12 @@ MAX_BLOCKS	EQU	18H	;Was 14H.
 SEALINK		EQU	0	;Generate Sealink ACKs
 CHARTIMEOUT	EQU	2	;0.2 seconds timeout when receiving
 ;
+
+; <includes>
 *GET	XMODEM1
 *GET	XMODEM2
-;
-;Get useful routines.
 *GET	TIMES
-*GET	ROUTINES
-;
+
 ;Special flags & stuff.
 QUIET		DEFB	0	;1=Quiet output
 OVERWRITE	DEFB	0	;1=Overwrite existing file

@@ -655,10 +655,10 @@ BS_2
 	POP	AF
 	OUT	(WRDATA),A
 	RET
-;
-*GET	ROUTINES
+
+; <includes>
 *GET	STATS
-;
+
 MT_1	DEFM	'--> trying to get filename',CR,0
 MT_2	DEFM	'--> eot seen',CR,0
 MT_3	DEFM	' ack ',0

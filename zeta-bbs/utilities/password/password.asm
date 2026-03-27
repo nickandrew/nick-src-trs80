@@ -244,9 +244,9 @@ PD_1	INC	H
 	LD	HL,DEC_CODE
 	CALL	LOG_MSG
 	RET
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 M_CHANGING
 	DEFM	'Changing password for ',0
 M_NOCHG	DEFM	'Password to remain unchanged',CR,0

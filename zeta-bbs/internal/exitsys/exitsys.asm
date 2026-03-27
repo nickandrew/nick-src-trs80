@@ -367,9 +367,9 @@ REWR_1	LD	A,(HL)
 	CALL	DOS_CLOSE
 	JP	NZ,ERROR
 	RET			;Done!
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 STAT_COPY	DEFB	0
 FLAG	DEFB	0
 ;

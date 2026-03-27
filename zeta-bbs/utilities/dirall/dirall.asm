@@ -241,9 +241,9 @@ OD_4	LD	A,(HL)
 	CP	CR
 	JR	NZ,OD_4
 	JR	OD_1
-;
-*GET	ROUTINES
-;
+
+; <includes>
+
 MESS_1	DEFM	'Dirall 1.5  24-Aug-86 - Hit <ESC> to abort',CR,0
 ;
 MESS_2	DEFM	'dirall: Show all files on the system',CR

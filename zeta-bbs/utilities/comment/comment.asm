@@ -189,11 +189,10 @@ KILL	LD	DE,C_FCB
 	JP	NZ,COMM_ERR
 	LD	A,0
 	JP	TERMINATE
-;
-;Get required routines.
+
+; <includes>
 *GET	LINEIN		;Wraparound input routine.
-*GET	ROUTINES
-;
+
 M_TYPE	DEFM	CR,CR
 	DEFM	'Type out your comments now,',CR
 	DEFM	'Hit <CR> on an empty line when finished',CR,CR,0

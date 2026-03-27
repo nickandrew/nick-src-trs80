@@ -175,10 +175,10 @@ S1_1	LD	A,(TICKER)
 	JR	NZ,S1_0
 	POP	BC
 	RET
-;
+
+; <includes>
 *GET	LINEIN
-*GET	ROUTINES
-;
+
 M_THANKS	DEFM	CR,'Thanks for the chat!',CR,0
 ;
 MESS1
