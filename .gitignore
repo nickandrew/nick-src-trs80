@@ -1,3 +1,4 @@
 *.lst
 *.rel
 *.sym
+__pycache__
