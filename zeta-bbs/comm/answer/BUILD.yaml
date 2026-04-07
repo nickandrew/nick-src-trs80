@@ -1,0 +1,16 @@
+answer.cmd:
+  assemble: answer.asm
+  depends:
+  - answer.asm
+  - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - include/include/libc.asm
+  - zeta-bbs/include/external.asm
+  - zeta-bbs/include/extract.asm
+  - zeta-bbs/include/fputs.asm
+  - zeta-bbs/include/mess_0.asm
+  - zeta-bbs/include/puts.asm
+  - zeta-bbs/include/rs232.asm
+  - zeta-bbs/include/sec10.asm
+  - zeta-bbs/include/x_date.asm
+  - zeta-bbs/include/x_today.asm
