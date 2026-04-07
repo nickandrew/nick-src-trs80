@@ -8,5 +8,3 @@ PUTS::
 	CALL	FPUTS
 	POP	DE
 	RET
-
-	extern	FPUTS
