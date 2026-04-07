@@ -6,12 +6,25 @@ from lark.reconstruct import Reconstructor
 from lark.visitors import Discard,Transformer,Visitor
 
 
+def line_get_line(filename: str, comment: str = None) -> Tree:
+    new_line = Tree('line', [
+        Tree('get_line', [
+            Tree('star_get', []),
+            Token('TABS', '\t'),
+            Token('FILENAME', filename),
+        ]),
+        Token('LF', '\n')
+    ])
+
+    return new_line
+
+
 class GetIncludes(Visitor):
     def __init__(self, includes):
         self.includes = includes
 
     def get_line(self, tree):
-        filename = tree.children[2].children[0].value.lower()
+        filename = tree.children[2].value.lower()
         self.includes.add(filename)
 
 
@@ -77,15 +90,7 @@ class AddIncludeEarly(Transformer):
                 break
 
         # Now, i is the index of the first non-comment line, from 0 to cl-1 inclusive
-        new_line = Tree('line', [
-            Tree('get_line', [
-                Tree('star_get', []),
-                Token('TABS', '\t'),
-                Tree('filename', [Token('__ANON_18', self.filename)]),  # Apparently the anon name matters
-            ]),
-            Token('LF', '\n')
-        ])
-
+        new_line = line_get_line(self.filename)
         children = children[0:i] + [new_line] + children[i:]
         return Tree('start', children)
 

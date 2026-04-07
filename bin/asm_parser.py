@@ -8,8 +8,8 @@ from lark.lexer import Lexer, Token
 grammar = """
     start: line+
     line: TABS? comment LF
-        | label colon? TABS? comment? LF
-        | label colon? TABS pseudo_op_defl TABS expression TABS? comment? LF
+        | label (colons | colon)? TABS? comment? LF
+        | label (colons | colon)? TABS pseudo_op_defl TABS expression TABS? comment? LF
         | label TABS equ TABS expression TABS? comment? LF
         | get_line LF
         | "*LIST" TABS (on | off) LF
@@ -29,8 +29,8 @@ grammar = """
         | endif_line LF
         | LF
 
-    std_line : (label colon?)? TABS instruction TABS? comment?
-    get_line: star_get TABS filename TABS? comment?
+    std_line: (label (colons | colon)?)? TABS instruction TABS? comment?
+    get_line: star_get TABS FILENAME TABS? comment?
     endif_line: TABS pseudo_op_endif TABS? comment?
 
     expression: add_expr
@@ -196,7 +196,8 @@ grammar = """
     ?op15: op14
         | expression
 
-    colon: ":"
+    colons: COLONS
+    colon: COLON
     equ:    "EQU" | equ_lc
     equ_lc:   "equ"
     on:     "ON" | on_lc
@@ -479,7 +480,6 @@ grammar = """
     label:    /[A-Z_$@][A-Z0-9_$@?]{0,45}/i     // A label cannot start with a number
     symbol:   /[A-Z_$@][A-Z0-9_$@?]{0,45}/i     // A symbol cannot start with a number
 
-    filename:   /[A-Z0-9_$]+(\\/[A-Z0-9_$]{1,3})?/i
     hexnumber: /[0-9A-F]{1,5}H/i
     chexnumber: /0x[0-9A-F]+/i
     binary_number: /[01]{8}B/i
@@ -503,8 +503,11 @@ grammar = """
 
     // Terminals
 
+    COLON: ":"
+    COLONS: "::"
     COMMENT: /;.*/
     TABS: /\t+/
+    FILENAME:   /[A-Z0-9_$]+(\\/[A-Z0-9_$]{1,3})?/i
 
     %import common.INT    -> INT
     %import common.LF -> LF
