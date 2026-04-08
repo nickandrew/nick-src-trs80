@@ -256,6 +256,12 @@ XL_04	LD	A,CR
 	RET
 
 ; <includes>
+*GET	EXTRACT
+*GET	FPUTS
+*GET	MESS_0
+*GET	SHUFFLE
+*GET	X_DATE
+*GET	X_TODAY
 
 M_USAGE	DEFM	'Upload: Upload a file in Ascii format',CR
 	DEFM	'Usage:  UPLOAD filename',CR

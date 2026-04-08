@@ -1,0 +1,13 @@
+capture.cmd:
+  assemble: capture.asm
+  depends:
+  - capture.asm
+  - include/include/ascii.asm
+  - include/include/doscalls.asm
+  - zeta-bbs/include/external.asm
+  - zeta-bbs/include/extract.asm
+  - zeta-bbs/include/fputs.asm
+  - zeta-bbs/include/mess_0.asm
+  - zeta-bbs/include/shuffle.asm
+  - zeta-bbs/include/x_date.asm
+  - zeta-bbs/include/x_today.asm
