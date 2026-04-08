@@ -10,6 +10,7 @@ bb.cmd:
   - zeta-bbs/include/$two_digit.asm
   - zeta-bbs/include/ci_hash.asm
   - zeta-bbs/include/common_search.asm
+  - zeta-bbs/include/cphlde.asm
   - zeta-bbs/include/dmy_ascii.asm
   - zeta-bbs/include/external.asm
   - zeta-bbs/include/getdate.asm
