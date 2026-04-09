@@ -53,7 +53,7 @@ NEXT_PROCESS	POP	AF
 ; All registers are now saved so move them to the
 ;appropriate register table entry.
 ;
-	LD	A,(CURR_PROCESS) ;get current process #.
+	LD	A,(CURR_PROCESS)	;get current process #.
 ; If (curr_process)=dummy_pid (ie. to let a non process
 ;die cleanly, then save registers in dummy_proc_reg
 ;(just after proc_register table) and effectively

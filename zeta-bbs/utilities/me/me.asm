@@ -33,7 +33,7 @@ CANCEL	;-;	Close output file etc
 ENTER_CMD
 ;
 ;Set highest allowable address.
-	LD	HL,(HIMEM)
+	LD	HL,(DOS_HIMEM$)
 	LD	DE,-256		;Give it some clearance!
 	ADD	HL,DE
 	LD	(TEXT_HIMEM),HL

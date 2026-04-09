@@ -6,7 +6,7 @@ _BRK
 	LD	E,(HL)
 	INC	HL
 	LD	D,(HL)		;DE = endds
-	LD	HL,(HIMEM)
+	LD	HL,(DOS_HIMEM$)
 	OR	A
 	SBC	HL,DE
 	JR	C,$C_20		;HIMEM - endds < 0

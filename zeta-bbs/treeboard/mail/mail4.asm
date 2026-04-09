@@ -214,7 +214,7 @@ FF_06
 ;
 ;Set highest allowable address. This code is not well behaved.
 SET_HIGH
-	LD	HL,(HIMEM)
+	LD	HL,(DOS_HIMEM$)
 	LD	DE,-256		;Give it some clearance!
 	ADD	HL,DE
 ;;*	ld	hl,this_prog_end-256	;max addr

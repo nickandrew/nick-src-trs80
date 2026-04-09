@@ -28,7 +28,7 @@ START	LD	SP,START
 	LDIR
 ;
 	LD	HL,TEMP_RAM-1	;Set HIMEM (usually F7FF)
-	LD	(HIMEM),HL
+	LD	(DOS_HIMEM$),HL
 ;
 	LD	DE,44A0H	;Start clock interrupts
 	PUSH	DE

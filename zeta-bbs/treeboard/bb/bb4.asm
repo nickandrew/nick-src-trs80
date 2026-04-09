@@ -226,7 +226,7 @@ SF_02	EX	DE,HL
 ;
 ;Set highest allowable address.
 SET_HIGH
-	LD	HL,(HIMEM)
+	LD	HL,(DOS_HIMEM$)
 	LD	DE,-256		;Give it some clearance!
 	ADD	HL,DE
 ;;	LD	HL,THIS_PROG_END-256	;max addr

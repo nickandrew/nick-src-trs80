@@ -33,11 +33,11 @@ START
 ;
 	PUSH	HL
 ;Install code from SLOAD to END_CODE in high memory.
-	LD	HL,(HIMEM)
+	LD	HL,(DOS_HIMEM$)
 	LD	DE,END_CODE-SLOAD
 	OR	A
 	SBC	HL,DE
-	LD	(HIMEM),HL
+	LD	(DOS_HIMEM$),HL
 	INC	HL
 	PUSH	HL		;new sload value
 	LD	(NEW_SLOAD),HL

@@ -15,7 +15,7 @@
 	COM	'<ERRLOG 1.0d 16-Apr-86>'
 	ORG	BASE+100H
 START	LD	SP,START
-	LD	HL,(HIMEM)
+	LD	HL,(DOS_HIMEM$)
 	LD	A,H
 	CP	0FFH
 	JR	NZ,HI_OK
@@ -24,7 +24,7 @@ HI_OK	LD	DE,EN_CODE-ST_CODE
 	PUSH	DE
 	OR	A
 	SBC	HL,DE
-	LD	(HIMEM),HL
+	LD	(DOS_HIMEM$),HL
 	INC	HL
 ;do relocation.
 	PUSH	HL
@@ -50,7 +50,7 @@ HI_OK	LD	DE,EN_CODE-ST_CODE
 ;setup error handling now.
 	LD	A,0C3H
 	LD	(4409H),A	;Original handler.
-	LD	HL,(HIMEM)
+	LD	HL,(DOS_HIMEM$)
 	INC	HL
 	LD	(440AH),HL
 ;

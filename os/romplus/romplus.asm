@@ -80,7 +80,7 @@ MEM_END	LD	SP,HL		;stack at top of ram
 	LD	A,H		;test if too little ram
 	CP	42H
 	JR	C,MEM_BAD
-	LD	(HIMEM),HL
+	LD	(DOS_HIMEM$),HL
 	JR	LINKS
 ;
 MEM_BAD	LD	HL,MESS_1

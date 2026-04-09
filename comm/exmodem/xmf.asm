@@ -595,7 +595,7 @@ START	LD	(OLDSP),SP
 	LD	(AHM),HL
 	LD	HL,(4411H)	;Himem for Mod/III.
 	JR	AIO
-AIN	LD	HL,(HIMEM)	;Himem for Mod/I.
+AIN	LD	HL,(DOS_HIMEM$)	;Himem for Mod/I.
 AIO	OR	A
 	SBC	HL,DE
 	POP	HL

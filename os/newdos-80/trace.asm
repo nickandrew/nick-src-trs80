@@ -8,10 +8,10 @@
 
 	ORG	5200H
 START	LD	HL,TRCEND-1
-	LD	DE,(HIMEM)	; find current top of memory
+	LD	DE,(DOS_HIMEM$)	; find current top of memory
 	LD	BC,TRCEND-TRACE
 	LDDR			; ..& move trace routine there
-	LD	(HIMEM),DE	; set top of mem below trace routine
+	LD	(DOS_HIMEM$),DE	; set top of mem below trace routine
 	INC	DE
 	CALL	4410H		; activate interrupt routine
 	JP	DOS_NOERROR		; return to DOS

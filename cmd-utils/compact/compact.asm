@@ -6,7 +6,7 @@
 	DEFS	256			; Use a low stack between DOS and the start
 COMPACT	LD	SP,COMPACT-2
 	CALL	SIGNON
-	LD	HL,COM_BUFF
+	LD	HL,DOS_CMD_BUF$
 	CALL	NEXTWORD
 	PUSH	HL
 	LD	DE,FCB1

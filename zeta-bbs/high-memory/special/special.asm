@@ -35,7 +35,7 @@
 ;
 START	LD	SP,START	; Provide 256 bytes of stack under this code
 				; to avoid clobbering high memory
-	LD	HL,(HIMEM)	; Current high memory address
+	LD	HL,(DOS_HIMEM$)	; Current high memory address
 	LD	A,H
 	CP	0FFH
 	JR	NZ,NOT_FF
@@ -43,7 +43,7 @@ START	LD	SP,START	; Provide 256 bytes of stack under this code
 NOT_FF	LD	DE,EN_CODE-ST_CODE	; Length of the code to be relocated
 	OR	A
 	SBC	HL,DE
-	LD	(HIMEM),HL	; Reserve space for the code to be relocated
+	LD	(DOS_HIMEM$),HL	; Reserve space for the code to be relocated
 ;
 	INC	HL
 	LD	(ORIGIN),HL	; Start of destination addresses
@@ -270,9 +270,9 @@ PICKUP	PUSH	AF
 WAIT1	PUSH	BC		; BC will be clobbered, so save it
 W1_2	PUSH	AF
 	LD	B,40		; There are 40 ticks per second
-	LD	A,(TICKER)	; TICKER is updated asynchronously
+	LD	A,(DOS_TICKER$)	; TICKER is updated asynchronously
 	LD	C,A
-W1_3	LD	A,(TICKER)
+W1_3	LD	A,(DOS_TICKER$)
 	CP	C
 	LD	C,A
 	JR	Z,W1_3		; Loop while the value of TICKER hasn't changed

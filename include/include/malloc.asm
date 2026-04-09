@@ -13,7 +13,7 @@ _MALLOC
 	PUSH	HL		;HL = proposed new brksize
 	POP	BC		;BC = proposed new brksize
 	EX	DE,HL
-	LD	HL,(HIMEM)
+	LD	HL,(DOS_HIMEM$)
 	OR	A
 	SBC	HL,DE		;Is it >HIMEM
 	POP	DE		;DE = old brksize
