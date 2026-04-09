@@ -71,6 +71,9 @@ ERROR	PUSH	AF
 	JP	TERMINATE
 
 ; <includes>
+*GET	CI_CMP
+*GET	FPUTS
+*GET	PUTS
 
 M_UNMOUNTED
 	DEFM	'Requested volume not mounted.',CR,0
